@@ -1,5 +1,8 @@
+
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import SteveAvatar from "@/components/SteveAvatar";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,13 +15,23 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-steve-gray-light p-4">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+        <SteveAvatar size="lg" mood="angry" />
+        
+        <h1 className="text-4xl font-bold mb-4 mt-4">404</h1>
+        <p className="text-xl mb-6">¡Oops! Steve no puede encontrar esta página</p>
+        
+        <div className="steve-border bg-steve-white p-4 rounded-xl mb-6">
+          <p>Steve dice: "No deberías estar aquí, ¡estás procrastinando! Vuelve a tus tareas."</p>
+        </div>
+        
+        <Button 
+          asChild 
+          className="bg-steve-black text-steve-white hover:bg-steve-gray-dark steve-shadow"
+        >
+          <a href="/">Volver a las tareas</a>
+        </Button>
       </div>
     </div>
   );
