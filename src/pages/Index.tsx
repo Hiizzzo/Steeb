@@ -1,209 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import TaskItem, { Task } from '@/components/TaskItem';
+
+import React, { useState } from 'react';
+import { TaskProvider, useTaskContext } from '@/context/TaskContext';
+import TaskHeader from '@/components/TaskHeader';
+import TaskList from '@/components/TaskList';
 import AddTaskForm from '@/components/AddTaskForm';
 import TaskTimer from '@/components/TaskTimer';
-import SteveMessage from '@/components/SteveMessage';
 import StatsPanel from '@/components/StatsPanel';
-import { Bell, CheckSquare, BarChart, Plus, ArrowLeft } from 'lucide-react';
+import ColorBlobs from '@/components/ColorBlobs';
+import AddTaskButton from '@/components/AddTaskButton';
+import InactivityReminder from '@/components/InactivityReminder';
 
-const Index = () => {
-  const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
+const TasksContent = () => {
   const [showAddTask, setShowAddTask] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const { toast } = useToast();
-  
-  // Cargar tareas desde localStorage al iniciar
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('steve-tasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
-  
-  // Guardar tareas en localStorage cuando cambian
-  useEffect(() => {
-    localStorage.setItem('steve-tasks', JSON.stringify(tasks));
-  }, [tasks]);
-  
-  // Verificar inactividad para que Steve envíe notificaciones
-  useEffect(() => {
-    let inactivityTimer: number | undefined;
-    let reminderCount = 0;
-    
-    const resetInactivityTimer = () => {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = window.setTimeout(() => {
-        if (!activeTask && tasks.some(task => !task.completed)) {
-          reminderCount++;
-          let message = '';
-          
-          if (reminderCount === 1) {
-            message = "¡Hey! Tienes tareas pendientes. ¿Necesitas ayuda?";
-          } else if (reminderCount === 2) {
-            message = "Vamos, no te distraigas. ¡Hay trabajo que hacer!";
-          } else {
-            message = "¡ESTOY OBSERVANDO TUS ESTADÍSTICAS! ¡PONTE A TRABAJAR AHORA!";
-          }
-          
-          toast({
-            title: "Steve dice:",
-            description: message,
-          });
-        }
-      }, 90000); // 1.5 minutos de inactividad
-    };
-    
-    resetInactivityTimer();
-    
-    const handleActivity = () => {
-      resetInactivityTimer();
-    };
-    
-    window.addEventListener('click', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
-    
-    return () => {
-      clearTimeout(inactivityTimer);
-      window.removeEventListener('click', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-    };
-  }, [activeTask, tasks, toast]);
-  
-  // Agregar una nueva tarea
-  const handleAddTask = (newTaskData: Omit<Task, 'id' | 'completed' | 'actualTime'>) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      ...newTaskData,
-      completed: false
-    };
-    
-    setTasks(prevTasks => [...prevTasks, newTask]);
-    setShowAddTask(false);
-    
-    toast({
-      title: "Steve dice:",
-      description: "¡Nueva tarea agregada! ¡A trabajar se ha dicho!",
-    });
-  };
-  
-  // Marcar una tarea como completada
-  const handleCompleteTask = (id: string) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-  
-  // Iniciar el temporizador para una tarea
-  const handleStartTimer = (id: string) => {
-    const task = tasks.find(task => task.id === id);
-    if (task) {
-      setActiveTask(task);
-      
-      toast({
-        title: "Steve dice:",
-        description: "¡Hora de concentrarse! Estoy vigilando tu rendimiento.",
-      });
-    }
-  };
-  
-  // Completar una tarea desde el temporizador
-  const handleTimerComplete = (id: string, timeSpent: number) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? 
-        { ...task, completed: true, actualTime: timeSpent } : 
-        task
-      )
-    );
-    
-    setActiveTask(null);
-    
-    toast({
-      title: "Steve dice:",
-      description: "¡Buen trabajo! Has completado una tarea.",
-    });
-  };
-  
-  // Cancelar el temporizador
-  const handleCancelTimer = () => {
-    setActiveTask(null);
-    
-    toast({
-      title: "Steve dice:",
-      description: "Has pausado tu trabajo. ¡Regresa pronto!",
-    });
-  };
-  
-  // Filtrar tareas pendientes y completadas
-  const pendingTasks = tasks.filter(task => !task.completed);
-  const completedTasks = tasks.filter(task => task.completed);
-  
-  // Determinar el mensaje de Steve
-  const getSteveMessage = () => {
-    if (tasks.length === 0) {
-      return {
-        text: "¡Hola! Soy Steve, tu supervisor de productividad. Vamos a agregar algunas tareas para empezar.",
-        mood: 'happy' as const
-      };
-    }
-    
-    if (pendingTasks.length === 0 && completedTasks.length > 0) {
-      return {
-        text: "¡Excelente trabajo! Has completado todas tus tareas. ¿Quieres agregar más?",
-        mood: 'happy' as const
-      };
-    }
-    
-    if (pendingTasks.length > 2) {
-      return {
-        text: `Tienes ${pendingTasks.length} tareas pendientes. ¡Es hora de ponerse a trabajar!`,
-        mood: 'angry' as const
-      };
-    }
-    
-    return {
-      text: "Recuerda mantener el enfoque y evitar distracciones. ¡Estoy vigilando!",
-      mood: 'neutral' as const
-    };
-  };
-  
-  const steveMessage = getSteveMessage();
-  
+  const {
+    tasks,
+    activeTask,
+    handleAddTask,
+    handleCompleteTask,
+    handleStartTimer,
+    handleTimerComplete,
+    handleCancelTimer
+  } = useTaskContext();
+
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
-      {/* Manchas de colores */}
-      <div className="absolute top-0 right-0 w-1/2 h-60 bg-gradient-to-br from-purple-200 via-blue-200 to-pink-200 blur-3xl rounded-full -mr-20 -mt-10 opacity-70"></div>
-      <div className="absolute bottom-0 left-0 w-1/2 h-60 bg-gradient-to-tr from-blue-200 via-purple-200 to-pink-200 blur-3xl rounded-full -ml-20 -mb-10 opacity-70"></div>
-      <div className="absolute bottom-1/3 right-0 w-1/3 h-40 bg-gradient-to-tl from-pink-200 via-purple-200 to-blue-200 blur-3xl rounded-full -mr-10 opacity-60"></div>
+      {/* Color blobs background */}
+      <ColorBlobs />
       
-      {/* Header con el título y flecha de regreso */}
-      <header className="pt-6 pb-4 px-6 relative z-10">
-        <div className="flex items-center">
-          <Button 
-            variant="ghost" 
-            className="p-0 mr-3"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft size={24} />
-          </Button>
-          <h1 className="text-4xl font-bold">Mis Tareas</h1>
-        </div>
-      </header>
+      {/* Inactivity reminder logic */}
+      <InactivityReminder activeTask={activeTask} tasks={tasks} />
+      
+      {/* Header */}
+      <TaskHeader />
       
       {showAddTask && (
         <div className="px-6 mb-6 relative z-10">
-          <AddTaskForm onAddTask={handleAddTask} />
+          <AddTaskForm onAddTask={(taskData) => {
+            handleAddTask(taskData);
+            setShowAddTask(false);
+          }} />
           <Button 
             className="w-full mt-3 bg-steve-white hover:bg-steve-gray-light steve-border"
             variant="outline"
@@ -228,24 +64,11 @@ const Index = () => {
       
       {!showAddTask && !showStats && (
         <div className="px-6 pb-32 relative z-10">
-          {/* Lista de tareas con círculos coloridos */}
-          <div className="space-y-5">
-            {tasks.map((task, index) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onComplete={handleCompleteTask}
-                onStartTimer={handleStartTimer}
-                colorIndex={index}
-              />
-            ))}
-            
-            {tasks.length === 0 && (
-              <div className="py-10">
-                <SteveMessage message={steveMessage.text} mood={steveMessage.mood} />
-              </div>
-            )}
-          </div>
+          <TaskList
+            tasks={tasks}
+            onComplete={handleCompleteTask}
+            onStartTimer={handleStartTimer}
+          />
         </div>
       )}
       
@@ -259,19 +82,24 @@ const Index = () => {
       )}
       
       {/* Botón flotante de añadir */}
-      <div className="fixed bottom-6 right-6 z-20">
-        <Button 
-          onClick={() => {
-            setShowAddTask(true);
-            setShowStats(false);
-          }}
-          className="w-14 h-14 rounded-full gradient-bg-button flex items-center justify-center shadow-lg"
-        >
-          <Plus size={24} color="white" />
-        </Button>
-      </div>
+      <AddTaskButton
+        onClick={() => {
+          setShowAddTask(true);
+          setShowStats(false);
+        }}
+      />
     </div>
   );
 };
+
+// Faltó importar Button en el componente interno TasksContent
+import { Button } from '@/components/ui/button';
+
+// Componente principal
+const Index = () => (
+  <TaskProvider>
+    <TasksContent />
+  </TaskProvider>
+);
 
 export default Index;
