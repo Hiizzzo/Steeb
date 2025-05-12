@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import TaskItem, { Task } from '@/components/TaskItem';
@@ -11,6 +10,7 @@ import StatsPanel from '@/components/StatsPanel';
 import { Bell, CheckSquare, BarChart, Plus, ArrowLeft } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [showAddTask, setShowAddTask] = useState(false);
@@ -190,7 +190,11 @@ const Index = () => {
       {/* Header con el título y flecha de regreso */}
       <header className="pt-6 pb-4 px-6 relative z-10">
         <div className="flex items-center">
-          <Button variant="ghost" className="p-0 mr-3">
+          <Button 
+            variant="ghost" 
+            className="p-0 mr-3"
+            onClick={() => navigate('/')}
+          >
             <ArrowLeft size={24} />
           </Button>
           <h1 className="text-4xl font-bold">Mis Tareas</h1>
