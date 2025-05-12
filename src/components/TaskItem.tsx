@@ -37,14 +37,17 @@ const TaskItem: React.FC<TaskItemProps> = ({
         className
       )}
     >
-      <div 
-        className={`w-10 h-10 rounded-full flex items-center justify-center gradient-bg-${colorIndex % 5}`}
+      <button 
+        className={`w-10 h-10 rounded-full flex items-center justify-center gradient-bg-${colorIndex % 5} cursor-pointer`}
         onClick={() => onComplete(task.id)}
+        aria-label={task.completed ? "Marcar como incompleta" : "Marcar como completada"}
       >
-        {task.completed && (
+        {task.completed ? (
           <CheckCircle size={20} className="text-white" />
+        ) : (
+          <Circle size={20} className="text-white opacity-0" />
         )}
-      </div>
+      </button>
       
       <div className={cn('ml-5 flex-1', task.completed ? 'line-through' : '')}>
         <h3 className="text-xl">{task.title}</h3>

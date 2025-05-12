@@ -180,11 +180,15 @@ const Index = () => {
   
   const steveMessage = getSteveMessage();
   
-  // Nuevo diseño basado en la imagen compartida
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Manchas de colores */}
+      <div className="absolute top-0 right-0 w-1/2 h-60 bg-gradient-to-br from-purple-200 via-blue-200 to-pink-200 blur-3xl rounded-full -mr-20 -mt-10 opacity-70"></div>
+      <div className="absolute bottom-0 left-0 w-1/2 h-60 bg-gradient-to-tr from-blue-200 via-purple-200 to-pink-200 blur-3xl rounded-full -ml-20 -mb-10 opacity-70"></div>
+      <div className="absolute bottom-1/3 right-0 w-1/3 h-40 bg-gradient-to-tl from-pink-200 via-purple-200 to-blue-200 blur-3xl rounded-full -mr-10 opacity-60"></div>
+      
       {/* Header con el título y flecha de regreso */}
-      <header className="pt-6 pb-4 px-6">
+      <header className="pt-6 pb-4 px-6 relative z-10">
         <div className="flex items-center">
           <Button variant="ghost" className="p-0 mr-3">
             <ArrowLeft size={24} />
@@ -194,7 +198,7 @@ const Index = () => {
       </header>
       
       {showAddTask && (
-        <div className="px-6 mb-6">
+        <div className="px-6 mb-6 relative z-10">
           <AddTaskForm onAddTask={handleAddTask} />
           <Button 
             className="w-full mt-3 bg-steve-white hover:bg-steve-gray-light steve-border"
@@ -207,7 +211,7 @@ const Index = () => {
       )}
       
       {showStats && (
-        <div className="px-6 mb-6">
+        <div className="px-6 mb-6 relative z-10">
           <StatsPanel tasks={tasks} />
           <Button 
             className="w-full mt-3 bg-steve-black text-steve-white hover:bg-steve-gray-dark"
@@ -219,15 +223,17 @@ const Index = () => {
       )}
       
       {!showAddTask && !showStats && (
-        <div className="px-6 pb-32">
+        <div className="px-6 pb-32 relative z-10">
           {/* Lista de tareas con círculos coloridos */}
           <div className="space-y-5">
             {tasks.map((task, index) => (
-              <div key={task.id} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center gradient-bg-${index % 5}`}>
-                </div>
-                <span className="ml-5 text-xl">{task.title}</span>
-              </div>
+              <TaskItem
+                key={task.id}
+                task={task}
+                onComplete={handleCompleteTask}
+                onStartTimer={handleStartTimer}
+                colorIndex={index}
+              />
             ))}
             
             {tasks.length === 0 && (
@@ -249,7 +255,7 @@ const Index = () => {
       )}
       
       {/* Botón flotante de añadir */}
-      <div className="fixed bottom-6 right-6">
+      <div className="fixed bottom-6 right-6 z-20">
         <Button 
           onClick={() => {
             setShowAddTask(true);
