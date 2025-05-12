@@ -8,7 +8,7 @@ import AddTaskForm from '@/components/AddTaskForm';
 import TaskTimer from '@/components/TaskTimer';
 import SteveMessage from '@/components/SteveMessage';
 import StatsPanel from '@/components/StatsPanel';
-import { Bell, CheckSquare, BarChart, Plus } from 'lucide-react';
+import { Bell, CheckSquare, BarChart, Plus, ArrowLeft } from 'lucide-react';
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -180,40 +180,21 @@ const Index = () => {
   
   const steveMessage = getSteveMessage();
   
+  // Nuevo diseño basado en la imagen compartida
   return (
-    <div className="min-h-screen bg-steve-gray-light pb-20">
-      {/* Header */}
-      <header className="bg-steve-white steve-border-b p-4 mb-5 shadow">
-        <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-center">Steve</h1>
-          <p className="text-sm text-center">Tu asistente anti-procrastinación</p>
+    <div className="min-h-screen bg-white">
+      {/* Header con el título y flecha de regreso */}
+      <header className="pt-6 pb-4 px-6">
+        <div className="flex items-center">
+          <Button variant="ghost" className="p-0 mr-3">
+            <ArrowLeft size={24} />
+          </Button>
+          <h1 className="text-4xl font-bold">Mis Tareas</h1>
         </div>
       </header>
       
-      {/* Mensaje de Steve */}
-      <div className="container mx-auto px-4">
-        <SteveMessage 
-          message={steveMessage.text}
-          mood={steveMessage.mood}
-        />
-      </div>
-      
-      {/* Panel de Estadísticas */}
-      {showStats && (
-        <div className="container mx-auto px-4 mb-5">
-          <StatsPanel tasks={tasks} />
-          <Button 
-            className="w-full mt-3 bg-steve-black text-steve-white hover:bg-steve-gray-dark"
-            onClick={() => setShowStats(false)}
-          >
-            Cerrar Estadísticas
-          </Button>
-        </div>
-      )}
-      
-      {/* Formulario para agregar tareas */}
       {showAddTask && (
-        <div className="container mx-auto px-4 mb-5">
+        <div className="px-6 mb-6">
           <AddTaskForm onAddTask={handleAddTask} />
           <Button 
             className="w-full mt-3 bg-steve-white hover:bg-steve-gray-light steve-border"
@@ -225,43 +206,38 @@ const Index = () => {
         </div>
       )}
       
-      {/* Listado de Tareas */}
-      <div className="container mx-auto px-4">
-        {!showAddTask && !showStats && (
-          <>
-            {pendingTasks.length > 0 && (
-              <div className="mb-6">
-                <h2 className="font-medium mb-3">Tareas Pendientes ({pendingTasks.length})</h2>
-                
-                {pendingTasks.map(task => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onComplete={handleCompleteTask}
-                    onStartTimer={handleStartTimer}
-                  />
-                ))}
+      {showStats && (
+        <div className="px-6 mb-6">
+          <StatsPanel tasks={tasks} />
+          <Button 
+            className="w-full mt-3 bg-steve-black text-steve-white hover:bg-steve-gray-dark"
+            onClick={() => setShowStats(false)}
+          >
+            Cerrar Estadísticas
+          </Button>
+        </div>
+      )}
+      
+      {!showAddTask && !showStats && (
+        <div className="px-6 pb-32">
+          {/* Lista de tareas con círculos coloridos */}
+          <div className="space-y-5">
+            {tasks.map((task, index) => (
+              <div key={task.id} className="flex items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center gradient-bg-${index % 5}`}>
+                </div>
+                <span className="ml-5 text-xl">{task.title}</span>
               </div>
-            )}
+            ))}
             
-            {completedTasks.length > 0 && (
-              <div>
-                <h2 className="font-medium mb-3">Tareas Completadas ({completedTasks.length})</h2>
-                
-                {completedTasks.map(task => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onComplete={handleCompleteTask}
-                    onStartTimer={handleStartTimer}
-                    className="opacity-70"
-                  />
-                ))}
+            {tasks.length === 0 && (
+              <div className="py-10">
+                <SteveMessage message={steveMessage.text} mood={steveMessage.mood} />
               </div>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
       
       {/* Timer Activo */}
       {activeTask && (
@@ -272,44 +248,17 @@ const Index = () => {
         />
       )}
       
-      {/* Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-steve-white border-t-2 border-steve-black p-2">
-        <div className="flex justify-around">
-          <Button 
-            variant="ghost" 
-            className="flex flex-col items-center"
-            onClick={() => {
-              setShowAddTask(false);
-              setShowStats(false);
-            }}
-          >
-            <CheckSquare size={24} />
-            <span className="text-xs mt-1">Tareas</span>
-          </Button>
-          
-          <Button 
-            variant="ghost"
-            className="flex flex-col items-center rounded-full bg-steve-black text-steve-white -mt-5 p-3 hover:bg-steve-gray-dark steve-shadow"
-            onClick={() => {
-              setShowAddTask(true);
-              setShowStats(false);
-            }}
-          >
-            <Plus size={28} />
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            className="flex flex-col items-center"
-            onClick={() => {
-              setShowAddTask(false);
-              setShowStats(true);
-            }}
-          >
-            <BarChart size={24} />
-            <span className="text-xs mt-1">Stats</span>
-          </Button>
-        </div>
+      {/* Botón flotante de añadir */}
+      <div className="fixed bottom-6 right-6">
+        <Button 
+          onClick={() => {
+            setShowAddTask(true);
+            setShowStats(false);
+          }}
+          className="w-14 h-14 rounded-full gradient-bg-button flex items-center justify-center shadow-lg"
+        >
+          <Plus size={24} color="white" />
+        </Button>
       </div>
     </div>
   );

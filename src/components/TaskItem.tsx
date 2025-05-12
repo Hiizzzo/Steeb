@@ -19,70 +19,65 @@ interface TaskItemProps {
   onComplete: (id: string) => void;
   onStartTimer: (id: string) => void;
   className?: string;
+  colorIndex?: number;
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({ 
   task, 
   onComplete, 
   onStartTimer, 
-  className 
+  className,
+  colorIndex = 0
 }) => {
   return (
-    <Card 
+    <div 
       className={cn(
-        'steve-border p-4 transition-all mb-3', 
-        task.completed ? 'bg-steve-gray-light' : 'bg-steve-white',
+        'flex items-center py-3', 
+        task.completed ? 'opacity-70' : '',
         className
       )}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-3">
-          <button 
-            onClick={() => onComplete(task.id)}
-            className="mt-1"
-          >
-            {task.completed ? (
-              <CheckCircle size={20} className="text-steve-black" />
-            ) : (
-              <Circle size={20} className="text-steve-black" />
-            )}
-          </button>
-          
-          <div className={cn('transition-all', task.completed ? 'opacity-60 line-through' : '')}>
-            <h3 className="font-medium">{task.title}</h3>
-            {task.description && (
-              <p className="text-sm text-steve-gray-dark mt-1">{task.description}</p>
-            )}
-            
-            {task.targetTime && (
-              <div className="flex items-center text-xs text-steve-gray-dark mt-2">
-                <span>Meta: {task.targetTime} min</span>
-                {task.actualTime && (
-                  <span className="ml-2">
-                    {task.actualTime > task.targetTime 
-                      ? `(+${task.actualTime - task.targetTime} min extra)` 
-                      : `(${task.actualTime} min)`
-                    }
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {!task.completed && (
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="steve-border bg-steve-white hover:bg-steve-gray-light"
-            onClick={() => onStartTimer(task.id)}
-          >
-            <Timer size={16} className="mr-1" />
-            Iniciar
-          </Button>
+      <div 
+        className={`w-10 h-10 rounded-full flex items-center justify-center gradient-bg-${colorIndex % 5}`}
+        onClick={() => onComplete(task.id)}
+      >
+        {task.completed && (
+          <CheckCircle size={20} className="text-white" />
         )}
       </div>
-    </Card>
+      
+      <div className={cn('ml-5 flex-1', task.completed ? 'line-through' : '')}>
+        <h3 className="text-xl">{task.title}</h3>
+        {task.description && (
+          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+        )}
+        
+        {task.targetTime && (
+          <div className="flex items-center text-xs text-gray-500 mt-1">
+            <span>Meta: {task.targetTime} min</span>
+            {task.actualTime && (
+              <span className="ml-2">
+                {task.actualTime > task.targetTime 
+                  ? `(+${task.actualTime - task.targetTime} min extra)` 
+                  : `(${task.actualTime} min)`
+                }
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {!task.completed && (
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          className="text-gray-500"
+          onClick={() => onStartTimer(task.id)}
+        >
+          <Timer size={16} />
+        </Button>
+      )}
+    </div>
   );
 };
 
