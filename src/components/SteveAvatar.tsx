@@ -3,7 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface SteveAvatarProps {
-  mood?: 'happy' | 'angry' | 'neutral';
+  mood?: 'happy' | 'angry' | 'neutral' | 'logo';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   animate?: boolean;
