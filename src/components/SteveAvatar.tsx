@@ -23,6 +23,19 @@ const SteveAvatar: React.FC<SteveAvatarProps> = ({
   
   const animations = animate ? 'animate-bounce-light' : '';
   
+  // For the app logo, we'll just use the image
+  if (mood === 'logo') {
+    return (
+      <div className={cn('flex flex-col justify-center', sizeClasses[size], animations, className)}>
+        <img 
+          src="/lovable-uploads/905f2168-fa3f-4ac6-8dea-07534651b1c0.png" 
+          alt="Steve Logo" 
+          className="w-full h-full"
+        />
+      </div>
+    );
+  }
+  
   // Diferentes expresiones para Steve basado en su estado de ánimo
   const renderFace = () => {
     switch(mood) {
