@@ -23,11 +23,11 @@ const SteveAvatar: React.FC<SteveAvatarProps> = ({
   
   const animations = animate ? 'animate-bounce-light' : '';
   
-  // Ahora siempre usamos la imagen de Steve
+  // Ahora usamos la nueva imagen de Steve
   return (
     <div className={cn('flex flex-col justify-center', sizeClasses[size], animations, className)}>
       <img 
-        src="/lovable-uploads/1b99faf8-ba83-48b1-bd88-78b3a1b8b3e6.png" 
+        src="/lovable-uploads/1773de0b-514d-4336-b9b8-d7ffe17a6934.png" 
         alt="Steve Avatar" 
         className="w-full h-full rounded-full object-cover"
       />
