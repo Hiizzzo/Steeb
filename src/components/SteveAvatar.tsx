@@ -23,73 +23,14 @@ const SteveAvatar: React.FC<SteveAvatarProps> = ({
   
   const animations = animate ? 'animate-bounce-light' : '';
   
-  // For the app logo, we'll just use the image
-  if (mood === 'logo') {
-    return (
-      <div className={cn('flex flex-col justify-center', sizeClasses[size], animations, className)}>
-        <img 
-          src="/lovable-uploads/905f2168-fa3f-4ac6-8dea-07534651b1c0.png" 
-          alt="Steve Logo" 
-          className="w-full h-full"
-        />
-      </div>
-    );
-  }
-  
-  // Diferentes expresiones para Steve basado en su estado de ánimo
-  const renderFace = () => {
-    switch(mood) {
-      case 'happy':
-        return (
-          <>
-            <div className="eyes flex justify-center space-x-5 pt-4">
-              <div className="eye w-3 h-3 bg-steve-black rounded-full"></div>
-              <div className="eye w-3 h-3 bg-steve-black rounded-full"></div>
-            </div>
-            <div className="mouth mt-2 w-10 h-4 mx-auto border-b-2 border-steve-black rounded-b-full"></div>
-          </>
-        );
-      case 'angry':
-        return (
-          <>
-            <div className="eyes flex justify-center space-x-5 pt-4">
-              <div className="eye-left flex flex-col items-center">
-                <div className="eyebrow w-4 h-1 bg-steve-black -rotate-45 mb-1"></div>
-                <div className="eye w-3 h-3 bg-steve-black rounded-full"></div>
-              </div>
-              <div className="eye-right flex flex-col items-center">
-                <div className="eyebrow w-4 h-1 bg-steve-black rotate-45 mb-1"></div>
-                <div className="eye w-3 h-3 bg-steve-black rounded-full"></div>
-              </div>
-            </div>
-            <div className="mouth mt-3 w-8 h-3 mx-auto border-t-2 border-steve-black rounded-t-full"></div>
-          </>
-        );
-      default: // neutral
-        return (
-          <>
-            <div className="eyes flex justify-center space-x-5 pt-4">
-              <div className="eye w-3 h-3 bg-steve-black rounded-full"></div>
-              <div className="eye w-3 h-3 bg-steve-black rounded-full"></div>
-            </div>
-            <div className="mouth mt-3 w-8 h-1 mx-auto bg-steve-black"></div>
-          </>
-        );
-    }
-  };
-  
+  // Ahora siempre usamos la imagen de Steve
   return (
-    <div 
-      className={cn(
-        'flex flex-col justify-center', 
-        sizeClasses[size],
-        animations,
-        className
-      )}
-    >
-      <div className="steve-head bg-steve-white steve-border p-2 rounded-full">
-        {renderFace()}
-      </div>
+    <div className={cn('flex flex-col justify-center', sizeClasses[size], animations, className)}>
+      <img 
+        src="/lovable-uploads/1b99faf8-ba83-48b1-bd88-78b3a1b8b3e6.png" 
+        alt="Steve Avatar" 
+        className="w-full h-full rounded-full object-cover"
+      />
     </div>
   );
 };
