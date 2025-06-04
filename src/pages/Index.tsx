@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,13 +7,15 @@ import AddTaskForm from '@/components/AddTaskForm';
 import TaskTimer from '@/components/TaskTimer';
 import SteveMessage from '@/components/SteveMessage';
 import StatsPanel from '@/components/StatsPanel';
-import { Bell, CheckSquare, BarChart, Plus } from 'lucide-react';
+import { Bell, CheckSquare, BarChart, Plus, Timer } from 'lucide-react';
+import PomodoroTimer from '@/components/PomodoroTimer';
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showPomodoro, setShowPomodoro] = useState(false);
   const { toast } = useToast();
   
   // Cargar tareas desde localStorage al iniciar
@@ -77,6 +78,21 @@ const Index = () => {
       window.removeEventListener('touchstart', handleActivity);
     };
   }, [activeTask, tasks, toast]);
+  
+  // Abrir Pomodoro
+  const handleOpenPomodoro = () => {
+    setShowPomodoro(true);
+    
+    toast({
+      title: "Steve dice:",
+      description: "¡Hora de usar la técnica Pomodoro! 25 minutos de trabajo intenso.",
+    });
+  };
+  
+  // Cerrar Pomodoro
+  const handleClosePomodoro = () => {
+    setShowPomodoro(false);
+  };
   
   // Agregar una nueva tarea
   const handleAddTask = (newTaskData: Omit<Task, 'id' | 'completed' | 'actualTime'>) => {
@@ -184,9 +200,20 @@ const Index = () => {
     <div className="min-h-screen bg-steve-gray-light pb-20">
       {/* Header */}
       <header className="bg-steve-white steve-border-b p-4 mb-5 shadow">
-        <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-center">Steve</h1>
-          <p className="text-sm text-center">Tu asistente anti-procrastinación</p>
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="text-center flex-1">
+            <h1 className="text-2xl font-bold">Steve</h1>
+            <p className="text-sm">Tu asistente anti-procrastinación</p>
+          </div>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={handleOpenPomodoro}
+            className="steve-border bg-steve-white hover:bg-steve-gray-light"
+          >
+            <Timer size={16} className="mr-1" />
+            Pomodoro
+          </Button>
         </div>
       </header>
       
@@ -270,6 +297,11 @@ const Index = () => {
           onComplete={handleTimerComplete}
           onCancel={handleCancelTimer}
         />
+      )}
+      
+      {/* Pomodoro Timer */}
+      {showPomodoro && (
+        <PomodoroTimer onClose={handleClosePomodoro} />
       )}
       
       {/* Navigation Bar */}
