@@ -33,15 +33,16 @@ const LoadingScreen: React.FC = () => {
         
         <h2 className="text-white text-2xl font-bold">Llega el descanso</h2>
         
-        {/* Barra de progreso */}
-        <div className="w-64 bg-gray-800 rounded-full h-3 overflow-hidden">
+        {/* Barra de progreso minimalista que se expande desde el centro */}
+        <div className="relative w-64 h-1 bg-gray-800 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-white rounded-full transition-all duration-100 ease-out"
-            style={{ width: `${progress}%` }}
+            className="absolute top-0 left-1/2 h-full bg-white rounded-full transition-all duration-100 ease-out origin-center"
+            style={{ 
+              width: `${progress}%`,
+              transform: 'translateX(-50%)'
+            }}
           ></div>
         </div>
-        
-        <p className="text-white text-sm opacity-75">{progress}%</p>
       </div>
     </div>
   );
