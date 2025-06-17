@@ -187,12 +187,12 @@ const Index = () => {
     };
   };
   const steveMessage = getSteveMessage();
-  return <div className="min-h-screen bg-steve-gray-light pb-20">
+  return <div className="min-h-screen bg-steve-gray-light pb-20 bg-gray-950">
       {/* Header */}
-      <header className="bg-steve-white steve-border-b p-4 mb-5 shadow">
+      <header className="steve-border-b p-4 mb-5 shadow bg-zinc-950">
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-center flex-1">
-            <h1 className="text-2xl font-bold">Steve</h1>
+            <h1 className="text-2xl font-bold text-zinc-50">Steve</h1>
             
           </div>
           
@@ -251,10 +251,10 @@ const Index = () => {
             <span className="text-xs mt-1">Tareas</span>
           </Button>
 
-          <Button variant="ghost" className="flex flex-col items-center rounded-full bg-steve-black text-steve-white -mt-5 p-3 hover:bg-steve-gray-dark steve-shadow" onClick={() => {
+          <Button variant="ghost" onClick={() => {
           setShowAddTask(true);
           setShowStats(false);
-        }}>
+        }} className="flex flex-col items-center rounded-full -mt-5 p-3 hover:bg-steve-gray-dark steve-shadow text-slate-950 bg-zinc-50">
             <Plus size={28} />
           </Button>
 
