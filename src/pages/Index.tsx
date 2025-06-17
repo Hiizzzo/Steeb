@@ -10,15 +10,19 @@ import StatsPanel from '@/components/StatsPanel';
 import { Bell, CheckSquare, BarChart, Plus, Timer } from 'lucide-react';
 import PomodoroTimer from '@/components/PomodoroTimer';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
-
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showPomodoro, setShowPomodoro] = useState(false);
-  const { toast } = useToast();
-  const { playTaskCompleteSound, playTimerStartSound } = useSoundEffects();
+  const {
+    toast
+  } = useToast();
+  const {
+    playTaskCompleteSound,
+    playTimerStartSound
+  } = useSoundEffects();
 
   // Cargar tareas desde localStorage al iniciar
   useEffect(() => {
@@ -37,14 +41,12 @@ const Index = () => {
   useEffect(() => {
     let inactivityTimer: number | undefined;
     let reminderCount = 0;
-
     const resetInactivityTimer = () => {
       clearTimeout(inactivityTimer);
       inactivityTimer = window.setTimeout(() => {
         if (!activeTask && tasks.some(task => !task.completed)) {
           reminderCount++;
           let message = '';
-
           if (reminderCount === 1) {
             message = "¡Hey! Tienes tareas pendientes. ¿Necesitas ayuda?";
           } else if (reminderCount === 2) {
@@ -52,26 +54,21 @@ const Index = () => {
           } else {
             message = "¡ESTOY OBSERVANDO TUS ESTADÍSTICAS! ¡PONTE A TRABAJAR AHORA!";
           }
-
           toast({
             title: "Steve dice:",
-            description: message,
+            description: message
           });
         }
       }, 90000); // 1.5 minutos de inactividad
     };
-
     resetInactivityTimer();
-
     const handleActivity = () => {
       resetInactivityTimer();
     };
-
     window.addEventListener('click', handleActivity);
     window.addEventListener('keydown', handleActivity);
     window.addEventListener('mousemove', handleActivity);
     window.addEventListener('touchstart', handleActivity);
-
     return () => {
       clearTimeout(inactivityTimer);
       window.removeEventListener('click', handleActivity);
@@ -86,7 +83,7 @@ const Index = () => {
     setShowPomodoro(true);
     toast({
       title: "Steve dice:",
-      description: "¡Hora de usar la técnica Pomodoro! 25 minutos de trabajo intenso.",
+      description: "¡Hora de usar la técnica Pomodoro! 25 minutos de trabajo intenso."
     });
   };
 
@@ -106,18 +103,17 @@ const Index = () => {
     setShowAddTask(false);
     toast({
       title: "Steve dice:",
-      description: "¡Nueva tarea agregada! ¡A trabajar se ha dicho!",
+      description: "¡Nueva tarea agregada! ¡A trabajar se ha dicho!"
     });
   };
 
   // Marcar una tarea como completada
   const handleCompleteTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+    setTasks(prevTasks => prevTasks.map(task => task.id === id ? {
+      ...task,
+      completed: !task.completed
+    } : task));
     // Reproducir sonido solo cuando se completa la tarea (no cuando se desmarca)
     if (task && !task.completed) {
       playTaskCompleteSound();
@@ -130,28 +126,25 @@ const Index = () => {
     if (task) {
       setActiveTask(task);
       playTimerStartSound();
-
       toast({
         title: "Steve dice:",
-        description: "¡Hora de concentrarse! Estoy vigilando tu rendimiento.",
+        description: "¡Hora de concentrarse! Estoy vigilando tu rendimiento."
       });
     }
   };
 
   // Completar una tarea desde el temporizador
   const handleTimerComplete = (id: string, timeSpent: number) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? 
-        { ...task, completed: true, actualTime: timeSpent } : 
-        task
-      )
-    );
+    setTasks(prevTasks => prevTasks.map(task => task.id === id ? {
+      ...task,
+      completed: true,
+      actualTime: timeSpent
+    } : task));
     setActiveTask(null);
     playTaskCompleteSound();
     toast({
       title: "Steve dice:",
-      description: "¡Buen trabajo! Has completado una tarea.",
+      description: "¡Buen trabajo! Has completado una tarea."
     });
   };
 
@@ -160,7 +153,7 @@ const Index = () => {
     setActiveTask(null);
     toast({
       title: "Steve dice:",
-      description: "Has pausado tu trabajo. ¡Regresa pronto!",
+      description: "Has pausado tu trabajo. ¡Regresa pronto!"
     });
   };
 
@@ -176,175 +169,104 @@ const Index = () => {
         mood: 'happy' as const
       };
     }
-
     if (pendingTasks.length === 0 && completedTasks.length > 0) {
       return {
         text: "¡Excelente trabajo! Has completado todas tus tareas. ¿Quieres agregar más?",
         mood: 'happy' as const
       };
     }
-
     if (pendingTasks.length > 2) {
       return {
         text: `Tienes ${pendingTasks.length} tareas pendientes. ¡Es hora de ponerse a trabajar!`,
         mood: 'angry' as const
       };
     }
-
     return {
       text: "Recuerda mantener el enfoque y evitar distracciones. ¡Estoy vigilando!",
       mood: 'neutral' as const
     };
   };
-
   const steveMessage = getSteveMessage();
-
-  return (
-    <div className="min-h-screen bg-steve-gray-light pb-20">
+  return <div className="min-h-screen bg-steve-gray-light pb-20">
       {/* Header */}
       <header className="bg-steve-white steve-border-b p-4 mb-5 shadow">
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-center flex-1">
             <h1 className="text-2xl font-bold">Steve</h1>
-            <p className="text-sm">Tu asistente anti-procrastinación</p>
+            
           </div>
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleOpenPomodoro}
-            className="steve-border bg-steve-white hover:bg-steve-gray-light"
-          >
-            <Timer size={16} className="mr-1" />
-            Pomodoro
-          </Button>
+          
         </div>
       </header>
 
       {/* Mensaje de Steve */}
       <div className="container mx-auto px-4">
-        <SteveMessage 
-          message={steveMessage.text}
-          mood={steveMessage.mood}
-        />
+        <SteveMessage message={steveMessage.text} mood={steveMessage.mood} />
       </div>
 
       {/* Panel de Estadísticas */}
-      {showStats && (
-        <div className="container mx-auto px-4 mb-5">
+      {showStats && <div className="container mx-auto px-4 mb-5">
           <StatsPanel tasks={tasks} />
-          <Button 
-            className="w-full mt-3 bg-steve-black text-steve-white hover:bg-steve-gray-dark"
-            onClick={() => setShowStats(false)}
-          >
+          <Button className="w-full mt-3 bg-steve-black text-steve-white hover:bg-steve-gray-dark" onClick={() => setShowStats(false)}>
             Cerrar Estadísticas
           </Button>
-        </div>
-      )}
+        </div>}
 
       {/* Formulario para agregar tareas */}
-      {showAddTask && (
-        <div className="container mx-auto px-4 mb-5">
+      {showAddTask && <div className="container mx-auto px-4 mb-5">
           <AddTaskForm onAddTask={handleAddTask} />
-          <Button 
-            className="w-full mt-3 bg-steve-white hover:bg-steve-gray-light steve-border"
-            variant="outline"
-            onClick={() => setShowAddTask(false)}
-          >
+          <Button className="w-full mt-3 bg-steve-white hover:bg-steve-gray-light steve-border" variant="outline" onClick={() => setShowAddTask(false)}>
             Cancelar
           </Button>
-        </div>
-      )}
+        </div>}
 
       {/* Listado de Tareas */}
       <div className="container mx-auto px-4">
-        {!showAddTask && !showStats && (
-          <>
-            {pendingTasks.length > 0 && (
-              <div className="mb-6">
+        {!showAddTask && !showStats && <>
+            {pendingTasks.length > 0 && <div className="mb-6">
                 <h2 className="font-medium mb-3">Tareas Pendientes ({pendingTasks.length})</h2>
-                {pendingTasks.map(task => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onComplete={handleCompleteTask}
-                    onStartTimer={handleStartTimer}
-                  />
-                ))}
-              </div>
-            )}
-            {completedTasks.length > 0 && (
-              <div>
+                {pendingTasks.map(task => <TaskItem key={task.id} task={task} onComplete={handleCompleteTask} onStartTimer={handleStartTimer} />)}
+              </div>}
+            {completedTasks.length > 0 && <div>
                 <h2 className="font-medium mb-3">Tareas Completadas ({completedTasks.length})</h2>
-                {completedTasks.map(task => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onComplete={handleCompleteTask}
-                    onStartTimer={handleStartTimer}
-                    className="opacity-70"
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+                {completedTasks.map(task => <TaskItem key={task.id} task={task} onComplete={handleCompleteTask} onStartTimer={handleStartTimer} className="opacity-70" />)}
+              </div>}
+          </>}
       </div>
 
       {/* Timer Activo */}
-      {activeTask && (
-        <TaskTimer
-          task={activeTask}
-          onComplete={handleTimerComplete}
-          onCancel={handleCancelTimer}
-        />
-      )}
+      {activeTask && <TaskTimer task={activeTask} onComplete={handleTimerComplete} onCancel={handleCancelTimer} />}
 
       {/* Pomodoro Timer */}
-      {showPomodoro && (
-        <PomodoroTimer onClose={handleClosePomodoro} />
-      )}
+      {showPomodoro && <PomodoroTimer onClose={handleClosePomodoro} />}
 
       {/* Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-steve-white border-t-2 border-steve-black p-2">
         <div className="flex justify-around">
-          <Button 
-            variant="ghost" 
-            className="flex flex-col items-center"
-            onClick={() => {
-              setShowAddTask(false);
-              setShowStats(false);
-            }}
-          >
+          <Button variant="ghost" className="flex flex-col items-center" onClick={() => {
+          setShowAddTask(false);
+          setShowStats(false);
+        }}>
             <CheckSquare size={24} />
             <span className="text-xs mt-1">Tareas</span>
           </Button>
 
-          <Button 
-            variant="ghost"
-            className="flex flex-col items-center rounded-full bg-steve-black text-steve-white -mt-5 p-3 hover:bg-steve-gray-dark steve-shadow"
-            onClick={() => {
-              setShowAddTask(true);
-              setShowStats(false);
-            }}
-          >
+          <Button variant="ghost" className="flex flex-col items-center rounded-full bg-steve-black text-steve-white -mt-5 p-3 hover:bg-steve-gray-dark steve-shadow" onClick={() => {
+          setShowAddTask(true);
+          setShowStats(false);
+        }}>
             <Plus size={28} />
           </Button>
 
-          <Button 
-            variant="ghost" 
-            className="flex flex-col items-center"
-            onClick={() => {
-              setShowAddTask(false);
-              setShowStats(true);
-            }}
-          >
+          <Button variant="ghost" className="flex flex-col items-center" onClick={() => {
+          setShowAddTask(false);
+          setShowStats(true);
+        }}>
             <BarChart size={24} />
             <span className="text-xs mt-1">Stats</span>
           </Button>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
