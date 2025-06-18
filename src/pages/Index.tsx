@@ -7,9 +7,10 @@ import AddTaskForm from '@/components/AddTaskForm';
 import TaskTimer from '@/components/TaskTimer';
 import SteveMessage from '@/components/SteveMessage';
 import StatsPanel from '@/components/StatsPanel';
-import { Bell, CheckSquare, BarChart, Plus, Timer } from 'lucide-react';
+import { Bell, CheckSquare, BarChart, Plus, Timer, Star, Sparkles, Trophy } from 'lucide-react';
 import PomodoroTimer from '@/components/PomodoroTimer';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -165,73 +166,159 @@ const Index = () => {
   const getSteveMessage = () => {
     if (tasks.length === 0) {
       return {
-        text: "¡Hola! Soy Steve, tu supervisor de productividad. Vamos a agregar algunas tareas para empezar.",
+        text: "¡Hola! Soy Steve, tu amigo supervisor. ¿Listos para ser súper productivos hoy? ¡Vamos a agregar tareas geniales! 🚀",
         mood: 'happy' as const
       };
     }
     if (pendingTasks.length === 0 && completedTasks.length > 0) {
       return {
-        text: "¡Excelente trabajo! Has completado todas tus tareas. ¿Quieres agregar más?",
+        text: "¡INCREÍBLE! 🎉 ¡Has completado TODAS tus tareas! ¡Eres una máquina de productividad! ¿Quieres agregar más aventuras? ⭐",
         mood: 'happy' as const
       };
     }
     if (pendingTasks.length > 2) {
       return {
-        text: `Tienes ${pendingTasks.length} tareas pendientes. ¡Es hora de ponerse a trabajar!`,
+        text: `¡Tienes ${pendingTasks.length} misiones esperándote! 💪 ¡Es hora de conquistar el mundo de la productividad! ¡TÚ PUEDES! 🔥`,
         mood: 'angry' as const
       };
     }
     return {
-      text: "Recuerda mantener el enfoque y evitar distracciones. ¡Estoy vigilando!",
+      text: "¡Mantén el enfoque, campeón! 🎯 Cada tarea completada te hace más fuerte. ¡Estoy aquí apoyándote! ⚡",
       mood: 'neutral' as const
     };
   };
   const steveMessage = getSteveMessage();
-  return <div className="min-h-screen bg-steve-gray-light pb-20 bg-gray-950">
-      {/* Header */}
-      <header className="steve-border-b p-4 mb-5 shadow bg-zinc-950">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="text-center flex-1">
-            <h1 className="text-2xl font-bold text-zinc-50">Stebe</h1>
-            
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 pb-20">
+      {/* Header con diseño más divertido */}
+      <header className="bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 p-6 mb-6 shadow-lg">
+        <div className="container mx-auto">
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <Star className="text-yellow-300 animate-pulse" size={32} />
+              <h1 className="text-3xl font-bold text-white tracking-wide">STEBE</h1>
+              <Sparkles className="text-yellow-300 animate-pulse" size={32} />
+            </div>
+            <p className="text-purple-100 text-sm font-medium">¡Tu compañero de aventuras productivas!</p>
           </div>
-          
         </div>
       </header>
 
-      {/* Mensaje de Steve */}
-      <div className="container mx-auto px-4">
-        <SteveMessage message={steveMessage.text} mood={steveMessage.mood} />
+      {/* Mensaje de Steve con diseño más amigable */}
+      <div className="container mx-auto px-4 mb-6">
+        <div className="bg-white rounded-2xl p-4 shadow-lg border-4 border-purple-200">
+          <SteveMessage message={steveMessage.text} mood={steveMessage.mood} />
+        </div>
       </div>
 
       {/* Panel de Estadísticas */}
-      {showStats && <div className="container mx-auto px-4 mb-5">
-          <StatsPanel tasks={tasks} />
-          <Button className="w-full mt-3 bg-steve-black text-steve-white hover:bg-steve-gray-dark" onClick={() => setShowStats(false)}>
-            Cerrar Estadísticas
-          </Button>
-        </div>}
+      {showStats && (
+        <div className="container mx-auto px-4 mb-6">
+          <div className="bg-white rounded-2xl p-4 shadow-lg border-4 border-blue-200">
+            <StatsPanel tasks={tasks} />
+            <Button 
+              className="w-full mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg" 
+              onClick={() => setShowStats(false)}
+            >
+              <Trophy size={20} className="mr-2" />
+              ¡Cerrar Estadísticas!
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Formulario para agregar tareas */}
-      {showAddTask && <div className="container mx-auto px-4 mb-5">
-          <AddTaskForm onAddTask={handleAddTask} />
-          <Button className="w-full mt-3 bg-steve-white hover:bg-steve-gray-light steve-border" variant="outline" onClick={() => setShowAddTask(false)}>
-            Cancelar
-          </Button>
-        </div>}
+      {showAddTask && (
+        <div className="container mx-auto px-4 mb-6">
+          <div className="bg-white rounded-2xl p-4 shadow-lg border-4 border-green-200">
+            <div className="text-center mb-4">
+              <h3 className="text-xl font-bold text-green-600 flex items-center justify-center">
+                <Plus size={24} className="mr-2" />
+                ¡Nueva Aventura!
+              </h3>
+              <p className="text-green-500 text-sm">¡Vamos a crear algo genial!</p>
+            </div>
+            <AddTaskForm onAddTask={handleAddTask} />
+            <Button 
+              className="w-full mt-4 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold py-3 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all" 
+              onClick={() => setShowAddTask(false)}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
 
-      {/* Listado de Tareas */}
+      {/* Listado de Tareas con diseño más visual */}
       <div className="container mx-auto px-4">
-        {!showAddTask && !showStats && <>
-            {pendingTasks.length > 0 && <div className="mb-6">
-                <h2 className="font-medium mb-3">Tareas Pendientes ({pendingTasks.length})</h2>
-                {pendingTasks.map(task => <TaskItem key={task.id} task={task} onComplete={handleCompleteTask} onStartTimer={handleStartTimer} />)}
-              </div>}
-            {completedTasks.length > 0 && <div>
-                <h2 className="font-medium mb-3">Tareas Completadas ({completedTasks.length})</h2>
-                {completedTasks.map(task => <TaskItem key={task.id} task={task} onComplete={handleCompleteTask} onStartTimer={handleStartTimer} className="opacity-70" />)}
-              </div>}
-          </>}
+        {!showAddTask && !showStats && (
+          <>
+            {/* Tareas Pendientes */}
+            {pendingTasks.length > 0 && (
+              <div className="mb-8">
+                <div className="bg-white rounded-2xl p-4 shadow-lg border-4 border-orange-200 mb-4">
+                  <h2 className="text-xl font-bold text-orange-600 flex items-center justify-center mb-4">
+                    <Timer size={24} className="mr-2 animate-pulse" />
+                    Misiones Activas ({pendingTasks.length})
+                    <Sparkles size={20} className="ml-2 text-yellow-500" />
+                  </h2>
+                  <div className="space-y-3">
+                    {pendingTasks.map(task => (
+                      <TaskItem 
+                        key={task.id} 
+                        task={task} 
+                        onComplete={handleCompleteTask} 
+                        onStartTimer={handleStartTimer} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tareas Completadas */}
+            {completedTasks.length > 0 && (
+              <div className="mb-8">
+                <div className="bg-white rounded-2xl p-4 shadow-lg border-4 border-green-200">
+                  <h2 className="text-xl font-bold text-green-600 flex items-center justify-center mb-4">
+                    <Trophy size={24} className="mr-2 text-yellow-500" />
+                    ¡Logros Desbloqueados! ({completedTasks.length})
+                    <Star size={20} className="ml-2 text-yellow-500 animate-pulse" />
+                  </h2>
+                  <div className="space-y-3">
+                    {completedTasks.map(task => (
+                      <TaskItem 
+                        key={task.id} 
+                        task={task} 
+                        onComplete={handleCompleteTask} 
+                        onStartTimer={handleStartTimer} 
+                        className="opacity-80 bg-gradient-to-r from-green-50 to-emerald-50" 
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mensaje cuando no hay tareas */}
+            {tasks.length === 0 && (
+              <div className="text-center py-12">
+                <div className="bg-white rounded-2xl p-8 shadow-lg border-4 border-purple-200">
+                  <Star size={64} className="mx-auto text-purple-400 mb-4 animate-pulse" />
+                  <h3 className="text-2xl font-bold text-purple-600 mb-2">¡Tu aventura comienza aquí!</h3>
+                  <p className="text-purple-400 mb-6">¡Presiona el botón mágico para crear tu primera misión!</p>
+                  <Button 
+                    onClick={() => setShowAddTask(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg"
+                  >
+                    <Plus size={20} className="mr-2" />
+                    ¡Crear Primera Misión!
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Timer Activo */}
@@ -240,33 +327,46 @@ const Index = () => {
       {/* Pomodoro Timer */}
       {showPomodoro && <PomodoroTimer onClose={handleClosePomodoro} />}
 
-      {/* Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-steve-white border-t-2 border-steve-black p-2">
-        <div className="flex justify-around">
-          <Button variant="ghost" className="flex flex-col items-center" onClick={() => {
-          setShowAddTask(false);
-          setShowStats(false);
-        }}>
-            <CheckSquare size={24} />
-            <span className="text-xs mt-1">Tareas</span>
+      {/* Navigation Bar con diseño más divertido */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-purple-300 p-3 shadow-2xl">
+        <div className="flex justify-around items-center">
+          <Button 
+            variant="ghost" 
+            className="flex flex-col items-center p-3 rounded-xl hover:bg-purple-100 transition-all" 
+            onClick={() => {
+              setShowAddTask(false);
+              setShowStats(false);
+            }}
+          >
+            <CheckSquare size={24} className="text-purple-600" />
+            <span className="text-xs mt-1 font-bold text-purple-600">Misiones</span>
           </Button>
 
-          <Button variant="ghost" onClick={() => {
-          setShowAddTask(true);
-          setShowStats(false);
-        }} className="flex flex-col items-center rounded-full -mt-5 p-3 hover:bg-steve-gray-dark steve-shadow text-slate-950 bg-zinc-50">
-            <Plus size={28} />
+          <Button 
+            onClick={() => {
+              setShowAddTask(true);
+              setShowStats(false);
+            }} 
+            className="flex flex-col items-center rounded-full -mt-6 p-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 shadow-xl transform hover:scale-110 transition-all"
+          >
+            <Plus size={32} />
           </Button>
 
-          <Button variant="ghost" className="flex flex-col items-center" onClick={() => {
-          setShowAddTask(false);
-          setShowStats(true);
-        }}>
-            <BarChart size={24} />
-            <span className="text-xs mt-1">Stats</span>
+          <Button 
+            variant="ghost" 
+            className="flex flex-col items-center p-3 rounded-xl hover:bg-blue-100 transition-all" 
+            onClick={() => {
+              setShowAddTask(false);
+              setShowStats(true);
+            }}
+          >
+            <BarChart size={24} className="text-blue-600" />
+            <span className="text-xs mt-1 font-bold text-blue-600">Stats</span>
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
