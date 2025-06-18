@@ -192,7 +192,7 @@ const Index = () => {
       <header className="steve-border-b p-4 mb-5 shadow bg-zinc-950">
         <div className="container mx-auto flex justify-between items-center">
           <div className="text-center flex-1">
-            <h1 className="text-2xl font-bold text-zinc-50">Steve</h1>
+            <h1 className="text-2xl font-bold text-zinc-50">Stebe</h1>
             
           </div>
           
