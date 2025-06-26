@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import StebeHeader from '@/components/StebeHeader';
+import SummaryBar from '@/components/SummaryBar';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
@@ -38,6 +39,11 @@ const Index = () => {
     localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
   }, [tasks]);
 
+  // Calcular estadísticas de tareas
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.completed).length;
+  const pendingTasks = totalTasks - completedTasks;
+
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
     setTasks(prevTasks => 
@@ -72,12 +78,9 @@ const Index = () => {
   };
 
   const handleShowTasks = () => {
-    const completedCount = tasks.filter(t => t.completed).length;
-    const totalCount = tasks.length;
-    
     toast({
       title: "Resumen de tareas:",
-      description: `${completedCount} de ${totalCount} tareas completadas`,
+      description: `${completedTasks} de ${totalTasks} tareas completadas`,
     });
   };
 
@@ -85,6 +88,13 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
       <StebeHeader />
+      
+      {/* Barra de resumen diario */}
+      <SummaryBar 
+        totalTasks={totalTasks}
+        completedTasks={completedTasks}
+        pendingTasks={pendingTasks}
+      />
       
       {/* Lista de Tareas */}
       <div className="pb-24">
