@@ -1,272 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import TaskItem, { Task } from '@/components/TaskItem';
-import AddTaskForm from '@/components/AddTaskForm';
-import TaskTimer from '@/components/TaskTimer';
-import SteveMessage from '@/components/SteveMessage';
-import StatsPanel from '@/components/StatsPanel';
-import { Bell, CheckSquare, BarChart, Plus, Timer } from 'lucide-react';
-import PomodoroTimer from '@/components/PomodoroTimer';
-import { useSoundEffects } from '@/hooks/useSoundEffects';
-const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [showStats, setShowStats] = useState(false);
-  const [showPomodoro, setShowPomodoro] = useState(false);
-  const {
-    toast
-  } = useToast();
-  const {
-    playTaskCompleteSound,
-    playTimerStartSound
-  } = useSoundEffects();
 
-  // Cargar tareas desde localStorage al iniciar
+import React, { useState, useEffect } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
+import StebeHeader from '@/components/StebeHeader';
+import TaskCard from '@/components/TaskCard';
+import FloatingButtons from '@/components/FloatingButtons';
+import ModalAddTask from '@/components/ModalAddTask';
+
+interface Task {
+  id: string;
+  title: string;
+  type: 'personal' | 'work' | 'meditation';
+  completed: boolean;
+}
+
+const Index = () => {
+  const [tasks, setTasks] = useState<Task[]>([
+    { id: '1', title: 'No ver PH', type: 'personal', completed: false },
+    { id: '2', title: 'Trabajar', type: 'work', completed: false },
+    { id: '3', title: 'Meditar', type: 'meditation', completed: false }
+  ]);
+  
+  const [showModal, setShowModal] = useState(false);
+  const { toast } = useToast();
+  const { playTaskCompleteSound } = useSoundEffects();
+
+  // Cargar tareas desde localStorage
   useEffect(() => {
-    const savedTasks = localStorage.getItem('steve-tasks');
+    const savedTasks = localStorage.getItem('stebe-tasks');
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks));
     }
   }, []);
 
-  // Guardar tareas en localStorage cuando cambian
+  // Guardar tareas en localStorage
   useEffect(() => {
-    localStorage.setItem('steve-tasks', JSON.stringify(tasks));
+    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Verificar inactividad para que Steve envíe notificaciones
-  useEffect(() => {
-    let inactivityTimer: number | undefined;
-    let reminderCount = 0;
-    const resetInactivityTimer = () => {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = window.setTimeout(() => {
-        if (!activeTask && tasks.some(task => !task.completed)) {
-          reminderCount++;
-          let message = '';
-          if (reminderCount === 1) {
-            message = "¡Hey! Tienes tareas pendientes. ¿Necesitas ayuda?";
-          } else if (reminderCount === 2) {
-            message = "Vamos, no te distraigas. ¡Hay trabajo que hacer!";
-          } else {
-            message = "¡ESTOY OBSERVANDO TUS ESTADÍSTICAS! ¡PONTE A TRABAJAR AHORA!";
-          }
-          toast({
-            title: "Steve dice:",
-            description: message
-          });
-        }
-      }, 90000); // 1.5 minutos de inactividad
-    };
-    resetInactivityTimer();
-    const handleActivity = () => {
-      resetInactivityTimer();
-    };
-    window.addEventListener('click', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
-    return () => {
-      clearTimeout(inactivityTimer);
-      window.removeEventListener('click', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-    };
-  }, [activeTask, tasks, toast]);
-
-  // Abrir Pomodoro
-  const handleOpenPomodoro = () => {
-    setShowPomodoro(true);
-    toast({
-      title: "Steve dice:",
-      description: "¡Hora de usar la técnica Pomodoro! 25 minutos de trabajo intenso."
-    });
-  };
-
-  // Cerrar Pomodoro
-  const handleClosePomodoro = () => {
-    setShowPomodoro(false);
-  };
-
-  // Agregar una nueva tarea
-  const handleAddTask = (newTaskData: Omit<Task, 'id' | 'completed' | 'actualTime'>) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      ...newTaskData,
-      completed: false
-    };
-    setTasks(prevTasks => [...prevTasks, newTask]);
-    setShowAddTask(false);
-    toast({
-      title: "Steve dice:",
-      description: "¡Nueva tarea agregada! ¡A trabajar se ha dicho!"
-    });
-  };
-
-  // Marcar una tarea como completada
-  const handleCompleteTask = (id: string) => {
+  const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
-    setTasks(prevTasks => prevTasks.map(task => task.id === id ? {
-      ...task,
-      completed: !task.completed
-    } : task));
-    // Reproducir sonido solo cuando se completa la tarea (no cuando se desmarca)
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+    
+    // Solo reproducir sonido y mostrar toast cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
       playTaskCompleteSound();
-    }
-  };
-
-  // Iniciar el temporizador para una tarea
-  const handleStartTimer = (id: string) => {
-    const task = tasks.find(task => task.id === id);
-    if (task) {
-      setActiveTask(task);
-      playTimerStartSound();
       toast({
         title: "Steve dice:",
-        description: "¡Hora de concentrarse! Estoy vigilando tu rendimiento."
+        description: "¡Bien hecho! Has completado una tarea.",
       });
     }
   };
 
-  // Completar una tarea desde el temporizador
-  const handleTimerComplete = (id: string, timeSpent: number) => {
-    setTasks(prevTasks => prevTasks.map(task => task.id === id ? {
-      ...task,
-      completed: true,
-      actualTime: timeSpent
-    } : task));
-    setActiveTask(null);
-    playTaskCompleteSound();
-    toast({
-      title: "Steve dice:",
-      description: "¡Buen trabajo! Has completado una tarea."
-    });
-  };
-
-  // Cancelar el temporizador
-  const handleCancelTimer = () => {
-    setActiveTask(null);
-    toast({
-      title: "Steve dice:",
-      description: "Has pausado tu trabajo. ¡Regresa pronto!"
-    });
-  };
-
-  // Filtrar tareas pendientes y completadas
-  const pendingTasks = tasks.filter(task => !task.completed);
-  const completedTasks = tasks.filter(task => task.completed);
-
-  // Determinar el mensaje de Steve
-  const getSteveMessage = () => {
-    if (tasks.length === 0) {
-      return {
-        text: "¡Hola! Soy Steve, tu supervisor de productividad. Vamos a agregar algunas tareas para empezar.",
-        mood: 'happy' as const
-      };
-    }
-    if (pendingTasks.length === 0 && completedTasks.length > 0) {
-      return {
-        text: "¡Excelente trabajo! Has completado todas tus tareas. ¿Quieres agregar más?",
-        mood: 'happy' as const
-      };
-    }
-    if (pendingTasks.length > 2) {
-      return {
-        text: `Tienes ${pendingTasks.length} tareas pendientes. ¡Es hora de ponerse a trabajar!`,
-        mood: 'angry' as const
-      };
-    }
-    return {
-      text: "Recuerda mantener el enfoque y evitar distracciones. ¡Estoy vigilando!",
-      mood: 'neutral' as const
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation') => {
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title,
+      type,
+      completed: false
     };
+    
+    setTasks(prevTasks => [...prevTasks, newTask]);
+    toast({
+      title: "Steve dice:",
+      description: "¡Nueva tarea agregada! ¡A trabajar se ha dicho!",
+    });
   };
-  const steveMessage = getSteveMessage();
-  return <div className="min-h-screen bg-steve-gray-light pb-20 bg-gray-950">
+
+  const handleShowTasks = () => {
+    const completedCount = tasks.filter(t => t.completed).length;
+    const totalCount = tasks.length;
+    
+    toast({
+      title: "Resumen de tareas:",
+      description: `${completedCount} de ${totalCount} tareas completadas`,
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
-      <header className="steve-border-b p-4 mb-5 shadow bg-zinc-950">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="text-center flex-1">
-            <h1 className="text-2xl font-bold text-zinc-50">Stebe</h1>
-            
+      <StebeHeader />
+      
+      {/* Lista de Tareas */}
+      <div className="pb-24">
+        {tasks.length > 0 ? (
+          tasks.map(task => (
+            <TaskCard
+              key={task.id}
+              id={task.id}
+              title={task.title}
+              type={task.type}
+              completed={task.completed}
+              onToggle={handleToggleTask}
+            />
+          ))
+        ) : (
+          <div className="text-center py-12 px-4">
+            <div className="text-4xl mb-4">📝</div>
+            <p className="text-lg text-gray-600 font-medium">
+              No tienes tareas aún.
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              ¡Presiona el botón + para agregar tu primera tarea!
+            </p>
           </div>
-          
-        </div>
-      </header>
-
-      {/* Mensaje de Steve */}
-      <div className="container mx-auto px-4">
-        <SteveMessage message={steveMessage.text} mood={steveMessage.mood} />
+        )}
       </div>
 
-      {/* Panel de Estadísticas */}
-      {showStats && <div className="container mx-auto px-4 mb-5">
-          <StatsPanel tasks={tasks} />
-          <Button className="w-full mt-3 bg-steve-black text-steve-white hover:bg-steve-gray-dark" onClick={() => setShowStats(false)}>
-            Cerrar Estadísticas
-          </Button>
-        </div>}
+      {/* Botones Flotantes */}
+      <FloatingButtons 
+        onAddTask={() => setShowModal(true)}
+        onShowTasks={handleShowTasks}
+      />
 
-      {/* Formulario para agregar tareas */}
-      {showAddTask && <div className="container mx-auto px-4 mb-5">
-          <AddTaskForm onAddTask={handleAddTask} />
-          <Button className="w-full mt-3 bg-steve-white hover:bg-steve-gray-light steve-border" variant="outline" onClick={() => setShowAddTask(false)}>
-            Cancelar
-          </Button>
-        </div>}
-
-      {/* Listado de Tareas */}
-      <div className="container mx-auto px-4">
-        {!showAddTask && !showStats && <>
-            {pendingTasks.length > 0 && <div className="mb-6">
-                <h2 className="font-medium mb-3">Tareas Pendientes ({pendingTasks.length})</h2>
-                {pendingTasks.map(task => <TaskItem key={task.id} task={task} onComplete={handleCompleteTask} onStartTimer={handleStartTimer} />)}
-              </div>}
-            {completedTasks.length > 0 && <div>
-                <h2 className="font-medium mb-3">Tareas Completadas ({completedTasks.length})</h2>
-                {completedTasks.map(task => <TaskItem key={task.id} task={task} onComplete={handleCompleteTask} onStartTimer={handleStartTimer} className="opacity-70" />)}
-              </div>}
-          </>}
-      </div>
-
-      {/* Timer Activo */}
-      {activeTask && <TaskTimer task={activeTask} onComplete={handleTimerComplete} onCancel={handleCancelTimer} />}
-
-      {/* Pomodoro Timer */}
-      {showPomodoro && <PomodoroTimer onClose={handleClosePomodoro} />}
-
-      {/* Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-steve-white border-t-2 border-steve-black p-2">
-        <div className="flex justify-around">
-          <Button variant="ghost" className="flex flex-col items-center" onClick={() => {
-          setShowAddTask(false);
-          setShowStats(false);
-        }}>
-            <CheckSquare size={24} />
-            <span className="text-xs mt-1">Tareas</span>
-          </Button>
-
-          <Button variant="ghost" onClick={() => {
-          setShowAddTask(true);
-          setShowStats(false);
-        }} className="flex flex-col items-center rounded-full -mt-5 p-3 hover:bg-steve-gray-dark steve-shadow text-slate-950 bg-zinc-50">
-            <Plus size={28} />
-          </Button>
-
-          <Button variant="ghost" className="flex flex-col items-center" onClick={() => {
-          setShowAddTask(false);
-          setShowStats(true);
-        }}>
-            <BarChart size={24} />
-            <span className="text-xs mt-1">Stats</span>
-          </Button>
-        </div>
-      </div>
-    </div>;
+      {/* Modal para Agregar Tarea */}
+      <ModalAddTask
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onAddTask={handleAddTask}
+      />
+    </div>
+  );
 };
+
 export default Index;
