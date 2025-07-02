@@ -2,23 +2,53 @@
 import React, { useState } from 'react';
 import { X, Pencil, Calendar, ShoppingCart } from 'lucide-react';
 
+interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 interface ModalAddTaskProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation') => void;
+  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[]) => void;
 }
 
 const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
   const [title, setTitle] = useState('');
   const [selectedType, setSelectedType] = useState<'personal' | 'work' | 'meditation'>('work');
+  const [subtasks, setSubtasks] = useState<string[]>(['']);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
-      onAddTask(title.trim(), selectedType);
+      const validSubtasks = subtasks
+        .filter(s => s.trim())
+        .map((s, index) => ({
+          id: `${Date.now()}-${index}`,
+          title: s.trim(),
+          completed: false
+        }));
+      
+      onAddTask(title.trim(), selectedType, validSubtasks.length > 0 ? validSubtasks : undefined);
       setTitle('');
+      setSubtasks(['']);
       onClose();
     }
+  };
+
+  const addSubtask = () => {
+    setSubtasks([...subtasks, '']);
+  };
+
+  const removeSubtask = (index: number) => {
+    setSubtasks(subtasks.filter((_, i) => i !== index));
+  };
+
+  const updateSubtask = (index: number, value: string) => {
+    const newSubtasks = [...subtasks];
+    newSubtasks[index] = value;
+    setSubtasks(newSubtasks);
   };
 
   if (!isOpen) return null;
@@ -84,6 +114,48 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Subtareas */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                Subtasks (optional):
+              </label>
+              <button
+                type="button"
+                onClick={addSubtask}
+                className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border border-gray-300"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                + Add
+              </button>
+            </div>
+            
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {subtasks.map((subtask, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">▸</span>
+                  <input
+                    type="text"
+                    value={subtask}
+                    onChange={(e) => updateSubtask(index, e.target.value)}
+                    placeholder="Enter subtask..."
+                    className="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-black"
+                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                  />
+                  {subtasks.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeSubtask(index)}
+                      className="text-gray-400 hover:text-red-500 text-sm px-1"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 

@@ -93,12 +93,13 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation') => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[]) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
       type,
-      completed: false
+      completed: false,
+      subtasks
     };
     
     setTasks(prevTasks => [...prevTasks, newTask]);
