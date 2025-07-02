@@ -7,18 +7,55 @@ import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
 
+interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 interface Task {
   id: string;
   title: string;
   type: 'personal' | 'work' | 'meditation';
   completed: boolean;
+  subtasks?: SubTask[];
 }
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', title: 'Design homepage', type: 'work', completed: true },
-    { id: '2', title: 'Meeting with team', type: 'work', completed: true },
-    { id: '3', title: 'Grocery shopping', type: 'personal', completed: true }
+    { 
+      id: '1', 
+      title: 'Design homepage', 
+      type: 'work', 
+      completed: true,
+      subtasks: [
+        { id: '1-1', title: 'Adjust colors', completed: false },
+        { id: '1-2', title: 'Redesign buttons', completed: false },
+        { id: '1-3', title: 'Test mobile version', completed: false }
+      ]
+    },
+    { 
+      id: '2', 
+      title: 'Meeting with team', 
+      type: 'work', 
+      completed: true,
+      subtasks: [
+        { id: '2-1', title: 'Take minutes', completed: false },
+        { id: '2-2', title: 'Send reminder', completed: false },
+        { id: '2-3', title: 'Schedule next meeting', completed: false }
+      ]
+    },
+    { 
+      id: '3', 
+      title: 'Grocery shopping', 
+      type: 'personal', 
+      completed: true,
+      subtasks: [
+        { id: '3-1', title: 'Comprar pan', completed: false },
+        { id: '3-2', title: 'Queso y fiambre', completed: false },
+        { id: '3-3', title: 'Jugo de naranja', completed: false }
+      ]
+    }
   ]);
   
   const [showModal, setShowModal] = useState(false);
@@ -94,6 +131,7 @@ const Index = () => {
               title={task.title}
               type={task.type}
               completed={task.completed}
+              subtasks={task.subtasks}
               onToggle={handleToggleTask}
             />
           ))

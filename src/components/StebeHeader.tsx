@@ -8,9 +8,9 @@ const StebeHeader: React.FC = () => {
   const dayName = dayNames[today.getDay()];
 
   return (
-    <div className="px-4 pt-8 pb-4 bg-white">
+    <div className="pt-8 pb-4 bg-white">
       {/* Steve Jobs figura y fecha en la misma línea */}
-      <div className="flex items-start mb-4">
+      <div className="flex items-start mb-4 px-4">
         {/* Figura de Steve Jobs - minimalista y angular */}
         <div className="w-20 h-20 mr-4 flex-shrink-0">
           <div className="w-full h-full border-3 border-black rounded-2xl bg-white relative overflow-hidden" style={{ borderWidth: '3px' }}>
@@ -44,7 +44,7 @@ const StebeHeader: React.FC = () => {
       
       {/* Título "Tasks" centrado en bloque negro */}
       <div className="w-full">
-        <div className="bg-black rounded-xl py-3 px-4">
+        <div className="bg-black py-3 px-4">
           <h1 className="text-center text-white text-3xl font-bold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             Tasks
           </h1>

@@ -2,15 +2,22 @@
 import React from 'react';
 import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle } from 'lucide-react';
 
+interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 interface TaskCardProps {
   id: string;
   title: string;
   type: 'personal' | 'work' | 'meditation';
   completed: boolean;
+  subtasks?: SubTask[];
   onToggle: (id: string) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, onToggle }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, subtasks, onToggle }) => {
   const getTypeIcon = () => {
     switch (type) {
       case 'personal':
@@ -67,6 +74,27 @@ const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, onToggl
           )}
         </div>
       </div>
+      
+      {/* Subtareas */}
+      {subtasks && subtasks.length > 0 && (
+        <div className="mt-3 ml-8">
+          {subtasks.map((subtask) => (
+            <div key={subtask.id} className="flex items-center space-x-2 mb-1">
+              <span className="text-black text-sm">▸</span>
+              <span 
+                className={`text-sm transition-all duration-300 ${
+                  subtask.completed 
+                    ? 'line-through text-gray-400' 
+                    : 'text-black'
+                }`}
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {subtask.title}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
