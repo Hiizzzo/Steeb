@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import StebeHeader from '@/components/StebeHeader';
-import SummaryBar from '@/components/SummaryBar';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
@@ -17,9 +16,9 @@ interface Task {
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', title: 'No ver PH', type: 'personal', completed: false },
-    { id: '2', title: 'Trabajar', type: 'work', completed: false },
-    { id: '3', title: 'Meditar', type: 'meditation', completed: false }
+    { id: '1', title: 'Design homepage', type: 'work', completed: true },
+    { id: '2', title: 'Meeting with team', type: 'work', completed: true },
+    { id: '3', title: 'Grocery shopping', type: 'personal', completed: true }
   ]);
   
   const [showModal, setShowModal] = useState(false);
@@ -39,11 +38,6 @@ const Index = () => {
     localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Calcular estadísticas de tareas
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.completed).length;
-  const pendingTasks = totalTasks - completedTasks;
-
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
     setTasks(prevTasks => 
@@ -56,8 +50,8 @@ const Index = () => {
     if (task && !task.completed) {
       playTaskCompleteSound();
       toast({
-        title: "Steve dice:",
-        description: "¡Bien hecho! Has completado una tarea.",
+        title: "Task completed!",
+        description: "Great job! You've completed a task.",
       });
     }
   };
@@ -72,32 +66,26 @@ const Index = () => {
     
     setTasks(prevTasks => [...prevTasks, newTask]);
     toast({
-      title: "Steve dice:",
-      description: "¡Nueva tarea agregada! ¡A trabajar se ha dicho!",
+      title: "New task added!",
+      description: "Your task has been added to the list.",
     });
   };
 
   const handleShowTasks = () => {
+    const completedTasks = tasks.filter(t => t.completed).length;
     toast({
-      title: "Resumen de tareas:",
-      description: `${completedTasks} de ${totalTasks} tareas completadas`,
+      title: "Task summary:",
+      description: `${completedTasks} of ${tasks.length} tasks completed`,
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
       <StebeHeader />
       
-      {/* Barra de resumen diario */}
-      <SummaryBar 
-        totalTasks={totalTasks}
-        completedTasks={completedTasks}
-        pendingTasks={pendingTasks}
-      />
-      
       {/* Lista de Tareas */}
-      <div className="pb-24">
+      <div className="pb-24 pt-4">
         {tasks.length > 0 ? (
           tasks.map(task => (
             <TaskCard
@@ -111,18 +99,17 @@ const Index = () => {
           ))
         ) : (
           <div className="text-center py-12 px-4">
-            <div className="text-4xl mb-4">📝</div>
             <p className="text-lg text-gray-600 font-medium">
-              No tienes tareas aún.
+              No tasks yet.
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              ¡Presiona el botón + para agregar tu primera tarea!
+              Press the + button to add your first task!
             </p>
           </div>
         )}
       </div>
 
-      {/* Botones Flotantes */}
+      {/* Botón Add Task */}
       <FloatingButtons 
         onAddTask={() => setShowModal(true)}
         onShowTasks={handleShowTasks}

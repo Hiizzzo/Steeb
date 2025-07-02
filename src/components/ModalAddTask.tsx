@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Star } from 'lucide-react';
+import { X, Pencil, Calendar, ShoppingCart } from 'lucide-react';
 
 interface ModalAddTaskProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ interface ModalAddTaskProps {
 
 const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
   const [title, setTitle] = useState('');
-  const [selectedType, setSelectedType] = useState<'personal' | 'work' | 'meditation'>('personal');
+  const [selectedType, setSelectedType] = useState<'personal' | 'work' | 'meditation'>('work');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,24 +25,15 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div 
-        className="bg-white border-4 border-black rounded-2xl p-6 w-full max-w-md"
-        style={{ 
-          borderWidth: '4px',
-          boxShadow: '8px 8px 0px rgba(0, 0, 0, 0.3)'
-        }}
-      >
+      <div className="bg-white border border-gray-300 rounded-xl p-6 w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center">
-              <Star size={16} className="text-black fill-current" />
-            </div>
-            <h2 className="text-xl font-black text-black">Nueva Tarea</h2>
-          </div>
+          <h2 className="text-xl font-bold text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+            Add New Task
+          </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 border-2 border-black rounded-full flex items-center justify-center hover:bg-gray-100"
+            className="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100"
           >
             <X size={16} className="text-black" />
           </button>
@@ -56,36 +47,43 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="¿Qué tarea tienes que hacer?"
-              className="w-full p-3 border-3 border-black rounded-xl text-lg font-medium focus:outline-none focus:ring-2 focus:ring-black"
-              style={{ borderWidth: '3px' }}
+              placeholder="Enter task description..."
+              className="w-full p-3 border border-gray-300 rounded-xl text-lg font-medium focus:outline-none focus:border-black"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               autoFocus
             />
           </div>
 
           {/* Selector de tipo */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-black">Tipo de tarea:</label>
+            <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              Task type:
+            </label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { value: 'personal', label: 'Personal', emoji: '👤' },
-                { value: 'work', label: 'Trabajo', emoji: '⚡' },
-                { value: 'meditation', label: 'Meditación', emoji: '😊' }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setSelectedType(option.value as any)}
-                  className={`p-3 border-2 border-black rounded-xl text-center transition-all ${
-                    selectedType === option.value 
-                      ? 'bg-black text-white' 
-                      : 'bg-white text-black hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="text-lg mb-1">{option.emoji}</div>
-                  <div className="text-xs font-bold">{option.label}</div>
-                </button>
-              ))}
+                { value: 'work', label: 'Work', icon: Pencil },
+                { value: 'meditation', label: 'Meeting', icon: Calendar },
+                { value: 'personal', label: 'Personal', icon: ShoppingCart }
+              ].map((option) => {
+                const IconComponent = option.icon;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setSelectedType(option.value as any)}
+                    className={`p-3 border border-gray-300 rounded-xl text-center transition-all flex flex-col items-center space-y-1 ${
+                      selectedType === option.value 
+                        ? 'bg-black text-white border-black' 
+                        : 'bg-white text-black hover:bg-gray-50'
+                    }`}
+                  >
+                    <IconComponent size={20} />
+                    <div className="text-xs font-medium" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                      {option.label}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -94,16 +92,18 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 p-3 border-2 border-black rounded-xl font-bold text-black bg-white hover:bg-gray-100 transition-colors"
+              className="flex-1 p-3 border border-gray-300 rounded-xl font-medium text-black bg-white hover:bg-gray-50 transition-colors"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               disabled={!title.trim()}
-              className="flex-1 p-3 border-2 border-black rounded-xl font-bold text-white bg-black hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 p-3 rounded-xl font-medium text-white bg-black hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
             >
-              Agregar
+              Add Task
             </button>
           </div>
         </form>
