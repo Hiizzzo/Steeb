@@ -38,10 +38,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, subtask
 
   return (
     <div 
-      className={`bg-white border border-gray-300 rounded-xl p-4 mx-4 mb-3 transition-all duration-300 cursor-pointer ${
+      className={`bg-white border border-gray-300 rounded-xl p-4 mx-4 mb-3 transition-all duration-300 ${
         completed ? 'opacity-60' : 'hover:border-gray-400'
-      }`}
-      onClick={handleToggle}
+      } ${(!subtasks || subtasks.length === 0) ? 'cursor-pointer' : ''}`}
+      onClick={(!subtasks || subtasks.length === 0) ? handleToggle : undefined}
     >
       <div className="flex items-center justify-between">
         {/* Icono + Texto */}
@@ -64,16 +64,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, subtask
           </span>
         </div>
         
-        {/* Checkbox */}
-        <div className="ml-3">
-          {completed ? (
-            <div className="w-6 h-6 bg-green-100 border-2 border-black rounded-full flex items-center justify-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            </div>
-          ) : (
-            <Circle size={24} className="text-gray-400 hover:text-black transition-colors" />
-          )}
-        </div>
+        {/* Checkbox - solo mostrar si no hay subtareas */}
+        {(!subtasks || subtasks.length === 0) && (
+          <div className="ml-3">
+            {completed ? (
+              <div className="w-6 h-6 bg-green-100 border-2 border-black rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+            ) : (
+              <Circle size={24} className="text-gray-400 hover:text-black transition-colors" />
+            )}
+          </div>
+        )}
       </div>
       
       {/* Subtareas */}
