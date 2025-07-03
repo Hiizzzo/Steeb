@@ -77,6 +77,19 @@ const Index = () => {
 
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
+    
+    // Si la tarea tiene subtareas y no están todas completadas, no permitir completar la tarea principal
+    if (task && task.subtasks && task.subtasks.length > 0 && !task.completed) {
+      const allSubtasksCompleted = task.subtasks.every(subtask => subtask.completed);
+      if (!allSubtasksCompleted) {
+        toast({
+          title: "Complete subtasks first",
+          description: "You need to complete all subtasks before completing the main task.",
+        });
+        return;
+      }
+    }
+    
     setTasks(prevTasks => 
       prevTasks.map(task => 
         task.id === id ? { ...task, completed: !task.completed } : task
