@@ -93,6 +93,44 @@ const Index = () => {
     }
   };
 
+  const handleToggleSubtask = (taskId: string, subtaskId: string) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => {
+        if (task.id === taskId && task.subtasks) {
+          const updatedSubtasks = task.subtasks.map(subtask =>
+            subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+          );
+          
+          // Verificar si todas las subtareas están completadas
+          const allSubtasksCompleted = updatedSubtasks.every(subtask => subtask.completed);
+          
+          return {
+            ...task,
+            subtasks: updatedSubtasks,
+            completed: allSubtasksCompleted
+          };
+        }
+        return task;
+      })
+    );
+
+    // Verificar si se completó la última subtarea para reproducir sonido
+    const task = tasks.find(t => t.id === taskId);
+    if (task && task.subtasks) {
+      const subtask = task.subtasks.find(s => s.id === subtaskId);
+      const otherSubtasks = task.subtasks.filter(s => s.id !== subtaskId);
+      const allOthersCompleted = otherSubtasks.every(s => s.completed);
+      
+      if (subtask && !subtask.completed && allOthersCompleted) {
+        playTaskCompleteSound();
+        toast({
+          title: "Task completed!",
+          description: "Great job! You've completed all subtasks.",
+        });
+      }
+    }
+  };
+
   const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[]) => {
     const newTask: Task = {
       id: Date.now().toString(),
@@ -134,6 +172,7 @@ const Index = () => {
               completed={task.completed}
               subtasks={task.subtasks}
               onToggle={handleToggleTask}
+              onToggleSubtask={handleToggleSubtask}
             />
           ))
         ) : (

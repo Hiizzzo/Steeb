@@ -15,9 +15,10 @@ interface TaskCardProps {
   completed: boolean;
   subtasks?: SubTask[];
   onToggle: (id: string) => void;
+  onToggleSubtask?: (taskId: string, subtaskId: string) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, subtasks, onToggle }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, subtasks, onToggle, onToggleSubtask }) => {
   const getTypeIcon = () => {
     switch (type) {
       case 'personal':
@@ -79,18 +80,33 @@ const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, subtask
       {subtasks && subtasks.length > 0 && (
         <div className="mt-3 ml-8">
           {subtasks.map((subtask) => (
-            <div key={subtask.id} className="flex items-center space-x-2 mb-1">
-              <span className="text-black text-sm">▸</span>
-              <span 
-                className={`text-sm transition-all duration-300 ${
-                  subtask.completed 
-                    ? 'line-through text-gray-400' 
-                    : 'text-black'
-                }`}
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                {subtask.title}
-              </span>
+            <div 
+              key={subtask.id} 
+              className="flex items-center space-x-2 mb-1 cursor-pointer hover:bg-gray-50 rounded p-1 -ml-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSubtask?.(id, subtask.id);
+              }}
+            >
+              <div className="flex items-center space-x-2">
+                {subtask.completed ? (
+                  <div className="w-3 h-3 bg-green-100 border border-green-500 rounded-full flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                  </div>
+                ) : (
+                  <div className="w-3 h-3 border border-gray-400 rounded-full"></div>
+                )}
+                <span 
+                  className={`text-sm transition-all duration-300 ${
+                    subtask.completed 
+                      ? 'line-through text-gray-400' 
+                      : 'text-black'
+                  }`}
+                  style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                >
+                  {subtask.title}
+                </span>
+              </div>
             </div>
           ))}
         </div>
