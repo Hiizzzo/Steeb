@@ -1,47 +1,22 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 const LoadingScreen: React.FC = () => {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 30); // 30ms * 100 = 3000ms (3 segundos)
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
-      <div className="flex flex-col items-center space-y-8 animate-fade-in">
-        <h1 className="text-white text-4xl font-bold mb-8">Después del Trabajo</h1>
+    <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+      <div className="text-center">
+        <h1 
+          className="text-6xl font-bold text-black animate-pulse"
+          style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+        >
+          Steve
+        </h1>
         
-        <div className="flex flex-col items-center space-y-8">
-          <img 
-            src="/lovable-uploads/4b6291dd-50ae-479e-a2d0-05130ab09040.png" 
-            alt="Steve después del trabajo"
-            className="w-80 h-80 object-contain"
-          />
-        </div>
-        
-        <h2 className="text-white text-2xl font-bold">Llega el descanso</h2>
-        
-        {/* Barra de progreso minimalista que se expande desde el centro */}
-        <div className="relative w-64 h-1 bg-gray-800 rounded-full overflow-hidden">
-          <div 
-            className="absolute top-0 left-1/2 h-full bg-white rounded-full transition-all duration-100 ease-out origin-center"
-            style={{ 
-              width: `${progress}%`,
-              transform: 'translateX(-50%)'
-            }}
-          ></div>
+        {/* Puntos animados debajo del texto */}
+        <div className="flex justify-center items-center space-x-1 mt-6">
+          <div className="w-2 h-2 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-black rounded-full animate-bounce"></div>
         </div>
       </div>
     </div>
