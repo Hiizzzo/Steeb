@@ -38,7 +38,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ id, title, type, completed, subtask
 
   return (
     <div 
-      className={`bg-white border border-gray-300 rounded-xl p-4 mx-4 mb-3 transition-all duration-300 ${
+      className={`bg-white border border-gray-300 rounded-xl p-4 mx-4 mb-3 transition-all duration-500 ease-in-out transform ${
         completed ? 'opacity-60' : 'hover:border-gray-400'
       } ${(!subtasks || subtasks.length === 0) ? 'cursor-pointer' : ''}`}
       onClick={(!subtasks || subtasks.length === 0) ? handleToggle : undefined}
