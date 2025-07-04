@@ -176,18 +176,25 @@ const Index = () => {
       {/* Lista de Tareas */}
       <div className="pb-24 pt-4">
         {tasks.length > 0 ? (
-          tasks.map(task => (
-            <TaskCard
-              key={task.id}
-              id={task.id}
-              title={task.title}
-              type={task.type}
-              completed={task.completed}
-              subtasks={task.subtasks}
-              onToggle={handleToggleTask}
-              onToggleSubtask={handleToggleSubtask}
-            />
-          ))
+          tasks
+            .sort((a, b) => {
+              // Tareas no completadas primero, completadas al final
+              if (a.completed && !b.completed) return 1;
+              if (!a.completed && b.completed) return -1;
+              return 0;
+            })
+            .map(task => (
+              <TaskCard
+                key={task.id}
+                id={task.id}
+                title={task.title}
+                type={task.type}
+                completed={task.completed}
+                subtasks={task.subtasks}
+                onToggle={handleToggleTask}
+                onToggleSubtask={handleToggleSubtask}
+              />
+            ))
         ) : (
           <div className="text-center py-12 px-4">
             <p className="text-lg text-gray-600 font-medium">
