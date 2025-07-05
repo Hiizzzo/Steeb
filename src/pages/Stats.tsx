@@ -114,8 +114,8 @@ const Stats = () => {
           <div className="flex items-center mb-6">
             <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mr-4 relative">
               <img 
-                src="/lovable-uploads/1773de0b-514d-4336-b9b8-d7ffe17a6934.png" 
-                alt="Steve" 
+                src="/lovable-uploads/8a167d1f-765d-4da3-b4a7-419491023750.png" 
+                alt="Steve Medal" 
                 className="w-12 h-12 rounded-full object-cover"
               />
               <div className="absolute -top-1 -right-1 w-6 h-6 bg-black rounded-full flex items-center justify-center">
