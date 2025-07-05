@@ -24,9 +24,11 @@ const Stats = () => {
   const tasks = getTasks();
   const completedTasks = tasks.filter(task => task.completed);
   
-  // Datos simulados para la demostración
-  const weeklyProgress = 75;
-  const tasksThisWeek = 45;
+  // Calcular datos reales
+  const totalTasks = tasks.length;
+  const completedTasksCount = completedTasks.length;
+  const weeklyProgress = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
+  const tasksThisWeek = completedTasksCount;
   
   // Datos para el gráfico de barras semanal (L M X J V S D)
   const weeklyData = [
