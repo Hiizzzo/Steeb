@@ -103,19 +103,34 @@ const Stats = () => {
       <div className="p-4 space-y-6">
         {/* Progreso Semanal */}
         <Card className="border border-gray-300 rounded-xl p-6 bg-white">
-          <div className="flex items-center space-x-2 mb-4">
-            <Medal size={24} className="text-green-600" />
-            <h2 className="text-lg font-bold text-black">Tu progreso esta semana</h2>
+          {/* Espacio para el icono de Steve */}
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">
+              <Medal size={32} className="text-white" />
+            </div>
           </div>
           
+          {/* Título principal más grande */}
           <div className="text-center mb-6">
-            <div className="text-2xl font-bold text-black mb-2">
-              {tasksThisWeek} tareas
+            <h2 className="text-2xl font-bold text-black mb-4">Tu progreso esta semana</h2>
+          </div>
+          
+          {/* Layout con progreso al costado */}
+          <div className="flex items-center justify-between">
+            {/* Texto de tareas más grande */}
+            <div className="flex-1">
+              <div className="text-3xl font-bold text-black mb-2">
+                {tasksThisWeek} tareas
+              </div>
+              <div className="text-lg text-gray-600">
+                completadas esta semana
+              </div>
             </div>
-            <div className="text-sm text-gray-600 mb-4">
-              completadas esta semana
+            
+            {/* Círculo de progreso al costado */}
+            <div className="flex-shrink-0 ml-6">
+              <CircularProgress percentage={weeklyProgress} />
             </div>
-            <CircularProgress percentage={weeklyProgress} />
           </div>
         </Card>
 
