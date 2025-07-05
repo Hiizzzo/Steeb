@@ -100,9 +100,9 @@ const Stats = () => {
         </div>
       </div>
 
-      <div className="p-3 h-full overflow-hidden">
+      <div className="p-3 flex flex-col h-full">
         {/* Progreso Semanal */}
-        <Card className="border border-gray-300 rounded-xl p-4 bg-white mb-3">
+        <Card className="border border-gray-300 rounded-xl p-4 bg-white mb-3 flex-shrink-0">
           {/* Espacio para el icono de Steve */}
           <div className="flex justify-center mb-3">
             <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
@@ -165,89 +165,86 @@ const Stats = () => {
           </div>
         </Card>
 
-        {/* Grid con las otras dos secciones */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          {/* Tareas por Día */}
-          <Card className="border border-gray-300 rounded-xl p-3 bg-white">
-            <div className="flex items-center space-x-1 mb-2">
-              <BarChart3 size={16} className="text-black" />
-              <h2 className="text-sm font-bold text-black">Tareas por día</h2>
-            </div>
-            
-            <div className="flex items-end justify-between space-x-1 h-16 mb-1">
-              {weeklyData.map((data, index) => (
-                <div key={data.day} className="flex flex-col items-center flex-1">
-                  <div 
-                    className={`w-full rounded-t ${
-                      index === 4 ? 'bg-green-500' : 'bg-gray-300'
-                    } transition-all duration-500`}
-                    style={{ 
-                      height: `${(data.tasks / maxWeeklyTasks) * 100}%`,
-                      minHeight: '4px'
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex justify-between text-xs text-gray-600">
-              {weeklyData.map((data) => (
-                <div key={data.day} className="text-center flex-1">
-                  {data.day}
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* Progreso Mensual */}
-          <Card className="border border-gray-300 rounded-xl p-3 bg-white">
-            <div className="flex items-center space-x-1 mb-2">
-              <TrendingUp size={16} className="text-black" />
-              <h2 className="text-sm font-bold text-black">Progreso mensual</h2>
-            </div>
-            
-            <div className="relative h-12 mb-2">
-              <svg className="w-full h-full" viewBox="0 0 300 40">
-                {/* Línea de progreso */}
-                <polyline
-                  fill="none"
-                  stroke="#000000"
-                  strokeWidth="2"
-                  points="20,30 60,25 100,22 140,20 180,15 220,12 260,17"
-                  className="drop-shadow-sm"
+        {/* Tareas por Día - ocupa más espacio */}
+        <Card className="border border-gray-300 rounded-xl p-4 bg-white mb-3 flex-1">
+          <div className="flex items-center space-x-2 mb-3">
+            <BarChart3 size={20} className="text-black" />
+            <h2 className="text-lg font-bold text-black">Tareas por día</h2>
+          </div>
+          
+          <div className="flex items-end justify-between space-x-2 h-32 mb-3">
+            {weeklyData.map((data, index) => (
+              <div key={data.day} className="flex flex-col items-center flex-1">
+                <div 
+                  className={`w-full rounded-t ${
+                    index === 4 ? 'bg-green-500' : 'bg-gray-300'
+                  } transition-all duration-500`}
+                  style={{ 
+                    height: `${(data.tasks / maxWeeklyTasks) * 100}%`,
+                    minHeight: '8px'
+                  }}
                 />
-                {/* Puntos */}
-                <circle cx="20" cy="30" r="2" fill="#000000" />
-                <circle cx="60" cy="25" r="2" fill="#000000" />
-                <circle cx="100" cy="22" r="2" fill="#000000" />
-                <circle cx="140" cy="20" r="2" fill="#000000" />
-                <circle cx="180" cy="15" r="2" fill="#000000" />
-                <circle cx="220" cy="12" r="2" fill="#000000" />
-                <circle cx="260" cy="17" r="2" fill="#000000" />
-              </svg>
-              
-              {/* Estrellas decorativas */}
-              <div className="absolute top-0 right-4">
-                <div className="text-yellow-400 text-xs">✨</div>
               </div>
-              <div className="absolute bottom-1 right-2">
-                <div className="text-yellow-400 text-xs">✨</div>
+            ))}
+          </div>
+          
+          <div className="flex justify-between text-sm text-gray-600">
+            {weeklyData.map((data) => (
+              <div key={data.day} className="text-center flex-1">
+                {data.day}
               </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Progreso Mensual - más grande */}
+        <Card className="border border-gray-300 rounded-xl p-4 bg-white mb-3 flex-1">
+          <div className="flex items-center space-x-2 mb-4">
+            <TrendingUp size={20} className="text-black" />
+            <h2 className="text-lg font-bold text-black">Progreso mensual</h2>
+          </div>
+          
+          <div className="relative h-20 mb-4">
+            <svg className="w-full h-full" viewBox="0 0 300 60">
+              {/* Línea de progreso */}
+              <polyline
+                fill="none"
+                stroke="#000000"
+                strokeWidth="3"
+                points="20,45 60,37 100,33 140,30 180,22 220,18 260,25"
+                className="drop-shadow-sm"
+              />
+              {/* Puntos */}
+              <circle cx="20" cy="45" r="3" fill="#000000" />
+              <circle cx="60" cy="37" r="3" fill="#000000" />
+              <circle cx="100" cy="33" r="3" fill="#000000" />
+              <circle cx="140" cy="30" r="3" fill="#000000" />
+              <circle cx="180" cy="22" r="3" fill="#000000" />
+              <circle cx="220" cy="18" r="3" fill="#000000" />
+              <circle cx="260" cy="25" r="3" fill="#000000" />
+            </svg>
+            
+            {/* Estrellas decorativas */}
+            <div className="absolute top-1 right-6">
+              <div className="text-yellow-400 text-sm">✨</div>
             </div>
-          </Card>
-        </div>
+            <div className="absolute bottom-2 right-3">
+              <div className="text-yellow-400 text-sm">✨</div>
+            </div>
+          </div>
+        </Card>
 
         {/* Resumen */}
-        <Card className="border border-gray-300 rounded-xl p-3 bg-white">
-          <h2 className="text-sm font-bold text-black mb-2">Resumen</h2>
-          <div className="grid grid-cols-2 gap-3">
+        <Card className="border border-gray-300 rounded-xl p-4 bg-white flex-shrink-0">
+          <h2 className="text-lg font-bold text-black mb-3">Resumen</h2>
+          <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <div className="text-lg font-bold text-green-600">{completedTasks.length}</div>
-              <div className="text-xs text-gray-600">Total completadas</div>
+              <div className="text-xl font-bold text-green-600">{completedTasks.length}</div>
+              <div className="text-sm text-gray-600">Total completadas</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-blue-600">{tasks.length}</div>
-              <div className="text-xs text-gray-600">Total de tareas</div>
+              <div className="text-xl font-bold text-blue-600">{tasks.length}</div>
+              <div className="text-sm text-gray-600">Total de tareas</div>
             </div>
           </div>
         </Card>
