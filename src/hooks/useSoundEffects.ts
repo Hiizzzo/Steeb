@@ -1,10 +1,31 @@
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 export const useSoundEffects = () => {
+  // Create a single AudioContext instance and reuse it
+  const audioContextRef = useRef<AudioContext | null>(null);
+  
+  const getAudioContext = useCallback(() => {
+    if (!audioContextRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      } catch (error) {
+        console.error('Failed to create AudioContext:', error);
+        return null;
+      }
+    }
+    
+    // Resume context if it's suspended (required by some browsers)
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+    
+    return audioContextRef.current;
+  }, []);
+
   const playTaskCompleteSound = useCallback(() => {
-    // Crear un contexto de audio
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioContext = getAudioContext();
+    if (!audioContext) return;
     
     // Función para crear un tono satisfactorio (acorde mayor)
     const playSuccessChord = () => {
@@ -36,10 +57,11 @@ export const useSoundEffects = () => {
     } catch (error) {
       console.log('No se pudo reproducir el sonido:', error);
     }
-  }, []);
+  }, [getAudioContext]);
 
   const playTimerStartSound = useCallback(() => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioContext = getAudioContext();
+    if (!audioContext) return;
     
     try {
       const oscillator = audioContext.createOscillator();
@@ -61,7 +83,7 @@ export const useSoundEffects = () => {
     } catch (error) {
       console.log('No se pudo reproducir el sonido:', error);
     }
-  }, []);
+  }, [getAudioContext]);
 
   return {
     playTaskCompleteSound,

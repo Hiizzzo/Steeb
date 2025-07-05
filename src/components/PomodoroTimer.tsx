@@ -67,49 +67,60 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose }) => {
   useEffect(() => {
     let interval: number | undefined;
 
-    if (isActive && (minutes > 0 || seconds > 0)) {
+    if (isActive) {
       interval = window.setInterval(() => {
-        if (seconds > 0) {
-          setSeconds(seconds - 1);
-        } else if (minutes > 0) {
-          setMinutes(minutes - 1);
-          setSeconds(59);
-        }
+        setSeconds(currentSeconds => {
+          if (currentSeconds > 0) {
+            return currentSeconds - 1;
+          } else {
+            setMinutes(currentMinutes => {
+              if (currentMinutes > 0) {
+                setSeconds(59);
+                return currentMinutes - 1;
+              } else {
+                // Timer terminado
+                setIsActive(false);
+                
+                if (isBreak) {
+                  // Terminar descanso, empezar trabajo
+                  setIsBreak(false);
+                  setMinutes(25);
+                  setSeconds(0);
+                  toast({
+                    title: "Steve dice:",
+                    description: "¡Descanso terminado! ¡Hora de trabajar de nuevo!",
+                  });
+                } else {
+                  // Terminar trabajo, empezar descanso
+                  setIsBreak(true);
+                  const isLongBreak = cycle % 4 === 0;
+                  setMinutes(isLongBreak ? 15 : 5);
+                  setSeconds(0);
+                  setCycle(prevCycle => prevCycle + 1);
+                  
+                  toast({
+                    title: "Steve dice:",
+                    description: isLongBreak 
+                      ? "¡Pomodoro completado! Disfruta tu descanso largo." 
+                      : "¡Pomodoro completado! Toma un descanso corto.",
+                  });
+                }
+                return 0;
+              }
+            });
+            return 0;
+          }
+        });
       }, 1000);
-    } else if (isActive && minutes === 0 && seconds === 0) {
-      // Timer terminado
-      setIsActive(false);
-      
-      if (isBreak) {
-        // Terminar descanso, empezar trabajo
-        setIsBreak(false);
-        setMinutes(25);
-        setSeconds(0);
-        toast({
-          title: "Steve dice:",
-          description: "¡Descanso terminado! ¡Hora de trabajar de nuevo!",
-        });
-      } else {
-        // Terminar trabajo, empezar descanso
-        setIsBreak(true);
-        const isLongBreak = cycle % 4 === 0;
-        setMinutes(isLongBreak ? 15 : 5);
-        setSeconds(0);
-        setCycle(cycle + 1);
-        
-        toast({
-          title: "Steve dice:",
-          description: isLongBreak 
-            ? "¡Pomodoro completado! Disfruta tu descanso largo." 
-            : "¡Pomodoro completado! Toma un descanso corto.",
-        });
-      }
     }
 
+    // Always clean up interval on unmount or when dependencies change
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
     };
-  }, [isActive, minutes, seconds, isBreak, cycle, toast]);
+  }, [isActive, isBreak, cycle, toast]);
 
   const toggleTimer = () => {
     setIsActive(!isActive);

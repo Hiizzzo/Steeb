@@ -66,14 +66,15 @@ const TaskTimer: React.FC<TaskTimerProps> = ({ task, onComplete, onCancel }) => 
     
     if (isActive) {
       interval = window.setInterval(() => {
-        setSeconds(seconds => seconds + 1);
+        setSeconds(prevSeconds => prevSeconds + 1);
       }, 1000);
-    } else {
-      clearInterval(interval);
     }
     
+    // Always clean up interval on unmount or when dependencies change
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
     };
   }, [isActive]);
   

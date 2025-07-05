@@ -66,13 +66,27 @@ const Index = () => {
   useEffect(() => {
     const savedTasks = localStorage.getItem('stebe-tasks');
     if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
+      try {
+        setTasks(JSON.parse(savedTasks));
+      } catch (error) {
+        console.error('Error parsing saved tasks:', error);
+        // Reset to default tasks if parsing fails
+        localStorage.removeItem('stebe-tasks');
+      }
     }
   }, []);
 
-  // Guardar tareas en localStorage
+  // Guardar tareas en localStorage con debounce
   useEffect(() => {
-    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
+    const timeoutId = setTimeout(() => {
+      try {
+        localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
+      } catch (error) {
+        console.error('Error saving tasks to localStorage:', error);
+      }
+    }, 300); // Debounce by 300ms
+
+    return () => clearTimeout(timeoutId);
   }, [tasks]);
 
   const handleToggleTask = (id: string) => {
