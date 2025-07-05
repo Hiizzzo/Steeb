@@ -112,15 +112,12 @@ const Stats = () => {
         <div className="border-2 border-black rounded-2xl p-6 bg-white mb-6 shadow-lg relative">
           {/* Medalla con Steve y título */}
           <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mr-4 relative">
+            <div className="w-16 h-16 flex items-center justify-center mr-4">
               <img 
-                src="/lovable-uploads/8a167d1f-765d-4da3-b4a7-419491023750.png" 
+                src="/lovable-uploads/a3c69cb9-a47b-492b-9557-a2f4be2d0812.png" 
                 alt="Steve Medal" 
-                className="w-12 h-12 rounded-full object-cover"
+                className="w-16 h-16 object-contain"
               />
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-black rounded-full flex items-center justify-center">
-                <Medal size={12} className="text-white" />
-              </div>
             </div>
             <h2 className="text-3xl font-bold text-black">Tu progreso esta semana</h2>
           </div>
