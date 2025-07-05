@@ -30,18 +30,40 @@ const Stats = () => {
   const weeklyProgress = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
   const tasksThisWeek = completedTasksCount;
   
-  // Datos para el gráfico de barras semanal (L M X J V S D)
-  const weeklyData = [
-    { day: 'L', tasks: 3 },
-    { day: 'M', tasks: 5 },
-    { day: 'X', tasks: 7 },
-    { day: 'J', tasks: 8 },
-    { day: 'V', tasks: 12 },
-    { day: 'S', tasks: 6 },
-    { day: 'D', tasks: 4 }
-  ];
+  // Datos para el gráfico de barras semanal - datos reales
+  const getDailyTasksData = () => {
+    const today = new Date();
+    const currentWeek = [];
+    
+    // Obtener los 7 días de la semana actual (lunes a domingo)
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - today.getDay() + 1);
+    
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      currentWeek.push(day);
+    }
+    
+    const dayNames = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    
+    return currentWeek.map((date, index) => {
+      const dayTasks = completedTasks.filter(task => {
+        if (!task.completedDate) return false;
+        const taskDate = new Date(task.completedDate);
+        return taskDate.toDateString() === date.toDateString();
+      });
+      
+      return {
+        day: dayNames[index],
+        tasks: dayTasks.length,
+        isToday: date.toDateString() === today.toDateString()
+      };
+    });
+  };
 
-  const maxWeeklyTasks = Math.max(...weeklyData.map(d => d.tasks));
+  const weeklyData = getDailyTasksData();
+  const maxWeeklyTasks = Math.max(8, ...weeklyData.map(d => d.tasks)); // Mínimo 8 para la escala
 
   // Componente del círculo de progreso
   const CircularProgress = ({ percentage }: { percentage: number }) => {
@@ -183,14 +205,21 @@ const Stats = () => {
             {weeklyData.map((data, index) => (
               <div key={data.day} className="flex flex-col items-center flex-1">
                 <div 
-                  className={`w-full ${
-                    index === 5 ? 'bg-black' : 'border-2 border-black bg-white'
-                  } transition-all duration-500`}
+                  className={`w-full transition-all duration-500 ${
+                    data.isToday 
+                      ? 'bg-black' 
+                      : data.tasks >= 8 
+                        ? 'bg-green-600' 
+                        : 'border-2 border-black bg-white'
+                  }`}
                   style={{ 
-                    height: `${(data.tasks / maxWeeklyTasks) * 100}%`,
+                    height: `${Math.max((data.tasks / maxWeeklyTasks) * 100, 8)}%`,
                     minHeight: '16px'
                   }}
                 />
+                <div className="text-xs mt-1 font-bold text-black">
+                  {data.tasks}/8
+                </div>
               </div>
             ))}
           </div>
