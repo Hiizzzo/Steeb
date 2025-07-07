@@ -128,9 +128,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
   return (
-    <div className="h-screen bg-white flex flex-col" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-white pb-24" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Calendar Header */}
-      <div className="border-b-2 border-black bg-white p-4 flex-shrink-0">
+      <div className="border-b-2 border-black bg-white p-4">
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -154,7 +154,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-1 mb-2">
           {dayNames.map(dayName => (
             <div key={dayName} className="text-center text-sm font-bold text-black p-2">
               {dayName}
@@ -163,94 +163,79 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
       </div>
 
-      {/* Calendar Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Calendar Grid */}
-        <div className={`p-4 ${selectedDate ? 'w-1/2' : 'w-full'} transition-all duration-300`}>
-          <div className="grid grid-cols-7 gap-1 h-full">
-            {calendarDays.map((day, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedDate(selectedDate === day.date ? null : day.date)}
-                className={`
-                  border border-black p-2 text-center relative min-h-[60px] flex flex-col justify-between
-                  ${day.isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
-                  ${day.isToday ? 'bg-black text-white' : ''}
-                  ${selectedDate === day.date ? 'ring-2 ring-black' : ''}
-                  hover:bg-gray-100 transition-colors
-                `}
-              >
-                <div className="text-sm font-medium">{day.day}</div>
-                {day.tasksCount > 0 && (
-                  <div className={`
-                    w-5 h-5 rounded-full text-xs flex items-center justify-center self-end
-                    ${day.isToday ? 'bg-white text-black' : 'bg-black text-white'}
-                  `}>
-                    {day.tasksCount}
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
+      {/* Calendar Grid */}
+      <div className="p-4">
+        <div className="grid grid-cols-7 gap-1 mb-6">
+          {calendarDays.map((day, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedDate(day.date)}
+              className={`
+                aspect-square border border-black p-2 text-center relative
+                ${day.isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
+                ${day.isToday ? 'bg-black text-white' : ''}
+                ${selectedDate === day.date ? 'ring-2 ring-black' : ''}
+                hover:bg-gray-100 transition-colors
+              `}
+            >
+              <div className="text-sm font-medium">{day.day}</div>
+              {day.tasksCount > 0 && (
+                <div className={`
+                  absolute bottom-1 right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center
+                  ${day.isToday ? 'bg-white text-black' : 'bg-black text-white'}
+                `}>
+                  {day.tasksCount}
+                </div>
+              )}
+            </button>
+          ))}
         </div>
 
-        {/* Selected Date Tasks - Sidebar */}
+        {/* Selected Date Tasks */}
         {selectedDate && (
-          <div className="w-1/2 border-l-2 border-black bg-white p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-              <h3 className="text-lg font-bold text-black">
-                {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
-                  weekday: 'short', 
-                  month: 'short', 
+          <div className="border-2 border-black rounded-lg bg-white p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-black">
+                Tareas para {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
                   day: 'numeric' 
                 })}
               </h3>
-              <div className="flex gap-2">
-                <Button
-                  onClick={onAddTask}
-                  className="bg-black text-white hover:bg-gray-800 p-1"
-                  size="sm"
-                >
-                  <Plus size={14} />
-                </Button>
-                <Button
-                  onClick={() => setSelectedDate(null)}
-                  variant="ghost"
-                  className="p-1"
-                  size="sm"
-                >
-                  ×
-                </Button>
-              </div>
+              <Button
+                onClick={onAddTask}
+                className="bg-black text-white hover:bg-gray-800 p-2"
+              >
+                <Plus size={16} />
+              </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
-              {selectedDateTasks.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedDateTasks.map(task => (
-                    <TaskCard
-                      key={task.id}
-                      id={task.id}
-                      title={task.title}
-                      type={task.type}
-                      completed={task.completed}
-                      subtasks={task.subtasks}
-                      onToggle={onToggleTask}
-                      onToggleSubtask={onToggleSubtask}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-600 font-medium text-sm">
-                    No hay tareas
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Haz clic en + para agregar
-                  </p>
-                </div>
-              )}
-            </div>
+            {selectedDateTasks.length > 0 ? (
+              <div className="space-y-4">
+                {selectedDateTasks.map(task => (
+                  <TaskCard
+                    key={task.id}
+                    id={task.id}
+                    title={task.title}
+                    type={task.type}
+                    completed={task.completed}
+                    subtasks={task.subtasks}
+                    onToggle={onToggleTask}
+                    onToggleSubtask={onToggleSubtask}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600 font-medium">
+                  No hay tareas para este día
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Haz clic en + para agregar una tarea
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
