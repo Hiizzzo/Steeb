@@ -6,6 +6,7 @@ import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
+import CalendarView from '@/components/CalendarView';
 
 interface SubTask {
   id: string;
@@ -19,6 +20,8 @@ interface Task {
   type: 'personal' | 'work' | 'meditation';
   completed: boolean;
   subtasks?: SubTask[];
+  scheduledDate?: string;
+  completedDate?: string;
 }
 
 const Index = () => {
@@ -28,6 +31,7 @@ const Index = () => {
       title: 'Design homepage', 
       type: 'work', 
       completed: true,
+      scheduledDate: new Date().toISOString().split('T')[0],
       subtasks: [
         { id: '1-1', title: 'Adjust colors', completed: false },
         { id: '1-2', title: 'Redesign buttons', completed: false },
@@ -39,6 +43,7 @@ const Index = () => {
       title: 'Meeting with team', 
       type: 'work', 
       completed: true,
+      scheduledDate: new Date().toISOString().split('T')[0],
       subtasks: [
         { id: '2-1', title: 'Take minutes', completed: false },
         { id: '2-2', title: 'Send reminder', completed: false },
@@ -50,6 +55,7 @@ const Index = () => {
       title: 'Grocery shopping', 
       type: 'personal', 
       completed: true,
+      scheduledDate: new Date().toISOString().split('T')[0],
       subtasks: [
         { id: '3-1', title: 'Comprar pan', completed: false },
         { id: '3-2', title: 'Queso y fiambre', completed: false },
@@ -59,6 +65,7 @@ const Index = () => {
   ]);
   
   const [showModal, setShowModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
 
@@ -148,13 +155,14 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[]) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
       type,
       completed: false,
-      subtasks
+      subtasks,
+      scheduledDate: scheduledDate || new Date().toISOString().split('T')[0]
     };
     
     setTasks(prevTasks => [...prevTasks, newTask]);
@@ -172,49 +180,69 @@ const Index = () => {
     });
   };
 
+  // Filter tasks for today and overdue
+  const today = new Date().toISOString().split('T')[0];
+  const todaysTasks = tasks.filter(task => {
+    if (!task.scheduledDate) return true; // Show tasks without date as today's
+    return task.scheduledDate <= today;
+  });
+
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
       <StebeHeader />
       
-      {/* Lista de Tareas */}
-      <div className="pb-24 pt-4">
-        {tasks.length > 0 ? (
-          tasks
-            .sort((a, b) => {
-              // Tareas no completadas primero, completadas al final
-              if (a.completed && !b.completed) return 1;
-              if (!a.completed && b.completed) return -1;
-              return 0;
-            })
-            .map(task => (
-              <TaskCard
-                key={task.id}
-                id={task.id}
-                title={task.title}
-                type={task.type}
-                completed={task.completed}
-                subtasks={task.subtasks}
-                onToggle={handleToggleTask}
-                onToggleSubtask={handleToggleSubtask}
-              />
-            ))
-        ) : (
-          <div className="text-center py-12 px-4">
-            <p className="text-lg text-gray-600 font-medium">
-              No tasks yet.
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Press the + button to add your first task!
-            </p>
+      {viewMode === 'tasks' ? (
+        <>
+          {/* Lista de Tareas */}
+          <div className="pb-24 pt-4">
+            {todaysTasks.length > 0 ? (
+              todaysTasks
+                .sort((a, b) => {
+                  // Tareas no completadas primero, completadas al final
+                  if (a.completed && !b.completed) return 1;
+                  if (!a.completed && b.completed) return -1;
+                  return 0;
+                })
+                .map(task => (
+                  <TaskCard
+                    key={task.id}
+                    id={task.id}
+                    title={task.title}
+                    type={task.type}
+                    completed={task.completed}
+                    subtasks={task.subtasks}
+                    onToggle={handleToggleTask}
+                    onToggleSubtask={handleToggleSubtask}
+                  />
+                ))
+            ) : (
+              <div className="text-center py-12 px-4">
+                <p className="text-lg text-gray-600 font-medium">
+                  No tasks for today.
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Press the + button to add your first task!
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <CalendarView
+          tasks={tasks}
+          onToggleTask={handleToggleTask}
+          onToggleSubtask={handleToggleSubtask}
+          onAddTask={() => setShowModal(true)}
+        />
+      )}
 
-      {/* Botón Add Task */}
+      {/* Floating Buttons */}
       <FloatingButtons 
         onAddTask={() => setShowModal(true)}
         onShowTasks={handleShowTasks}
+        onToggleView={() => setViewMode(viewMode === 'tasks' ? 'calendar' : 'tasks')}
+        viewMode={viewMode}
       />
 
       {/* Modal para Agregar Tarea */}

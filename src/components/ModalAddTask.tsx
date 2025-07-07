@@ -1,6 +1,11 @@
 
 import React, { useState } from 'react';
-import { X, Pencil, Calendar, ShoppingCart } from 'lucide-react';
+import { X, Pencil, Calendar, ShoppingCart, CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface SubTask {
   id: string;
@@ -11,13 +16,14 @@ interface SubTask {
 interface ModalAddTaskProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[]) => void;
+  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string) => void;
 }
 
 const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
   const [title, setTitle] = useState('');
   const [selectedType, setSelectedType] = useState<'personal' | 'work' | 'meditation'>('work');
   const [subtasks, setSubtasks] = useState<string[]>(['']);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,9 +36,11 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
           completed: false
         }));
       
-      onAddTask(title.trim(), selectedType, validSubtasks.length > 0 ? validSubtasks : undefined);
+      const scheduledDate = selectedDate.toISOString().split('T')[0];
+      onAddTask(title.trim(), selectedType, validSubtasks.length > 0 ? validSubtasks : undefined, scheduledDate);
       setTitle('');
       setSubtasks(['']);
+      setSelectedDate(new Date());
       onClose();
     }
   };
@@ -82,6 +90,36 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
               style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               autoFocus
             />
+          </div>
+
+          {/* Selector de fecha */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              Scheduled date:
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal border-gray-300 hover:bg-gray-50",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Selector de tipo */}
