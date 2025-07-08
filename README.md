@@ -1,73 +1,154 @@
-# Welcome to your Lovable project
+# Barra de Navegación Inferior - React Native
 
-## Project info
+Este proyecto contiene componentes para crear una barra de navegación inferior con botones circulares negros y iconos blancos, siguiendo el diseño mostrado en las imágenes de referencia.
 
-**URL**: https://lovable.dev/projects/7126f1f2-0cb1-4568-aedf-02de29585a45
+## Archivos Incluidos
 
-## How can I edit this code?
+- `BottomTabNavigation.js` - Componente principal usando Expo Vector Icons
+- `BottomTabNavigationSimple.js` - Versión alternativa sin dependencias externas
+- `ExampleUsage.js` - Ejemplo de implementación
+- `README.md` - Documentación
 
-There are several ways of editing your application.
+## Instalación
 
-**Use Lovable**
+### Opción 1: Con Expo Vector Icons (Recomendado)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7126f1f2-0cb1-4568-aedf-02de29585a45) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+Si usas Expo:
+```bash
+npx expo install @expo/vector-icons
 ```
 
-**Edit a file directly in GitHub**
+Si usas React Native CLI:
+```bash
+npm install react-native-vector-icons
+# Seguir las instrucciones de configuración específicas para iOS/Android
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Opción 2: Sin dependencias externas
 
-**Use GitHub Codespaces**
+Usa el archivo `BottomTabNavigationSimple.js` que no requiere instalaciones adicionales.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Uso
 
-## What technologies are used for this project?
+### Implementación Básica
 
-This project is built with:
+```javascript
+import React from 'react';
+import { View } from 'react-native';
+import BottomTabNavigation from './BottomTabNavigation';
+// o import BottomTabNavigationSimple from './BottomTabNavigationSimple';
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+const App = () => {
+  const handleTasksPress = () => {
+    console.log('Navegando a TAREAS');
+    // Implementar navegación a pantalla de tareas
+  };
 
-## How can I deploy this project?
+  const handleAddPress = () => {
+    console.log('Navegando a AGREGAR');
+    // Implementar navegación o modal para agregar
+  };
 
-Simply open [Lovable](https://lovable.dev/projects/7126f1f2-0cb1-4568-aedf-02de29585a45) and click on Share -> Publish.
+  const handleProgressPress = () => {
+    console.log('Navegando a PROGRESO');
+    // Implementar navegación a pantalla de progreso
+  };
 
-## Can I connect a custom domain to my Lovable project?
+  return (
+    <View style={{ flex: 1 }}>
+      {/* Tu contenido aquí */}
+      
+      <BottomTabNavigation
+        onTasksPress={handleTasksPress}
+        onAddPress={handleAddPress}
+        onProgressPress={handleProgressPress}
+      />
+    </View>
+  );
+};
 
-Yes, you can!
+export default App;
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Características
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Diseño
+- ✅ Botones circulares negros con iconos blancos
+- ✅ Botón central (AGREGAR) ligeramente más grande
+- ✅ Sombras y elevación para efecto visual
+- ✅ Posicionamiento absoluto en la parte inferior
+- ✅ Responsive al ancho de pantalla
+
+### Funcionalidad
+- ✅ Tres botones: TAREAS (✓), AGREGAR (+), PROGRESO (📊)
+- ✅ Props para manejar eventos de cada botón
+- ✅ Efectos de toque con `activeOpacity`
+- ✅ Compatible con navegación React Navigation
+
+### Iconos Incluidos
+- **TAREAS**: Ícono de check/marca de verificación
+- **AGREGAR**: Ícono de plus/suma
+- **PROGRESO**: Ícono de barras de gráfico/estadísticas
+
+## Personalización
+
+### Cambiar colores
+```javascript
+// En los estilos del componente
+tabButton: {
+  backgroundColor: '#000000', // Cambiar color de fondo
+  // ...otros estilos
+},
+
+// Para los iconos (en versión Expo)
+<Ionicons name="checkmark" size={24} color="#FFFFFF" />
+```
+
+### Cambiar tamaños
+```javascript
+tabButton: {
+  width: 60,      // Cambiar ancho
+  height: 60,     // Cambiar alto
+  borderRadius: 30, // Mantener la mitad del width/height para círculo perfecto
+},
+```
+
+### Cambiar posición
+```javascript
+container: {
+  bottom: 30, // Cambiar distancia desde la parte inferior
+  // ...otros estilos
+},
+```
+
+## Integración con React Navigation
+
+```javascript
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
+
+const handleTasksPress = () => {
+  navigation.navigate('TasksScreen');
+};
+
+const handleAddPress = () => {
+  navigation.navigate('AddScreen');
+};
+
+const handleProgressPress = () => {
+  navigation.navigate('ProgressScreen');
+};
+```
+
+## Compatibilidad
+
+- ✅ React Native 0.60+
+- ✅ Expo SDK 40+
+- ✅ iOS y Android
+- ✅ TypeScript (con tipados apropiados)
+
+## Soporte
+
+Para dudas o problemas, revisa la documentación de React Native o Expo según corresponda.
