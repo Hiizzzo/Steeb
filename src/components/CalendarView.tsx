@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TaskCard from './TaskCard';
 
@@ -34,6 +34,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showDateDetails, setShowDateDetails] = useState(false);
 
   const today = new Date();
   const currentMonth = currentDate.getMonth();
@@ -50,11 +51,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const daysInPrevMonth = prevMonth.getDate();
 
   const monthNames = [
+    'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+    'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+  ];
+
+  const monthNamesFull = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const dayNames = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
 
   // Get tasks for a specific date
   const getTasksForDate = (dateStr: string) => {
@@ -125,38 +131,48 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     });
   };
 
+  const handleDateClick = (dateStr: string) => {
+    setSelectedDate(dateStr);
+    setShowDateDetails(true);
+  };
+
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
   return (
     <div className="min-h-screen bg-white pb-24" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Calendar Header */}
-      <div className="border-b-2 border-black bg-white p-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
             onClick={() => navigateMonth('prev')}
-            className="p-2 hover:bg-gray-100"
+            className="p-3 hover:bg-gray-50 rounded-full"
           >
             <ChevronLeft size={20} className="text-black" />
           </Button>
           
-          <h2 className="text-2xl font-bold text-black">
-            {monthNames[currentMonth]} {currentYear}
-          </h2>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-black">
+              {monthNamesFull[currentMonth]} {currentYear}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {monthNames[currentMonth]} {currentYear}
+            </p>
+          </div>
           
           <Button
             variant="ghost"
             onClick={() => navigateMonth('next')}
-            className="p-2 hover:bg-gray-100"
+            className="p-3 hover:bg-gray-50 rounded-full"
           >
             <ChevronRight size={20} className="text-black" />
           </Button>
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-1 mb-4">
           {dayNames.map(dayName => (
-            <div key={dayName} className="text-center text-sm font-bold text-black p-2">
+            <div key={dayName} className="text-center text-xs font-medium text-gray-500 p-2 uppercase">
               {dayName}
             </div>
           ))}
@@ -164,81 +180,139 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* Calendar Grid */}
-      <div className="p-4">
+      <div className="px-4">
         <div className="grid grid-cols-7 gap-1 mb-6">
           {calendarDays.map((day, index) => (
             <button
               key={index}
-              onClick={() => setSelectedDate(day.date)}
+              onClick={() => handleDateClick(day.date)}
               className={`
-                aspect-square border border-black p-2 text-center relative
-                ${day.isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
-                ${day.isToday ? 'bg-black text-white' : ''}
-                ${selectedDate === day.date ? 'ring-2 ring-black' : ''}
-                hover:bg-gray-100 transition-colors
+                aspect-square p-2 text-center relative rounded-lg transition-all duration-200
+                ${day.isCurrentMonth ? 'text-black hover:bg-gray-50' : 'text-gray-300'}
+                ${day.isToday ? 'bg-black text-white font-bold' : ''}
+                ${selectedDate === day.date && !day.isToday ? 'bg-gray-100 ring-2 ring-black' : ''}
               `}
             >
-              <div className="text-sm font-medium">{day.day}</div>
+              <div className="text-base font-medium">{day.day}</div>
               {day.tasksCount > 0 && (
-                <div className={`
-                  absolute bottom-1 right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center
-                  ${day.isToday ? 'bg-white text-black' : 'bg-black text-white'}
-                `}>
-                  {day.tasksCount}
+                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                  {Array.from({ length: Math.min(day.tasksCount, 3) }).map((_, i) => (
+                    <div 
+                      key={i}
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        day.isToday ? 'bg-white' : 'bg-black'
+                      }`}
+                    />
+                  ))}
+                  {day.tasksCount > 3 && (
+                    <div className={`text-xs font-bold ${day.isToday ? 'text-white' : 'text-black'}`}>
+                      +{day.tasksCount - 3}
+                    </div>
+                  )}
                 </div>
               )}
             </button>
           ))}
         </div>
 
-        {/* Selected Date Tasks */}
-        {selectedDate && (
-          <div className="border-2 border-black rounded-lg bg-white p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-black">
-                Tareas para {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </h3>
-              <Button
-                onClick={onAddTask}
-                className="bg-black text-white hover:bg-gray-800 p-2"
-              >
-                <Plus size={16} />
-              </Button>
-            </div>
-
-            {selectedDateTasks.length > 0 ? (
-              <div className="space-y-4">
-                {selectedDateTasks.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    id={task.id}
-                    title={task.title}
-                    type={task.type}
-                    completed={task.completed}
-                    subtasks={task.subtasks}
-                    onToggle={onToggleTask}
-                    onToggleSubtask={onToggleSubtask}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600 font-medium">
-                  No hay tareas para este día
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Haz clic en + para agregar una tarea
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Quick today access */}
+        <div className="text-center mb-6">
+          <p className="text-sm text-gray-500 mb-2">
+            {new Date().toLocaleDateString('es-ES', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </p>
+          <Button
+            onClick={() => handleDateClick(today.toISOString().split('T')[0])}
+            className="bg-black text-white hover:bg-gray-800 rounded-full px-6 py-2"
+          >
+            <Calendar size={16} className="mr-2" />
+            Ver Hoy
+          </Button>
+        </div>
       </div>
+
+      {/* Date Details Modal */}
+      {showDateDetails && selectedDate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl w-full max-w-md max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom-4">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-black">
+                    {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
+                      weekday: 'long', 
+                      day: 'numeric'
+                    })}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
+                      month: 'long', 
+                      year: 'numeric' 
+                    })}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={onAddTask}
+                    className="bg-black text-white hover:bg-gray-800 rounded-full p-2"
+                  >
+                    <Plus size={16} />
+                  </Button>
+                  <Button
+                    onClick={() => setShowDateDetails(false)}
+                    variant="ghost"
+                    className="p-2 hover:bg-gray-100 rounded-full"
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Tasks for selected date */}
+              {selectedDateTasks.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedDateTasks.map(task => (
+                    <TaskCard
+                      key={task.id}
+                      id={task.id}
+                      title={task.title}
+                      type={task.type}
+                      completed={task.completed}
+                      subtasks={task.subtasks}
+                      onToggle={onToggleTask}
+                      onToggleSubtask={onToggleSubtask}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar size={24} className="text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 font-medium mb-2">
+                    Sin recordatorios
+                  </p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    No hay tareas programadas para este día
+                  </p>
+                  <Button
+                    onClick={onAddTask}
+                    className="bg-black text-white hover:bg-gray-800 rounded-full px-6 py-2"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Nuevo
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
