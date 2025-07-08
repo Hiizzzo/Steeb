@@ -21,6 +21,7 @@ interface Task {
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
+  scheduledTime?: string;
   completedDate?: string;
 }
 
@@ -166,14 +167,15 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
       type,
       completed: false,
       subtasks,
-      scheduledDate: scheduledDate || new Date().toISOString().split('T')[0]
+      scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
+      scheduledTime
     };
     
     setTasks(prevTasks => [...prevTasks, newTask]);
@@ -223,6 +225,8 @@ const Index = () => {
                     type={task.type}
                     completed={task.completed}
                     subtasks={task.subtasks}
+                    scheduledDate={task.scheduledDate}
+                    scheduledTime={task.scheduledTime}
                     onToggle={handleToggleTask}
                     onToggleSubtask={handleToggleSubtask}
                     onDelete={handleDeleteTask}

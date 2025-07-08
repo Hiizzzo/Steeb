@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle, Trash2 } from 'lucide-react';
+import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle, Trash2, Clock } from 'lucide-react';
 
 interface SubTask {
   id: string;
@@ -14,6 +14,8 @@ interface TaskCardProps {
   type: 'personal' | 'work' | 'meditation';
   completed: boolean;
   subtasks?: SubTask[];
+  scheduledDate?: string;
+  scheduledTime?: string;
   onToggle: (id: string) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   onDelete?: (id: string) => void;
@@ -25,6 +27,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   type, 
   completed, 
   subtasks, 
+  scheduledDate,
+  scheduledTime,
   onToggle, 
   onToggleSubtask, 
   onDelete 
@@ -179,17 +183,32 @@ const TaskCard: React.FC<TaskCardProps> = ({
               {getTypeIcon()}
             </div>
             
-            {/* Texto de la tarea */}
-            <span 
-              className={`text-lg font-medium transition-all duration-300 ${
-                completed 
-                  ? 'line-through text-gray-400' 
-                  : 'text-black'
-              }`}
-              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-            >
-              {title}
-            </span>
+            {/* Texto de la tarea y hora */}
+            <div className="flex-1">
+              <span 
+                className={`text-lg font-medium transition-all duration-300 ${
+                  completed 
+                    ? 'line-through text-gray-400' 
+                    : 'text-black'
+                }`}
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {title}
+              </span>
+              
+              {/* Mostrar hora si está disponible */}
+              {scheduledTime && (
+                <div className="flex items-center mt-1 space-x-1">
+                  <Clock size={14} className={`${completed ? 'text-gray-400' : 'text-gray-500'}`} />
+                  <span 
+                    className={`text-sm ${completed ? 'text-gray-400' : 'text-gray-500'}`}
+                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                  >
+                    {scheduledTime}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Checkbox - solo mostrar si no hay subtareas */}
