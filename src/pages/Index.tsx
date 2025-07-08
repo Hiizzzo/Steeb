@@ -199,14 +199,14 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-white pb-20" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
       <StebeHeader />
       
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
-          <div className="pb-24 pt-4">
+          <div className="pt-4">
             {todaysTasks.length > 0 ? (
               todaysTasks
                 .sort((a, b) => {
