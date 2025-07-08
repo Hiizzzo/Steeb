@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Pencil, Calendar, ShoppingCart, CalendarIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Lock, ChevronRight } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
@@ -21,14 +20,17 @@ interface ModalAddTaskProps {
 
 const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
   const [title, setTitle] = useState('');
-  const [selectedType, setSelectedType] = useState<'personal' | 'work' | 'meditation'>('work');
-  const [subtasks, setSubtasks] = useState<string[]>(['']);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [notes, setNotes] = useState('');
+  const [selectedList, setSelectedList] = useState('ToDo');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>('');
+  const [hasDate, setHasDate] = useState(false);
   const [hasTime, setHasTime] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [subtasks, setSubtasks] = useState<string[]>(['']);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (title.trim()) {
       const validSubtasks = subtasks
         .filter(s => s.trim())
@@ -38,29 +40,36 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
           completed: false
         }));
       
-      const scheduledDate = selectedDate.toISOString().split('T')[0];
+      const scheduledDate = hasDate && selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+      
+      // Map list to type for backward compatibility
+      const taskType = selectedList === 'Work' ? 'work' : selectedList === 'Personal' ? 'personal' : 'work';
+      
       onAddTask(
         title.trim(), 
-        selectedType, 
+        taskType, 
         validSubtasks.length > 0 ? validSubtasks : undefined, 
         scheduledDate,
         hasTime ? selectedTime : undefined
       );
-      setTitle('');
-      setSubtasks(['']);
-      setSelectedDate(new Date());
-      setSelectedTime('');
-      setHasTime(false);
+      resetForm();
       onClose();
     }
   };
 
-  const addSubtask = () => {
-    setSubtasks([...subtasks, '']);
+  const resetForm = () => {
+    setTitle('');
+    setNotes('');
+    setSelectedList('ToDo');
+    setSelectedDate(undefined);
+    setSelectedTime('');
+    setHasDate(false);
+    setHasTime(false);
+    setSubtasks(['']);
   };
 
-  const removeSubtask = (index: number) => {
-    setSubtasks(subtasks.filter((_, i) => i !== index));
+  const addSubtask = () => {
+    setSubtasks([...subtasks, '']);
   };
 
   const updateSubtask = (index: number, value: string) => {
@@ -69,167 +78,108 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
     setSubtasks(newSubtasks);
   };
 
+  const removeSubtask = (index: number) => {
+    setSubtasks(subtasks.filter((_, i) => i !== index));
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border border-gray-300 rounded-xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
+      <div className="bg-gray-100 w-full sm:max-w-md h-[85vh] sm:h-auto sm:rounded-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-            Add New Task
+        <div className="flex items-center justify-between px-4 py-4 bg-gray-200/80 backdrop-blur-sm sm:rounded-t-2xl">
+          <button
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
+            className="text-[#007AFF] text-lg"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+          >
+            Cancelar
+          </button>
+          <h2 className="text-lg font-semibold text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+            Nuevo
           </h2>
           <button
-            onClick={onClose}
-            className="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100"
+            onClick={handleSubmit}
+            disabled={!title.trim()}
+            className={cn(
+              "text-lg font-medium",
+              title.trim() ? "text-[#007AFF]" : "text-gray-400"
+            )}
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
           >
-            <X size={16} className="text-black" />
+            Listo
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Input de texto */}
-          <div>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto bg-white">
+          {/* Title Input */}
+          <div className="px-4 py-3 border-b border-gray-200">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter task description..."
-              className="w-full p-3 border border-gray-300 rounded-xl text-lg font-medium focus:outline-none focus:border-black"
-              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              placeholder="Título"
+              className="w-full text-lg placeholder-gray-400 focus:outline-none bg-transparent"
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               autoFocus
             />
           </div>
 
-          {/* Selector de fecha */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              Scheduled date:
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal border-gray-300 hover:bg-gray-50",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Selector de hora */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                Time (optional):
-              </label>
-              <button
-                type="button"
-                onClick={() => setHasTime(!hasTime)}
-                className={`w-12 h-6 rounded-full transition-all ${
-                  hasTime ? 'bg-black' : 'bg-gray-300'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    hasTime ? 'translate-x-6' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
-            </div>
-            
-            {hasTime && (
+          {/* Notes with Lock Icon */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <div className="flex items-start space-x-2">
+              <Lock size={16} className="text-[#FFD700] mt-1" />
               <input
-                type="time"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-xl text-lg font-medium focus:outline-none focus:border-black"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Notas"
+                className="flex-1 text-base placeholder-gray-400 focus:outline-none bg-transparent"
+                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               />
-            )}
-          </div>
-
-          {/* Selector de tipo */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              Task type:
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: 'work', label: 'Work', icon: Pencil },
-                { value: 'meditation', label: 'Meeting', icon: Calendar },
-                { value: 'personal', label: 'Personal', icon: ShoppingCart }
-              ].map((option) => {
-                const IconComponent = option.icon;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setSelectedType(option.value as any)}
-                    className={`p-3 border border-gray-300 rounded-xl text-center transition-all flex flex-col items-center space-y-1 ${
-                      selectedType === option.value 
-                        ? 'bg-black text-white border-black' 
-                        : 'bg-white text-black hover:bg-gray-50'
-                    }`}
-                  >
-                    <IconComponent size={20} />
-                    <div className="text-xs font-medium" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                      {option.label}
-                    </div>
-                  </button>
-                );
-              })}
+            </div>
+            <div className="ml-6 mt-1">
+              <span className="text-xs text-[#FFD700] font-medium">Premium</span>
             </div>
           </div>
 
-          {/* Subtareas */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                Subtasks (optional):
-              </label>
+          {/* Subtasks */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-base text-gray-600" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                Subtareas
+              </span>
               <button
                 type="button"
                 onClick={addSubtask}
-                className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border border-gray-300"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                className="text-[#007AFF] text-sm"
+                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               >
-                + Add
+                + Agregar
               </button>
             </div>
-            
-            <div className="space-y-2 max-h-32 overflow-y-auto">
+            <div className="space-y-2">
               {subtasks.map((subtask, index) => (
                 <div key={index} className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">▸</span>
+                  <span className="text-gray-400">•</span>
                   <input
                     type="text"
                     value={subtask}
                     onChange={(e) => updateSubtask(index, e.target.value)}
-                    placeholder="Enter subtask..."
-                    className="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-black"
-                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                    placeholder="Nueva subtarea..."
+                    className="flex-1 text-base placeholder-gray-400 focus:outline-none bg-transparent py-1"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   />
                   {subtasks.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeSubtask(index)}
-                      className="text-gray-400 hover:text-red-500 text-sm px-1"
+                      className="text-red-500 text-sm px-2"
                     >
                       ×
                     </button>
@@ -239,26 +189,126 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             </div>
           </div>
 
-          {/* Botones */}
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 p-3 border border-gray-300 rounded-xl font-medium text-black bg-white hover:bg-gray-50 transition-colors"
-              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!title.trim()}
-              className="flex-1 p-3 rounded-xl font-medium text-white bg-black hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-            >
-              Add Task
-            </button>
+          {/* List Selector */}
+          <div className="px-4 py-4 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                Lista
+              </span>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
+                  <div className="w-3 h-3 bg-[#007AFF] rounded-full"></div>
+                  <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                    {selectedList}
+                  </span>
+                </div>
+                <ChevronRight size={16} className="text-gray-400" />
+              </div>
+            </div>
           </div>
-        </form>
+
+          {/* Due Date Section */}
+          <div className="bg-gray-50 px-4 py-4">
+            <div className="mb-4">
+              <span className="text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                Due Date
+              </span>
+            </div>
+
+            {/* Date Toggle */}
+            <div className="flex items-center justify-between py-3">
+              <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                Fecha
+              </span>
+              <button
+                onClick={() => {
+                  setHasDate(!hasDate);
+                  if (!hasDate && !selectedDate) {
+                    setSelectedDate(new Date());
+                  }
+                }}
+                className={cn(
+                  "w-[51px] h-[31px] rounded-full transition-all relative",
+                  hasDate ? "bg-[#34C759]" : "bg-gray-300"
+                )}
+              >
+                <div
+                  className={cn(
+                    "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
+                    hasDate ? "translate-x-[22px]" : "translate-x-[2px]"
+                  )}
+                />
+              </button>
+            </div>
+
+            {/* Show date picker when date is enabled */}
+            {hasDate && (
+              <div className="py-2 border-t border-gray-200">
+                <button
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className="w-full text-left text-[#007AFF] text-base"
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                >
+                  {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy") : "Seleccionar fecha"}
+                </button>
+                
+                {showDatePicker && (
+                  <div className="mt-2">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        setShowDatePicker(false);
+                      }}
+                      className="rounded-md border"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Time Toggle */}
+            <div className="flex items-center justify-between py-3 border-t border-gray-200">
+              <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                Hora
+              </span>
+              <button
+                onClick={() => {
+                  setHasTime(!hasTime);
+                  if (!hasTime && !selectedTime) {
+                    const now = new Date();
+                    setSelectedTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+                  }
+                }}
+                className={cn(
+                  "w-[51px] h-[31px] rounded-full transition-all relative",
+                  hasTime ? "bg-[#34C759]" : "bg-gray-300"
+                )}
+              >
+                <div
+                  className={cn(
+                    "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
+                    hasTime ? "translate-x-[22px]" : "translate-x-[2px]"
+                  )}
+                />
+              </button>
+            </div>
+
+            {/* Show time picker when time is enabled */}
+            {hasTime && (
+              <div className="py-2 border-t border-gray-200">
+                <input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-full text-[#007AFF] text-base bg-transparent focus:outline-none"
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
