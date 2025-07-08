@@ -155,6 +155,17 @@ const Index = () => {
     }
   };
 
+  const handleDeleteTask = (id: string) => {
+    const taskToDelete = tasks.find(t => t.id === id);
+    if (taskToDelete) {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      toast({
+        title: "Task deleted",
+        description: `"${taskToDelete.title}" has been removed from your list.`,
+      });
+    }
+  };
+
   const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
@@ -214,6 +225,7 @@ const Index = () => {
                     subtasks={task.subtasks}
                     onToggle={handleToggleTask}
                     onToggleSubtask={handleToggleSubtask}
+                    onDelete={handleDeleteTask}
                   />
                 ))
             ) : (
@@ -234,6 +246,7 @@ const Index = () => {
           onToggleTask={handleToggleTask}
           onToggleSubtask={handleToggleSubtask}
           onAddTask={() => setShowModal(true)}
+          onDelete={handleDeleteTask}
         />
       )}
 

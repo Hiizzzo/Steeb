@@ -24,13 +24,15 @@ interface CalendarViewProps {
   onToggleTask: (id: string) => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onAddTask: () => void;
+  onDelete?: (id: string) => void;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({ 
   tasks, 
   onToggleTask, 
   onToggleSubtask, 
-  onAddTask 
+  onAddTask,
+  onDelete
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -286,6 +288,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       subtasks={task.subtasks}
                       onToggle={onToggleTask}
                       onToggleSubtask={onToggleSubtask}
+                      onDelete={onDelete}
                     />
                   ))}
                 </div>
