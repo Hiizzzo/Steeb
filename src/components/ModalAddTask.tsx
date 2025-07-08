@@ -16,7 +16,7 @@ interface SubTask {
 interface ModalAddTaskProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string) => void;
+  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string) => void;
 }
 
 const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
@@ -24,6 +24,8 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
   const [selectedType, setSelectedType] = useState<'personal' | 'work' | 'meditation'>('work');
   const [subtasks, setSubtasks] = useState<string[]>(['']);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [hasTime, setHasTime] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +39,18 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
         }));
       
       const scheduledDate = selectedDate.toISOString().split('T')[0];
-      onAddTask(title.trim(), selectedType, validSubtasks.length > 0 ? validSubtasks : undefined, scheduledDate);
+      onAddTask(
+        title.trim(), 
+        selectedType, 
+        validSubtasks.length > 0 ? validSubtasks : undefined, 
+        scheduledDate,
+        hasTime ? selectedTime : undefined
+      );
       setTitle('');
       setSubtasks(['']);
       setSelectedDate(new Date());
+      setSelectedTime('');
+      setHasTime(false);
       onClose();
     }
   };
@@ -120,6 +130,38 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          {/* Selector de hora */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                Time (optional):
+              </label>
+              <button
+                type="button"
+                onClick={() => setHasTime(!hasTime)}
+                className={`w-12 h-6 rounded-full transition-all ${
+                  hasTime ? 'bg-black' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                    hasTime ? 'translate-x-6' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+            
+            {hasTime && (
+              <input
+                type="time"
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-xl text-lg font-medium focus:outline-none focus:border-black"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              />
+            )}
           </div>
 
           {/* Selector de tipo */}

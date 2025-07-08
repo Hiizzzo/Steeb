@@ -16,6 +16,7 @@ interface Task {
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
+  scheduledTime?: string;
   completedDate?: string;
 }
 
@@ -286,6 +287,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       type={task.type}
                       completed={task.completed}
                       subtasks={task.subtasks}
+                      scheduledDate={task.scheduledDate}
+                      scheduledTime={task.scheduledTime}
                       onToggle={onToggleTask}
                       onToggleSubtask={onToggleSubtask}
                       onDelete={onDelete}
