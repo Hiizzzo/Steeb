@@ -27,66 +27,41 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-black">
-      <div className="flex items-center justify-around py-2 px-4">
+    <div className="fixed bottom-8 left-0 right-0 z-50">
+      <div className="flex items-end justify-center relative">
         
-        {/* Botón de Tareas (Check) */}
+        {/* Botón de Ver Tareas (izquierda) */}
         <button
           onClick={handleTasksClick}
-          className={`flex flex-col items-center justify-center py-3 px-6 rounded-xl transition-all duration-200 ${
+          className={`absolute -left-2 bottom-3 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
             isHome 
-              ? 'bg-black text-white' 
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
+              ? 'bg-black shadow-2xl scale-110' 
+              : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
-          style={{ 
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            minWidth: '80px'
-          }}
+          style={{ left: 'calc(50% - 120px)' }}
         >
-          <div className={`p-2 rounded-full ${isHome ? 'bg-white/20' : 'bg-gray-100'}`}>
-            <Check size={24} className={isHome ? 'text-white' : 'text-gray-600'} />
-          </div>
-          <span className={`text-xs font-bold mt-1 ${isHome ? 'text-white' : 'text-gray-600'}`}>
-            TAREAS
-          </span>
+          <Check size={20} className="text-white" strokeWidth={3} />
         </button>
 
-        {/* Botón de Agregar Tarea (Plus) - Siempre destacado */}
+        {/* Botón Principal de Crear Tarea (centro) */}
         <button
           onClick={onAddTask}
-          className="flex flex-col items-center justify-center py-3 px-6 rounded-xl bg-black text-white transition-all duration-200 hover:bg-gray-800 active:scale-95"
-          style={{ 
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            minWidth: '80px'
-          }}
+          className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-black shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-2"
         >
-          <div className="p-2 rounded-full bg-white/20">
-            <Plus size={24} className="text-white" />
-          </div>
-          <span className="text-xs font-bold mt-1 text-white">
-            AGREGAR
-          </span>
+          <Plus size={28} className="text-white sm:w-8 sm:h-8" strokeWidth={3} />
         </button>
 
-        {/* Botón de Estadísticas (BarChart) */}
+        {/* Botón de Estadísticas (derecha) */}
         <button
           onClick={handleStatsClick}
-          className={`flex flex-col items-center justify-center py-3 px-6 rounded-xl transition-all duration-200 ${
+          className={`absolute -right-2 bottom-3 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
             isStats 
-              ? 'bg-black text-white' 
-              : 'bg-transparent text-gray-600 hover:bg-gray-100'
+              ? 'bg-black shadow-2xl scale-110' 
+              : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
-          style={{ 
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            minWidth: '80px'
-          }}
+          style={{ right: 'calc(50% - 120px)' }}
         >
-          <div className={`p-2 rounded-full ${isStats ? 'bg-white/20' : 'bg-gray-100'}`}>
-            <BarChart3 size={24} className={isStats ? 'text-white' : 'text-gray-600'} />
-          </div>
-          <span className={`text-xs font-bold mt-1 ${isStats ? 'text-white' : 'text-gray-600'}`}>
-            PROGRESO
-          </span>
+          <BarChart3 size={18} className="text-white" strokeWidth={2.5} />
         </button>
 
       </div>
