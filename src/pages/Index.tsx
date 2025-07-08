@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
-import FloatingButtons from '@/components/FloatingButtons';
+import BottomNavigation from '@/components/BottomNavigation';
 import ModalAddTask from '@/components/ModalAddTask';
 import CalendarView from '@/components/CalendarView';
 
@@ -199,7 +199,7 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white pb-20" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-white pb-28" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
       <StebeHeader />
       
@@ -250,10 +250,9 @@ const Index = () => {
         />
       )}
 
-      {/* Floating Buttons */}
-      <FloatingButtons 
+      {/* Bottom Navigation */}
+      <BottomNavigation 
         onAddTask={() => setShowModal(true)}
-        onShowTasks={handleShowTasks}
         onToggleView={() => setViewMode(viewMode === 'tasks' ? 'calendar' : 'tasks')}
         viewMode={viewMode}
       />

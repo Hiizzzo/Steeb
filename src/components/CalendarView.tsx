@@ -141,7 +141,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
   return (
-    <div className="min-h-screen bg-white pb-24" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-white pb-32" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Calendar Header */}
       <div className="bg-white p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-6">
