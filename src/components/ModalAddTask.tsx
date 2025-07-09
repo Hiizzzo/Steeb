@@ -21,7 +21,7 @@ interface ModalAddTaskProps {
 const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-  const [selectedList, setSelectedList] = useState('ToDo');
+  const [selectedList, setSelectedList] = useState('Tareas');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [hasDate, setHasDate] = useState(false);
@@ -60,7 +60,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
   const resetForm = () => {
     setTitle('');
     setNotes('');
-    setSelectedList('ToDo');
+    setSelectedList('Tareas');
     setSelectedDate(undefined);
     setSelectedTime('');
     setHasDate(false);
@@ -89,30 +89,30 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
       <div className="bg-gray-100 w-full sm:max-w-md h-[85vh] sm:h-auto sm:rounded-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 bg-gray-200/80 backdrop-blur-sm sm:rounded-t-2xl">
-          <button
-            onClick={() => {
-              resetForm();
-              onClose();
-            }}
-            className="text-[#007AFF] text-lg"
-            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
-          >
-            Cancelar
-          </button>
+                      <button
+              onClick={() => {
+                resetForm();
+                onClose();
+              }}
+              className="text-black text-lg"
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+            >
+              Cancelar
+            </button>
           <h2 className="text-lg font-semibold text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
             Nuevo
           </h2>
-          <button
-            onClick={handleSubmit}
-            disabled={!title.trim()}
-            className={cn(
-              "text-lg font-medium",
-              title.trim() ? "text-[#007AFF]" : "text-gray-400"
-            )}
-            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
-          >
-            Listo
-          </button>
+                      <button
+              onClick={handleSubmit}
+              disabled={!title.trim()}
+              className={cn(
+                "text-lg font-medium",
+                title.trim() ? "text-black" : "text-gray-400"
+              )}
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+            >
+              Listo
+            </button>
         </div>
 
         {/* Content */}
@@ -130,22 +130,16 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             />
           </div>
 
-          {/* Notes with Lock Icon */}
+          {/* Notes */}
           <div className="px-4 py-3 border-b border-gray-200">
-            <div className="flex items-start space-x-2">
-              <Lock size={16} className="text-[#FFD700] mt-1" />
-              <input
-                type="text"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notas"
-                className="flex-1 text-base placeholder-gray-400 focus:outline-none bg-transparent"
-                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
-              />
-            </div>
-            <div className="ml-6 mt-1">
-              <span className="text-xs text-[#FFD700] font-medium">Premium</span>
-            </div>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Notas"
+              className="w-full text-base placeholder-gray-400 focus:outline-none bg-transparent"
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+            />
           </div>
 
           {/* Subtasks */}
@@ -157,7 +151,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
               <button
                 type="button"
                 onClick={addSubtask}
-                className="text-[#007AFF] text-sm"
+                className="text-black text-sm"
                 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               >
                 + Agregar
@@ -197,7 +191,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
               </span>
               <div className="flex items-center space-x-2">
                 <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-[#007AFF] rounded-full"></div>
+                  <div className="w-3 h-3 bg-black rounded-full"></div>
                   <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
                     {selectedList}
                   </span>
@@ -229,7 +223,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
                 }}
                 className={cn(
                   "w-[51px] h-[31px] rounded-full transition-all relative",
-                  hasDate ? "bg-[#34C759]" : "bg-gray-300"
+                  hasDate ? "bg-black" : "bg-gray-300"
                 )}
               >
                 <div
@@ -246,7 +240,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
               <div className="py-2 border-t border-gray-200">
                 <button
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="w-full text-left text-[#007AFF] text-base"
+                  className="w-full text-left text-black text-base"
                   style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                 >
                   {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy") : "Seleccionar fecha"}
@@ -283,7 +277,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
                 }}
                 className={cn(
                   "w-[51px] h-[31px] rounded-full transition-all relative",
-                  hasTime ? "bg-[#34C759]" : "bg-gray-300"
+                  hasTime ? "bg-black" : "bg-gray-300"
                 )}
               >
                 <div
@@ -302,7 +296,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
                   type="time"
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
-                  className="w-full text-[#007AFF] text-base bg-transparent focus:outline-none"
+                  className="w-full text-black text-base bg-transparent focus:outline-none"
                   style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                 />
               </div>

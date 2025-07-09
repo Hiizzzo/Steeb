@@ -147,9 +147,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div className="relative mx-4 mb-3">
-      {/* Fondo rojo de eliminación */}
+      {/* Fondo negro de eliminación */}
       <div 
-        className={`absolute inset-0 bg-red-500 rounded-xl flex items-center justify-end pr-6 transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-black rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
           showDeleteButton ? 'opacity-100' : 'opacity-0'
         }`}
       >
@@ -159,8 +159,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {/* Tarjeta principal */}
       <div 
         ref={cardRef}
-        className={`bg-white border border-gray-300 rounded-xl p-4 transition-all duration-200 ease-out transform ${
-          completed ? 'opacity-60' : 'hover:border-gray-400'
+        className={`bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 ease-out transform ${
+          completed ? 'opacity-40' : 'hover:border-black'
         } ${(!subtasks || subtasks.length === 0) && !isDragging ? 'cursor-pointer' : ''}`}
         style={{
           transform: `translateX(-${swipeOffset}px)`,
@@ -215,11 +215,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
           {(!subtasks || subtasks.length === 0) && (
             <div className="ml-3">
               {completed ? (
-                <div className="w-6 h-6 bg-green-100 border-2 border-black rounded-full flex items-center justify-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
                 </div>
               ) : (
-                <Circle size={24} className="text-gray-400 hover:text-black transition-colors" />
+                <Circle size={24} className="text-gray-300 hover:text-black transition-colors" />
               )}
             </div>
           )}
@@ -241,11 +241,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
               >
                 <div className="flex items-center space-x-2">
                   {subtask.completed ? (
-                    <div className="w-3 h-3 bg-green-100 border border-green-500 rounded-full flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-black border border-black rounded-full flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                     </div>
                   ) : (
-                    <div className="w-3 h-3 border border-gray-400 rounded-full"></div>
+                    <div className="w-3 h-3 border border-gray-300 rounded-full"></div>
                   )}
                   <span 
                     className={`text-sm transition-all duration-300 ${
