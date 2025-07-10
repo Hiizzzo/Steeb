@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Medal, Sparkles } from 'lucide-react';
+import { Medal, Sparkles, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface SubTask {
   id: string;
@@ -20,6 +21,7 @@ interface Task {
 
 const StatsNew = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const navigate = useNavigate();
 
   // Cargar tareas desde localStorage
   useEffect(() => {
@@ -137,6 +139,14 @@ const StatsNew = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* Botón de volver */}
+      <button 
+        onClick={() => navigate('/')}
+        className="fixed top-4 left-4 z-10 w-12 h-12 rounded-full bg-black shadow-lg flex items-center justify-center transition-all duration-300 hover:shadow-xl hover:scale-105"
+      >
+        <ArrowLeft size={20} className="text-white" strokeWidth={3} />
+      </button>
+
       {/* Tarjeta principal */}
       <div className="bg-white rounded-3xl shadow-sm mx-auto max-w-md mt-8 mb-8 relative overflow-hidden">
         {/* Líneas de cuaderno sutiles */}
