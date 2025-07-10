@@ -15,7 +15,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isStats = location.pathname === '/estadisticas';
-  const isStatsNew = location.pathname === '/stats';
 
   const handleTasksClick = () => {
     if (!isHome) {
@@ -25,10 +24,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
 
   const handleStatsClick = () => {
     navigate('/estadisticas');
-  };
-
-  const handleStatsNewClick = () => {
-    navigate('/stats');
   };
 
   return (
@@ -69,18 +64,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
           <BarChart3 size={16} className="text-white" strokeWidth={2.5} />
         </button>
 
-        {/* Botón de Nueva Página de Estadísticas (más a la derecha) */}
-        <button
-          onClick={handleStatsNewClick}
-          className={`absolute bottom-3 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
-            isStatsNew 
-              ? 'bg-green-600 shadow-2xl scale-110' 
-              : 'bg-green-600 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
-          }`}
-          style={{ right: 'calc(50% - 140px)' }}
-        >
-          <TrendingUp size={18} className="text-white" strokeWidth={2.5} />
-        </button>
+
 
       </div>
     </div>
