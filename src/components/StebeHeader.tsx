@@ -12,7 +12,7 @@ const StebeHeader: React.FC = () => {
       {/* Steve Jobs figura y fecha en la misma línea */}
       <div className="flex items-center justify-between mb-4 px-4">
         {/* Logo de Steve Jobs */}
-        <div className="w-16 h-16 flex-shrink-0">
+        <div className="w-24 h-24 flex-shrink-0">
           <img 
             src="/lovable-uploads/f3695274-590c-4838-b4b4-f6e21b194eef.png" 
             alt="Steve Jobs" 
@@ -28,7 +28,7 @@ const StebeHeader: React.FC = () => {
         </div>
         
         {/* Espacio para balancear */}
-        <div className="w-16"></div>
+        <div className="w-24"></div>
       </div>
       
       {/* Título "Tasks" centrado en bloque negro */}
