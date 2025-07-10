@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BarChart3, Check } from 'lucide-react';
+import { Plus, BarChart3, Check, TrendingUp } from 'lucide-react';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -15,6 +15,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isStats = location.pathname === '/stats';
+  const isStatsNew = location.pathname === '/estadisticas';
 
   const handleTasksClick = () => {
     if (!isHome) {
@@ -24,6 +25,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
 
   const handleStatsClick = () => {
     navigate('/stats');
+  };
+
+  const handleStatsNewClick = () => {
+    navigate('/estadisticas');
   };
 
   return (
@@ -38,7 +43,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
-          style={{ left: 'calc(50% - 120px)' }}
+          style={{ left: 'calc(50% - 140px)' }}
         >
           <Check size={20} className="text-white" strokeWidth={3} />
         </button>
@@ -51,17 +56,30 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
           <Plus size={28} className="text-white sm:w-8 sm:h-8" strokeWidth={3} />
         </button>
 
-        {/* Botón de Estadísticas (derecha) */}
+        {/* Botón de Estadísticas Original (derecha) */}
         <button
           onClick={handleStatsClick}
-          className={`absolute -right-2 bottom-3 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
+          className={`absolute bottom-3 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 transform ${
             isStats 
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
-          style={{ right: 'calc(50% - 120px)' }}
+          style={{ right: 'calc(50% - 90px)' }}
         >
-          <BarChart3 size={18} className="text-white" strokeWidth={2.5} />
+          <BarChart3 size={16} className="text-white" strokeWidth={2.5} />
+        </button>
+
+        {/* Botón de Nueva Página de Estadísticas (más a la derecha) */}
+        <button
+          onClick={handleStatsNewClick}
+          className={`absolute bottom-3 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
+            isStatsNew 
+              ? 'bg-green-600 shadow-2xl scale-110' 
+              : 'bg-green-600 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
+          }`}
+          style={{ right: 'calc(50% - 140px)' }}
+        >
+          <TrendingUp size={18} className="text-white" strokeWidth={2.5} />
         </button>
 
       </div>
