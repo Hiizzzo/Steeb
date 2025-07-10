@@ -86,7 +86,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-gray-100 w-full sm:max-w-md h-[85vh] sm:h-auto sm:rounded-2xl flex flex-col">
+      <div className="bg-gray-100 w-full sm:max-w-lg h-[90vh] sm:h-[80vh] sm:max-h-[700px] sm:rounded-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 bg-gray-200/80 backdrop-blur-sm sm:rounded-t-2xl">
                       <button
@@ -118,62 +118,62 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
         {/* Content */}
         <div className="flex-1 overflow-y-auto bg-white">
           {/* Title Input */}
-          <div className="px-4 py-3 border-b border-gray-200">
+          <div className="px-4 py-4 border-b border-gray-200">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título"
-              className="w-full text-lg placeholder-gray-400 focus:outline-none bg-transparent"
+              className="w-full text-xl placeholder-gray-400 focus:outline-none bg-transparent"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               autoFocus
             />
           </div>
 
           {/* Notes */}
-          <div className="px-4 py-3 border-b border-gray-200">
+          <div className="px-4 py-4 border-b border-gray-200">
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas"
-              className="w-full text-base placeholder-gray-400 focus:outline-none bg-transparent"
+              className="w-full text-lg placeholder-gray-400 focus:outline-none bg-transparent"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
             />
           </div>
 
           {/* Subtasks */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-base text-gray-600" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+          <div className="px-4 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-lg text-gray-600" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
                 Subtareas
               </span>
               <button
                 type="button"
                 onClick={addSubtask}
-                className="text-black text-sm"
+                className="text-black text-base font-medium"
                 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               >
                 + Agregar
               </button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {subtasks.map((subtask, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <span className="text-gray-400">•</span>
+                <div key={index} className="flex items-center space-x-3">
+                  <span className="text-gray-400 text-lg">•</span>
                   <input
                     type="text"
                     value={subtask}
                     onChange={(e) => updateSubtask(index, e.target.value)}
                     placeholder="Nueva subtarea..."
-                    className="flex-1 text-base placeholder-gray-400 focus:outline-none bg-transparent py-1"
+                    className="flex-1 text-lg placeholder-gray-400 focus:outline-none bg-transparent py-1"
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   />
                   {subtasks.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeSubtask(index)}
-                      className="text-red-500 text-sm px-2"
+                      className="text-red-500 text-lg px-2"
                     >
                       ×
                     </button>

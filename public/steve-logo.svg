@@ -1,0 +1,30 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Head outline -->
+  <path d="M100 20 C140 20, 170 50, 170 100 L170 140 C170 160, 160 170, 140 170 L60 170 C40 170, 30 160, 30 140 L30 100 C30 50, 60 20, 100 20 Z" fill="black"/>
+  
+  <!-- Face area (white) -->
+  <path d="M100 35 C130 35, 155 55, 155 95 L155 120 C155 120, 155 125, 150 125 L50 125 C45 125, 45 120, 45 120 L45 95 C45 55, 70 35, 100 35 Z" fill="white"/>
+  
+  <!-- Glasses -->
+  <g>
+    <!-- Left lens -->
+    <circle cx="75" cy="85" r="18" fill="none" stroke="black" stroke-width="3"/>
+    <circle cx="75" cy="85" r="14" fill="white"/>
+    
+    <!-- Right lens -->
+    <circle cx="125" cy="85" r="18" fill="none" stroke="black" stroke-width="3"/>
+    <circle cx="125" cy="85" r="14" fill="white"/>
+    
+    <!-- Bridge -->
+    <line x1="93" y1="85" x2="107" y2="85" stroke="black" stroke-width="3"/>
+  </g>
+  
+  <!-- Nose -->
+  <path d="M100 95 L95 105 L105 105 Z" fill="black"/>
+  
+  <!-- Mouth -->
+  <line x1="85" y1="115" x2="115" y2="115" stroke="black" stroke-width="2"/>
+  
+  <!-- Body/Turtleneck -->
+  <rect x="30" y="140" width="140" height="60" fill="black"/>
+</svg>

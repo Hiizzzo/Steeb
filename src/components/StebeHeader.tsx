@@ -11,27 +11,13 @@ const StebeHeader: React.FC = () => {
     <div className="pt-8 pb-4 bg-white">
       {/* Steve Jobs figura y fecha en la misma línea */}
       <div className="flex items-center justify-between mb-4 px-4">
-        {/* Figura de Steve Jobs - minimalista y angular */}
+        {/* Logo de Steve Jobs */}
         <div className="w-16 h-16 flex-shrink-0">
-          <div className="w-full h-full border border-black rounded-lg bg-white relative overflow-hidden">
-            {/* Cara de Steve - estilo minimalista angular */}
-            <div className="absolute inset-2">
-              {/* Cabeza calva */}
-              <div className="w-full h-3/5 bg-white border border-black rounded-t-full relative">
-                {/* Lentes redondos */}
-                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                  <div className="flex space-x-1">
-                    <div className="w-1.5 h-1.5 border border-black rounded-full bg-white"></div>
-                    <div className="w-1.5 h-1.5 border border-black rounded-full bg-white"></div>
-                  </div>
-                  {/* Puente de lentes */}
-                  <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-1 h-0.5 bg-black"></div>
-                </div>
-              </div>
-              {/* Cuello/cuerpo */}
-              <div className="w-full h-2/5 bg-black"></div>
-            </div>
-          </div>
+          <img 
+            src="/steve-logo.svg" 
+            alt="Steve Jobs" 
+            className="w-full h-full object-contain"
+          />
         </div>
         
         {/* Fecha del día - centrada y más grande */}
