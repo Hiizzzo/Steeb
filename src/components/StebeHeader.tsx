@@ -4,7 +4,7 @@ import React from 'react';
 const StebeHeader: React.FC = () => {
   // Obtener fecha actual en inglés
   const today = new Date();
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const dayName = dayNames[today.getDay()];
 
   return (
@@ -35,7 +35,7 @@ const StebeHeader: React.FC = () => {
       <div className="w-full">
         <div className="bg-black py-2 px-4">
           <h1 className="text-center text-white text-2xl font-light tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-            TASKS
+            TAREAS
           </h1>
         </div>
       </div>
