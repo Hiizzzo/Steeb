@@ -14,8 +14,8 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
-  const isStats = location.pathname === '/stats';
-  const isStatsNew = location.pathname === '/estadisticas';
+  const isStats = location.pathname === '/estadisticas';
+  const isStatsNew = location.pathname === '/stats';
 
   const handleTasksClick = () => {
     if (!isHome) {
@@ -24,11 +24,11 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   };
 
   const handleStatsClick = () => {
-    navigate('/stats');
+    navigate('/estadisticas');
   };
 
   const handleStatsNewClick = () => {
-    navigate('/estadisticas');
+    navigate('/stats');
   };
 
   return (
