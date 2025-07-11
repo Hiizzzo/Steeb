@@ -38,7 +38,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
-          style={{ left: 'calc(50% - 100px)' }}
+          style={{ left: 'calc(50% - 120px)' }}
         >
           <Check size={20} className="text-white" strokeWidth={3} />
         </button>
