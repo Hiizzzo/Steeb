@@ -5,6 +5,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useTheme } from "next-themes";
 
 interface SubTask {
   id: string;
@@ -29,6 +30,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [subtasks, setSubtasks] = useState<string[]>(['']);
+  const { theme, setTheme } = useTheme();
 
   const handleSubmit = () => {
     if (title.trim()) {
@@ -89,20 +91,34 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
       <div className="bg-gray-100 w-full sm:max-w-lg h-[90vh] sm:h-[80vh] sm:max-h-[700px] sm:rounded-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 bg-gray-200/80 backdrop-blur-sm sm:rounded-t-2xl">
-                      <button
-              onClick={() => {
-                resetForm();
-                onClose();
-              }}
-              className="text-black text-lg"
-              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
-            >
-              Cancelar
-            </button>
+          <button
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
+            className="text-black text-lg"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+          >
+            Cancelar
+          </button>
           <h2 className="text-lg font-semibold text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
             Nuevo
           </h2>
-                      <button
+          <div className="flex items-center gap-2">
+            {/* Botón de tema */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="rounded-full border border-gray-400 p-2 bg-white hover:bg-gray-200 transition-colors"
+              title={theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+            >
+              {theme === 'dark' ? (
+                <span role="img" aria-label="Sol">🌞</span>
+              ) : (
+                <span role="img" aria-label="Luna">🌚</span>
+              )}
+            </button>
+            <button
               onClick={handleSubmit}
               disabled={!title.trim()}
               className={cn(
@@ -113,6 +129,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             >
               Listo
             </button>
+          </div>
         </div>
 
         {/* Content */}
