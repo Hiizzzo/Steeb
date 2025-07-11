@@ -7,6 +7,8 @@ import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
 import CalendarView from '@/components/CalendarView';
+import SmartTaskButton from '@/components/SmartTaskButton';
+import DailyTasksConfig from '@/components/DailyTasksConfig';
 
 interface SubTask {
   id: string;
@@ -66,6 +68,7 @@ const Index = () => {
   ]);
   
   const [showModal, setShowModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
@@ -207,8 +210,16 @@ const Index = () => {
       
       {viewMode === 'tasks' ? (
         <>
+          {/* Botón Inteligente de Steve */}
+          <div className="px-4 pt-4">
+            <SmartTaskButton 
+              onAddTask={handleAddTask} 
+              onOpenConfig={() => setShowConfigModal(true)}
+            />
+          </div>
+          
           {/* Lista de Tareas */}
-          <div className="pt-4">
+          <div className="pt-2">
             {todaysTasks.length > 0 ? (
               todaysTasks
                 .sort((a, b) => {
@@ -266,6 +277,13 @@ const Index = () => {
       <ModalAddTask
         isOpen={showModal}
         onClose={() => setShowModal(false)}
+        onAddTask={handleAddTask}
+      />
+
+      {/* Modal de Configuración de Tareas Diarias */}
+      <DailyTasksConfig
+        isOpen={showConfigModal}
+        onClose={() => setShowConfigModal(false)}
         onAddTask={handleAddTask}
       />
     </div>
