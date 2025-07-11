@@ -72,12 +72,14 @@ const ExampleUsage = () => {
         {renderContent()}
       </View>
 
-      {/* Bottom Navigation */}
-      <BottomTabNavigation
-        onTasksPress={handleTasksPress}
-        onAddPress={handleAddPress}
-        onProgressPress={handleProgressPress}
-      />
+      {/* Bottom Navigation SOLO en estadísticas */}
+      {activeTab === 'progress' && (
+        <BottomTabNavigation
+          onTasksPress={handleTasksPress}
+          onAddPress={handleAddPress}
+          onProgressPress={handleProgressPress}
+        />
+      )}
     </SafeAreaView>
   );
 };
