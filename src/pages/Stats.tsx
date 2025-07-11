@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Medal, BarChart3, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Medal, BarChart3, TrendingUp, Plus, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -131,7 +131,7 @@ const Stats = () => {
         </div>
       </div>
 
-      <div className="p-6 flex flex-col h-full relative z-10">
+      <div className="p-6 flex flex-col h-full relative z-10 pb-32">
         {/* Progreso Semanal - estilo hoja de cuaderno */}
         <div className="border-2 border-black rounded-2xl p-6 bg-white mb-6 shadow-lg relative">
           {/* Medalla con Steve y título */}
@@ -261,6 +261,38 @@ const Stats = () => {
             <span className="text-2xl">✨</span>
             <span className="text-xl">✨</span>
           </div>
+        </div>
+      </div>
+
+      {/* Floating Buttons - duplicados de la pantalla principal */}
+      <div className="fixed bottom-8 left-0 right-0 z-50">
+        <div className="flex items-end justify-center relative">
+          
+          {/* Botón de Ver Tareas (izquierda) */}
+          <button
+            onClick={() => navigate('/')}
+            className="absolute bottom-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1"
+            style={{ left: 'calc(50% - 120px)' }}
+          >
+            <Check size={20} className="text-white" strokeWidth={3} />
+          </button>
+
+          {/* Botón Principal de Crear Tarea (centro) */}
+          <button
+            onClick={() => navigate('/')}
+            className="relative z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-black shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-2 -translate-y-2"
+          >
+            <Plus size={32} className="text-white sm:w-10 sm:h-10" strokeWidth={3} />
+          </button>
+
+          {/* Botón de Estadísticas (derecha) - activo */}
+          <button
+            className="absolute bottom-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform bg-black shadow-2xl scale-110"
+            style={{ right: 'calc(50% - 120px)' }}
+          >
+            <BarChart3 size={18} className="text-white" strokeWidth={2.5} />
+          </button>
+
         </div>
       </div>
     </div>
