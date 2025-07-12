@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Medal, Sparkles } from 'lucide-react';
+import FloatingButtons from '../components/FloatingButtons';
+import ModalAddTask from '../components/ModalAddTask';
 
 interface SubTask {
   id: string;
@@ -21,6 +23,8 @@ interface Task {
 const StatsNew = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('week');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
 
   // Cargar tareas desde localStorage
   useEffect(() => {
@@ -359,6 +363,30 @@ const StatsNew = () => {
           </div>
         </div>
       </div>
+
+      {/* Botones flotantes */}
+      <FloatingButtons
+        onAddTask={() => setShowAddModal(true)}
+        onShowTasks={() => setShowTasks(!showTasks)}
+        onToggleView={() => {}}
+        viewMode="tasks"
+      />
+
+      {/* Modal para agregar tarea */}
+      {showAddModal && (
+        <ModalAddTask
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onAddTask={() => {
+            // Recargar tareas desde localStorage
+            const savedTasks = localStorage.getItem('stebe-tasks');
+            if (savedTasks) {
+              setTasks(JSON.parse(savedTasks));
+            }
+            setShowAddModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };
