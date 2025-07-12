@@ -1,11 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, ChevronRight } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTheme } from "next-themes";
+import { useToast } from '@/components/ui/use-toast';
+import { Zap, Sparkles } from 'lucide-react';
+import { dailyTasks, DailyTask } from '@/data/dailyTasks';
 
 interface SubTask {
   id: string;
@@ -31,6 +34,63 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [subtasks, setSubtasks] = useState<string[]>(['']);
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const [isAddingDaily, setIsAddingDaily] = useState(false);
+  const [currentTasks, setCurrentTasks] = useState<DailyTask[]>(dailyTasks);
+
+  // Cargar tareas personalizadas
+  useEffect(() => {
+    const saved = localStorage.getItem('stebe-custom-daily-tasks');
+    if (saved) {
+      setCurrentTasks(JSON.parse(saved));
+    }
+  }, []);
+
+  const handleAddDailyTasks = async () => {
+    setIsAddingDaily(true);
+    
+    // Mensaje inicial de Steve
+    toast({
+      title: "¡Steve dice:",
+      description: "¡Perfecto! Voy a añadir tus tareas diarias. ¡Es hora de ser productivo! 💪",
+    });
+
+    // Añadir cada tarea con un pequeño delay para crear efecto de "pensamiento"
+    for (let i = 0; i < currentTasks.length; i++) {
+      const task = currentTasks[i];
+      
+      // Convertir subtareas al formato esperado
+      const taskSubtasks: SubTask[] = task.subtasks?.map((subtask, index) => ({
+        id: `${Date.now()}-${i}-${index}`,
+        title: subtask,
+        completed: false
+      })) || [];
+
+      // Añadir la tarea
+      onAddTask(
+        task.title,
+        task.type,
+        taskSubtasks.length > 0 ? taskSubtasks : undefined,
+        new Date().toISOString().split('T')[0], // Hoy
+        task.scheduledTime
+      );
+
+      // Pequeño delay entre tareas
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
+    // Mensaje final motivacional
+    setTimeout(() => {
+      toast({
+        title: "¡Steve dice:",
+        description: `¡Listo! He añadido ${currentTasks.length} tareas diarias. ¡Tú puedes con todo! 🚀`,
+      });
+    }, 500);
+
+    setIsAddingDaily(false);
+    resetForm();
+    onClose();
+  };
 
   const handleSubmit = () => {
     if (title.trim()) {
@@ -134,6 +194,39 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto bg-white">
+          {/* Botón de tareas diarias de Steve */}
+          <div className="px-4 py-4 border-b border-gray-200">
+            <button
+              onClick={handleAddDailyTasks}
+              disabled={isAddingDaily}
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none"
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+            >
+              <div className="flex items-center justify-center space-x-2">
+                {isAddingDaily ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Añadiendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-5 w-5" />
+                    <Sparkles className="h-5 w-5" />
+                    <span>¡Steve, añade mis tareas diarias!</span>
+                  </>
+                )}
+              </div>
+            </button>
+            
+            {!isAddingDaily && (
+              <div className="text-center mt-2">
+                <p className="text-sm text-gray-600">
+                  {currentTasks.length} tareas diarias inteligentes
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Title Input */}
           <div className="px-4 py-4 border-b border-gray-200">
             <input
