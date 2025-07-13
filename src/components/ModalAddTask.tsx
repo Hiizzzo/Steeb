@@ -247,7 +247,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas"
-              className="w-full text-lg placeholder-gray-400 focus:outline-none bg-transparent"
+              className="w-full text-sm placeholder-gray-400 focus:outline-none bg-transparent"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
             />
           </div>
