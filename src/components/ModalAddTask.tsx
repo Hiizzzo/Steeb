@@ -311,106 +311,99 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             </div>
           </div>
 
-          {/* Due Date Section */}
-          <div className="bg-gray-50 px-4 py-4">
-            <div className="mb-4">
-              <span className="text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-                Due Date
-              </span>
-            </div>
-
-            {/* Date Toggle */}
-            <div className="flex items-center justify-between py-3">
-              <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-                Fecha
-              </span>
-              <button
-                onClick={() => {
-                  setHasDate(!hasDate);
-                  if (!hasDate && !selectedDate) {
-                    setSelectedDate(new Date());
-                  }
-                }}
-                className={cn(
-                  "w-[51px] h-[31px] rounded-full transition-all relative",
-                  hasDate ? "bg-black" : "bg-gray-300"
-                )}
-              >
-                <div
-                  className={cn(
-                    "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
-                    hasDate ? "translate-x-[22px]" : "translate-x-[2px]"
-                  )}
-                />
-              </button>
-            </div>
-
-            {/* Show date picker when date is enabled */}
-            {hasDate && (
-              <div className="py-2 border-t border-gray-200">
+          {/* Fecha y Hora compactos */}
+          <div className="bg-white px-4 py-4">
+            <div className="flex flex-row items-center justify-between gap-4">
+              {/* Fecha */}
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                  Fecha
+                </span>
                 <button
-                  onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="w-full text-left text-black text-base"
-                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
-                >
-                  {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy") : "Seleccionar fecha"}
-                </button>
-                
-                {showDatePicker && (
-                  <div className="mt-2">
-                    <CalendarComponent
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => {
-                        setSelectedDate(date);
-                        setShowDatePicker(false);
-                      }}
-                      className="rounded-md border"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Time Toggle */}
-            <div className="flex items-center justify-between py-3 border-t border-gray-200">
-              <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-                Hora
-              </span>
-              <button
-                onClick={() => {
-                  setHasTime(!hasTime);
-                  if (!hasTime && !selectedTime) {
-                    const now = new Date();
-                    setSelectedTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
-                  }
-                }}
-                className={cn(
-                  "w-[51px] h-[31px] rounded-full transition-all relative",
-                  hasTime ? "bg-black" : "bg-gray-300"
-                )}
-              >
-                <div
+                  onClick={() => {
+                    setHasDate(!hasDate);
+                    if (!hasDate && !selectedDate) {
+                      setSelectedDate(new Date());
+                    }
+                  }}
                   className={cn(
-                    "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
-                    hasTime ? "translate-x-[22px]" : "translate-x-[2px]"
+                    "w-[51px] h-[31px] rounded-full transition-all relative",
+                    hasDate ? "bg-black" : "bg-gray-300"
                   )}
-                />
-              </button>
-            </div>
-
-            {/* Show time picker when time is enabled */}
-            {hasTime && (
-              <div className="py-2 border-t border-gray-200">
-                <input
-                  type="time"
-                  value={selectedTime}
-                  onChange={(e) => setSelectedTime(e.target.value)}
-                  className="w-full text-black text-base bg-transparent focus:outline-none"
-                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
-                />
+                >
+                  <div
+                    className={cn(
+                      "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
+                      hasDate ? "translate-x-[22px]" : "translate-x-[2px]"
+                    )}
+                  />
+                </button>
               </div>
-            )}
+              {/* Hora */}
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                  Hora
+                </span>
+                <button
+                  onClick={() => {
+                    setHasTime(!hasTime);
+                    if (!hasTime && !selectedTime) {
+                      const now = new Date();
+                      setSelectedTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+                    }
+                  }}
+                  className={cn(
+                    "w-[51px] h-[31px] rounded-full transition-all relative",
+                    hasTime ? "bg-black" : "bg-gray-300"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
+                      hasTime ? "translate-x-[22px]" : "translate-x-[2px]"
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+            {/* Selectores compactos debajo */}
+            <div className="flex flex-row gap-4 mt-2">
+              {hasDate && (
+                <div className="flex-1">
+                  <button
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className="w-full text-left text-black text-base"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                  >
+                    {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy") : "Seleccionar fecha"}
+                  </button>
+                  {showDatePicker && (
+                    <div className="mt-2">
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => {
+                          setSelectedDate(date);
+                          setShowDatePicker(false);
+                        }}
+                        className="rounded-md border"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+              {hasTime && (
+                <div className="flex-1">
+                  <input
+                    type="time"
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
+                    className="w-full text-black text-base bg-transparent focus:outline-none"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
