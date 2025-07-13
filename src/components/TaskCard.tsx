@@ -16,6 +16,7 @@ interface TaskCardProps {
   subtasks?: SubTask[];
   scheduledDate?: string;
   scheduledTime?: string;
+  notes?: string;
   onToggle: (id: string) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   onDelete?: (id: string) => void;
@@ -29,6 +30,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   subtasks, 
   scheduledDate,
   scheduledTime,
+  notes,
   onToggle, 
   onToggleSubtask, 
   onDelete 
@@ -205,6 +207,18 @@ const TaskCard: React.FC<TaskCardProps> = ({
                     style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
                   >
                     {scheduledTime}
+                  </span>
+                </div>
+              )}
+              
+              {/* Mostrar notas si están disponibles */}
+              {notes && (
+                <div className="mt-2">
+                  <span 
+                    className={`text-sm ${completed ? 'text-gray-400' : 'text-gray-600'}`}
+                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                  >
+                    {notes}
                   </span>
                 </div>
               )}

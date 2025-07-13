@@ -19,7 +19,7 @@ interface SubTask {
 interface ModalAddTaskProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string) => void;
+  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
 }
 
 const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
@@ -72,7 +72,8 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
         task.type,
         taskSubtasks.length > 0 ? taskSubtasks : undefined,
         new Date().toISOString().split('T')[0], // Hoy
-        task.scheduledTime
+        task.scheduledTime,
+        task.notes
       );
 
       // Pequeño delay entre tareas
@@ -112,7 +113,8 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
         taskType, 
         validSubtasks.length > 0 ? validSubtasks : undefined, 
         scheduledDate,
-        hasTime ? selectedTime : undefined
+        hasTime ? selectedTime : undefined,
+        notes.trim() || undefined
       );
       resetForm();
       onClose();
@@ -199,7 +201,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             <button
               onClick={handleAddDailyTasks}
               disabled={isAddingDaily}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none"
+              className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
             >
               <div className="flex items-center justify-center space-x-2">
