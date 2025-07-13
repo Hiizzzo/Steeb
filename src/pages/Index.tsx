@@ -21,6 +21,7 @@ interface Task {
   title: string;
   type: 'personal' | 'work' | 'meditation';
   completed: boolean;
+  notes?: string;
   subtasks?: SubTask[];
   scheduledDate?: string;
   scheduledTime?: string;
@@ -170,12 +171,13 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
       type,
       completed: false,
+      notes,
       subtasks,
       scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
       scheduledTime
@@ -227,6 +229,7 @@ const Index = () => {
                     title={task.title}
                     type={task.type}
                     completed={task.completed}
+                    notes={task.notes}
                     subtasks={task.subtasks}
                     scheduledDate={task.scheduledDate}
                     scheduledTime={task.scheduledTime}

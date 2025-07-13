@@ -13,6 +13,7 @@ interface TaskCardProps {
   title: string;
   type: 'personal' | 'work' | 'meditation';
   completed: boolean;
+  notes?: string;
   subtasks?: SubTask[];
   scheduledDate?: string;
   scheduledTime?: string;
@@ -26,6 +27,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   title, 
   type, 
   completed, 
+  notes,
   subtasks, 
   scheduledDate,
   scheduledTime,
@@ -36,6 +38,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const startX = useRef(0);
   const currentX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -59,6 +62,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const handleToggle = () => {
     if (!isDragging && swipeOffset === 0) {
       onToggle(id);
+    }
+  };
+
+  const handleShowNotes = () => {
+    if (!isDragging && swipeOffset === 0 && notes) {
+      setShowNotes(!showNotes);
     }
   };
 
@@ -161,12 +170,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
         ref={cardRef}
         className={`bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 ease-out transform ${
           completed ? 'opacity-40' : 'hover:border-black'
-        } ${(!subtasks || subtasks.length === 0) && !isDragging ? 'cursor-pointer' : ''}`}
+        } ${((!subtasks || subtasks.length === 0) || notes) && !isDragging ? 'cursor-pointer' : ''}`}
         style={{
           transform: `translateX(-${swipeOffset}px)`,
           userSelect: isDragging ? 'none' : 'auto'
         }}
-        onClick={(!subtasks || subtasks.length === 0) ? handleToggle : undefined}
+        onClick={((!subtasks || subtasks.length === 0) && !notes) ? handleToggle : (notes ? handleShowNotes : undefined)}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -260,6 +269,34 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Notas */}
+        {notes && (
+          <div className="mt-3">
+            <div 
+              className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 rounded p-2 -ml-2"
+              onClick={(e) => {
+                if (!isDragging && swipeOffset === 0) {
+                  e.stopPropagation();
+                  handleShowNotes();
+                }
+              }}
+            >
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm text-blue-600 font-medium">
+                {showNotes ? 'Ocultar notas' : 'Ver notas'}
+              </span>
+            </div>
+            
+            {showNotes && (
+              <div className="mt-2 ml-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {notes}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
