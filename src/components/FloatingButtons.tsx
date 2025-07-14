@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BarChart3, Calendar, TrendingUp } from 'lucide-react';
+import { Plus, BarChart3, Calendar, TrendingUp, Check } from 'lucide-react';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -44,7 +44,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleVi
           }`}
           style={{ left: 'calc(50% - 120px)' }}
         >
-          <Calendar size={20} className="text-white" strokeWidth={2.5} />
+          <Check size={20} className="text-white" strokeWidth={2.5} />
         </button>
 
         {/* Botón Principal de Crear Tarea (centro) */}
