@@ -176,7 +176,7 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
@@ -184,7 +184,8 @@ const Index = () => {
       completed: false,
       subtasks,
       scheduledDate: scheduledDate, // No establecer fecha automáticamente
-      scheduledTime
+      scheduledTime,
+      notes
     };
     
     setTasks(prevTasks => [...prevTasks, newTask]);
