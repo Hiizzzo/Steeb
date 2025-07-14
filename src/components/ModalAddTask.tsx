@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTheme } from "next-themes";
 import { useToast } from '@/components/ui/use-toast';
-import { Zap, Sparkles } from 'lucide-react';
+
 import { dailyTasks, DailyTask } from '@/data/dailyTasks';
 
 interface SubTask {
@@ -199,7 +199,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             <button
               onClick={handleAddDailyTasks}
               disabled={isAddingDaily}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none"
+              className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
             >
               <div className="flex items-center justify-center space-x-2">
@@ -210,8 +210,6 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
                   </>
                 ) : (
                   <>
-                    <Zap className="h-5 w-5" />
-                    <Sparkles className="h-5 w-5" />
                     <span>¡Steve, añade mis tareas diarias!</span>
                   </>
                 )}
