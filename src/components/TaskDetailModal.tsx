@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { X, Calendar, Clock, CheckCircle, Circle } from 'lucide-react';
+import { X, Calendar, Clock, CheckCircle, Circle, Settings } from 'lucide-react';
 
 interface SubTask {
   id: string;
@@ -17,6 +17,7 @@ interface Task {
   subtasks?: SubTask[];
   scheduledDate?: string;
   scheduledTime?: string;
+  notes?: string;
 }
 
 interface TaskDetailModalProps {
@@ -25,6 +26,7 @@ interface TaskDetailModalProps {
   onClose: () => void;
   onToggle: (id: string) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
+  onEdit?: (task: Task) => void;
 }
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
@@ -32,7 +34,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   isOpen,
   onClose,
   onToggle,
-  onToggleSubtask
+  onToggleSubtask,
+  onEdit
 }) => {
   if (!isOpen || !task) return null;
 
@@ -99,15 +102,38 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 </span>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full text-black"
-            >
-              <X size={20} />
-            </Button>
+            <div className="flex items-center space-x-2">
+              {onEdit && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(task)}
+                  className="p-2 hover:bg-gray-100 rounded-full text-black"
+                  title="Editar tarea"
+                >
+                  <Settings size={18} />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full text-black"
+              >
+                <X size={20} />
+              </Button>
+            </div>
           </div>
+
+          {/* Notas */}
+          {task.notes && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="font-medium text-black mb-2">Notas:</h3>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                {task.notes}
+              </p>
+            </div>
+          )}
 
           {/* Fecha y Hora */}
           {(task.scheduledDate || task.scheduledTime) && (
