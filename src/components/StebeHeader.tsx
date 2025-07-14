@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Calendar } from 'lucide-react';
 
 const StebeHeader: React.FC = () => {
   // Obtener fecha actual en inglés
@@ -10,13 +9,15 @@ const StebeHeader: React.FC = () => {
 
   return (
     <div className="pt-8 pb-4 bg-white">
-      {/* Logo de calendario y fecha en la misma línea */}
+      {/* Logo de Steve y fecha en la misma línea */}
       <div className="flex items-center justify-between mb-4 px-4">
-        {/* Logo de Calendario */}
+        {/* Logo de Steve */}
         <div className="w-24 h-24 flex-shrink-0 flex items-center justify-center">
-          <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center">
-            <Calendar size={32} className="text-white" strokeWidth={2} />
-          </div>
+          <img 
+            src="/steve-logo.svg" 
+            alt="Steve Jobs" 
+            className="w-16 h-16 object-contain"
+          />
         </div>
         
         {/* Fecha del día - centrada y más grande */}
