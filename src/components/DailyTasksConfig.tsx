@@ -79,7 +79,7 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
   const handleAddAllCustomTasks = async () => {
     toast({
       title: "¡Steve dice:",
-      description: "¡Voy a añadir todas tus tareas personalizadas! ¡Es hora de brillar! ✨",
+      description: "¡Voy a añadir todas tus tareas personalizadas! ¡Es hora de brillar!",
     });
 
     for (let i = 0; i < customTasks.length; i++) {
@@ -105,7 +105,7 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
     setTimeout(() => {
       toast({
         title: "¡Steve dice:",
-        description: `¡Listo! He añadido ${customTasks.length} tareas personalizadas. ¡Tú eres increíble! 🚀`,
+        description: `¡Listo! He añadido ${customTasks.length} tareas personalizadas. ¡Tú eres increíble!`,
       });
     }, 500);
 
@@ -232,7 +232,6 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
                     </span>
                     {task.scheduledTime && (
                       <span className="flex items-center">
-                        <span className="mr-1">🕐</span>
                         {task.scheduledTime}
                       </span>
                     )}

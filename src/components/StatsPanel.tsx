@@ -144,12 +144,12 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ tasks }) => {
           <div className="mt-4 text-center">
             <div className="text-sm text-steve-gray-dark">
               {completionRate === 100 
-                ? "¡Increíble! 🎉" 
+                ? "¡Increíble!" 
                 : completionRate >= 75 
-                ? "¡Casi terminas! 💪" 
+                ? "¡Casi terminas!" 
                 : completionRate >= 50 
-                ? "Buen progreso 👍" 
-                : "¡Vamos, tú puedes! 🚀"
+                ? "Buen progreso" 
+                : "¡Vamos, tú puedes!"
               }
             </div>
           </div>
