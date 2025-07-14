@@ -5,7 +5,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useTheme } from "next-themes";
+
 import { useToast } from '@/components/ui/use-toast';
 
 import { dailyTasks, DailyTask } from '@/data/dailyTasks';
@@ -33,7 +33,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [subtasks, setSubtasks] = useState<string[]>(['']);
-  const { theme, setTheme } = useTheme();
+
   const { toast } = useToast();
   const [isAddingDaily, setIsAddingDaily] = useState(false);
   const [currentTasks, setCurrentTasks] = useState<DailyTask[]>(dailyTasks);
@@ -165,19 +165,6 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             Nuevo
           </h2>
           <div className="flex items-center gap-2">
-            {/* Botón de tema */}
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="rounded-full border border-gray-400 p-2 bg-white hover:bg-gray-200 transition-colors"
-              title={theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
-              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
-            >
-              {theme === 'dark' ? (
-                <span role="img" aria-label="Sol">🌞</span>
-              ) : (
-                <span role="img" aria-label="Luna">🌚</span>
-              )}
-            </button>
             <button
               onClick={handleSubmit}
               disabled={!title.trim()}
