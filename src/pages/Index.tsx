@@ -35,7 +35,6 @@ const Index = () => {
       title: 'Design homepage', 
       type: 'work', 
       completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
       subtasks: [
         { id: '1-1', title: 'Adjust colors', completed: false },
         { id: '1-2', title: 'Redesign buttons', completed: false },
@@ -47,7 +46,6 @@ const Index = () => {
       title: 'Meeting with team', 
       type: 'work', 
       completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
       subtasks: [
         { id: '2-1', title: 'Take minutes', completed: false },
         { id: '2-2', title: 'Send reminder', completed: false },
@@ -59,7 +57,6 @@ const Index = () => {
       title: 'Grocery shopping', 
       type: 'personal', 
       completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
       subtasks: [
         { id: '3-1', title: 'Comprar pan', completed: false },
         { id: '3-2', title: 'Queso y fiambre', completed: false },
