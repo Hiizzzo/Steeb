@@ -183,7 +183,7 @@ const Index = () => {
       type,
       completed: false,
       subtasks,
-      scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
+      scheduledDate: scheduledDate, // No establecer fecha automáticamente
       scheduledTime
     };
     

@@ -89,6 +89,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
+  const handleCheckboxToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isDragging && swipeOffset === 0) {
+      onToggle(id);
+    }
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
     currentX.current = e.touches[0].clientX;
@@ -196,12 +203,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
         ref={cardRef}
         className={`bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 ease-out transform ${
           completed ? 'opacity-40' : 'hover:border-black'
-        } ${(!subtasks || subtasks.length === 0) && !isDragging ? 'cursor-pointer' : ''}`}
+        } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''}`}
         style={{
           transform: `translateX(-${swipeOffset}px)`,
           userSelect: isDragging ? 'none' : 'auto'
         }}
-        onClick={handleToggle}
+        onClick={onShowDetail ? handleToggle : undefined}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -248,13 +255,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
           
           {/* Checkbox - solo mostrar si no hay subtareas */}
           {(!subtasks || subtasks.length === 0) && (
-            <div className="ml-3">
+            <div className="ml-3" onClick={handleCheckboxToggle}>
               {completed ? (
-                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center cursor-pointer">
                   <div className="w-3 h-3 bg-white rounded-full"></div>
                 </div>
               ) : (
-                <Circle size={24} className="text-gray-300 hover:text-black transition-colors" />
+                <Circle size={24} className="text-gray-300 hover:text-black transition-colors cursor-pointer" />
               )}
             </div>
           )}
