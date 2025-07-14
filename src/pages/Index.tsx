@@ -277,6 +277,7 @@ const Index = () => {
           onToggleSubtask={handleToggleSubtask}
           onAddTask={() => setShowModal(true)}
           onDelete={handleDeleteTask}
+          onViewDetails={handleViewTaskDetails}
         />
       )}
 

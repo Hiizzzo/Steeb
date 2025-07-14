@@ -72,3 +72,24 @@ Se ha agregado la funcionalidad para mostrar notas detalladas de las tareas cuan
 - **Iconos**: Iconos descriptivos para cada tipo de tarea y sección
 
 La funcionalidad está completamente implementada y lista para usar. Los usuarios pueden ahora agregar notas detalladas a sus tareas y verlas fácilmente haciendo clic en el título de la tarea.
+
+## 🧪 Cómo Probarlo
+
+### Arrancar la aplicación:
+```bash
+npm run dev
+```
+
+### Probar funcionalidad:
+
+1. **Ver notas existentes**: Haz clic en el título de cualquier tarea de ejemplo
+2. **Crear tarea con notas**: Haz clic en "+", escribe título y notas, guarda
+3. **Completar tarea**: Haz clic en el checkbox (círculo) al lado derecho
+4. **Separación de eventos**: Título = ver detalles, checkbox = completar
+
+### Tareas de ejemplo incluidas:
+- **"Design homepage"** - Con notas sobre diseño responsive
+- **"Meeting with team"** - Con notas sobre reunión semanal  
+- **"Grocery shopping"** - Con notas sobre compras semanales
+
+¡La funcionalidad está 100% implementada y funcionando! 🎉
