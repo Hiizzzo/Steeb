@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BarChart3, Check, TrendingUp } from 'lucide-react';
+import { Plus, BarChart3, Check, Calendar } from 'lucide-react';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -14,12 +14,17 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const isCalendar = location.pathname === '/calendario';
   const isStats = location.pathname === '/estadisticas';
 
   const handleTasksClick = () => {
     if (!isHome) {
       navigate('/');
     }
+  };
+
+  const handleCalendarClick = () => {
+    navigate('/calendario');
   };
 
   const handleStatsClick = () => {
@@ -30,7 +35,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
     <div className="fixed bottom-8 left-0 right-0 z-50">
       <div className="flex items-end justify-center relative">
         
-        {/* Botón de Ver Tareas (izquierda) */}
+        {/* Botón de Ver Tareas (izquierda lejano) */}
         <button
           onClick={handleTasksClick}
           className={`absolute bottom-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
@@ -38,9 +43,22 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
-          style={{ left: 'calc(50% - 120px)' }}
+          style={{ left: 'calc(50% - 150px)' }}
         >
           <Check size={20} className="text-white" strokeWidth={3} />
+        </button>
+
+        {/* Botón de Calendario (izquierda cercano) */}
+        <button
+          onClick={handleCalendarClick}
+          className={`absolute bottom-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
+            isCalendar 
+              ? 'bg-black shadow-2xl scale-110' 
+              : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
+          }`}
+          style={{ left: 'calc(50% - 75px)' }}
+        >
+          <Calendar size={20} className="text-white" strokeWidth={2.5} />
         </button>
 
         {/* Botón Principal de Crear Tarea (centro) */}
@@ -51,7 +69,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
           <Plus size={32} className="text-white sm:w-10 sm:h-10" strokeWidth={3} />
         </button>
 
-        {/* Botón de Estadísticas Original (derecha) */}
+        {/* Botón de Estadísticas (derecha) */}
         <button
           onClick={handleStatsClick}
           className={`absolute bottom-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
@@ -59,12 +77,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
-          style={{ right: 'calc(50% - 120px)' }}
+          style={{ right: 'calc(50% - 150px)' }}
         >
           <BarChart3 size={18} className="text-white" strokeWidth={2.5} />
         </button>
-
-
 
       </div>
     </div>

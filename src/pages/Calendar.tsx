@@ -1,14 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import StebeHeader from '@/components/StebeHeader';
-import TaskCard from '@/components/TaskCard';
-import FloatingButtons from '@/components/FloatingButtons';
+import CalendarView from '@/components/CalendarView';
 import ModalAddTask from '@/components/ModalAddTask';
 import TaskDetailModal from '@/components/TaskDetailModal';
-
-import DailyTasksConfig from '@/components/DailyTasksConfig';
+import FloatingButtons from '@/components/FloatingButtons';
 
 interface SubTask {
   id: string;
@@ -25,10 +22,14 @@ interface Task {
   scheduledDate?: string;
   scheduledTime?: string;
   completedDate?: string;
-  notes?: string; // Notas adicionales de la tarea
+  notes?: string;
 }
 
-const Index = () => {
+const Calendar = () => {
+  const { toast } = useToast();
+  const { playTaskCompleteSound } = useSoundEffects();
+  
+  // Estados para las tareas
   const [tasks, setTasks] = useState<Task[]>(() => {
     const savedTasks = localStorage.getItem('stebe-tasks');
     if (savedTasks) {
@@ -41,7 +42,7 @@ const Index = () => {
         type: 'work', 
         completed: true,
         scheduledDate: new Date().toISOString().split('T')[0],
-        notes: "Usar paleta de colores moderna y asegurar que el diseño sea responsive. Consultar con el equipo sobre las preferencias del cliente.",
+        notes: "Usar paleta de colores moderna y asegurar que el diseño sea responsive.",
         subtasks: [
           { id: '1-1', title: 'Adjust colors', completed: false },
           { id: '1-2', title: 'Redesign buttons', completed: false },
@@ -52,37 +53,27 @@ const Index = () => {
         id: '2', 
         title: 'Meeting with team', 
         type: 'work', 
-        completed: true,
-        scheduledDate: new Date().toISOString().split('T')[0],
-        notes: "Revisar el progreso semanal y discutir nuevas funcionalidades. Preparar presentación de 10 minutos.",
-        subtasks: [
-          { id: '2-1', title: 'Take minutes', completed: false },
-          { id: '2-2', title: 'Send reminder', completed: false },
-          { id: '2-3', title: 'Schedule next meeting', completed: false }
-        ]
+        completed: false,
+        scheduledDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Mañana
+        scheduledTime: '14:00',
+        notes: "Revisar el progreso del proyecto y planificar siguiente sprint."
       },
       { 
         id: '3', 
-        title: 'Grocery shopping', 
-        type: 'personal', 
-        completed: true,
+        title: 'Morning meditation', 
+        type: 'meditation', 
+        completed: false,
         scheduledDate: new Date().toISOString().split('T')[0],
-        subtasks: [
-          { id: '3-1', title: 'Comprar pan', completed: false },
-          { id: '3-2', title: 'Queso y fiambre', completed: false },
-          { id: '3-3', title: 'Jugo de naranja', completed: false }
-        ]
+        scheduledTime: '08:00',
+        notes: "10 minutos de meditación mindfulness."
       }
     ];
   });
-  
+
+  // Estados para modales
   const [showModal, setShowModal] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
-  const { toast } = useToast();
-  const { playTaskCompleteSound } = useSoundEffects();
 
   // Guardar tareas en localStorage cuando cambien
   useEffect(() => {
@@ -92,7 +83,7 @@ const Index = () => {
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
     
-    // Si la tarea tiene subtareas y no están todas completadas, no permitir completar la tarea principal
+    // Verificar si la tarea tiene subtareas sin completar
     if (task && task.subtasks && task.subtasks.length > 0 && !task.completed) {
       const allSubtasksCompleted = task.subtasks.every(subtask => subtask.completed);
       if (!allSubtasksCompleted) {
@@ -196,35 +187,29 @@ const Index = () => {
         title: "Tarea actualizada!",
         description: "Los cambios han sido guardados.",
       });
-      
-      setSelectedTask(null); // Limpiar la tarea seleccionada después de editar
     } else {
-      // Estamos creando una nueva tarea
+      // Crear nueva tarea
       const newTask: Task = {
         id: Date.now().toString(),
         title,
         type,
         completed: false,
         subtasks,
-        scheduledDate: scheduledDate, // No establecer fecha automáticamente
+        scheduledDate,
         scheduledTime,
         notes
       };
       
       setTasks(prevTasks => [...prevTasks, newTask]);
+      
       toast({
-        title: "New task added!",
-        description: "Your task has been added to the list.",
+        title: "Tarea agregada!",
+        description: "Nueva tarea creada exitosamente.",
       });
     }
-  };
-
-  const handleShowTasks = () => {
-    const completedTasks = tasks.filter(t => t.completed).length;
-    toast({
-      title: "Task summary:",
-      description: `${completedTasks} of ${tasks.length} tasks completed`,
-    });
+    
+    setShowModal(false);
+    setSelectedTask(null);
   };
 
   const handleShowDetail = (id: string) => {
@@ -241,84 +226,44 @@ const Index = () => {
     setShowModal(true);
   };
 
-  // Filter tasks for today and overdue
-  const today = new Date().toISOString().split('T')[0];
-  const todaysTasks = tasks.filter(task => {
-    if (!task.scheduledDate) return true; // Show tasks without date as today's
-    return task.scheduledDate <= today;
-  });
-
   return (
     <div className="min-h-screen bg-white pb-32" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
       <StebeHeader />
       
-      {/* Lista de Tareas */}
-      <div className="pt-2">
-        {todaysTasks.length > 0 ? (
-          todaysTasks
-            .sort((a, b) => {
-              // Tareas no completadas primero, completadas al final
-              if (a.completed && !b.completed) return 1;
-              if (!a.completed && b.completed) return -1;
-              return 0;
-            })
-            .map(task => (
-              <TaskCard
-                key={task.id}
-                id={task.id}
-                title={task.title}
-                type={task.type}
-                completed={task.completed}
-                subtasks={task.subtasks}
-                scheduledDate={task.scheduledDate}
-                scheduledTime={task.scheduledTime}
-                notes={task.notes}
-                onToggle={handleToggleTask}
-                onToggleSubtask={handleToggleSubtask}
-                onDelete={handleDeleteTask}
-                onShowDetail={handleShowDetail}
-              />
-            ))
-        ) : (
-          <div className="text-center py-12 px-4">
-            <p className="text-lg text-gray-600 font-medium">
-              No tasks for today.
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Press the + button to add your first task!
-            </p>
-          </div>
-        )}
-      </div>
+      {/* Vista del Calendario */}
+      <CalendarView
+        tasks={tasks}
+        onToggleTask={handleToggleTask}
+        onToggleSubtask={handleToggleSubtask}
+        onAddTask={() => {
+          setSelectedTask(null);
+          setShowModal(true);
+        }}
+        onDelete={handleDeleteTask}
+        onShowDetail={handleShowDetail}
+      />
 
       {/* Floating Buttons */}
       <FloatingButtons 
         onAddTask={() => {
-          setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
+          setSelectedTask(null);
           setShowModal(true);
         }}
-        onShowTasks={handleShowTasks}
+        onShowTasks={() => {}}
         onToggleView={() => {}}
-        viewMode="tasks"
+        viewMode="calendar"
       />
 
-      {/* Modal para Agregar Tarea */}
+      {/* Modal para Agregar/Editar Tarea */}
       <ModalAddTask
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
-          setSelectedTask(null); // Limpiar la tarea seleccionada al cerrar
+          setSelectedTask(null);
         }}
         onAddTask={handleAddTask}
         editingTask={selectedTask}
-      />
-
-      {/* Modal de Configuración de Tareas Diarias */}
-      <DailyTasksConfig
-        isOpen={showConfigModal}
-        onClose={() => setShowConfigModal(false)}
-        onAddTask={handleAddTask}
       />
 
       {/* Modal de Detalles de Tarea */}
@@ -334,4 +279,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Calendar;
