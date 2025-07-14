@@ -210,6 +210,12 @@ const Index = () => {
     }
   };
 
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setShowDetailModal(false);
+    setShowModal(true);
+  };
+
   // Filter tasks for today and overdue
   const today = new Date().toISOString().split('T')[0];
   const todaysTasks = tasks.filter(task => {
@@ -303,6 +309,7 @@ const Index = () => {
         onClose={() => setShowDetailModal(false)}
         onToggle={handleToggleTask}
         onToggleSubtask={handleToggleSubtask}
+        onEdit={handleEditTask}
       />
     </div>
   );
