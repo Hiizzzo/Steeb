@@ -7,6 +7,7 @@ import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
 import CalendarView from '@/components/CalendarView';
+import TaskDetailModal from '@/components/TaskDetailModal';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 
@@ -69,6 +70,8 @@ const Index = () => {
   
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
@@ -196,6 +199,14 @@ const Index = () => {
     });
   };
 
+  const handleShowDetail = (id: string) => {
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      setSelectedTask(task);
+      setShowDetailModal(true);
+    }
+  };
+
   // Filter tasks for today and overdue
   const today = new Date().toISOString().split('T')[0];
   const todaysTasks = tasks.filter(task => {
@@ -233,6 +244,7 @@ const Index = () => {
                     onToggle={handleToggleTask}
                     onToggleSubtask={handleToggleSubtask}
                     onDelete={handleDeleteTask}
+                    onShowDetail={handleShowDetail}
                   />
                 ))
             ) : (
@@ -254,6 +266,7 @@ const Index = () => {
           onToggleSubtask={handleToggleSubtask}
           onAddTask={() => setShowModal(true)}
           onDelete={handleDeleteTask}
+          onShowDetail={handleShowDetail}
         />
       )}
 
@@ -277,6 +290,15 @@ const Index = () => {
         isOpen={showConfigModal}
         onClose={() => setShowConfigModal(false)}
         onAddTask={handleAddTask}
+      />
+
+      {/* Modal de Detalles de Tarea */}
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onToggle={handleToggleTask}
+        onToggleSubtask={handleToggleSubtask}
       />
     </div>
   );

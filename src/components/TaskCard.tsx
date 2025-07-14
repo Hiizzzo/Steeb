@@ -19,6 +19,7 @@ interface TaskCardProps {
   onToggle: (id: string) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   onDelete?: (id: string) => void;
+  onShowDetail?: (id: string) => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ 
@@ -31,7 +32,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   scheduledTime,
   onToggle, 
   onToggleSubtask, 
-  onDelete 
+  onDelete,
+  onShowDetail 
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -58,7 +60,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   const handleToggle = () => {
     if (!isDragging && swipeOffset === 0) {
-      onToggle(id);
+      if (onShowDetail) {
+        onShowDetail(id);
+      } else {
+        onToggle(id);
+      }
     }
   };
 
@@ -166,7 +172,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           transform: `translateX(-${swipeOffset}px)`,
           userSelect: isDragging ? 'none' : 'auto'
         }}
-        onClick={(!subtasks || subtasks.length === 0) ? handleToggle : undefined}
+        onClick={handleToggle}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
