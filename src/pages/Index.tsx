@@ -7,6 +7,7 @@ import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
 import CalendarView from '@/components/CalendarView';
+import TaskDetailsModal from '@/components/TaskDetailsModal';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 
@@ -25,6 +26,7 @@ interface Task {
   scheduledDate?: string;
   scheduledTime?: string;
   completedDate?: string;
+  notes?: string;
 }
 
 const Index = () => {
@@ -35,6 +37,7 @@ const Index = () => {
       type: 'work', 
       completed: true,
       scheduledDate: new Date().toISOString().split('T')[0],
+      notes: 'Necesito crear un diseño moderno y responsive. Usar colores azul y blanco como tema principal. Asegurarme de que funcione bien en móvil y desktop.',
       subtasks: [
         { id: '1-1', title: 'Adjust colors', completed: false },
         { id: '1-2', title: 'Redesign buttons', completed: false },
@@ -47,6 +50,7 @@ const Index = () => {
       type: 'work', 
       completed: true,
       scheduledDate: new Date().toISOString().split('T')[0],
+      notes: 'Reunión semanal del equipo. Revisar progreso del proyecto actual, discutir bloqueos y planificar las tareas para la próxima semana. Sala de conferencias B a las 10:00 AM.',
       subtasks: [
         { id: '2-1', title: 'Take minutes', completed: false },
         { id: '2-2', title: 'Send reminder', completed: false },
@@ -59,6 +63,7 @@ const Index = () => {
       type: 'personal', 
       completed: true,
       scheduledDate: new Date().toISOString().split('T')[0],
+      notes: 'Hacer las compras semanales. No olvidar revisar las ofertas en verduras y frutas. Llevar bolsas reutilizables. Presupuesto máximo: $150.',
       subtasks: [
         { id: '3-1', title: 'Comprar pan', completed: false },
         { id: '3-2', title: 'Queso y fiambre', completed: false },
@@ -70,6 +75,8 @@ const Index = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
 
@@ -170,7 +177,7 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
@@ -178,7 +185,8 @@ const Index = () => {
       completed: false,
       subtasks,
       scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
-      scheduledTime
+      scheduledTime,
+      notes
     };
     
     setTasks(prevTasks => [...prevTasks, newTask]);
@@ -194,6 +202,19 @@ const Index = () => {
       title: "Task summary:",
       description: `${completedTasks} of ${tasks.length} tasks completed`,
     });
+  };
+
+  const handleViewTaskDetails = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setSelectedTask(task);
+      setShowTaskDetails(true);
+    }
+  };
+
+  const handleCloseTaskDetails = () => {
+    setShowTaskDetails(false);
+    setSelectedTask(null);
   };
 
   // Filter tasks for today and overdue
@@ -230,9 +251,11 @@ const Index = () => {
                     subtasks={task.subtasks}
                     scheduledDate={task.scheduledDate}
                     scheduledTime={task.scheduledTime}
+                    notes={task.notes}
                     onToggle={handleToggleTask}
                     onToggleSubtask={handleToggleSubtask}
                     onDelete={handleDeleteTask}
+                    onViewDetails={handleViewTaskDetails}
                   />
                 ))
             ) : (
@@ -254,6 +277,7 @@ const Index = () => {
           onToggleSubtask={handleToggleSubtask}
           onAddTask={() => setShowModal(true)}
           onDelete={handleDeleteTask}
+          onViewDetails={handleViewTaskDetails}
         />
       )}
 
@@ -277,6 +301,13 @@ const Index = () => {
         isOpen={showConfigModal}
         onClose={() => setShowConfigModal(false)}
         onAddTask={handleAddTask}
+      />
+
+      {/* Modal de Detalles de Tarea */}
+      <TaskDetailsModal
+        task={selectedTask}
+        isOpen={showTaskDetails}
+        onClose={handleCloseTaskDetails}
       />
     </div>
   );

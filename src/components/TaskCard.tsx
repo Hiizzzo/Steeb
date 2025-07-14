@@ -16,9 +16,11 @@ interface TaskCardProps {
   subtasks?: SubTask[];
   scheduledDate?: string;
   scheduledTime?: string;
+  notes?: string;
   onToggle: (id: string) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   onDelete?: (id: string) => void;
+  onViewDetails?: (id: string) => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ 
@@ -29,9 +31,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   subtasks, 
   scheduledDate,
   scheduledTime,
+  notes,
   onToggle, 
   onToggleSubtask, 
-  onDelete 
+  onDelete,
+  onViewDetails 
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -59,6 +63,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const handleToggle = () => {
     if (!isDragging && swipeOffset === 0) {
       onToggle(id);
+    }
+  };
+
+  const handleViewDetails = () => {
+    if (!isDragging && swipeOffset === 0 && onViewDetails) {
+      onViewDetails(id);
     }
   };
 
@@ -161,12 +171,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
         ref={cardRef}
         className={`bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 ease-out transform ${
           completed ? 'opacity-40' : 'hover:border-black'
-        } ${(!subtasks || subtasks.length === 0) && !isDragging ? 'cursor-pointer' : ''}`}
+        }`}
         style={{
           transform: `translateX(-${swipeOffset}px)`,
           userSelect: isDragging ? 'none' : 'auto'
         }}
-        onClick={(!subtasks || subtasks.length === 0) ? handleToggle : undefined}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -184,7 +193,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </div>
             
             {/* Texto de la tarea y hora */}
-            <div className="flex-1">
+            <div className="flex-1 cursor-pointer" onClick={handleViewDetails}>
               <span 
                 className={`text-lg font-medium transition-all duration-300 ${
                   completed 
@@ -213,13 +222,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
           
           {/* Checkbox - solo mostrar si no hay subtareas */}
           {(!subtasks || subtasks.length === 0) && (
-            <div className="ml-3">
+            <div className="ml-3" onClick={(e) => { e.stopPropagation(); handleToggle(); }}>
               {completed ? (
-                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center cursor-pointer">
                   <div className="w-3 h-3 bg-white rounded-full"></div>
                 </div>
               ) : (
-                <Circle size={24} className="text-gray-300 hover:text-black transition-colors" />
+                <Circle size={24} className="text-gray-300 hover:text-black transition-colors cursor-pointer" />
               )}
             </div>
           )}
