@@ -1,6 +1,7 @@
 
 import React, { useState, useRef } from 'react';
-import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle, Trash2, Clock } from 'lucide-react';
+import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle, Trash2, Clock, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SubTask {
   id: string;
@@ -16,6 +17,7 @@ interface TaskCardProps {
   subtasks?: SubTask[];
   scheduledDate?: string;
   scheduledTime?: string;
+  notes?: string;
   onToggle: (id: string) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   onDelete?: (id: string) => void;
@@ -30,6 +32,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   subtasks, 
   scheduledDate,
   scheduledTime,
+  notes,
   onToggle, 
   onToggleSubtask, 
   onDelete,
@@ -38,12 +41,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const startX = useRef(0);
   const currentX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<number | null>(null);
 
   const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
   const DELETE_THRESHOLD = 120; // Distancia para mostrar el botón de eliminar
+  const LONG_PRESS_DURATION = 800; // Duración del long press en milisegundos
 
   const getTypeIcon = () => {
     switch (type) {
@@ -55,6 +61,21 @@ const TaskCard: React.FC<TaskCardProps> = ({
         return <Calendar size={20} className="text-black" />;
       default:
         return <Pencil size={20} className="text-black" />;
+    }
+  };
+
+  const startLongPress = () => {
+    if (notes) {
+      longPressTimer.current = window.setTimeout(() => {
+        setShowNotes(true);
+      }, LONG_PRESS_DURATION);
+    }
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
     }
   };
 
@@ -72,6 +93,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     startX.current = e.touches[0].clientX;
     currentX.current = e.touches[0].clientX;
     setIsDragging(false);
+    startLongPress();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -83,6 +105,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     if (deltaX > 10) {
       setIsDragging(true);
       e.preventDefault();
+      cancelLongPress(); // Cancelar long press si se está deslizando
       
       // Solo permitir deslizamiento hacia la izquierda
       if (deltaX > 0) {
@@ -94,6 +117,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleTouchEnd = () => {
+    cancelLongPress(); // Cancelar long press al terminar el toque
+    
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       // Si el deslizamiento supera el umbral, eliminar la tarea
       onDelete(id);
@@ -115,6 +140,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     startX.current = e.clientX;
     currentX.current = e.clientX;
     setIsDragging(false);
+    startLongPress();
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -126,6 +152,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     if (deltaX > 10) {
       setIsDragging(true);
       e.preventDefault();
+      cancelLongPress(); // Cancelar long press si se está deslizando
       
       if (deltaX > 0) {
         const newOffset = Math.min(deltaX, 150);
@@ -136,6 +163,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleMouseEnd = () => {
+    cancelLongPress(); // Cancelar long press al terminar el clic
+    
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       onDelete(id);
     } else {
@@ -268,7 +297,49 @@ const TaskCard: React.FC<TaskCardProps> = ({
             ))}
           </div>
         )}
+        
+        {/* Indicador de notas */}
+        {notes && (
+          <div className="absolute top-2 right-2">
+            <FileText size={12} className="text-gray-400" />
+          </div>
+        )}
       </div>
+      
+      {/* Modal de notas */}
+      {showNotes && notes && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowNotes(false)}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 mx-4 max-w-md w-full shadow-xl transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Notas de la tarea</h3>
+              <button
+                onClick={() => setShowNotes(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            <div className="mb-4">
+              <h4 className="font-medium text-gray-700 mb-2">{title}</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">{notes}</p>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setShowNotes(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white"
+              >
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
