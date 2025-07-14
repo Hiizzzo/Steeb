@@ -281,6 +281,18 @@ const TaskItem: React.FC<TaskItemProps> = ({
                   </span>
                 )}
                 
+                {/* Etiqueta de notas */}
+                {task.notes && (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 mb-2 rounded-r">
+                    <div className="flex items-center">
+                      <FileText size={14} className="text-yellow-600 mr-2 flex-shrink-0" />
+                      <p className="text-xs text-yellow-800 line-clamp-2">
+                        {task.notes.length > 80 ? `${task.notes.substring(0, 80)}...` : task.notes}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Información de tiempo con iconos */}
                 {task.targetTime && (
                   <div className="flex items-center text-xs text-gray-500 space-x-3">
