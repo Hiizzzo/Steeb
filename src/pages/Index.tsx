@@ -26,6 +26,7 @@ interface Task {
   scheduledDate?: string;
   scheduledTime?: string;
   completedDate?: string;
+  notes?: string; // Notas adicionales de la tarea
 }
 
 const Index = () => {
@@ -36,6 +37,7 @@ const Index = () => {
       type: 'work', 
       completed: true,
       scheduledDate: new Date().toISOString().split('T')[0],
+      notes: "Usar paleta de colores moderna y asegurar que el diseño sea responsive. Consultar con el equipo sobre las preferencias del cliente.",
       subtasks: [
         { id: '1-1', title: 'Adjust colors', completed: false },
         { id: '1-2', title: 'Redesign buttons', completed: false },
@@ -48,6 +50,7 @@ const Index = () => {
       type: 'work', 
       completed: true,
       scheduledDate: new Date().toISOString().split('T')[0],
+      notes: "Revisar el progreso semanal y discutir nuevas funcionalidades. Preparar presentación de 10 minutos.",
       subtasks: [
         { id: '2-1', title: 'Take minutes', completed: false },
         { id: '2-2', title: 'Send reminder', completed: false },
@@ -241,6 +244,7 @@ const Index = () => {
                     subtasks={task.subtasks}
                     scheduledDate={task.scheduledDate}
                     scheduledTime={task.scheduledTime}
+                    notes={task.notes}
                     onToggle={handleToggleTask}
                     onToggleSubtask={handleToggleSubtask}
                     onDelete={handleDeleteTask}

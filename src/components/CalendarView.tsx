@@ -18,6 +18,7 @@ interface Task {
   scheduledDate?: string;
   scheduledTime?: string;
   completedDate?: string;
+  notes?: string; // Notas adicionales de la tarea
 }
 
 interface CalendarViewProps {
@@ -291,6 +292,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       subtasks={task.subtasks}
                       scheduledDate={task.scheduledDate}
                       scheduledTime={task.scheduledTime}
+                      notes={task.notes}
                       onToggle={onToggleTask}
                       onToggleSubtask={onToggleSubtask}
                       onDelete={onDelete}

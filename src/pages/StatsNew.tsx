@@ -18,6 +18,7 @@ interface Task {
   scheduledDate?: string;
   scheduledTime?: string;
   completedDate?: string;
+  notes?: string; // Notas adicionales de la tarea
 }
 
 const StatsNew = () => {
