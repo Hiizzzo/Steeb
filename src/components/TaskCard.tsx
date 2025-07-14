@@ -307,6 +307,18 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         )}
         
+        {/* Etiqueta de notas */}
+        {notes && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 mt-3 rounded-r">
+            <div className="flex items-center">
+              <FileText size={14} className="text-yellow-600 mr-2 flex-shrink-0" />
+              <p className="text-xs text-yellow-800 line-clamp-2">
+                {notes.length > 80 ? `${notes.substring(0, 80)}...` : notes}
+              </p>
+            </div>
+          </div>
+        )}
+        
         {/* Indicador de notas */}
         {notes && (
           <div 
