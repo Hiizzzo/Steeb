@@ -124,7 +124,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleTouchEnd = () => {
-    cancelLongPress(); // Cancelar long press al terminar el toque
+    // Solo cancelar long press si se está deslizando
+    if (isDragging || swipeOffset > 0) {
+      cancelLongPress();
+    }
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       // Si el deslizamiento supera el umbral, eliminar la tarea
@@ -170,7 +173,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleMouseEnd = () => {
-    cancelLongPress(); // Cancelar long press al terminar el clic
+    // Solo cancelar long press si se está deslizando
+    if (isDragging || swipeOffset > 0) {
+      cancelLongPress();
+    }
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       onDelete(id);
@@ -307,7 +313,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
         
         {/* Indicador de notas */}
         {notes && (
-          <div className="absolute top-2 right-2">
+          <div 
+            className="absolute top-2 right-2 cursor-pointer hover:text-gray-600 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowNotes(true);
+            }}
+          >
             <FileText size={12} className="text-gray-400" />
           </div>
         )}
