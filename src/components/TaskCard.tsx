@@ -19,6 +19,7 @@ interface TaskCardProps {
   onToggle: (id: string) => void;
   onToggleSubtask?: (taskId: string, subtaskId: string) => void;
   onDelete?: (id: string) => void;
+  onShowDetails?: (id: string) => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ 
@@ -31,7 +32,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   scheduledTime,
   onToggle, 
   onToggleSubtask, 
-  onDelete 
+  onDelete,
+  onShowDetails
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -57,6 +59,19 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleToggle = () => {
+    if (!isDragging && swipeOffset === 0) {
+      onToggle(id);
+    }
+  };
+
+  const handleShowDetails = () => {
+    if (!isDragging && swipeOffset === 0 && onShowDetails) {
+      onShowDetails(id);
+    }
+  };
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!isDragging && swipeOffset === 0) {
       onToggle(id);
     }
@@ -166,7 +181,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           transform: `translateX(-${swipeOffset}px)`,
           userSelect: isDragging ? 'none' : 'auto'
         }}
-        onClick={(!subtasks || subtasks.length === 0) ? handleToggle : undefined}
+        onClick={onShowDetails ? handleShowDetails : ((!subtasks || subtasks.length === 0) ? handleToggle : undefined)}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -213,13 +228,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
           
           {/* Checkbox - solo mostrar si no hay subtareas */}
           {(!subtasks || subtasks.length === 0) && (
-            <div className="ml-3">
+            <div className="ml-3" onClick={handleCheckboxClick}>
               {completed ? (
-                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center cursor-pointer">
                   <div className="w-3 h-3 bg-white rounded-full"></div>
                 </div>
               ) : (
-                <Circle size={24} className="text-gray-300 hover:text-black transition-colors" />
+                <Circle size={24} className="text-gray-300 hover:text-black transition-colors cursor-pointer" />
               )}
             </div>
           )}

@@ -6,6 +6,7 @@ import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
+import TaskDetailsModal from '@/components/TaskDetailsModal';
 import CalendarView from '@/components/CalendarView';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
@@ -19,6 +20,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
+  notes?: string;
   type: 'personal' | 'work' | 'meditation';
   completed: boolean;
   subtasks?: SubTask[];
@@ -70,6 +72,8 @@ const Index = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
 
@@ -170,10 +174,11 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
+      notes,
       type,
       completed: false,
       subtasks,
@@ -194,6 +199,19 @@ const Index = () => {
       title: "Task summary:",
       description: `${completedTasks} of ${tasks.length} tasks completed`,
     });
+  };
+
+  const handleShowDetails = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setSelectedTask(task);
+      setShowDetailsModal(true);
+    }
+  };
+
+  const handleCloseDetails = () => {
+    setShowDetailsModal(false);
+    setSelectedTask(null);
   };
 
   // Filter tasks for today and overdue
@@ -233,6 +251,7 @@ const Index = () => {
                     onToggle={handleToggleTask}
                     onToggleSubtask={handleToggleSubtask}
                     onDelete={handleDeleteTask}
+                    onShowDetails={handleShowDetails}
                   />
                 ))
             ) : (
@@ -277,6 +296,13 @@ const Index = () => {
         isOpen={showConfigModal}
         onClose={() => setShowConfigModal(false)}
         onAddTask={handleAddTask}
+      />
+
+      {/* Modal de Detalles de Tarea */}
+      <TaskDetailsModal
+        isOpen={showDetailsModal}
+        onClose={handleCloseDetails}
+        task={selectedTask}
       />
     </div>
   );
