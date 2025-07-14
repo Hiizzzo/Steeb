@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Calendar } from 'lucide-react';
 
 const StebeHeader: React.FC = () => {
   // Obtener fecha actual en inglés
@@ -9,15 +10,13 @@ const StebeHeader: React.FC = () => {
 
   return (
     <div className="pt-8 pb-4 bg-white">
-      {/* Steve Jobs figura y fecha en la misma línea */}
+      {/* Logo de calendario y fecha en la misma línea */}
       <div className="flex items-center justify-between mb-4 px-4">
-        {/* Logo de Steve Jobs */}
-        <div className="w-24 h-24 flex-shrink-0">
-          <img 
-            src="/lovable-uploads/f3695274-590c-4838-b4b4-f6e21b194eef.png" 
-            alt="Steve Jobs" 
-            className="w-full h-full object-contain"
-          />
+        {/* Logo de Calendario */}
+        <div className="w-24 h-24 flex-shrink-0 flex items-center justify-center">
+          <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center">
+            <Calendar size={32} className="text-white" strokeWidth={2} />
+          </div>
         </div>
         
         {/* Fecha del día - centrada y más grande */}
@@ -31,11 +30,11 @@ const StebeHeader: React.FC = () => {
         <div className="w-24"></div>
       </div>
       
-      {/* Título "Tasks" centrado en bloque negro */}
+      {/* Título centrado en bloque negro */}
       <div className="w-full">
         <div className="bg-black py-2 px-4">
           <h1 className="text-center text-white text-2xl font-light tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-            TAREAS
+            ORGANIZACIÓN
           </h1>
         </div>
       </div>
