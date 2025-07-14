@@ -52,7 +52,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
     // Mensaje inicial de Steve
     toast({
       title: "¡Steve dice:",
-      description: "¡Perfecto! Voy a añadir tus tareas diarias. ¡Es hora de ser productivo! 💪",
+      description: "¡Perfecto! Voy a añadir tus tareas diarias. ¡Es hora de ser productivo!",
     });
 
     // Añadir cada tarea con un pequeño delay para crear efecto de "pensamiento"
@@ -83,7 +83,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
     setTimeout(() => {
       toast({
         title: "¡Steve dice:",
-        description: `¡Listo! He añadido ${currentTasks.length} tareas diarias. ¡Tú puedes con todo! 🚀`,
+        description: `¡Listo! He añadido ${currentTasks.length} tareas diarias. ¡Tú puedes con todo!`,
       });
     }, 500);
 
