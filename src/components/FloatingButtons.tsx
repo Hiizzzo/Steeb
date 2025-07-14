@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BarChart3, Check, TrendingUp } from 'lucide-react';
+import { Plus, BarChart3, Calendar, TrendingUp } from 'lucide-react';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -10,15 +10,19 @@ interface FloatingButtonsProps {
   viewMode: 'tasks' | 'calendar';
 }
 
-const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
+const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleView, viewMode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isStats = location.pathname === '/estadisticas';
 
-  const handleTasksClick = () => {
+  const handleCalendarClick = () => {
     if (!isHome) {
       navigate('/');
+    }
+    // Si estamos en home pero no en vista calendario, cambiamos a calendario
+    if (isHome && viewMode === 'tasks') {
+      onToggleView();
     }
   };
 
@@ -30,17 +34,17 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
     <div className="fixed bottom-8 left-0 right-0 z-50">
       <div className="flex items-end justify-center relative">
         
-        {/* Botón de Ver Tareas (izquierda) */}
+        {/* Botón de Ver Calendario (izquierda) */}
         <button
-          onClick={handleTasksClick}
+          onClick={handleCalendarClick}
           className={`absolute bottom-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ${
-            isHome 
+            (isHome && viewMode === 'calendar') 
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
           }`}
           style={{ left: 'calc(50% - 120px)' }}
         >
-          <Check size={20} className="text-white" strokeWidth={3} />
+          <Calendar size={20} className="text-white" strokeWidth={2.5} />
         </button>
 
         {/* Botón Principal de Crear Tarea (centro) */}
@@ -63,8 +67,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
         >
           <BarChart3 size={18} className="text-white" strokeWidth={2.5} />
         </button>
-
-
 
       </div>
     </div>
