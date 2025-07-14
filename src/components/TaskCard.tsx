@@ -124,10 +124,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleTouchEnd = () => {
-    // Solo cancelar long press si se está deslizando
-    if (isDragging || swipeOffset > 0) {
-      cancelLongPress();
-    }
+    // Cancelar long press siempre cuando se suelta el input
+    cancelLongPress();
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       // Si el deslizamiento supera el umbral, eliminar la tarea
@@ -173,10 +171,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleMouseEnd = () => {
-    // Solo cancelar long press si se está deslizando
-    if (isDragging || swipeOffset > 0) {
-      cancelLongPress();
-    }
+    // Cancelar long press siempre cuando se suelta el input
+    cancelLongPress();
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       onDelete(id);
