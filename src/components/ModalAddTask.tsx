@@ -15,13 +15,26 @@ interface SubTask {
   completed: boolean;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  type: 'personal' | 'work' | 'meditation';
+  completed: boolean;
+  subtasks?: SubTask[];
+  scheduledDate?: string;
+  scheduledTime?: string;
+  completedDate?: string;
+  notes?: string;
+}
+
 interface ModalAddTaskProps {
   isOpen: boolean;
   onClose: () => void;
   onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  editingTask?: Task;
 }
 
-const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask }) => {
+const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask, editingTask }) => {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedList, setSelectedList] = useState('Tareas');
@@ -43,6 +56,62 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
       setCurrentTasks(JSON.parse(saved));
     }
   }, []);
+
+  // Poblar campos cuando se está editando una tarea
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setNotes(editingTask.notes || '');
+      
+      // Mapear el tipo de tarea al selectedList
+      switch (editingTask.type) {
+        case 'personal':
+          setSelectedList('Tareas');
+          break;
+        case 'work':
+          setSelectedList('Trabajo');
+          break;
+        case 'meditation':
+          setSelectedList('Meditación');
+          break;
+      }
+
+      // Configurar fecha si existe
+      if (editingTask.scheduledDate) {
+        setSelectedDate(new Date(editingTask.scheduledDate));
+        setHasDate(true);
+      } else {
+        setSelectedDate(undefined);
+        setHasDate(false);
+      }
+
+      // Configurar hora si existe
+      if (editingTask.scheduledTime) {
+        setSelectedTime(editingTask.scheduledTime);
+        setHasTime(true);
+      } else {
+        setSelectedTime('');
+        setHasTime(false);
+      }
+
+      // Configurar subtareas si existen
+      if (editingTask.subtasks && editingTask.subtasks.length > 0) {
+        setSubtasks(editingTask.subtasks.map(subtask => subtask.title));
+      } else {
+        setSubtasks(['']);
+      }
+    } else {
+      // Resetear campos cuando no hay tarea en edición
+      setTitle('');
+      setNotes('');
+      setSelectedList('Tareas');
+      setSelectedDate(undefined);
+      setSelectedTime('');
+      setHasDate(false);
+      setHasTime(false);
+      setSubtasks(['']);
+    }
+  }, [editingTask]);
 
   const handleAddDailyTasks = async () => {
     setIsAddingDaily(true);
@@ -161,7 +230,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             Cancelar
           </button>
           <h2 className="text-lg font-semibold text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-            Nuevo
+            {editingTask ? 'Editar' : 'Nuevo'}
           </h2>
           <button
             onClick={handleSubmit}
@@ -172,7 +241,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask 
             )}
             style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
           >
-            Listo
+            {editingTask ? 'Guardar' : 'Agregar'}
           </button>
         </div>
 

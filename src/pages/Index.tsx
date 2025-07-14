@@ -177,22 +177,49 @@ const Index = () => {
   };
 
   const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title,
-      type,
-      completed: false,
-      subtasks,
-      scheduledDate: scheduledDate, // No establecer fecha automáticamente
-      scheduledTime,
-      notes
-    };
-    
-    setTasks(prevTasks => [...prevTasks, newTask]);
-    toast({
-      title: "New task added!",
-      description: "Your task has been added to the list.",
-    });
+    if (selectedTask) {
+      // Estamos editando una tarea existente
+      const updatedTask: Task = {
+        ...selectedTask,
+        title,
+        type,
+        subtasks,
+        scheduledDate,
+        scheduledTime,
+        notes
+      };
+      
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === selectedTask.id ? updatedTask : task
+        )
+      );
+      
+      toast({
+        title: "Tarea actualizada!",
+        description: "Los cambios han sido guardados.",
+      });
+      
+      setSelectedTask(null); // Limpiar la tarea seleccionada después de editar
+    } else {
+      // Estamos creando una nueva tarea
+      const newTask: Task = {
+        id: Date.now().toString(),
+        title,
+        type,
+        completed: false,
+        subtasks,
+        scheduledDate: scheduledDate, // No establecer fecha automáticamente
+        scheduledTime,
+        notes
+      };
+      
+      setTasks(prevTasks => [...prevTasks, newTask]);
+      toast({
+        title: "New task added!",
+        description: "Your task has been added to the list.",
+      });
+    }
   };
 
   const handleShowTasks = () => {
@@ -275,7 +302,10 @@ const Index = () => {
           tasks={tasks}
           onToggleTask={handleToggleTask}
           onToggleSubtask={handleToggleSubtask}
-          onAddTask={() => setShowModal(true)}
+          onAddTask={() => {
+            setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
+            setShowModal(true);
+          }}
           onDelete={handleDeleteTask}
           onShowDetail={handleShowDetail}
         />
@@ -283,7 +313,10 @@ const Index = () => {
 
       {/* Floating Buttons */}
       <FloatingButtons 
-        onAddTask={() => setShowModal(true)}
+        onAddTask={() => {
+          setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
+          setShowModal(true);
+        }}
         onShowTasks={handleShowTasks}
         onToggleView={() => setViewMode(viewMode === 'tasks' ? 'calendar' : 'tasks')}
         viewMode={viewMode}
@@ -292,8 +325,12 @@ const Index = () => {
       {/* Modal para Agregar Tarea */}
       <ModalAddTask
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => {
+          setShowModal(false);
+          setSelectedTask(null); // Limpiar la tarea seleccionada al cerrar
+        }}
         onAddTask={handleAddTask}
+        editingTask={selectedTask}
       />
 
       {/* Modal de Configuración de Tareas Diarias */}
