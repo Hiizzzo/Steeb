@@ -30,46 +30,7 @@ interface Task {
 }
 
 const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>([
-    { 
-      id: '1', 
-      title: 'Design homepage', 
-      type: 'work', 
-      completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
-      notes: "Usar paleta de colores moderna y asegurar que el diseño sea responsive. Consultar con el equipo sobre las preferencias del cliente.",
-      subtasks: [
-        { id: '1-1', title: 'Adjust colors', completed: false },
-        { id: '1-2', title: 'Redesign buttons', completed: false },
-        { id: '1-3', title: 'Test mobile version', completed: false }
-      ]
-    },
-    { 
-      id: '2', 
-      title: 'Meeting with team', 
-      type: 'work', 
-      completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
-      notes: "Revisar el progreso semanal y discutir nuevas funcionalidades. Preparar presentación de 10 minutos.",
-      subtasks: [
-        { id: '2-1', title: 'Take minutes', completed: false },
-        { id: '2-2', title: 'Send reminder', completed: false },
-        { id: '2-3', title: 'Schedule next meeting', completed: false }
-      ]
-    },
-    { 
-      id: '3', 
-      title: 'Grocery shopping', 
-      type: 'personal', 
-      completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
-      subtasks: [
-        { id: '3-1', title: 'Comprar pan', completed: false },
-        { id: '3-2', title: 'Queso y fiambre', completed: false },
-        { id: '3-3', title: 'Jugo de naranja', completed: false }
-      ]
-    }
-  ]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
