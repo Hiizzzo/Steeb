@@ -2,59 +2,49 @@
   <!-- Background -->
   <rect width="400" height="400" fill="white"/>
   
-  <!-- Black turtleneck body -->
-  <path d="M0 400 L0 300 C0 300, 50 250, 100 230 C120 220, 140 215, 160 215 L240 215 C260 215, 280 220, 300 230 C350 250, 400 300, 400 300 L400 400 Z" fill="black"/>
+  <!-- Black turtleneck body - more solid and iconic -->
+  <path d="M0 400 L0 280 C0 280, 60 240, 120 220 C140 210, 160 205, 180 205 L220 205 C240 205, 260 210, 280 220 C340 240, 400 280, 400 280 L400 400 Z" fill="black"/>
   
   <!-- Neck -->
-  <path d="M160 215 C160 215, 165 190, 170 175 C175 160, 180 150, 185 150 L215 150 C220 150, 225 160, 230 175 C235 190, 240 215, 240 215 Z" fill="black"/>
+  <path d="M180 205 C180 205, 185 180, 190 165 C195 150, 200 140, 205 140 L195 140 C200 140, 205 150, 210 165 C215 180, 220 205, 220 205 Z" fill="black"/>
   
-  <!-- Head outline (bald) -->
-  <path d="M200 30 C240 30, 275 45, 295 75 C305 90, 310 110, 310 130 L310 160 C310 180, 305 195, 295 210 C280 230, 260 240, 235 245 C225 247, 215 248, 205 248 L195 248 C185 248, 175 247, 165 245 C140 240, 120 230, 105 210 C95 195, 90 180, 90 160 L90 130 C90 110, 95 90, 105 75 C125 45, 160 30, 200 30 Z" fill="white" stroke="black" stroke-width="3"/>
+  <!-- Head outline - more minimalist and iconic -->
+  <path d="M200 40 C230 40, 255 50, 270 70 C280 80, 285 95, 285 110 L285 140 C285 155, 280 165, 270 175 C260 185, 245 190, 230 192 C220 193, 210 194, 200 194 L190 194 C180 194, 170 193, 160 192 C145 190, 130 185, 120 175 C110 165, 105 155, 105 140 L105 110 C105 95, 110 80, 120 70 C135 50, 170 40, 200 40 Z" fill="white" stroke="black" stroke-width="4"/>
   
-  <!-- Left ear -->
-  <ellipse cx="85" cy="140" rx="15" ry="25" fill="white" stroke="black" stroke-width="3"/>
-  <path d="M85 140 C85 140, 90 135, 90 140 C90 145, 85 150, 85 150" stroke="black" stroke-width="2" fill="none"/>
-  
-  <!-- Right ear -->
-  <ellipse cx="315" cy="140" rx="15" ry="25" fill="white" stroke="black" stroke-width="3"/>
-  <path d="M315 140 C315 140, 310 135, 310 140 C310 145, 315 150, 315 150" stroke="black" stroke-width="2" fill="none"/>
-  
-  <!-- Glasses -->
+  <!-- Glasses - more prominent and iconic -->
   <g>
     <!-- Left lens frame -->
-    <ellipse cx="155" cy="120" rx="35" ry="30" fill="none" stroke="black" stroke-width="4"/>
+    <ellipse cx="150" cy="115" rx="32" ry="28" fill="none" stroke="black" stroke-width="5"/>
     <!-- Left lens -->
-    <ellipse cx="155" cy="120" rx="30" ry="25" fill="white" opacity="0.3"/>
+    <ellipse cx="150" cy="115" rx="25" ry="20" fill="white" opacity="0.2"/>
     
     <!-- Right lens frame -->
-    <ellipse cx="245" cy="120" rx="35" ry="30" fill="none" stroke="black" stroke-width="4"/>
+    <ellipse cx="250" cy="115" rx="32" ry="28" fill="none" stroke="black" stroke-width="5"/>
     <!-- Right lens -->
-    <ellipse cx="245" cy="120" rx="30" ry="25" fill="white" opacity="0.3"/>
+    <ellipse cx="250" cy="115" rx="25" ry="20" fill="white" opacity="0.2"/>
     
     <!-- Bridge -->
-    <path d="M190 120 L210 120" stroke="black" stroke-width="4"/>
+    <path d="M182 115 L218 115" stroke="black" stroke-width="5"/>
     
     <!-- Temple arms -->
-    <path d="M120 120 L85 125" stroke="black" stroke-width="4"/>
-    <path d="M280 120 L315 125" stroke="black" stroke-width="4"/>
+    <path d="M118 115 L85 120" stroke="black" stroke-width="5"/>
+    <path d="M282 115 L315 120" stroke="black" stroke-width="5"/>
   </g>
   
-  <!-- Eyes -->
-  <ellipse cx="155" cy="120" rx="8" ry="10" fill="black"/>
-  <ellipse cx="245" cy="120" rx="8" ry="10" fill="black"/>
+  <!-- Eyes - more intense -->
+  <ellipse cx="150" cy="115" rx="6" ry="8" fill="black"/>
+  <ellipse cx="250" cy="115" rx="6" ry="8" fill="black"/>
   
-  <!-- Eyebrows -->
-  <path d="M135 105 Q155 100 175 105" stroke="black" stroke-width="3" fill="none"/>
-  <path d="M225 105 Q245 100 265 105" stroke="black" stroke-width="3" fill="none"/>
+  <!-- Eyebrows - furrowed and intense -->
+  <path d="M130 100 Q150 95 170 100" stroke="black" stroke-width="4" fill="none"/>
+  <path d="M230 100 Q250 95 270 100" stroke="black" stroke-width="4" fill="none"/>
   
-  <!-- Nose -->
-  <path d="M200 130 L195 155 Q200 160 205 155 L200 130" stroke="black" stroke-width="2" fill="none"/>
+  <!-- Nose - minimal -->
+  <path d="M200 125 L195 145 Q200 150 205 145 L200 125" stroke="black" stroke-width="3" fill="none"/>
   
-  <!-- Mouth -->
-  <path d="M170 185 Q200 190 230 185" stroke="black" stroke-width="3" fill="none"/>
-  <line x1="190" y1="195" x2="210" y2="195" stroke="black" stroke-width="2"/>
+  <!-- Mouth - straight line, unsmiling -->
+  <line x1="175" y1="175" x2="225" y2="175" stroke="black" stroke-width="4"/>
   
-  <!-- Facial hair/shadow lines -->
-  <line x1="165" y1="165" x2="165" y2="170" stroke="black" stroke-width="1.5"/>
-  <line x1="235" y1="165" x2="235" y2="170" stroke="black" stroke-width="1.5"/>
+  <!-- Cheek line on left side -->
+  <line x1="160" y1="155" x2="160" y2="165" stroke="black" stroke-width="2"/>
 </svg>
