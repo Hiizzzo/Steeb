@@ -17,10 +17,10 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simular tiempo de carga de 3 segundos
+    // Tiempo de carga optimizado a 0.3 segundos
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, []);
