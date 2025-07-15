@@ -11,7 +11,7 @@ const StebeHeader: React.FC = () => {
     <div className="pt-8 pb-4 bg-white">
       {/* Logo de Steve y fecha en la misma línea */}
       <div className="flex items-center justify-between mb-4 px-4">
-        {/* Logo de Steve */}
+        {/* Logo de Steve - esquina superior izquierda */}
         <div className="w-24 h-24 flex-shrink-0 flex items-center justify-center">
           <img 
             src="/steve-logo.svg" 
@@ -20,15 +20,15 @@ const StebeHeader: React.FC = () => {
           />
         </div>
         
-        {/* Fecha del día - centrada y más grande */}
+        {/* Fecha del día - centrada */}
         <div className="flex-1 flex justify-center">
           <h2 className="text-3xl font-light text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             {dayName}
           </h2>
         </div>
         
-        {/* Espacio para balancear */}
-        <div className="w-24"></div>
+        {/* Espacio para balancear el layout */}
+        <div className="w-24 flex-shrink-0"></div>
       </div>
       
       {/* Título centrado en bloque negro */}
