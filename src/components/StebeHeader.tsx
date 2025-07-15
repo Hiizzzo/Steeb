@@ -11,11 +11,11 @@ const StebeHeader: React.FC = () => {
     <div className="pt-8 pb-4 bg-white">
       {/* Logo de Steve y fecha en la misma línea */}
       <div className="flex items-center justify-between mb-4 px-4">
-        {/* Logo de Steve - esquina superior izquierda */}
+        {/* Logo de STEBE - esquina superior izquierda */}
         <div className="w-24 h-24 flex-shrink-0 flex items-center justify-center">
           <img 
-            src="/lovable-uploads/4b6291dd-50ae-479e-a2d0-05130ab09040.png" 
-            alt="Steve Jobs" 
+            src="/stebe-logo.svg" 
+            alt="STEBE" 
             className="w-16 h-16 object-contain"
           />
         </div>

@@ -1,0 +1,68 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo redondeado -->
+  <rect width="100" height="100" rx="20" ry="20" fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- Cuerpo (cuello negro) -->
+  <path d="M25 95 L25 70 C25 70, 30 65, 40 65 L60 65 C70 65, 75 70, 75 70 L75 95 Z" fill="black"/>
+  
+  <!-- Cabeza -->
+  <circle cx="50" cy="35" r="20" fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- Calvicie (líneas en la cabeza) -->
+  <path d="M35 25 Q40 20 45 25" stroke="black" stroke-width="1" fill="none"/>
+  <path d="M55 25 Q60 20 65 25" stroke="black" stroke-width="1" fill="none"/>
+  
+  <!-- Oreja izquierda -->
+  <ellipse cx="30" cy="35" rx="3" ry="6" fill="white" stroke="black" stroke-width="1.5"/>
+  
+  <!-- Oreja derecha -->
+  <ellipse cx="70" cy="35" rx="3" ry="6" fill="white" stroke="black" stroke-width="1.5"/>
+  
+  <!-- Lentes (marco) -->
+  <g>
+    <!-- Marco izquierdo -->
+    <circle cx="43" cy="32" r="8" fill="none" stroke="black" stroke-width="2"/>
+    <!-- Marco derecho -->
+    <circle cx="57" cy="32" r="8" fill="none" stroke="black" stroke-width="2"/>
+    <!-- Puente -->
+    <line x1="51" y1="32" x2="49" y2="32" stroke="black" stroke-width="2"/>
+    <!-- Patilla izquierda -->
+    <line x1="35" y1="32" x2="30" y2="33" stroke="black" stroke-width="2"/>
+    <!-- Patilla derecha -->
+    <line x1="65" y1="32" x2="70" y2="33" stroke="black" stroke-width="2"/>
+  </g>
+  
+  <!-- Ojos -->
+  <circle cx="43" cy="32" r="3" fill="black"/>
+  <circle cx="57" cy="32" r="3" fill="black"/>
+  
+  <!-- Cejas fruncidas -->
+  <path d="M38 27 L48 29" stroke="black" stroke-width="2"/>
+  <path d="M52 29 L62 27" stroke="black" stroke-width="2"/>
+  
+  <!-- Nariz -->
+  <path d="M50 35 L48 42 Q50 44 52 42 L50 35" stroke="black" stroke-width="1.5" fill="none"/>
+  
+  <!-- Barba -->
+  <path d="M42 48 Q50 52 58 48" stroke="black" stroke-width="2" fill="none"/>
+  <path d="M44 50 Q50 54 56 50" stroke="black" stroke-width="1.5" fill="none"/>
+  
+  <!-- Líneas de barba -->
+  <line x1="45" y1="45" x2="45" y2="50" stroke="black" stroke-width="1"/>
+  <line x1="48" y1="46" x2="48" y2="51" stroke="black" stroke-width="1"/>
+  <line x1="52" y1="46" x2="52" y2="51" stroke="black" stroke-width="1"/>
+  <line x1="55" y1="45" x2="55" y2="50" stroke="black" stroke-width="1"/>
+  
+  <!-- Boca -->
+  <path d="M46 46 Q50 44 54 46" stroke="black" stroke-width="2" fill="none"/>
+  
+  <!-- Brazo apuntando -->
+  <path d="M75 70 L85 65 L92 68 L95 65 L92 62 L85 60 L75 65" fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- Dedo apuntando -->
+  <ellipse cx="92" cy="63" rx="2" ry="3" fill="white" stroke="black" stroke-width="1.5"/>
+  <ellipse cx="95" cy="65" rx="1.5" ry="2" fill="white" stroke="black" stroke-width="1.5"/>
+  
+  <!-- Brazo izquierdo (en la cadera) -->
+  <path d="M25 70 L15 75 L18 80 L25 75" fill="white" stroke="black" stroke-width="2"/>
+</svg>
