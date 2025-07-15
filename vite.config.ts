@@ -19,4 +19,31 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Optimizaciones de build para mejorar rendimiento
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separar vendors pesados en chunks independientes
+          'react-vendor': ['react', 'react-dom'],
+          'query-vendor': ['@tanstack/react-query'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          'router-vendor': ['react-router-dom'],
+        },
+      },
+    },
+    // Optimizar el tamaño del chunk
+    chunkSizeWarningLimit: 1000,
+    // Habilitar source maps solo en desarrollo
+    sourcemap: mode === 'development',
+  },
+  // Optimizaciones para dependencies
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      '@tanstack/react-query',
+      'react-router-dom',
+    ],
+  },
 }));
