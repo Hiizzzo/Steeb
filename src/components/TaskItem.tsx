@@ -14,6 +14,7 @@ export interface Task {
   actualTime?: number; // en minutos
   category?: 'work' | 'study' | 'exercise' | 'personal' | 'project'; // Nueva propiedad para categorías
   notes?: string; // Notas adicionales de la tarea
+  priority?: 'alta' | 'media' | 'baja'; // Prioridad asignada por Stebe
 }
 
 interface TaskItemProps {
