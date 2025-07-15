@@ -30,7 +30,34 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap">
+    <!-- Optimización de fuentes: preload y display swap para mejor rendimiento -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap"></noscript>
+    
+    <!-- Preload crítico para recursos principales -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="modulepreload" href="/src/App.tsx" />
+    
+    <!-- Optimización adicional: DNS prefetch -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.gpteng.co">
+    
+    <!-- CSS crítico inline para loading instantáneo -->
+    <style>
+      /* CSS crítico para loading screen */
+      #root { height: 100vh; width: 100vw; }
+      .loading-critical { 
+        position: fixed; 
+        inset: 0; 
+        background: white; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        z-index: 9999; 
+      }
+    </style>
   </head>
 
   <body>

@@ -5,24 +5,46 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Index from "./pages/Index";
-
-import StatsNew from "./pages/StatsNew";
-import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 
-const queryClient = new QueryClient();
+// Lazy loading para optimizar el bundle inicial
+const Index = lazy(() => import("./pages/Index"));
+const StatsNew = lazy(() => import("./pages/StatsNew"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutos
+      gcTime: 10 * 60 * 1000,   // 10 minutos (antes cacheTime)
+    },
+  },
+});
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simular tiempo de carga de 3 segundos
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
+    // Carga optimizada: esperar a que los recursos críticos estén listos
+    const checkResourcesReady = () => {
+      // Verificar que el DOM esté listo y las fuentes cargadas
+      if (document.readyState === 'complete') {
+        // Pequeño delay para asegurar que todo esté renderizado
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 300); // Reducido de 3000ms a 300ms
+      } else {
+        // Si aún no está listo, esperar al evento load
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 200);
+        }, { once: true });
+      }
+    };
 
-    return () => clearTimeout(timer);
+    checkResourcesReady();
   }, []);
 
   if (isLoading) {
@@ -35,13 +57,13 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            
-            <Route path="/estadisticas" element={<StatsNew />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<LoadingScreen />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/estadisticas" element={<StatsNew />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
