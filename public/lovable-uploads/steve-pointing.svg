@@ -1,0 +1,51 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rounded rectangle -->
+  <rect x="10" y="10" width="180" height="180" rx="25" ry="25" fill="white" stroke="black" stroke-width="6"/>
+  
+  <!-- Steve's head (bald with some hair on sides) -->
+  <circle cx="80" cy="70" r="25" fill="white" stroke="black" stroke-width="3"/>
+  
+  <!-- Hair on sides -->
+  <path d="M55 65 Q50 60 55 55" stroke="black" stroke-width="2" fill="none"/>
+  <path d="M105 65 Q110 60 105 55" stroke="black" stroke-width="2" fill="none"/>
+  
+  <!-- Glasses -->
+  <circle cx="70" cy="65" r="8" fill="white" stroke="black" stroke-width="2"/>
+  <circle cx="90" cy="65" r="8" fill="white" stroke="black" stroke-width="2"/>
+  <line x1="78" y1="65" x2="82" y2="65" stroke="black" stroke-width="2"/>
+  <line x1="62" y1="65" x2="55" y2="67" stroke="black" stroke-width="2"/>
+  <line x1="98" y1="65" x2="105" y2="67" stroke="black" stroke-width="2"/>
+  
+  <!-- Eyes -->
+  <circle cx="70" cy="65" r="3" fill="black"/>
+  <circle cx="90" cy="65" r="3" fill="black"/>
+  
+  <!-- Nose -->
+  <path d="M80 70 L82 75 L78 75 Z" fill="black"/>
+  
+  <!-- Beard -->
+  <path d="M65 80 Q80 85 95 80 Q95 90 80 92 Q65 90 65 80" fill="black"/>
+  
+  <!-- Mustache -->
+  <ellipse cx="80" cy="77" rx="8" ry="2" fill="black"/>
+  
+  <!-- Body (black shirt) -->
+  <rect x="50" y="95" width="60" height="80" fill="black" rx="5"/>
+  
+  <!-- Arms -->
+  <ellipse cx="45" cy="120" rx="8" ry="25" fill="black"/>
+  
+  <!-- Pointing arm and hand -->
+  <ellipse cx="120" cy="110" rx="25" ry="8" fill="black" transform="rotate(-10 120 110)"/>
+  
+  <!-- Pointing hand -->
+  <ellipse cx="145" cy="105" rx="6" ry="4" fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- Pointing finger -->
+  <rect x="150" y="103" width="15" height="4" fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- Other fingers -->
+  <ellipse cx="147" cy="108" rx="2" ry="6" fill="white" stroke="black" stroke-width="1"/>
+  <ellipse cx="144" cy="109" rx="2" ry="6" fill="white" stroke="black" stroke-width="1"/>
+  <ellipse cx="141" cy="108" rx="2" ry="6" fill="white" stroke="black" stroke-width="1"/>
+</svg>
