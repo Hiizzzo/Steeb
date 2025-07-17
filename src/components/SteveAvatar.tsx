@@ -27,7 +27,7 @@ const SteveAvatar: React.FC<SteveAvatarProps> = ({
   return (
     <div className={cn('flex items-center justify-start', sizeClasses[size], animations, className)}>
       <img 
-        src="/lovable-uploads/steve-thumbs-up-icon.png" 
+        src="/lovable-uploads/steve-new-icon-192.png" 
         alt="Steve Avatar" 
         className="w-full h-full rounded-full object-cover flex-shrink-0"
       />
