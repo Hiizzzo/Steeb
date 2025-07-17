@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import StatsNew from "./pages/StatsNew";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
+import TaskForm from './pages/TaskForm';
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <TaskForm />
       </TooltipProvider>
     </QueryClientProvider>
   );

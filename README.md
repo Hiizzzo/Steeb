@@ -152,3 +152,29 @@ const handleProgressPress = () => {
 ## Soporte
 
 Para dudas o problemas, revisa la documentación de React Native o Expo según corresponda.
+
+## Sistema de tareas con notificaciones push
+
+### 1. Configura Firebase Cloud Messaging (FCM)
+- Ve a https://console.firebase.google.com/
+- Crea un proyecto y habilita Cloud Messaging.
+- Copia tu **Server Key** y pégala en `backend/.env` como `FCM_SERVER_KEY`.
+- Copia los datos de tu app web (apiKey, authDomain, projectId, messagingSenderId, appId) y reemplázalos en:
+  - `public/firebase-messaging-sw.js`
+  - `src/lib/firebase.js`
+- Copia tu **VAPID Key** y reemplázala en `src/pages/TaskForm.tsx`.
+
+### 2. Corre el backend
+```bash
+cd backend
+node server.js
+```
+
+### 3. Corre el frontend
+```bash
+npm run dev
+```
+
+### 4. Abre la web app en tu celular, acepta notificaciones y crea una tarea con fecha/hora.
+
+¡Listo! Recibirás la notificación en tu celular en la fecha/hora programada.
