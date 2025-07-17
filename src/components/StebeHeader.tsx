@@ -8,27 +8,27 @@ const StebeHeader: React.FC = () => {
   const dayName = dayNames[today.getDay()];
 
   return (
-    <div className="pt-8 pb-4 bg-white">
+    <div className="pt-2 pb-4 bg-white">
       {/* Logo de Steve y fecha en la misma línea */}
-      <div className="flex items-center justify-between mb-4 px-4">
+      <div className="flex items-start justify-between mb-4 px-2">
         {/* Logo de Steve - esquina superior izquierda */}
-        <div className="w-24 h-24 flex-shrink-0 flex items-center justify-center">
+        <div className="w-16 h-16 flex-shrink-0 flex items-center justify-start">
           <img 
             src="/lovable-uploads/steve-serious-header.png" 
             alt="Steve Jobs" 
-            className="w-16 h-16 object-contain rounded-full"
+            className="w-14 h-14 object-contain rounded-full"
           />
         </div>
         
         {/* Fecha del día - centrada */}
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-center items-center pt-2">
           <h2 className="text-3xl font-light text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             {dayName}
           </h2>
         </div>
         
         {/* Espacio para balancear el layout */}
-        <div className="w-24 flex-shrink-0"></div>
+        <div className="w-16 flex-shrink-0"></div>
       </div>
       
       {/* Título centrado en bloque negro */}
