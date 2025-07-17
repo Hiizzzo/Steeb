@@ -14,9 +14,9 @@ const StebeHeader: React.FC = () => {
         {/* Logo de Steve - esquina superior izquierda */}
         <div className="w-16 h-16 flex-shrink-0 flex items-center justify-start">
           <img 
-            src="/lovable-uploads/steve-thumbs-up-icon.png" 
+            src="/lovable-uploads/steve-jobs-icon-144.png" 
             alt="Profile Icon" 
-            className="w-14 h-14 object-contain"
+            className="w-14 h-14 object-contain rounded-lg"
           />
         </div>
         
@@ -31,15 +31,10 @@ const StebeHeader: React.FC = () => {
         <div className="w-16 flex-shrink-0"></div>
       </div>
       
-      {/* Título centrado en bloque negro con imagen */}
+      {/* Título centrado en bloque negro sin imagen */}
       <div className="w-full">
         <div className="bg-black py-2 px-4">
           <div className="flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/steve-thumbs-up-icon.png" 
-              alt="Steve Jobs Icon" 
-              className="w-8 h-8 object-contain mr-3"
-            />
             <h1 className="text-white text-2xl font-light tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
               ORGANIZACIÓN
             </h1>
