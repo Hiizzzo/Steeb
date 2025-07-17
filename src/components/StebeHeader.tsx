@@ -14,9 +14,9 @@ const StebeHeader: React.FC = () => {
         {/* Logo de Steve - esquina superior izquierda */}
         <div className="w-24 h-24 flex-shrink-0 flex items-center justify-center">
           <img 
-            src="/steve-jobs-icon.svg" 
+            src="/lovable-uploads/steve-serious-header.png" 
             alt="Steve Jobs" 
-            className="w-16 h-16 object-contain"
+            className="w-16 h-16 object-contain rounded-full"
           />
         </div>
         

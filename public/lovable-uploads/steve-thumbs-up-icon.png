@@ -1,1 +1,6 @@
-data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3Njape.org5vuPBoAACAASURBVHic7N13eBzV9f7x9+zu9N5k2ZIl927cu+3YGGMwpnfSeyihpJBAQhJCAiEkIaGE/khICAklgYTeO8Z2ce+9yJZltVWvs/v7Q5YjI1uyLO2Mds/refbZ 
+# Steve Jobs Thumbs Up Icon - Para icono de la aplicación PWA
+# Esta imagen será usada como:
+# - Icono de la PWA cuando se instale
+# - Favicon del navegador
+# - Avatar dentro de la aplicación
+# Tamaño recomendado: 512x512px 
