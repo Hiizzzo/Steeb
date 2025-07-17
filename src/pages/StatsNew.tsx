@@ -306,12 +306,22 @@ const StatsNew = () => {
           </div>
 
           {/* Tareas por período */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-black mb-4">
-              Tareas por {selectedPeriod === 'week' ? 'día' : 
-                          selectedPeriod === 'month' ? 'semana' : 
-                          'mes'}
-            </h3>
+          <div className="mb-8 relative">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-semibold text-black">
+                Tareas por {selectedPeriod === 'week' ? 'día' : 
+                            selectedPeriod === 'month' ? 'semana' : 
+                            'mes'}
+              </h3>
+              {/* Avatar posicionado arriba a la izquierda del gráfico de días */}
+              <div className="ml-4">
+                <img 
+                  src="/lovable-uploads/f3695274-590c-4838-b4b4-f6e21b194eef.png" 
+                  alt="Mi avatar"
+                  className="w-12 h-12 rounded-full border-2 border-black shadow-sm"
+                />
+              </div>
+            </div>
             <div className="flex items-end justify-between space-x-2">
               {distributionStats.map((stat, index) => {
                 const height = Math.max((stat.count / maxDistributionCount) * 60, 12);
