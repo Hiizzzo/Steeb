@@ -9,39 +9,6 @@ interface AddTaskFormProps {
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'actualTime'>) => void;
 }
 
-// --- STEBE: función local para analizar y ordenar tareas ---
-function ordenarTareaConStebe({ title, description }: { title: string; description?: string }) {
-  // Palabras clave para prioridad
-  const prioridadAlta = /urgente|hoy|inmediato|importante|prioridad/i;
-  const prioridadMedia = /esta semana|pronto|pendiente/i;
-  // Palabras clave para categorías
-  const categorias = [
-    { key: 'work', regex: /trabajo|oficina|reunión|proyecto/i },
-    { key: 'study', regex: /estudio|leer|aprender|examen|tarea/i },
-    { key: 'exercise', regex: /ejercicio|correr|gimnasio|deporte/i },
-    { key: 'personal', regex: /personal|familia|amigos|cita|salud/i },
-    { key: 'project', regex: /proyecto|meta|objetivo/i },
-  ];
-
-  let priority: 'alta' | 'media' | 'baja' = 'baja';
-  if (prioridadAlta.test(title) || prioridadAlta.test(description || '')) {
-    priority = 'alta';
-  } else if (prioridadMedia.test(title) || prioridadMedia.test(description || '')) {
-    priority = 'media';
-  }
-
-  let category: string | undefined = undefined;
-  for (const cat of categorias) {
-    if (cat.regex.test(title) || cat.regex.test(description || '')) {
-      category = cat.key;
-      break;
-    }
-  }
-
-  return { priority, category };
-}
-// --- FIN STEBE ---
-
 const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -59,16 +26,11 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
       });
       return;
     }
-
-    // Usar Stebe para analizar la tarea
-    const stebeResult = ordenarTareaConStebe({ title: title.trim(), description: description.trim() });
     
     onAddTask({
       title: title.trim(),
       description: description.trim(),
-      targetTime: targetTime ? parseInt(targetTime, 10) : undefined,
-      category: stebeResult.category,
-      priority: stebeResult.priority,
+      targetTime: targetTime ? parseInt(targetTime, 10) : undefined
     });
     
     setTitle('');
