@@ -14,7 +14,7 @@ const StebeHeader: React.FC = () => {
         {/* Logo de Steve - esquina superior izquierda */}
         <div className="w-16 h-16 flex-shrink-0 flex items-center justify-start">
           <img 
-            src="/profile-icon.svg" 
+            src="/lovable-uploads/steve-thumbs-up-icon.png" 
             alt="Profile Icon" 
             className="w-14 h-14 object-contain"
           />
