@@ -15,8 +15,8 @@ const StebeHeader: React.FC = () => {
         <div className="w-24 h-24 flex-shrink-0 flex items-center justify-center">
           <img 
             src="/lovable-uploads/steve-serious-header.png" 
-            alt="Steve Jobs" 
-            className="w-16 h-16 object-contain rounded-full"
+            alt="Steve - Tu Asistente Anti-Procrastinación" 
+            className="w-20 h-20 object-contain rounded-lg shadow-md border-2 border-gray-200"
           />
         </div>
         
