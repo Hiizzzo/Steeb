@@ -31,12 +31,19 @@ const StebeHeader: React.FC = () => {
         <div className="w-16 flex-shrink-0"></div>
       </div>
       
-      {/* Título centrado en bloque negro */}
+      {/* Título centrado en bloque negro con imagen */}
       <div className="w-full">
         <div className="bg-black py-2 px-4">
-          <h1 className="text-center text-white text-2xl font-light tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-            ORGANIZACIÓN
-          </h1>
+          <div className="flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/steve-thumbs-up-icon.png" 
+              alt="Steve Jobs Icon" 
+              className="w-8 h-8 object-contain mr-3"
+            />
+            <h1 className="text-white text-2xl font-light tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              ORGANIZACIÓN
+            </h1>
+          </div>
         </div>
       </div>
     </div>
