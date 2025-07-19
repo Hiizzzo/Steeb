@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 
 import StatsNew from "./pages/StatsNew";
+import ProductivityStatsPage from "./pages/ProductivityStatsPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -39,6 +40,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             
             <Route path="/estadisticas" element={<StatsNew />} />
+            <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
