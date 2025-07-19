@@ -12,11 +12,11 @@ const StebeHeader: React.FC = () => {
       {/* Logo de Steve y fecha en la misma línea */}
       <div className="flex items-start justify-between mb-4 px-2">
         {/* Logo de Steve - esquina superior izquierda */}
-        <div className="w-16 h-16 flex-shrink-0 flex items-center justify-start">
+        <div className="w-24 h-24 flex-shrink-0 flex items-center justify-start">
           <img 
-            src="/lovable-uploads/steve-jobs-icon-144.png" 
+            src="/lovable-uploads/steve-jobs-icon-512.png" 
             alt="Profile Icon" 
-            className="w-14 h-14 object-contain rounded-lg"
+            className="w-20 h-20 object-contain rounded-lg"
           />
         </div>
         
@@ -28,7 +28,7 @@ const StebeHeader: React.FC = () => {
         </div>
         
         {/* Espacio para balancear el layout */}
-        <div className="w-16 flex-shrink-0"></div>
+        <div className="w-24 flex-shrink-0"></div>
       </div>
       
       {/* Título centrado en bloque negro sin imagen */}
