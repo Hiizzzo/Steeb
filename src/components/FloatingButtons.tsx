@@ -14,7 +14,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleVi
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
-  const isStats = location.pathname === '/estadisticas';
+  const isStats = location.pathname === '/productivity-stats';
 
   const handleCalendarClick = () => {
     if (!isHome) {
@@ -27,7 +27,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleVi
   };
 
   const handleStatsClick = () => {
-    navigate('/estadisticas');
+    navigate('/productivity-stats');
   };
 
   return (
