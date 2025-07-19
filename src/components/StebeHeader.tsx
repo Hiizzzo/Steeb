@@ -10,18 +10,25 @@ const StebeHeader: React.FC = () => {
   return (
     <div className="pt-2 pb-4 bg-white">
       {/* Logo de Steve y fecha en la misma línea */}
-      <div className="flex items-start justify-between mb-4 px-2">
+      <div className="flex items-center justify-between mb-4 px-2">
         {/* Logo de Steve - esquina superior izquierda */}
-        <div className="w-24 h-24 flex-shrink-0 flex items-center justify-start">
+        <div className="flex items-center justify-start">
           <img 
-            src="/lovable-uploads/steve-jobs-icon-512.png" 
-            alt="Profile Icon" 
-            className="w-20 h-20 object-contain rounded-lg"
+            src="/lovable-uploads/f3695274-590c-4838-b4b4-f6e21b194eef.png" 
+            alt="Steve Logo" 
+            className="object-contain bg-white"
+            style={{ 
+              maxWidth: '10vw',
+              height: 'auto',
+              margin: '12px',
+              border: 'none',
+              boxShadow: 'none'
+            }}
           />
         </div>
         
         {/* Fecha del día - centrada */}
-        <div className="flex-1 flex justify-center items-center pt-2">
+        <div className="flex-1 flex justify-center items-center">
           <h2 className="text-3xl font-light text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             {dayName}
           </h2>
