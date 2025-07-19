@@ -79,6 +79,16 @@ const Index = () => {
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
 
+  // Cargar preferencia de vista desde localStorage
+  useEffect(() => {
+    const savedViewMode = localStorage.getItem('stebe-view-mode');
+    if (savedViewMode === 'calendar' || savedViewMode === 'tasks') {
+      setViewMode(savedViewMode);
+      // Limpiar la preferencia después de usarla
+      localStorage.removeItem('stebe-view-mode');
+    }
+  }, []);
+
   // Cargar tareas desde localStorage
   useEffect(() => {
     const savedTasks = localStorage.getItem('stebe-tasks');
