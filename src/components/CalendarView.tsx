@@ -41,6 +41,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDateDetails, setShowDateDetails] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  }, [longPressTimer]);
 
   const today = new Date();
   const currentMonth = currentDate.getMonth();
@@ -73,6 +83,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return tasks.filter(task => task.scheduledDate === dateStr);
   };
 
+  // Get pending tasks for a specific date (only non-completed tasks)
+  const getPendingTasksForDate = (dateStr: string) => {
+    return tasks.filter(task => 
+      task.scheduledDate === dateStr && !task.completed
+    );
+  };
+
+  // Check if a date has any pending tasks
+  const hasPendingTasks = (dateStr: string) => {
+    return getPendingTasksForDate(dateStr).length > 0;
+  };
+
   // Generate calendar days
   const generateCalendarDays = () => {
     const days = [];
@@ -87,7 +109,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         date: dateStr,
         isCurrentMonth: false,
         isToday: false,
-        tasksCount: getTasksForDate(dateStr).length
+        tasksCount: getTasksForDate(dateStr).length,
+        hasPending: hasPendingTasks(dateStr)
       });
     }
 
@@ -102,7 +125,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         date: dateStr,
         isCurrentMonth: true,
         isToday,
-        tasksCount: getTasksForDate(dateStr).length
+        tasksCount: getTasksForDate(dateStr).length,
+        hasPending: hasPendingTasks(dateStr)
       });
     }
 
@@ -116,7 +140,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         date: dateStr,
         isCurrentMonth: false,
         isToday: false,
-        tasksCount: getTasksForDate(dateStr).length
+        tasksCount: getTasksForDate(dateStr).length,
+        hasPending: hasPendingTasks(dateStr)
       });
     }
 
@@ -140,6 +165,34 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const handleDateClick = (dateStr: string) => {
     setSelectedDate(dateStr);
     setShowDateDetails(true);
+  };
+
+  const handleMouseDown = (dateStr: string) => {
+    const timer = setTimeout(() => {
+      handleDateClick(dateStr);
+    }, 500); // 500ms for long press
+    setLongPressTimer(timer);
+  };
+
+  const handleMouseUp = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const handleTouchStart = (dateStr: string) => {
+    const timer = setTimeout(() => {
+      handleDateClick(dateStr);
+    }, 500); // 500ms for long press
+    setLongPressTimer(timer);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
   };
 
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
@@ -192,29 +245,33 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             <button
               key={index}
               onClick={() => handleDateClick(day.date)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                handleDateClick(day.date);
+              }}
+              onMouseDown={() => handleMouseDown(day.date)}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={() => handleTouchStart(day.date)}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
               className={`
                 aspect-square p-2 text-center relative rounded-lg transition-all duration-200
-                ${day.isCurrentMonth ? 'text-black hover:bg-gray-50' : 'text-gray-300'}
-                ${day.isToday ? 'bg-black text-white font-bold' : ''}
+                ${day.isCurrentMonth ? 'text-black hover:bg-gray-50 active:bg-gray-100' : 'text-gray-300'}
+                ${day.isToday ? 'bg-black text-white font-bold hover:bg-gray-800' : ''}
                 ${selectedDate === day.date && !day.isToday ? 'bg-gray-100 ring-2 ring-black' : ''}
+                touch-manipulation select-none
               `}
             >
               <div className="text-base font-medium">{day.day}</div>
-              {day.tasksCount > 0 && (
-                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-1">
-                  {Array.from({ length: Math.min(day.tasksCount, 3) }).map((_, i) => (
-                    <div 
-                      key={i}
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        day.isToday ? 'bg-white' : 'bg-black'
-                      }`}
-                    />
-                  ))}
-                  {day.tasksCount > 3 && (
-                    <div className={`text-xs font-bold ${day.isToday ? 'text-white' : 'text-black'}`}>
-                      +{day.tasksCount - 3}
-                    </div>
-                  )}
+              {/* Task indicator - Single dot when there are pending tasks */}
+              {day.hasPending && (
+                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+                  <div 
+                    className={`w-2 h-2 rounded-full ${
+                      day.isToday ? 'bg-white' : 'bg-black'
+                    } opacity-80`}
+                  />
                 </div>
               )}
             </button>
@@ -279,6 +336,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 </div>
               </div>
 
+              {/* Tasks Summary */}
+              {selectedDateTasks.length > 0 && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">
+                      Total: {selectedDateTasks.length} tareas
+                    </span>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-green-600">
+                        ✓ {selectedDateTasks.filter(t => t.completed).length} completadas
+                      </span>
+                      <span className="text-orange-600">
+                        ● {getPendingTasksForDate(selectedDate).length} pendientes
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Tasks for selected date */}
               {selectedDateTasks.length > 0 ? (
                 <div className="space-y-4">
@@ -306,17 +382,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                     <Calendar size={24} className="text-gray-400" />
                   </div>
                   <p className="text-gray-600 font-medium mb-2">
-                    Sin recordatorios
+                    Sin tareas programadas
                   </p>
                   <p className="text-sm text-gray-500 mb-4">
-                    No hay tareas programadas para este día
+                    Este día está libre. ¡Perfecto para descansar o planificar nuevas tareas!
                   </p>
                   <Button
                     onClick={onAddTask}
                     className="bg-black text-white hover:bg-gray-800 rounded-full px-6 py-2"
                   >
                     <Plus size={16} className="mr-2" />
-                    Nuevo
+                    Agregar Tarea
                   </Button>
                 </div>
               )}
