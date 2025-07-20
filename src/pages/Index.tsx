@@ -30,6 +30,16 @@ interface Task {
 }
 
 const Index = () => {
+  // Random phrases for when there are no tasks
+  const getRandomNoTasksPhrase = () => {
+    const phrases = [
+      "¿Un día libre? Te envidio…",
+      "Ni una tarea. O estás a punto de procrastinar, o estás en paz.",
+      "Stebe dice: eso no suena a productividad, eh…"
+    ];
+    return phrases[Math.floor(Math.random() * phrases.length)];
+  };
+
   const [tasks, setTasks] = useState<Task[]>([
     { 
       id: '1', 
@@ -298,7 +308,7 @@ const Index = () => {
             ) : (
               <div className="text-center py-12 px-4">
                 <p className="text-lg text-gray-600 font-medium">
-                  No tasks for today.
+                  {getRandomNoTasksPhrase()}
                 </p>
                 <p className="text-sm text-gray-500 mt-2">
                   Press the + button to add your first task!
