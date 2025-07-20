@@ -198,23 +198,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
   return (
-    <div className="min-h-screen bg-white pb-32" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-white pb-40" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Calendar Header */}
-      <div className="bg-white p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             onClick={() => navigateMonth('prev')}
-            className="p-3 hover:bg-gray-50 rounded-full"
+            className="p-2 hover:bg-gray-50 rounded-full"
           >
-            <ChevronLeft size={20} className="text-black" />
+            <ChevronLeft size={18} className="text-black" />
           </Button>
           
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-black">
+            <h2 className="text-xl font-bold text-black">
               {monthNamesFull[currentMonth]} {currentYear}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               {monthNames[currentMonth]} {currentYear}
             </p>
           </div>
@@ -222,16 +222,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           <Button
             variant="ghost"
             onClick={() => navigateMonth('next')}
-            className="p-3 hover:bg-gray-50 rounded-full"
+            className="p-2 hover:bg-gray-50 rounded-full"
           >
-            <ChevronRight size={20} className="text-black" />
+            <ChevronRight size={18} className="text-black" />
           </Button>
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-4">
+        <div className="grid grid-cols-7 gap-1 mb-3">
           {dayNames.map(dayName => (
-            <div key={dayName} className="text-center text-xs font-medium text-gray-500 p-2 uppercase">
+            <div key={dayName} className="text-center text-xs font-medium text-gray-500 p-1 uppercase">
               {dayName}
             </div>
           ))}
@@ -239,8 +239,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* Calendar Grid */}
-      <div className="px-4">
-        <div className="grid grid-cols-7 gap-1 mb-6">
+      <div className="px-3">
+        <div className="grid grid-cols-7 gap-1 mb-4">
           {calendarDays.map((day, index) => (
             <button
               key={index}
@@ -256,14 +256,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               onTouchEnd={handleTouchEnd}
               onTouchCancel={handleTouchEnd}
               className={`
-                aspect-square p-2 text-center relative rounded-lg transition-all duration-200
+                aspect-square p-1.5 text-center relative rounded-lg transition-all duration-200
                 ${day.isCurrentMonth ? 'text-black hover:bg-gray-50 active:bg-gray-100' : 'text-gray-300'}
                 ${day.isToday ? 'bg-black text-white font-bold hover:bg-gray-800' : ''}
                 ${selectedDate === day.date && !day.isToday ? 'bg-gray-100 ring-2 ring-black' : ''}
                 touch-manipulation select-none
               `}
             >
-              <div className="text-base font-medium">{day.day}</div>
+              <div className="text-sm font-medium">{day.day}</div>
               {/* Task indicator - Single dot when there are pending tasks */}
               {day.hasPending && (
                 <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
@@ -279,20 +279,19 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* Quick today access */}
-        <div className="text-center mb-6">
-          <p className="text-sm text-gray-500 mb-2">
+        <div className="text-center mb-4">
+          <p className="text-xs text-gray-500 mb-2">
             {new Date().toLocaleDateString('es-ES', { 
               weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+              day: 'numeric', 
+              month: 'short'
             })}
           </p>
           <Button
             onClick={() => handleDateClick(today.toISOString().split('T')[0])}
-            className="bg-black text-white hover:bg-gray-800 rounded-full px-6 py-2"
+            className="bg-black text-white hover:bg-gray-800 rounded-full px-4 py-1.5 text-sm"
           >
-            <Calendar size={16} className="mr-2" />
+            <Calendar size={14} className="mr-1.5" />
             Ver Hoy
           </Button>
         </div>
