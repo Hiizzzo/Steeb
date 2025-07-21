@@ -14,7 +14,7 @@ const StebeHeader: React.FC = () => {
         {/* Logo de Steve - esquina superior izquierda */}
         <div className="flex items-center justify-start">
           <img 
-            src="/lovable-uploads/bearded-avatar.svg" 
+            src="/lovable-uploads/new-steve-glasses-avatar.png" 
             alt="Steve Logo" 
             className="object-contain bg-white"
             style={{ 
