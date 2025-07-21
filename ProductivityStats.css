@@ -16,14 +16,19 @@
   align-items: center;
   margin-bottom: 30px;
   gap: 15px;
+  position: relative;
 }
 
 .stebe-character {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   opacity: 0;
   transform: translateX(-30px);
   animation: fadeInLeft 0.8s ease-out 0.2s forwards;
+  position: absolute;
+  top: -10px;
+  left: 0;
+  z-index: 10;
 }
 
 .motivation-text {
@@ -34,6 +39,8 @@
   opacity: 0;
   transform: translateX(30px);
   animation: fadeInRight 0.8s ease-out 0.4s forwards;
+  margin-left: 70px;
+  padding-top: 10px;
 }
 
 /* KPI Cards */
