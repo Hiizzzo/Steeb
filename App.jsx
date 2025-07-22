@@ -5,7 +5,7 @@ import './App.css';
 function App() {
   return (
     <div className="App">
-      <img src="/lovable-uploads/steve-thumbs-up-icon.png" alt="icon" className="top-left-icon" />
+      <img src="/lovable-uploads/bearded-avatar.svg" alt="icon" className="top-left-icon" />
       <ProductivityStats />
     </div>
   );
