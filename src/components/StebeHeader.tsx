@@ -1,12 +1,7 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 const StebeHeader: React.FC = () => {
-  const navigate = useNavigate();
-  
   // Obtener fecha actual en inglés
   const today = new Date();
   const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -37,18 +32,6 @@ const StebeHeader: React.FC = () => {
           <h2 className="text-3xl font-light text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             {dayName}
           </h2>
-        </div>
-        
-        {/* Botón de progreso */}
-        <div className="w-24 flex-shrink-0 flex justify-end">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/completed-tasks')}
-            className="p-2 hover:bg-gray-50 rounded-full"
-            title="Ver progreso de tareas"
-          >
-            <Calendar size={20} className="text-black" />
-          </Button>
         </div>
       </div>
       
