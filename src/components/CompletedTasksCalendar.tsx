@@ -34,6 +34,8 @@ interface CompletedDay {
 const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const today = new Date();
   const currentMonth = currentDate.getMonth();
@@ -134,13 +136,10 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
     return completedTasksByDate[dateStr]?.count || 0;
   };
 
-  // Get heat map intensity (0-4 levels)
-  const getHeatMapIntensity = (count: number) => {
-    if (count === 0) return 0;
-    if (count <= 2) return 1;
-    if (count <= 4) return 2;
-    if (count <= 6) return 3;
-    return 4;
+  // Get minimalist styling for completed tasks
+  const getIntensityClass = (count: number) => {
+    if (count === 0) return 'bg-gray-50 border-gray-200';
+    return 'bg-gray-800 border-gray-900 text-white';
   };
 
   // Generate calendar days
@@ -160,7 +159,7 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
         isCurrentMonth: false,
         isToday: false,
         completionCount: count,
-        intensity: getHeatMapIntensity(count)
+        intensityClass: getIntensityClass(count)
       });
     }
 
@@ -177,7 +176,7 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
         isCurrentMonth: true,
         isToday,
         completionCount: count,
-        intensity: getHeatMapIntensity(count)
+        intensityClass: getIntensityClass(count)
       });
     }
 
@@ -194,7 +193,7 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
         isCurrentMonth: false,
         isToday: false,
         completionCount: count,
-        intensity: getHeatMapIntensity(count)
+        intensityClass: getIntensityClass(count)
       });
     }
 
@@ -215,60 +214,96 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
     });
   };
 
-  const getHeatMapColor = (intensity: number) => {
-    switch (intensity) {
-      case 0: return 'bg-gray-100';
-      case 1: return 'bg-green-200';
-      case 2: return 'bg-green-300';
-      case 3: return 'bg-green-400';
-      case 4: return 'bg-green-500';
-      default: return 'bg-gray-100';
+  // Handle touch start for swipe detection
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart({
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    });
+    setIsDragging(false);
+  };
+
+  // Handle touch move for swipe detection
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStart.x);
+    const deltaY = Math.abs(touch.clientY - touchStart.y);
+    
+    // If movement is significant, consider it a drag
+    if (deltaX > 10 || deltaY > 10) {
+      setIsDragging(true);
+    }
+  };
+
+  // Handle touch end
+  const handleTouchEnd = () => {
+    setTouchStart(null);
+    setTimeout(() => setIsDragging(false), 100); // Reset after a short delay
+  };
+
+  // Handle date click (only if not dragging and has completed tasks)
+  const handleDateClick = (day: any, e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Don't open if it was a drag/swipe gesture
+    if (isDragging) return;
+    
+    // Only select if there are completed tasks
+    if (day.completionCount > 0) {
+      setSelectedDate(day.date);
+    } else {
+      setSelectedDate(null);
     }
   };
 
   const selectedDateData = selectedDate ? completedTasksByDate[selectedDate] : null;
 
   return (
-    <div className="min-h-screen bg-white pb-40" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-black pb-40" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
-      <div className="bg-white p-4 border-b border-gray-200">
+      <div className="bg-black p-4 border-b border-gray-800">
         <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-black mb-2">Progreso de Tareas</h1>
-          <p className="text-sm text-gray-600">Ve tu historial de tareas completadas</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Progreso de Tareas</h1>
+          <p className="text-sm text-gray-400">Ve tu historial de tareas completadas</p>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <Card className="p-3 text-center bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <Trophy size={20} className="text-green-600" />
+              <Trophy size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-green-700">{stats.currentStreak}</div>
-            <div className="text-xs text-green-600">Racha actual</div>
+            <div className="text-lg font-bold text-white">{stats.currentStreak}</div>
+            <div className="text-xs text-gray-400">Racha actual</div>
           </Card>
           
-          <Card className="p-3 text-center bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <CheckCircle size={20} className="text-blue-600" />
+              <CheckCircle size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-blue-700">{stats.totalCompletedTasks}</div>
-            <div className="text-xs text-blue-600">Total completadas</div>
+            <div className="text-lg font-bold text-white">{stats.totalCompletedTasks}</div>
+            <div className="text-xs text-gray-400">Total completadas</div>
           </Card>
           
-          <Card className="p-3 text-center bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <Calendar size={20} className="text-purple-600" />
+              <Calendar size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-purple-700">{stats.activeDays}</div>
-            <div className="text-xs text-purple-600">Días activos</div>
+            <div className="text-lg font-bold text-white">{stats.activeDays}</div>
+            <div className="text-xs text-gray-400">Días activos</div>
           </Card>
           
-          <Card className="p-3 text-center bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <Clock size={20} className="text-orange-600" />
+              <Clock size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-orange-700">{stats.maxStreak}</div>
-            <div className="text-xs text-orange-600">Mejor racha</div>
+            <div className="text-lg font-bold text-white">{stats.maxStreak}</div>
+            <div className="text-xs text-gray-400">Mejor racha</div>
           </Card>
         </div>
 
@@ -277,13 +312,13 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
           <Button
             variant="ghost"
             onClick={() => navigateMonth('prev')}
-            className="p-2 hover:bg-gray-50 rounded-full"
+            className="p-2 hover:bg-gray-800 rounded-full text-white"
           >
-            <ChevronLeft size={18} className="text-black" />
+            <ChevronLeft size={18} />
           </Button>
           
           <div className="text-center">
-            <h2 className="text-xl font-bold text-black">
+            <h2 className="text-xl font-bold text-white">
               {monthNamesFull[currentMonth]} {currentYear}
             </h2>
           </div>
@@ -291,16 +326,16 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
           <Button
             variant="ghost"
             onClick={() => navigateMonth('next')}
-            className="p-2 hover:bg-gray-50 rounded-full"
+            className="p-2 hover:bg-gray-800 rounded-full text-white"
           >
-            <ChevronRight size={18} className="text-black" />
+            <ChevronRight size={18} />
           </Button>
         </div>
 
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-3">
           {dayNames.map(dayName => (
-            <div key={dayName} className="text-center text-xs font-medium text-gray-500 p-1 uppercase">
+            <div key={dayName} className="text-center text-xs font-medium text-gray-400 p-1 uppercase">
               {dayName}
             </div>
           ))}
@@ -309,47 +344,53 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
 
       {/* Calendar Grid */}
       <div className="px-4">
-        <div className="grid grid-cols-7 gap-1 mb-6">
+        <div 
+          className="grid grid-cols-7 gap-1 mb-6"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {calendarDays.map((day, index) => (
             <button
               key={index}
-              onClick={() => setSelectedDate(day.completionCount > 0 ? day.date : null)}
+              onClick={(e) => handleDateClick(day, e)}
               className={`
                 aspect-square p-1 text-center relative rounded-lg transition-all duration-200 border
-                ${day.isCurrentMonth ? 'text-black' : 'text-gray-300'}
-                ${day.isToday ? 'ring-2 ring-black' : ''}
-                ${selectedDate === day.date ? 'ring-2 ring-blue-500' : ''}
+                ${day.isCurrentMonth ? 'opacity-100' : 'opacity-40'}
+                ${day.isToday ? 'ring-2 ring-white' : ''}
+                ${selectedDate === day.date ? 'ring-2 ring-gray-500' : ''}
                 ${day.completionCount > 0 ? 'cursor-pointer hover:scale-105' : 'cursor-default'}
-                ${getHeatMapColor(day.intensity)}
+                ${day.intensityClass}
+                touch-manipulation select-none
               `}
             >
               <div className="text-sm font-medium">{day.day}</div>
               {day.completionCount > 0 && (
-                <div className="absolute top-0 right-0 w-4 h-4 bg-green-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                  {day.completionCount}
+                <div className="absolute top-0 right-0 w-3 h-3 bg-white text-black text-xs rounded-full flex items-center justify-center font-bold">
+                  {day.completionCount > 9 ? '9+' : day.completionCount}
                 </div>
               )}
             </button>
           ))}
         </div>
 
-        {/* Heat map legend */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="text-xs text-gray-500">Menos</span>
-          {[0, 1, 2, 3, 4].map(intensity => (
-            <div
-              key={intensity}
-              className={`w-3 h-3 rounded-sm ${getHeatMapColor(intensity)} border`}
-            />
-          ))}
-          <span className="text-xs text-gray-500">Más</span>
+        {/* Minimalist legend */}
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-gray-50 border border-gray-200" />
+            <span className="text-xs text-gray-400">Sin tareas</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-gray-800 border border-gray-900" />
+            <span className="text-xs text-gray-400">Completadas</span>
+          </div>
         </div>
 
         {/* Selected Date Details */}
         {selectedDateData && (
-          <Card className="p-4 mb-6 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+          <Card className="p-4 mb-6 bg-gray-900 border-gray-800">
             <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-black">
+              <h3 className="text-lg font-bold text-white">
                 {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
                   weekday: 'long', 
                   day: 'numeric',
@@ -357,30 +398,25 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
                   year: 'numeric'
                 })}
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-400">
                 {selectedDateData.count} tareas completadas
               </p>
             </div>
 
             <div className="space-y-3">
               {selectedDateData.tasks.map(task => (
-                <div key={task.id} className="bg-white p-3 rounded-lg border shadow-sm">
+                <div key={task.id} className="bg-gray-800 border border-gray-700 p-3 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
+                    <CheckCircle size={16} className="text-white flex-shrink-0" />
                     <div className="flex-1">
-                      <h4 className="font-medium text-black">{task.title}</h4>
+                      <h4 className="font-medium text-white">{task.title}</h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className={`
-                          text-xs px-2 py-1 rounded-full font-medium
-                          ${task.type === 'work' ? 'bg-blue-100 text-blue-700' : 
-                            task.type === 'personal' ? 'bg-green-100 text-green-700' : 
-                            'bg-purple-100 text-purple-700'}
-                        `}>
+                        <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-700 text-gray-200 border border-gray-600">
                           {task.type === 'work' ? 'Trabajo' : 
                            task.type === 'personal' ? 'Personal' : 'Meditación'}
                         </span>
                         {task.subtasks && task.subtasks.length > 0 && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-400">
                             {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} subtareas
                           </span>
                         )}
@@ -395,12 +431,12 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
 
         {/* Motivational message */}
         {stats.currentStreak > 0 && (
-          <Card className="p-4 text-center bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
-            <Trophy size={24} className="mx-auto mb-2 text-yellow-600" />
-            <h3 className="font-bold text-black mb-1">
+          <Card className="p-4 text-center bg-gray-900 border-gray-800">
+            <Trophy size={24} className="mx-auto mb-2 text-white" />
+            <h3 className="font-bold text-white mb-1">
               ¡{stats.currentStreak} días consecutivos!
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-400">
               {stats.currentStreak >= 7 ? '¡Increíble constancia! 🏆' :
                stats.currentStreak >= 3 ? '¡Excelente progreso! 💪' :
                '¡Sigue así! 🚀'}
