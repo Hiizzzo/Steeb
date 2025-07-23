@@ -48,16 +48,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDateDetails, setShowDateDetails] = useState(false);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Cleanup timer on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-      }
+      setTouchStart(null);
+      setIsDragging(false);
     };
-  }, [longPressTimer]);
+  }, []);
 
   const today = new Date();
   const currentMonth = currentDate.getMonth();
@@ -180,24 +180,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return completedTasksByDate[dateStr]?.count || 0;
   };
 
-  // Get heat map intensity (0-4 levels)
-  const getHeatMapIntensity = (count: number) => {
-    if (count === 0) return 0;
-    if (count <= 2) return 1;
-    if (count <= 4) return 2;
-    if (count <= 6) return 3;
-    return 4;
-  };
-
-  const getHeatMapColor = (intensity: number) => {
-    switch (intensity) {
-      case 0: return 'bg-gray-100';
-      case 1: return 'bg-green-200';
-      case 2: return 'bg-green-300';
-      case 3: return 'bg-green-400';
-      case 4: return 'bg-green-500';
-      default: return 'bg-gray-100';
-    }
+  // Get minimalist intensity indicator (simple black theme)
+  const getIntensityIndicator = (count: number, hasPending: boolean) => {
+    if (count === 0 && !hasPending) return 'bg-gray-50 border-gray-200';
+    if (hasPending && count === 0) return 'bg-gray-100 border-gray-300';
+    if (count > 0 && !hasPending) return 'bg-gray-800 border-gray-900 text-white';
+    return 'bg-gray-600 border-gray-700 text-white'; // Has both completed and pending
   };
 
   // Generate calendar days
@@ -210,15 +198,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       const date = new Date(currentYear, currentMonth - 1, day);
       const dateStr = date.toISOString().split('T')[0];
       const completionCount = getCompletionCount(dateStr);
+      const hasPending = hasPendingTasks(dateStr);
       days.push({
         day,
         date: dateStr,
         isCurrentMonth: false,
         isToday: false,
         tasksCount: getTasksForDate(dateStr).length,
-        hasPending: hasPendingTasks(dateStr),
+        hasPending,
         completionCount,
-        intensity: getHeatMapIntensity(completionCount)
+        intensityClass: getIntensityIndicator(completionCount, hasPending)
       });
     }
 
@@ -228,6 +217,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       const dateStr = date.toISOString().split('T')[0];
       const isToday = date.toDateString() === today.toDateString();
       const completionCount = getCompletionCount(dateStr);
+      const hasPending = hasPendingTasks(dateStr);
       
       days.push({
         day,
@@ -235,9 +225,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         isCurrentMonth: true,
         isToday,
         tasksCount: getTasksForDate(dateStr).length,
-        hasPending: hasPendingTasks(dateStr),
+        hasPending,
         completionCount,
-        intensity: getHeatMapIntensity(completionCount)
+        intensityClass: getIntensityIndicator(completionCount, hasPending)
       });
     }
 
@@ -247,15 +237,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       const date = new Date(currentYear, currentMonth + 1, day);
       const dateStr = date.toISOString().split('T')[0];
       const completionCount = getCompletionCount(dateStr);
+      const hasPending = hasPendingTasks(dateStr);
       days.push({
         day,
         date: dateStr,
         isCurrentMonth: false,
         isToday: false,
         tasksCount: getTasksForDate(dateStr).length,
-        hasPending: hasPendingTasks(dateStr),
+        hasPending,
         completionCount,
-        intensity: getHeatMapIntensity(completionCount)
+        intensityClass: getIntensityIndicator(completionCount, hasPending)
       });
     }
 
@@ -276,36 +267,50 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     });
   };
 
-  const handleDateClick = (dateStr: string) => {
-    setSelectedDate(dateStr);
-    setShowDateDetails(true);
+  // Handle touch start for swipe detection
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart({
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    });
+    setIsDragging(false);
   };
 
-  const handleMouseDown = (dateStr: string) => {
-    const timer = setTimeout(() => {
-      handleDateClick(dateStr);
-    }, 500); // 500ms for long press
-    setLongPressTimer(timer);
-  };
-
-  const handleMouseUp = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
+  // Handle touch move for swipe detection
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStart.x);
+    const deltaY = Math.abs(touch.clientY - touchStart.y);
+    
+    // If movement is significant, consider it a drag
+    if (deltaX > 10 || deltaY > 10) {
+      setIsDragging(true);
     }
   };
 
-  const handleTouchStart = (dateStr: string) => {
-    const timer = setTimeout(() => {
-      handleDateClick(dateStr);
-    }, 500); // 500ms for long press
-    setLongPressTimer(timer);
+  // Handle touch end
+  const handleTouchEnd = () => {
+    setTouchStart(null);
+    setTimeout(() => setIsDragging(false), 100); // Reset after a short delay
   };
 
-  const handleTouchEnd = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
+  // Handle date click (only if not dragging)
+  const handleDateClick = (dateStr: string, e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Don't open if it was a drag/swipe gesture
+    if (isDragging) return;
+    
+    // Only open if there are tasks or if it's a tap/click
+    const hasAnyTasks = getTasksForDate(dateStr).length > 0;
+    if (hasAnyTasks) {
+      setSelectedDate(dateStr);
+      setShowDateDetails(true);
     }
   };
 
@@ -313,41 +318,41 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const selectedDateCompletedTasks = selectedDate ? completedTasksByDate[selectedDate]?.tasks || [] : [];
 
   return (
-    <div className="min-h-screen bg-white pb-40" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-black pb-40" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Calendar Header */}
-      <div className="bg-white p-4 border-b border-gray-200">
+      <div className="bg-black p-4 border-b border-gray-800">
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <Card className="p-3 text-center bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <Trophy size={20} className="text-green-600" />
+              <Trophy size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-green-700">{stats.currentStreak}</div>
-            <div className="text-xs text-green-600">Racha actual</div>
+            <div className="text-lg font-bold text-white">{stats.currentStreak}</div>
+            <div className="text-xs text-gray-400">Racha actual</div>
           </Card>
           
-          <Card className="p-3 text-center bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <CheckCircle size={20} className="text-blue-600" />
+              <CheckCircle size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-blue-700">{stats.totalCompletedTasks}</div>
-            <div className="text-xs text-blue-600">Total completadas</div>
+            <div className="text-lg font-bold text-white">{stats.totalCompletedTasks}</div>
+            <div className="text-xs text-gray-400">Total completadas</div>
           </Card>
           
-          <Card className="p-3 text-center bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <Calendar size={20} className="text-purple-600" />
+              <Calendar size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-purple-700">{stats.activeDays}</div>
-            <div className="text-xs text-purple-600">Días activos</div>
+            <div className="text-lg font-bold text-white">{stats.activeDays}</div>
+            <div className="text-xs text-gray-400">Días activos</div>
           </Card>
           
-          <Card className="p-3 text-center bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <Card className="p-3 text-center bg-gray-900 border-gray-800">
             <div className="flex items-center justify-center mb-1">
-              <Clock size={20} className="text-orange-600" />
+              <Clock size={20} className="text-white" />
             </div>
-            <div className="text-lg font-bold text-orange-700">{stats.maxStreak}</div>
-            <div className="text-xs text-orange-600">Mejor racha</div>
+            <div className="text-lg font-bold text-white">{stats.maxStreak}</div>
+            <div className="text-xs text-gray-400">Mejor racha</div>
           </Card>
         </div>
 
@@ -355,16 +360,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           <Button
             variant="ghost"
             onClick={() => navigateMonth('prev')}
-            className="p-2 hover:bg-gray-50 rounded-full"
+            className="p-2 hover:bg-gray-800 rounded-full text-white"
           >
-            <ChevronLeft size={18} className="text-black" />
+            <ChevronLeft size={18} />
           </Button>
           
           <div className="text-center">
-            <h2 className="text-xl font-bold text-black">
+            <h2 className="text-xl font-bold text-white">
               {monthNamesFull[currentMonth]} {currentYear}
             </h2>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               {monthNames[currentMonth]} {currentYear}
             </p>
           </div>
@@ -372,16 +377,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           <Button
             variant="ghost"
             onClick={() => navigateMonth('next')}
-            className="p-2 hover:bg-gray-50 rounded-full"
+            className="p-2 hover:bg-gray-800 rounded-full text-white"
           >
-            <ChevronRight size={18} className="text-black" />
+            <ChevronRight size={18} />
           </Button>
         </div>
 
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-3">
           {dayNames.map(dayName => (
-            <div key={dayName} className="text-center text-xs font-medium text-gray-500 p-1 uppercase">
+            <div key={dayName} className="text-center text-xs font-medium text-gray-400 p-1 uppercase">
               {dayName}
             </div>
           ))}
@@ -390,73 +395,65 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
       {/* Calendar Grid */}
       <div className="px-3">
-        <div className="grid grid-cols-7 gap-1 mb-4">
+        <div 
+          className="grid grid-cols-7 gap-1 mb-4"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {calendarDays.map((day, index) => (
             <button
               key={index}
-              onClick={() => handleDateClick(day.date)}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                handleDateClick(day.date);
-              }}
-              onMouseDown={() => handleMouseDown(day.date)}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onTouchStart={() => handleTouchStart(day.date)}
-              onTouchEnd={handleTouchEnd}
-              onTouchCancel={handleTouchEnd}
+              onClick={(e) => handleDateClick(day.date, e)}
               className={`
                 aspect-square p-1.5 text-center relative rounded-lg transition-all duration-200 border
-                ${day.isCurrentMonth ? 'text-black hover:bg-gray-50 active:bg-gray-100' : 'text-gray-300'}
-                ${day.isToday ? 'ring-2 ring-black font-bold' : ''}
-                ${selectedDate === day.date && !day.isToday ? 'bg-gray-100 ring-2 ring-blue-500' : ''}
-                ${getHeatMapColor(day.intensity)}
+                ${day.isCurrentMonth ? 'opacity-100' : 'opacity-40'}
+                ${day.isToday ? 'ring-2 ring-white font-bold' : ''}
+                ${selectedDate === day.date && !day.isToday ? 'ring-2 ring-gray-500' : ''}
+                ${day.intensityClass}
+                ${day.tasksCount > 0 ? 'cursor-pointer hover:scale-105' : 'cursor-default'}
                 touch-manipulation select-none
               `}
             >
               <div className="text-sm font-medium">{day.day}</div>
               
-              {/* Pending tasks indicator - Single dot */}
+              {/* Task indicator dot */}
               {day.hasPending && (
                 <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                  <div 
-                    className={`w-2 h-2 rounded-full ${
-                      day.isToday ? 'bg-white' : 'bg-red-500'
-                    } opacity-80`}
-                  />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white opacity-90" />
                 </div>
               )}
               
               {/* Completed tasks count */}
               {day.completionCount > 0 && (
-                <div className="absolute top-0 right-0 w-4 h-4 bg-green-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                  {day.completionCount}
+                <div className="absolute top-0 right-0 w-3 h-3 bg-white text-black text-xs rounded-full flex items-center justify-center font-bold">
+                  {day.completionCount > 9 ? '9+' : day.completionCount}
                 </div>
               )}
             </button>
           ))}
         </div>
 
-        {/* Heat map legend */}
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <span className="text-xs text-gray-500">Menos</span>
-          {[0, 1, 2, 3, 4].map(intensity => (
-            <div
-              key={intensity}
-              className={`w-3 h-3 rounded-sm ${getHeatMapColor(intensity)} border`}
-            />
-          ))}
-          <span className="text-xs text-gray-500">Más</span>
+        {/* Minimalist legend */}
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-gray-50 border border-gray-200" />
+            <span className="text-xs text-gray-400">Sin tareas</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-gray-800 border border-gray-900" />
+            <span className="text-xs text-gray-400">Completadas</span>
+          </div>
         </div>
 
         {/* Motivational message */}
         {stats.currentStreak > 0 && (
-          <Card className="p-4 text-center bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 mb-4">
-            <Trophy size={24} className="mx-auto mb-2 text-yellow-600" />
-            <h3 className="font-bold text-black mb-1">
+          <Card className="p-4 text-center bg-gray-900 border-gray-800 mb-4">
+            <Trophy size={24} className="mx-auto mb-2 text-white" />
+            <h3 className="font-bold text-white mb-1">
               ¡{stats.currentStreak} días consecutivos!
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-400">
               {stats.currentStreak >= 7 ? '¡Increíble constancia! 🏆' :
                stats.currentStreak >= 3 ? '¡Excelente progreso! 💪' :
                '¡Sigue así! 🚀'}
@@ -466,7 +463,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
         {/* Quick today access */}
         <div className="text-center mb-4">
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-gray-400 mb-2">
             {new Date().toLocaleDateString('es-ES', { 
               weekday: 'long', 
               day: 'numeric', 
@@ -474,8 +471,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             })}
           </p>
           <Button
-            onClick={() => handleDateClick(today.toISOString().split('T')[0])}
-            className="bg-black text-white hover:bg-gray-800 rounded-full px-4 py-1.5 text-sm"
+            onClick={() => handleDateClick(today.toISOString().split('T')[0], {} as any)}
+            className="bg-white text-black hover:bg-gray-100 rounded-full px-4 py-1.5 text-sm"
           >
             <Calendar size={14} className="mr-1.5" />
             Ver Hoy
@@ -485,19 +482,19 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
       {/* Date Details Modal */}
       {showDateDetails && selectedDate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-          <div className="bg-white rounded-t-3xl w-full max-w-md max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom-4">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-end justify-center z-50">
+          <div className="bg-black border-t border-gray-800 rounded-t-3xl w-full max-w-md max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom-4">
             <div className="p-6">
               {/* Modal Header */}
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-black">
+                  <h3 className="text-xl font-bold text-white">
                     {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
                       weekday: 'long', 
                       day: 'numeric'
                     })}
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-400">
                     {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { 
                       month: 'long', 
                       year: 'numeric' 
@@ -507,14 +504,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 <div className="flex items-center space-x-2">
                   <Button
                     onClick={onAddTask}
-                    className="bg-black text-white hover:bg-gray-800 rounded-full p-2"
+                    className="bg-white text-black hover:bg-gray-100 rounded-full p-2"
                   >
                     <Plus size={16} />
                   </Button>
                   <Button
                     onClick={() => setShowDateDetails(false)}
                     variant="ghost"
-                    className="p-2 hover:bg-gray-100 rounded-full"
+                    className="p-2 hover:bg-gray-800 rounded-full text-white"
                   >
                     <X size={16} />
                   </Button>
@@ -523,16 +520,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
               {/* Tasks Summary */}
               {(selectedDateTasks.length > 0 || selectedDateCompletedTasks.length > 0) && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                <div className="mb-4 p-3 bg-gray-900 border border-gray-800 rounded-lg">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
+                    <span className="text-gray-400">
                       Total: {selectedDateTasks.length} programadas
                     </span>
                     <div className="flex items-center space-x-4">
-                      <span className="text-green-600">
+                      <span className="text-white">
                         ✓ {selectedDateCompletedTasks.length} completadas
                       </span>
-                      <span className="text-orange-600">
+                      <span className="text-gray-400">
                         ● {getPendingTasksForDate(selectedDate).length} pendientes
                       </span>
                     </div>
@@ -543,7 +540,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               {/* Scheduled Tasks Section */}
               {selectedDateTasks.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-black mb-3">Tareas Programadas</h4>
+                  <h4 className="text-lg font-semibold text-white mb-3">Tareas Programadas</h4>
                   <div className="space-y-4">
                     {selectedDateTasks.map(task => (
                       <TaskCard
@@ -569,26 +566,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               {/* Completed Tasks Section */}
               {selectedDateCompletedTasks.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-black mb-3">Tareas Completadas</h4>
+                  <h4 className="text-lg font-semibold text-white mb-3">Tareas Completadas</h4>
                   <div className="space-y-3">
                     {selectedDateCompletedTasks.map(task => (
-                      <div key={task.id} className="bg-white p-3 rounded-lg border shadow-sm">
+                      <div key={task.id} className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
+                          <CheckCircle size={16} className="text-white flex-shrink-0" />
                           <div className="flex-1">
-                            <h4 className="font-medium text-black">{task.title}</h4>
+                            <h4 className="font-medium text-white">{task.title}</h4>
                             <div className="flex items-center gap-2 mt-1">
                               <span className={`
-                                text-xs px-2 py-1 rounded-full font-medium
-                                ${task.type === 'work' ? 'bg-blue-100 text-blue-700' : 
-                                  task.type === 'personal' ? 'bg-green-100 text-green-700' : 
-                                  'bg-purple-100 text-purple-700'}
+                                text-xs px-2 py-1 rounded-full font-medium border
+                                ${task.type === 'work' ? 'bg-gray-800 text-white border-gray-700' : 
+                                  task.type === 'personal' ? 'bg-gray-800 text-white border-gray-700' : 
+                                  'bg-gray-800 text-white border-gray-700'}
                               `}>
                                 {task.type === 'work' ? 'Trabajo' : 
                                  task.type === 'personal' ? 'Personal' : 'Meditación'}
                               </span>
                               {task.subtasks && task.subtasks.length > 0 && (
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-gray-400">
                                   {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} subtareas
                                 </span>
                               )}
@@ -604,10 +601,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               {/* Empty state */}
               {selectedDateTasks.length === 0 && selectedDateCompletedTasks.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-gray-900 border border-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Calendar size={24} className="text-gray-400" />
                   </div>
-                  <p className="text-gray-600 font-medium mb-2">
+                  <p className="text-gray-400 font-medium mb-2">
                     Sin tareas programadas
                   </p>
                   <p className="text-sm text-gray-500 mb-4">
@@ -615,7 +612,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                   </p>
                   <Button
                     onClick={onAddTask}
-                    className="bg-black text-white hover:bg-gray-800 rounded-full px-6 py-2"
+                    className="bg-white text-black hover:bg-gray-100 rounded-full px-6 py-2"
                   >
                     <Plus size={16} className="mr-2" />
                     Agregar Tarea
