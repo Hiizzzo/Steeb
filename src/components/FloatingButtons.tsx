@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BarChart3, Calendar, TrendingUp, Check } from 'lucide-react';
+import { Plus, BarChart3, Calendar, TrendingUp, Check, Upload } from 'lucide-react';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -15,6 +15,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleVi
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isStats = location.pathname === '/productivity-stats';
+  const isImageUpload = location.pathname === '/image-upload';
 
   const handleCalendarClick = () => {
     if (!isHome) {
@@ -30,6 +31,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleVi
     navigate('/productivity-stats');
   };
 
+  const handleImageUploadClick = () => {
+    navigate('/image-upload');
+  };
+
   return (
     <div className="fixed bottom-8 left-0 right-0 z-50">
       <div className="flex items-center justify-center px-8">
@@ -37,7 +42,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleVi
         {/* Botón de Ver Calendario */}
         <button
           onClick={handleCalendarClick}
-          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform mr-6 ${
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform mr-3 ${
             (isHome && viewMode === 'calendar') 
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
@@ -54,10 +59,22 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleVi
           <Plus size={28} className="text-white sm:w-8 sm:h-8" strokeWidth={3} />
         </button>
 
+        {/* Botón de Subir Imágenes */}
+        <button
+          onClick={handleImageUploadClick}
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ml-3 ${
+            isImageUpload 
+              ? 'bg-black shadow-2xl scale-110' 
+              : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
+          }`}
+        >
+          <Upload size={18} className="text-white" strokeWidth={2.5} />
+        </button>
+
         {/* Botón de Estadísticas */}
         <button
           onClick={handleStatsClick}
-          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ml-6 ${
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ml-3 ${
             isStats 
               ? 'bg-black shadow-2xl scale-110' 
               : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'

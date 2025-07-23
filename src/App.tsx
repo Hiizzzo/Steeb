@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import CompletedTasksPage from "./pages/CompletedTasksPage";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
+import ImageUploadPage from "./pages/ImageUploadPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -39,6 +40,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/completed-tasks" element={<CompletedTasksPage />} />
             <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
+            <Route path="/image-upload" element={<ImageUploadPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
