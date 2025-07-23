@@ -8,31 +8,25 @@ const StebeHeader: React.FC = () => {
   const dayName = dayNames[today.getDay()];
 
   return (
-    <div className="pt-2 pb-4 bg-white">
-      {/* Logo de Steve y fecha en la misma línea */}
-      <div className="flex items-center justify-between mb-4 px-2">
-        {/* Logo de Steve - esquina superior izquierda */}
-        <div className="flex items-center justify-start">
-          <img 
-            src="/lovable-uploads/steve-bearded-avatar.png" 
-            alt="Steve Logo" 
-            className="object-contain bg-white"
-            style={{ 
-              maxWidth: '10vw',
-              height: 'auto',
-              margin: '12px',
-              border: 'none',
-              boxShadow: 'none'
-            }}
-          />
-        </div>
-        
-        {/* Fecha del día - centrada */}
-        <div className="flex-1 flex justify-center items-center">
-          <h2 className="text-3xl font-light text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-            {dayName}
-          </h2>
-        </div>
+    <div className="pt-2 pb-4 bg-white relative">
+      {/* Logo de Steve - posición fija en esquina superior izquierda */}
+      <img 
+        src="/lovable-uploads/steve-bearded-avatar.png" 
+        alt="Steve Logo" 
+        className="fixed top-2 left-2 object-contain bg-white z-50"
+        style={{ 
+          width: '60px',
+          height: '60px',
+          border: 'none',
+          boxShadow: 'none'
+        }}
+      />
+      
+      {/* Fecha del día - centrada */}
+      <div className="flex justify-center items-center mb-4 px-2 pt-2">
+        <h2 className="text-3xl font-light text-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          {dayName}
+        </h2>
       </div>
       
       {/* Título centrado en bloque negro sin imagen */}
