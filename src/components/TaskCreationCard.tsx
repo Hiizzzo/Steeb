@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 // Componente SVG del mouse pointer (mano apuntando)
 const MousePointerIcon = () => (
@@ -24,9 +25,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState('');
   const [tag, setTag] = useState('');
+  const { playButtonClickSound } = useSoundEffects();
 
   const handleCreate = () => {
     if (title.trim()) {
+      playButtonClickSound();
       onCreate({ title: title.trim(), notes: notes.trim(), date, tag });
     }
   };

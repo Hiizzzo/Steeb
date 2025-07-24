@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 import { dailyTasks, DailyTask } from '@/data/dailyTasks';
 
@@ -46,6 +47,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [subtasks, setSubtasks] = useState<string[]>(['']);
   const { toast } = useToast();
+  const { playButtonClickSound } = useSoundEffects();
   const [isAddingDaily, setIsAddingDaily] = useState(false);
   const [currentTasks, setCurrentTasks] = useState<DailyTask[]>(dailyTasks);
 
@@ -233,7 +235,10 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
             {editingTask ? 'Editar' : 'Nuevo'}
           </h2>
           <button
-            onClick={handleSubmit}
+            onClick={() => {
+              playButtonClickSound();
+              handleSubmit();
+            }}
             disabled={!title.trim()}
             className={cn(
               "text-lg font-medium",
@@ -250,7 +255,10 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
           {/* Botón de tareas diarias de Steve */}
           <div className="px-4 py-4 border-b border-gray-200">
             <button
-              onClick={handleAddDailyTasks}
+              onClick={() => {
+                playButtonClickSound();
+                handleAddDailyTasks();
+              }}
               disabled={isAddingDaily}
               className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -11,6 +12,7 @@ interface FloatingButtonsProps {
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   const navigate = useNavigate();
+  const { playButtonClickSound } = useSoundEffects();
   const [isLongPressed, setIsLongPressed] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -19,6 +21,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
 
   // Handler para iniciar el long press
   const handlePointerDown = (e: React.PointerEvent) => {
+    // Reproducir sonido de click al presionar el botón
+    playButtonClickSound();
+    
     setIsLongPressed(true);
     setShowCalendar(false);
     
