@@ -65,6 +65,26 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Asegurar que el cursor sea visible en todos los inputs */
+  input, textarea {
+    caret-color: #000000 !important;
+    cursor: text !important;
+  }
+
+  /* Cursor específico para el formulario de añadir tareas */
+  .modal-add-task input,
+  .modal-add-task textarea {
+    caret-color: #000000 !important;
+    cursor: text !important;
+  }
+
+  /* Cursor para inputs enfocados */
+  input:focus,
+  textarea:focus {
+    caret-color: #000000 !important;
+    cursor: text !important;
+  }
 }
 
 @layer utilities {
@@ -74,5 +94,11 @@
   
   .steve-border {
     @apply border border-gray-200 rounded-lg;
+  }
+
+  /* Clase específica para asegurar visibilidad del cursor */
+  .cursor-visible {
+    caret-color: #000000 !important;
+    cursor: text !important;
   }
 }

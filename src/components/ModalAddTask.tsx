@@ -216,7 +216,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-gray-100 w-full sm:max-w-lg h-[90vh] sm:h-[80vh] sm:max-h-[700px] sm:rounded-2xl flex flex-col">
+      <div className="bg-gray-100 w-full sm:max-w-lg h-[90vh] sm:h-[80vh] sm:max-h-[700px] sm:rounded-2xl flex flex-col modal-add-task">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 bg-gray-200/80 backdrop-blur-sm sm:rounded-t-2xl">
           <button
@@ -285,7 +285,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título"
-              className="w-full text-xl placeholder-gray-400 focus:outline-none bg-transparent"
+              className="w-full text-xl placeholder-gray-400 focus:outline-none bg-transparent cursor-visible"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               autoFocus
             />
@@ -298,7 +298,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas"
-              className="w-full text-sm placeholder-gray-400 focus:outline-none bg-transparent"
+              className="w-full text-sm placeholder-gray-400 focus:outline-none bg-transparent cursor-visible"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
             />
           </div>
@@ -327,7 +327,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
                     value={subtask}
                     onChange={(e) => updateSubtask(index, e.target.value)}
                     placeholder="Nueva subtarea..."
-                    className="flex-1 text-lg placeholder-gray-400 focus:outline-none bg-transparent py-1"
+                    className="flex-1 text-lg placeholder-gray-400 focus:outline-none bg-transparent py-1 cursor-visible"
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   />
                   {subtasks.length > 1 && (
@@ -449,7 +449,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
                     type="time"
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
-                    className="w-full text-black text-base bg-transparent focus:outline-none"
+                    className="w-full text-black text-base bg-transparent focus:outline-none cursor-visible"
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   />
                 </div>

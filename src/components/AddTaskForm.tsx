@@ -45,7 +45,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
           placeholder="¿Qué tarea tienes que hacer?"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="steve-border"
+          className="steve-border cursor-visible"
         />
       </div>
       
@@ -54,7 +54,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
           placeholder="Descripción (opcional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="steve-border"
+          className="steve-border cursor-visible"
         />
       </div>
       
@@ -65,7 +65,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
           value={targetTime}
           onChange={(e) => setTargetTime(e.target.value)}
           min="1"
-          className="steve-border"
+          className="steve-border cursor-visible"
         />
       </div>
       
