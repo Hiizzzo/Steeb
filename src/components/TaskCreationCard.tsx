@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { Calendar, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { useToast } from '@/components/ui/use-toast';
 
 // Componente SVG del mouse pointer (mano apuntando)
 const MousePointerIcon = () => (
@@ -15,22 +19,68 @@ const MousePointerIcon = () => (
   </svg>
 );
 
+interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 interface TaskCreationCardProps {
   onCancel: () => void;
-  onCreate: (taskData: { title: string; notes: string; date?: string; tag?: string }) => void;
+  onCreate: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
 }
 
 const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate }) => {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-  const [date, setDate] = useState('');
-  const [tag, setTag] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTag, setSelectedTag] = useState<'personal' | 'work' | 'meditation'>('personal');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTagPicker, setShowTagPicker] = useState(false);
   const { playButtonClickSound } = useSoundEffects();
+  const { toast } = useToast();
 
   const handleCreate = () => {
     if (title.trim()) {
       playButtonClickSound();
-      onCreate({ title: title.trim(), notes: notes.trim(), date, tag });
+      
+      const scheduledDate = selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+      
+      onCreate(
+        title.trim(), 
+        selectedTag, 
+        undefined, // subtasks - not implemented in this simple version
+        scheduledDate,
+        undefined, // scheduledTime - not implemented in this simple version
+        notes.trim() || undefined
+      );
+      
+      toast({
+        title: "¡Tarea creada!",
+        description: "Tu nueva tarea ha sido añadida exitosamente.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Por favor, escribe un nombre para la tarea.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getTagLabel = (tag: 'personal' | 'work' | 'meditation') => {
+    switch (tag) {
+      case 'personal': return 'Personal';
+      case 'work': return 'Trabajo';
+      case 'meditation': return 'Meditación';
+    }
+  };
+
+  const getTagColor = (tag: 'personal' | 'work' | 'meditation') => {
+    switch (tag) {
+      case 'personal': return 'bg-blue-500';
+      case 'work': return 'bg-green-500';
+      case 'meditation': return 'bg-purple-500';
     }
   };
 
@@ -98,20 +148,65 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
         {/* Footer */}
         <div className="flex border-t border-gray-100">
           {/* Date Section */}
-          <button className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors">
+          <button 
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
+          >
             <Calendar size={18} className="text-black" />
-            <span className="font-medium">Fecha ...</span>
+            <span className="font-medium">
+              {selectedDate ? format(selectedDate, "dd MMM", { locale: es }) : "Fecha ..."}
+            </span>
           </button>
           
           {/* Divider */}
           <div className="w-px bg-gray-100"></div>
           
           {/* Tag Section */}
-          <button className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors">
-            <Tag size={18} className="text-black" />
-            <span className="font-medium">Etiqueta</span>
+          <button 
+            onClick={() => setShowTagPicker(!showTagPicker)}
+            className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <div className={`w-3 h-3 rounded-full ${getTagColor(selectedTag)}`}></div>
+            <span className="font-medium">{getTagLabel(selectedTag)}</span>
           </button>
         </div>
+
+        {/* Date Picker */}
+        {showDatePicker && (
+          <div className="border-t border-gray-100 p-4 bg-white">
+            <CalendarComponent
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => {
+                setSelectedDate(date);
+                setShowDatePicker(false);
+              }}
+              className="rounded-md border mx-auto"
+            />
+          </div>
+        )}
+
+        {/* Tag Picker */}
+        {showTagPicker && (
+          <div className="border-t border-gray-100 bg-white">
+            {(['personal', 'work', 'meditation'] as const).map((tag) => (
+              <button
+                key={tag}
+                onClick={() => {
+                  setSelectedTag(tag);
+                  setShowTagPicker(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className={`w-4 h-4 rounded-full ${getTagColor(tag)}`}></div>
+                <span className="text-black font-medium">{getTagLabel(tag)}</span>
+                {selectedTag === tag && (
+                  <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
