@@ -346,10 +346,7 @@ const Index = () => {
 
       {/* Floating Buttons */}
       <FloatingButtons 
-        onAddTask={() => {
-          setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
-          setShowModal(true);
-        }}
+        onAddTask={handleAddTask}
       />
 
       {/* Modal para Agregar Tarea */}

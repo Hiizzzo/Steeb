@@ -6,8 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 
+interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 interface FloatingButtonsProps {
-  onAddTask: () => void;
+  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
 }
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
@@ -73,11 +79,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   };
 
   // Handler para crear tarea desde el modal
-  const handleCreateTask = (taskData: { title: string; notes: string; date?: string; tag?: string }) => {
+  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     setShowTaskModal(false);
-    onAddTask(); // Mantener la funcionalidad original
-    // Aquí podrías procesar taskData si necesitas los datos del formulario
-    console.log('Nueva tarea creada:', taskData);
+    onAddTask(title, type, subtasks, scheduledDate, scheduledTime, notes);
   };
 
   return (
