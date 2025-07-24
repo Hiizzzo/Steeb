@@ -190,7 +190,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <div className="relative mx-4 mb-3">
+    <div className="relative mb-3">
       {/* Fondo negro de eliminación */}
       <div 
         className={`absolute inset-0 bg-black rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${

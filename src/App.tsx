@@ -7,7 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import CompletedTasksPage from "./pages/CompletedTasksPage";
-import ProductivityStatsPage from "./pages/ProductivityStatsPage";
+import ImageManager from "./pages/ImageManager";
+import MonthlyCalendarPage from "./pages/MonthlyCalendarPage";
+
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -38,7 +40,9 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/completed-tasks" element={<CompletedTasksPage />} />
-            <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
+            <Route path="/image-manager" element={<ImageManager />} />
+            <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

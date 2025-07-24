@@ -1,70 +1,100 @@
 
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BarChart3, Calendar, TrendingUp, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Calendar } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
-  onShowTasks: () => void;
-  onToggleView: () => void;
-  viewMode: 'tasks' | 'calendar';
 }
 
-const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onToggleView, viewMode }) => {
+const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isHome = location.pathname === '/';
-  const isStats = location.pathname === '/productivity-stats';
+  const [isLongPressed, setIsLongPressed] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
-  const handleCalendarClick = () => {
-    if (!isHome) {
-      navigate('/');
+  const handleMouseDown = () => {
+    const timer = setTimeout(() => {
+      setIsLongPressed(true);
+    }, 500); // 500ms para activar el long press
+    setLongPressTimer(timer);
+  };
+
+  const handleMouseUp = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
     }
-    // Si estamos en home pero no en vista calendario, cambiamos a calendario
-    if (isHome && viewMode === 'tasks') {
-      onToggleView();
+    
+    if (isLongPressed) {
+      // Si estaba en modo long press, navegar al calendario
+      navigate('/monthly-calendar');
+      setIsLongPressed(false);
+    } else {
+      // Si no era long press, agregar tarea
+      onAddTask();
     }
   };
 
-  const handleStatsClick = () => {
-    navigate('/productivity-stats');
+  const handleMouseLeave = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    setIsLongPressed(false);
   };
 
   return (
     <div className="fixed bottom-8 left-0 right-0 z-50">
       <div className="flex items-center justify-center px-8">
         
-        {/* Botón de Ver Calendario */}
-        <button
-          onClick={handleCalendarClick}
-          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform mr-6 ${
-            (isHome && viewMode === 'calendar') 
-              ? 'bg-black shadow-2xl scale-110' 
-              : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
+        {/* Botón Principal con Long Press */}
+        <motion.button
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleMouseDown}
+          onTouchEnd={handleMouseUp}
+          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 ${
+            isLongPressed ? 'bg-gray-800' : 'bg-black'
           }`}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <Check size={20} className="text-white" strokeWidth={2.5} />
-        </button>
-
-        {/* Botón Principal de Crear Tarea */}
-        <button
-          onClick={onAddTask}
-          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-black shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 mx-6"
-        >
-          <Plus size={28} className="text-white sm:w-8 sm:h-8" strokeWidth={3} />
-        </button>
-
-        {/* Botón de Estadísticas */}
-        <button
-          onClick={handleStatsClick}
-          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform ml-6 ${
-            isStats 
-              ? 'bg-black shadow-2xl scale-110' 
-              : 'bg-black shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1'
-          }`}
-        >
-          <BarChart3 size={18} className="text-white" strokeWidth={2.5} />
-        </button>
+          <AnimatePresence mode="wait">
+            {isLongPressed ? (
+              <motion.div
+                key="calendar"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 180 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 800, 
+                  damping: 30,
+                  duration: 0.08 
+                }}
+              >
+                <Calendar size={28} className="text-white sm:w-8 sm:h-8" strokeWidth={3} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="plus"
+                initial={{ scale: 0, rotate: 180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: -180 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 800, 
+                  damping: 30,
+                  duration: 0.08 
+                }}
+              >
+                <Plus size={28} className="text-white sm:w-8 sm:h-8" strokeWidth={3} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
 
       </div>
     </div>

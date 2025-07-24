@@ -228,7 +228,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen bg-gray-50 p-4 max-w-md mx-auto" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Main Title */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">

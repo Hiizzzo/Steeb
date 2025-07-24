@@ -40,65 +40,7 @@ const Index = () => {
     return phrases[Math.floor(Math.random() * phrases.length)];
   };
 
-  const [tasks, setTasks] = useState<Task[]>([
-    { 
-      id: '1', 
-      title: 'Design homepage', 
-      type: 'work', 
-      completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
-      completedDate: new Date().toISOString(),
-      notes: "Usar paleta de colores moderna y asegurar que el diseño sea responsive. Consultar con el equipo sobre las preferencias del cliente.",
-      subtasks: [
-        { id: '1-1', title: 'Adjust colors', completed: true },
-        { id: '1-2', title: 'Redesign buttons', completed: true },
-        { id: '1-3', title: 'Test mobile version', completed: true }
-      ]
-    },
-    { 
-      id: '2', 
-      title: 'Meeting with team', 
-      type: 'work', 
-      completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
-      completedDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Ayer
-      notes: "Revisar el progreso semanal y discutir nuevas funcionalidades. Preparar presentación de 10 minutos.",
-      subtasks: [
-        { id: '2-1', title: 'Take minutes', completed: true },
-        { id: '2-2', title: 'Send reminder', completed: true },
-        { id: '2-3', title: 'Schedule next meeting', completed: true }
-      ]
-    },
-    { 
-      id: '3', 
-      title: 'Grocery shopping', 
-      type: 'personal', 
-      completed: true,
-      scheduledDate: new Date().toISOString().split('T')[0],
-      completedDate: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(), // Anteayer
-      subtasks: [
-        { id: '3-1', title: 'Comprar pan', completed: true },
-        { id: '3-2', title: 'Queso y fiambre', completed: true },
-        { id: '3-3', title: 'Jugo de naranja', completed: true }
-      ]
-    },
-    {
-      id: '4',
-      title: 'Ejercicio matutino',
-      type: 'personal',
-      completed: true,
-      scheduledDate: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString().split('T')[0],
-      completedDate: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(), // Hace 3 días
-    },
-    {
-      id: '5',
-      title: 'Meditación',
-      type: 'meditation',
-      completed: true,
-      scheduledDate: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString().split('T')[0],
-      completedDate: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(), // Hace 3 días
-    }
-  ]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -115,6 +57,36 @@ const Index = () => {
       setViewMode(savedViewMode);
       // Limpiar la preferencia después de usarla
       localStorage.removeItem('stebe-view-mode');
+    }
+  }, []);
+
+  // Cargar tareas desde localStorage
+  useEffect(() => {
+    const savedTasks = localStorage.getItem('stebe-tasks');
+    if (savedTasks) {
+      try {
+        const parsedTasks = JSON.parse(savedTasks);
+        setTasks(parsedTasks);
+      } catch (error) {
+        console.error('Error loading tasks from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Guardar tareas en localStorage cuando cambien
+  useEffect(() => {
+    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  // Verificar si hay una fecha seleccionada del calendario
+  useEffect(() => {
+    const selectedDate = localStorage.getItem('stebe-selected-date');
+    if (selectedDate) {
+      // Limpiar la fecha seleccionada
+      localStorage.removeItem('stebe-selected-date');
+      
+      // Abrir el modal de agregar tarea con la fecha pre-seleccionada
+      setShowModal(true);
     }
   }, []);
 
@@ -146,15 +118,15 @@ const Index = () => {
       }
     }
     
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? { 
-          ...task, 
-          completed: !task.completed,
-          completedDate: !task.completed ? new Date().toISOString() : undefined
-        } : task
-      )
+    const updatedTasks = tasks.map(task => 
+      task.id === id ? { 
+        ...task, 
+        completed: !task.completed,
+        completedDate: !task.completed ? new Date().toISOString() : undefined
+      } : task
     );
+    setTasks(updatedTasks);
+    // localStorage se actualizará automáticamente por el useEffect
     
     // Solo reproducir sonido y mostrar toast cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
@@ -167,25 +139,25 @@ const Index = () => {
   };
 
   const handleToggleSubtask = (taskId: string, subtaskId: string) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => {
-        if (task.id === taskId && task.subtasks) {
-          const updatedSubtasks = task.subtasks.map(subtask =>
-            subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
-          );
-          
-          // Verificar si todas las subtareas están completadas
-          const allSubtasksCompleted = updatedSubtasks.every(subtask => subtask.completed);
-          
-          return {
-            ...task,
-            subtasks: updatedSubtasks,
-            completed: allSubtasksCompleted
-          };
-        }
-        return task;
-      })
-    );
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId && task.subtasks) {
+        const updatedSubtasks = task.subtasks.map(subtask =>
+          subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+        );
+        
+        // Verificar si todas las subtareas están completadas
+        const allSubtasksCompleted = updatedSubtasks.every(subtask => subtask.completed);
+        
+        return {
+          ...task,
+          subtasks: updatedSubtasks,
+          completed: allSubtasksCompleted
+        };
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+    // localStorage se actualizará automáticamente por el useEffect
 
     // Verificar si se completó la última subtarea para reproducir sonido
     const task = tasks.find(t => t.id === taskId);
@@ -207,7 +179,9 @@ const Index = () => {
   const handleDeleteTask = (id: string) => {
     const taskToDelete = tasks.find(t => t.id === id);
     if (taskToDelete) {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      const updatedTasks = tasks.filter(task => task.id !== id);
+      setTasks(updatedTasks);
+      // localStorage se actualizará automáticamente por el useEffect
       toast({
         title: "Task deleted",
         description: `"${taskToDelete.title}" has been removed from your list.`,
@@ -228,11 +202,11 @@ const Index = () => {
         notes
       };
       
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === selectedTask.id ? updatedTask : task
-        )
+      const updatedTasks = tasks.map(task => 
+        task.id === selectedTask.id ? updatedTask : task
       );
+      setTasks(updatedTasks);
+      // localStorage se actualizará automáticamente por el useEffect
       
       toast({
         title: "Tarea actualizada!",
@@ -253,7 +227,10 @@ const Index = () => {
         notes
       };
       
-      setTasks(prevTasks => [...prevTasks, newTask]);
+      const updatedTasks = [...tasks, newTask];
+      setTasks(updatedTasks);
+      // localStorage se actualizará automáticamente por el useEffect
+      
       toast({
         title: "New task added!",
         description: "Your task has been added to the list.",
@@ -291,14 +268,31 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white pb-8" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div 
+      className="min-h-screen pb-8 relative bg-gray-50" 
+      style={{ 
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}
+    >
+      
+      {/* Imagen de Steve Jobs en la esquina superior izquierda */}
+      <div className="absolute top-4 left-4 z-20">
+        <img 
+          src="/lovable-uploads/te obesrvo.png" 
+          alt="Steve Jobs" 
+          className="w-24 h-24"
+        />
+      </div>
+      
+      {/* Contenido principal */}
+      <div className="relative z-10">
       {/* Header */}
       <StebeHeader />
       
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
-          <div className="pt-2">
+          <div className="pt-2 max-w-md mx-auto">
             {todaysTasks.length > 0 ? (
               todaysTasks
                 .sort((a, b) => {
@@ -356,9 +350,6 @@ const Index = () => {
           setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
           setShowModal(true);
         }}
-        onShowTasks={handleShowTasks}
-        onToggleView={() => setViewMode(viewMode === 'tasks' ? 'calendar' : 'tasks')}
-        viewMode={viewMode}
       />
 
       {/* Modal para Agregar Tarea */}
@@ -388,6 +379,7 @@ const Index = () => {
         onToggleSubtask={handleToggleSubtask}
         onEdit={handleEditTask}
       />
+      </div>
     </div>
   );
 };
