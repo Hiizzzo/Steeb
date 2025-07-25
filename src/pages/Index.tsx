@@ -269,18 +269,18 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen pb-8 relative bg-gray-50" 
+      className="min-h-screen pb-6 relative bg-gray-50" 
       style={{ 
         fontFamily: 'system-ui, -apple-system, sans-serif'
       }}
     >
       
       {/* Imagen de Steve Jobs en la esquina superior izquierda */}
-      <div className="absolute top-4 left-4 z-20">
+      <div className="absolute top-3 left-3 z-20">
         <img 
           src="/lovable-uploads/te obesrvo.png" 
           alt="Steve Jobs" 
-          className="w-24 h-24"
+          className="w-20 h-20"
         />
       </div>
       
@@ -292,7 +292,7 @@ const Index = () => {
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
-          <div className="pt-2 max-w-md mx-auto">
+          <div className="pt-1 max-w-sm mx-auto px-3">
             {todaysTasks.length > 0 ? (
               todaysTasks
                 .sort((a, b) => {
