@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Flame, CheckCircle, Calendar, Trophy, Plus, ArrowLeft, Clock, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CompactStats from './CompactStats';
 
 interface SubTask {
   id: string;
@@ -256,44 +257,44 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
         <div className="max-w-md mx-auto">
           {/* Header de vista día */}
           <motion.div 
-            className="sticky top-0 bg-white z-20 px-4 py-6 border-b border-gray-100"
+            className="sticky top-0 bg-white z-20 px-2 sm:px-4 py-4 sm:py-6 border-b border-gray-100"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center justify-between mb-4">
               <motion.button
                 onClick={handleBackToMonth}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <ArrowLeft className="w-5 h-5 text-gray-700" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
               </motion.button>
               
-              <div className="flex space-x-2">
+              <div className="flex space-x-1 sm:space-x-2">
                 <motion.button
                   onClick={goToPreviousDay}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <ChevronLeft className="w-5 h-5 text-gray-700" />
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
                 </motion.button>
                 
                 <motion.button
                   onClick={goToNextDay}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <ChevronRight className="w-5 h-5 text-gray-700" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
                 </motion.button>
               </div>
             </div>
             
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 capitalize">{formattedDate}</h1>
-              <p className="text-sm text-gray-500 mt-1">
+            <div className="text-center px-2">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 capitalize">{formattedDate}</h1>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 {selectedDateTasks.length} {selectedDateTasks.length === 1 ? 'tarea' : 'tareas'}
               </p>
               <motion.div 
@@ -313,7 +314,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
           {/* Lista de tareas del día */}
           <motion.div 
-            className="px-4 py-6 space-y-4"
+            className="px-2 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4"
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             onDragEnd={(_, info) => {
@@ -451,89 +452,44 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
   // Vista mensual (código existente pero mejorado)
   return (
-    <div className="min-h-screen bg-white p-4">
-      <div className="max-w-md mx-auto space-y-8">
+    <div className="min-h-screen bg-white p-2 sm:p-4">
+      <div className="max-w-md mx-auto space-y-4 sm:space-y-8">
         
         {/* Frase motivacional */}
         <motion.div 
-          className="text-center pt-16"
+          className="text-center pt-8 sm:pt-16 px-2"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <h1 className="text-2xl font-bold text-black leading-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-black leading-tight">
             Hoy es un gran día para tachar pendientes
           </h1>
         </motion.div>
 
         {/* Tarjetas de estadísticas */}
-        <motion.div 
-          className="grid grid-cols-4 gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-        >
-          <motion.div 
-            className="bg-white rounded-xl shadow-sm p-4 text-center cursor-pointer"
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-            transition={{ duration: 0.2 }}
-          >
-            <Flame className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-            <div className="text-lg font-semibold text-black">{stats.streakDays}</div>
-            <div className="text-xs text-gray-500">días de racha</div>
-          </motion.div>
-          
-          <motion.div 
-            className="bg-white rounded-xl shadow-sm p-4 text-center cursor-pointer"
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-            transition={{ duration: 0.2 }}
-          >
-            <CheckCircle className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-            <div className="text-lg font-semibold text-black">{stats.completedTasks}</div>
-            <div className="text-xs text-gray-500">tareas tachadas</div>
-          </motion.div>
-          
-          <motion.div 
-            className="bg-white rounded-xl shadow-sm p-4 text-center cursor-pointer"
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-            transition={{ duration: 0.2 }}
-          >
-            <Calendar className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-            <div className="text-lg font-semibold text-black">{stats.activeDays}</div>
-            <div className="text-xs text-gray-500">Días activos</div>
-          </motion.div>
-          
-          <motion.div 
-            className="bg-white rounded-xl shadow-sm p-4 text-center cursor-pointer"
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-            transition={{ duration: 0.2 }}
-          >
-            <Trophy className="w-6 h-6 mx-auto mb-2 text-gray-600" />
-            <div className="text-lg font-semibold text-black">{stats.bestStreak}</div>
-            <div className="text-xs text-gray-500">Mejor racha</div>
-          </motion.div>
-        </motion.div>
+        <CompactStats stats={stats} />
 
         {/* Calendario mensual */}
         <motion.div 
-          className="bg-white rounded-xl shadow-sm p-6"
+          className="bg-white rounded-xl shadow-sm p-3 sm:p-6 mx-2 overflow-x-auto min-w-0"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
         >
           {/* Navegación del mes */}
           <motion.div 
-            className="flex items-center justify-between mb-6"
+            className="flex items-center justify-between mb-3 sm:mb-6"
             animate={{ scale: isAnimating ? 0.95 : 1 }}
             transition={{ duration: 0.2 }}
           >
             <motion.button
               onClick={goToPreviousMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              className="p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-all duration-200"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ChevronLeft className="w-5 h-5 text-black" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
             </motion.button>
             
             <motion.div 
@@ -543,31 +499,31 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="text-xl font-bold text-black">{monthName} {year}</div>
-              <div className="text-sm text-gray-500 lowercase">
+              <div className="text-lg sm:text-xl font-bold text-black">{monthName} {year}</div>
+              <div className="text-xs sm:text-sm text-gray-500 lowercase">
                 {monthName.slice(0, 3)} {year}
               </div>
             </motion.div>
             
             <motion.button
               onClick={goToNextMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              className="p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-all duration-200"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ChevronRight className="w-5 h-5 text-black" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
             </motion.button>
           </motion.div>
 
           {/* Días de la semana */}
           <motion.div 
-            className="grid grid-cols-7 gap-1 mb-2"
+            className="grid grid-cols-7 gap-1 mb-1 sm:mb-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.5 }}
           >
             {dayNames.map(day => (
-              <div key={day} className="text-center text-sm font-medium text-black py-2">
+              <div key={day} className="text-center text-xs sm:text-sm font-medium text-black py-1 sm:py-2">
                 {day}
               </div>
             ))}
@@ -577,7 +533,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
           <AnimatePresence mode="wait">
             <motion.div 
               key={`${monthName}-${year}`}
-              className="grid grid-cols-7 gap-1"
+              className="grid grid-cols-7 gap-0.5 sm:gap-1 min-w-[280px]"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -597,7 +553,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     onMouseEnter={() => setHoveredDate(day.fullDate)}
                     onMouseLeave={() => setHoveredDate(null)}
                     className={`
-                      aspect-square p-1 cursor-pointer relative group rounded-lg transition-all duration-200
+                      aspect-square p-0.5 sm:p-1 cursor-pointer relative group rounded-lg transition-all duration-200
                       ${day.isCurrentMonth ? 'hover:bg-gray-50 hover:shadow-md' : 'opacity-50'}
                       ${day.isSelected ? 'ring-2 ring-black' : ''}
                       ${isToday ? 'bg-black text-white font-bold' : ''}
@@ -610,7 +566,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     <div className="h-full flex flex-col items-center justify-center">
                       <motion.div 
                         className={`
-                          text-sm font-medium mb-1 relative
+                          text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 relative
                           ${day.isCurrentMonth ? (isToday ? 'text-white' : 'text-black') : 'text-gray-400'}
                         `}
                       >
@@ -619,9 +575,9 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       
                       {/* Indicadores de tareas */}
                       {day.isCurrentMonth && tasksForDay.length > 0 && (
-                        <div className="flex space-x-1 mt-1">
+                        <div className="flex space-x-0.5 sm:space-x-1 mt-0.5 sm:mt-1">
                           {tasksForDay.slice(0, 3).map((_, idx) => (
-                            <div key={idx} className={`w-1 h-1 rounded-full ${isToday ? 'bg-white' : 'bg-gray-400'}`} />
+                            <div key={idx} className={`w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full ${isToday ? 'bg-white' : 'bg-gray-400'}`} />
                           ))}
                           {tasksForDay.length > 3 && (
                             <div className={`text-xs ${isToday ? 'text-white' : 'text-gray-500'}`}>
@@ -633,7 +589,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       
                       {/* Barra de progreso */}
                       {day.isCurrentMonth && progress > 0 && (
-                        <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden mt-1">
+                        <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full overflow-hidden mt-0.5 sm:mt-1">
                           <motion.div 
                             className={`h-full ${progressColor}`}
                             initial={{ width: 0 }}
@@ -704,13 +660,13 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
         {/* Leyenda de intensidad */}
         <motion.div 
-          className="text-center space-y-2"
+          className="text-center space-y-1 sm:space-y-2 px-2"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
         >
           <motion.div 
-            className="flex justify-center items-center space-x-1"
+            className="flex justify-center items-center space-x-0.5 sm:space-x-1"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.4, delay: 0.8 }}
@@ -718,14 +674,14 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
             {['bg-gray-200', 'bg-red-300', 'bg-yellow-400', 'bg-blue-400', 'bg-green-500'].map((color, index) => (
               <motion.div
                 key={color}
-                className={`w-3 h-3 ${color} rounded-sm`}
+                className={`w-2 h-2 sm:w-3 sm:h-3 ${color} rounded-sm`}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.9 + index * 0.1 }}
               />
             ))}
           </motion.div>
-          <div className="flex justify-between text-xs text-gray-500 px-4">
+          <div className="flex justify-between text-xs text-gray-500 px-2 sm:px-4">
             <span>Menos</span>
             <span>Más</span>
           </div>
@@ -734,7 +690,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
         {/* Fecha seleccionada */}
         {selectedDate && (
           <motion.div 
-            className="text-center pb-8"
+            className="text-center pb-4 sm:pb-8 px-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1, ease: "easeOut" }}

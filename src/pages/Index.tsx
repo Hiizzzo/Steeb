@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useTaskPersistence } from '@/hooks/useTaskPersistence';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
 import CalendarView from '@/components/CalendarView';
 import TaskDetailModal from '@/components/TaskDetailModal';
+import SaveStatusIndicator from '@/components/SaveStatusIndicator';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 
@@ -40,8 +42,6 @@ const Index = () => {
     return phrases[Math.floor(Math.random() * phrases.length)];
   };
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -49,6 +49,18 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
+  
+  // Usar el hook de persistencia mejorado
+  const { 
+    tasks, 
+    updateTasks, 
+    isLoading: isPersistenceLoading, 
+    lastSaved,
+    hasError,
+    exportTasks,
+    clearCorruptedData,
+    forceReload 
+  } = useTaskPersistence();
 
   // Cargar preferencia de vista desde localStorage
   useEffect(() => {
@@ -60,23 +72,7 @@ const Index = () => {
     }
   }, []);
 
-  // Cargar tareas desde localStorage
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('stebe-tasks');
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks);
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error('Error loading tasks from localStorage:', error);
-      }
-    }
-  }, []);
-
-  // Guardar tareas en localStorage cuando cambien
-  useEffect(() => {
-    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
-  }, [tasks]);
+  // El hook useTaskPersistence maneja automáticamente la carga y guardado
 
   // Verificar si hay una fecha seleccionada del calendario
   useEffect(() => {
@@ -90,13 +86,7 @@ const Index = () => {
     }
   }, []);
 
-  // Cargar tareas desde localStorage
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('stebe-tasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
+  // Duplicado removido - useTaskPersistence maneja la persistencia
 
   // Guardar tareas en localStorage
   useEffect(() => {
@@ -125,8 +115,8 @@ const Index = () => {
         completedDate: !task.completed ? new Date().toISOString() : undefined
       } : task
     );
-    setTasks(updatedTasks);
-    // localStorage se actualizará automáticamente por el useEffect
+    updateTasks(updatedTasks);
+    // Persistencia automática manejada por useTaskPersistence
     
     // Solo reproducir sonido y mostrar toast cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
@@ -156,8 +146,8 @@ const Index = () => {
       }
       return task;
     });
-    setTasks(updatedTasks);
-    // localStorage se actualizará automáticamente por el useEffect
+    updateTasks(updatedTasks);
+    // Persistencia automática manejada por useTaskPersistence
 
     // Verificar si se completó la última subtarea para reproducir sonido
     const task = tasks.find(t => t.id === taskId);
@@ -180,8 +170,8 @@ const Index = () => {
     const taskToDelete = tasks.find(t => t.id === id);
     if (taskToDelete) {
       const updatedTasks = tasks.filter(task => task.id !== id);
-      setTasks(updatedTasks);
-      // localStorage se actualizará automáticamente por el useEffect
+      updateTasks(updatedTasks);
+      // Persistencia automática manejada por useTaskPersistence
       toast({
         title: "Task deleted",
         description: `"${taskToDelete.title}" has been removed from your list.`,
@@ -205,8 +195,8 @@ const Index = () => {
       const updatedTasks = tasks.map(task => 
         task.id === selectedTask.id ? updatedTask : task
       );
-      setTasks(updatedTasks);
-      // localStorage se actualizará automáticamente por el useEffect
+      updateTasks(updatedTasks);
+      // Persistencia automática manejada por useTaskPersistence
       
       toast({
         title: "Tarea actualizada!",
@@ -228,8 +218,8 @@ const Index = () => {
       };
       
       const updatedTasks = [...tasks, newTask];
-      setTasks(updatedTasks);
-      // localStorage se actualizará automáticamente por el useEffect
+      updateTasks(updatedTasks);
+      // Persistencia automática manejada por useTaskPersistence
       
       toast({
         title: "New task added!",
@@ -288,6 +278,15 @@ const Index = () => {
       <div className="relative z-10">
       {/* Header */}
       <StebeHeader />
+      
+      {/* Save Status Indicator */}
+      <div className="flex justify-center mb-2">
+        <SaveStatusIndicator 
+          lastSaved={lastSaved} 
+          isLoading={isPersistenceLoading}
+          hasError={hasError}
+        />
+      </div>
       
       {viewMode === 'tasks' ? (
         <>

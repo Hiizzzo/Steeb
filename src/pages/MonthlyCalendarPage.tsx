@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import MonthlyCalendar from '@/components/MonthlyCalendar';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useTaskPersistence } from '@/hooks/useTaskPersistence';
 
 interface SubTask {
   id: string;
@@ -26,27 +27,15 @@ interface Task {
 
 const MonthlyCalendarPage: React.FC = () => {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>([]);
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
-
-  // Cargar tareas desde localStorage
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('stebe-tasks');
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks);
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error('Error loading tasks from localStorage:', error);
-      }
-    }
-  }, []);
-
-  // Guardar tareas en localStorage cuando cambien
-  useEffect(() => {
-    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
-  }, [tasks]);
+  
+  // Usar el hook de persistencia mejorado
+  const { 
+    tasks, 
+    updateTasks, 
+    isLoading: isPersistenceLoading 
+  } = useTaskPersistence();
 
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
@@ -70,7 +59,7 @@ const MonthlyCalendarPage: React.FC = () => {
         completedDate: !task.completed ? new Date().toISOString() : undefined
       } : task
     );
-    setTasks(updatedTasks);
+    updateTasks(updatedTasks);
     
     // Solo reproducir sonido y mostrar toast cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
@@ -100,7 +89,7 @@ const MonthlyCalendarPage: React.FC = () => {
       }
       return task;
     });
-    setTasks(updatedTasks);
+    updateTasks(updatedTasks);
 
     // Verificar si se completó la última subtarea para reproducir sonido
     const task = tasks.find(t => t.id === taskId);
