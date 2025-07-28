@@ -6,9 +6,7 @@ import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
-import CalendarView from '@/components/CalendarView';
 import TaskDetailModal from '@/components/TaskDetailModal';
-
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 
 interface SubTask {
@@ -46,19 +44,8 @@ const Index = () => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
-
-  // Cargar preferencia de vista desde localStorage
-  useEffect(() => {
-    const savedViewMode = localStorage.getItem('stebe-view-mode');
-    if (savedViewMode === 'calendar' || savedViewMode === 'tasks') {
-      setViewMode(savedViewMode);
-      // Limpiar la preferencia después de usarla
-      localStorage.removeItem('stebe-view-mode');
-    }
-  }, []);
 
   // Cargar tareas desde localStorage
   useEffect(() => {
@@ -289,60 +276,44 @@ const Index = () => {
       {/* Header */}
       <StebeHeader />
       
-      {viewMode === 'tasks' ? (
-        <>
-          {/* Lista de Tareas */}
-          <div className="pt-2 max-w-md mx-auto">
-            {todaysTasks.length > 0 ? (
-              todaysTasks
-                .sort((a, b) => {
-                  // Tareas no completadas primero, completadas al final
-                  if (a.completed && !b.completed) return 1;
-                  if (!a.completed && b.completed) return -1;
-                  return 0;
-                })
-                .map(task => (
-                  <TaskCard
-                    key={task.id}
-                    id={task.id}
-                    title={task.title}
-                    type={task.type}
-                    completed={task.completed}
-                    subtasks={task.subtasks}
-                    scheduledDate={task.scheduledDate}
-                    scheduledTime={task.scheduledTime}
-                    notes={task.notes}
-                    onToggle={handleToggleTask}
-                    onToggleSubtask={handleToggleSubtask}
-                    onDelete={handleDeleteTask}
-                    onShowDetail={handleShowDetail}
-                  />
-                ))
-            ) : (
-              <div className="text-center py-12 px-4">
-                <p className="text-lg text-gray-600 font-medium">
-                  {getRandomNoTasksPhrase()}
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Press the + button to add your first task!
-                </p>
-              </div>
-            )}
+      {/* Lista de Tareas */}
+      <div className="pt-2 max-w-md mx-auto">
+        {todaysTasks.length > 0 ? (
+          todaysTasks
+            .sort((a, b) => {
+              // Tareas no completadas primero, completadas al final
+              if (a.completed && !b.completed) return 1;
+              if (!a.completed && b.completed) return -1;
+              return 0;
+            })
+            .map(task => (
+              <TaskCard
+                key={task.id}
+                id={task.id}
+                title={task.title}
+                type={task.type}
+                completed={task.completed}
+                subtasks={task.subtasks}
+                scheduledDate={task.scheduledDate}
+                scheduledTime={task.scheduledTime}
+                notes={task.notes}
+                onToggle={handleToggleTask}
+                onToggleSubtask={handleToggleSubtask}
+                onDelete={handleDeleteTask}
+                onShowDetail={handleShowDetail}
+              />
+            ))
+        ) : (
+          <div className="text-center py-12 px-4">
+            <p className="text-lg text-gray-600 font-medium">
+              {getRandomNoTasksPhrase()}
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Press the + button to add your first task!
+            </p>
           </div>
-        </>
-      ) : (
-        <CalendarView
-          tasks={tasks}
-          onToggleTask={handleToggleTask}
-          onToggleSubtask={handleToggleSubtask}
-          onAddTask={() => {
-            setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
-            setShowModal(true);
-          }}
-          onDelete={handleDeleteTask}
-          onShowDetail={handleShowDetail}
-        />
-      )}
+        )}
+      </div>
 
       {/* Floating Buttons */}
       <FloatingButtons 

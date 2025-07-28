@@ -333,12 +333,10 @@ const NavigationButtons: React.FC<{ onAddTask?: () => void }> = ({ onAddTask }) 
   const navigate = useNavigate();
 
   const handleCalendarClick = () => {
-    localStorage.setItem('stebe-view-mode', 'calendar');
-    navigate('/');
+    navigate('/monthly-calendar');
   };
 
   const handleHomeClick = () => {
-    localStorage.setItem('stebe-view-mode', 'tasks');
     navigate('/');
   };
 
