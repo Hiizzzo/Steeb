@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Clock, User, Briefcase, Brain, Save, Plus, Check } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
@@ -253,12 +254,11 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
             }}
             disabled={!title.trim()}
             className={cn(
-              "text-lg font-medium",
-              title.trim() ? "text-black" : "text-gray-400"
+              "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+              title.trim() ? "bg-black text-white hover:bg-gray-800" : "bg-gray-200 text-gray-400"
             )}
-            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
           >
-            {editingTask ? 'Guardar' : 'Agregar'}
+            {editingTask ? <Save size={18} /> : <Plus size={18} />}
           </button>
         </div>
 
@@ -332,10 +332,9 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
               <button
                 type="button"
                 onClick={addSubtask}
-                className="text-black text-base font-medium"
-                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
               >
-                + Agregar
+                <Plus size={16} />
               </button>
             </div>
             <div className="space-y-3">

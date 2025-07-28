@@ -140,9 +140,9 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
           </h2>
           <button
             onClick={handleAddAllCustomTasks}
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
           >
-            Añadir Todas
+            <Plus size={16} />
           </button>
         </div>
 
@@ -156,10 +156,9 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
             <div className="flex space-x-2 mb-4">
               <Button
                 onClick={() => setShowAddForm(true)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="w-10 h-10 bg-blue-600 hover:bg-blue-700 flex items-center justify-center rounded-full"
               >
-                <Plus size={16} className="mr-2" />
-                Nueva Tarea
+                <Plus size={16} />
               </Button>
               <Button
                 onClick={resetToDefault}
@@ -198,10 +197,9 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
                 <div className="flex space-x-2">
                   <Button
                     onClick={handleAddCustomTask}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="w-10 h-10 bg-green-600 hover:bg-green-700 flex items-center justify-center rounded-full"
                   >
-                    <Save size={16} className="mr-2" />
-                    Guardar
+                    <Save size={16} />
                   </Button>
                   <Button
                     onClick={() => {
