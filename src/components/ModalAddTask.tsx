@@ -115,6 +115,18 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
     }
   }, [editingTask]);
 
+  // Verificar fecha pre-seleccionada del calendario
+  useEffect(() => {
+    if (isOpen && !editingTask) {
+      const preSelectedDate = localStorage.getItem('stebe-selected-date');
+      if (preSelectedDate) {
+        setSelectedDate(new Date(preSelectedDate));
+        setHasDate(true);
+        // No eliminar aquí, lo elimina el Index
+      }
+    }
+  }, [isOpen, editingTask]);
+
   const handleAddDailyTasks = async () => {
     setIsAddingDaily(true);
     
