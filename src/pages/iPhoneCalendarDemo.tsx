@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, CheckCircle, Plus, Settings, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import iPhoneCalendar from '@/components/iPhoneCalendar';
+import IPhoneCalendar from '@/components/iPhoneCalendar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -27,7 +27,7 @@ interface Task {
   notes?: string;
 }
 
-const iPhoneCalendarDemo: React.FC = () => {
+const IPhoneCalendarDemo: React.FC = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
@@ -435,7 +435,7 @@ const iPhoneCalendarDemo: React.FC = () => {
       )}
 
       {/* Calendario estilo iPhone */}
-      <iPhoneCalendar
+      <IPhoneCalendar
         tasks={demoTasks}
         onToggleTask={handleToggleTask}
         onToggleSubtask={handleToggleSubtask}
@@ -472,4 +472,4 @@ const iPhoneCalendarDemo: React.FC = () => {
   );
 };
 
-export default iPhoneCalendarDemo;
+export default IPhoneCalendarDemo;

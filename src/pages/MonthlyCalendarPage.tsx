@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import iPhoneCalendar from '@/components/iPhoneCalendar';
+import IPhoneCalendar from '@/components/iPhoneCalendar';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskPersistence } from '@/hooks/useTaskPersistence';
@@ -142,7 +142,7 @@ const MonthlyCalendarPage: React.FC = () => {
       </motion.button>
       
       {/* Nuevo calendario estilo iPhone */}
-      <iPhoneCalendar 
+      <IPhoneCalendar 
         tasks={tasks}
         onToggleTask={handleToggleTask}
         onToggleSubtask={handleToggleSubtask}
