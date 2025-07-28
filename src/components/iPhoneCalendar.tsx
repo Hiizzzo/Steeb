@@ -50,7 +50,7 @@ interface iPhoneCalendarProps {
   onDateSelect?: (date: string, dates?: string[]) => void;
 }
 
-const iPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
+const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
   tasks = [],
   onToggleTask,
   onToggleSubtask,
@@ -693,4 +693,4 @@ const iPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
   );
 };
 
-export default iPhoneCalendar;
+export default IPhoneCalendar;
