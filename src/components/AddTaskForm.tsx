@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -76,9 +77,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
       
       <Button 
         type="submit" 
-        className="w-full bg-steve-black text-steve-white hover:bg-steve-gray-dark steve-shadow"
+        className="w-12 h-12 rounded-full bg-steve-black text-steve-white hover:bg-steve-gray-dark steve-shadow flex items-center justify-center"
       >
-        Agregar Tarea
+        <Plus size={18} />
       </Button>
     </form>
   );

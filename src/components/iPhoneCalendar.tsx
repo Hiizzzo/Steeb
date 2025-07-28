@@ -692,11 +692,10 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
               {onAddTask && (
                 <Button
                   onClick={() => onAddTask(selectedDate.toISOString().split('T')[0])}
-                  className="mt-4"
+                  className="mt-4 w-10 h-10 rounded-full flex items-center justify-center bg-black text-white hover:bg-gray-800"
                   size="sm"
                 >
-                  <Plus size={16} className="mr-2" />
-                  Agregar tarea
+                  <Plus size={16} />
                 </Button>
               )}
             </div>
