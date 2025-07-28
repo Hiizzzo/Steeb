@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskPersistence } from '@/hooks/useTaskPersistence';
+import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
@@ -10,6 +11,7 @@ import ModalAddTask from '@/components/ModalAddTask';
 import CalendarView from '@/components/CalendarView';
 import TaskDetailModal from '@/components/TaskDetailModal';
 import SaveStatusIndicator from '@/components/SaveStatusIndicator';
+import AppUpdateNotification from '@/components/AppUpdateNotification';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 
@@ -62,6 +64,14 @@ const Index = () => {
     forceReload 
   } = useTaskPersistence();
 
+  // Hook para sincronización con Service Worker
+  const { 
+    isServiceWorkerReady, 
+    lastBackup, 
+    triggerBackup, 
+    triggerRestore 
+  } = useServiceWorkerSync();
+
   // Cargar preferencia de vista desde localStorage
   useEffect(() => {
     const savedViewMode = localStorage.getItem('stebe-view-mode');
@@ -86,12 +96,19 @@ const Index = () => {
     }
   }, []);
 
-  // Duplicado removido - useTaskPersistence maneja la persistencia
-
-  // Guardar tareas en localStorage
+  // Backup automático cuando cambian las tareas importantes
   useEffect(() => {
-    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    if (tasks.length > 0 && isServiceWorkerReady) {
+      // Trigger backup when tasks change significantly
+      const timeoutId = setTimeout(() => {
+        triggerBackup().catch(error => {
+          console.warn('⚠️ Auto-backup por cambio de tareas falló:', error);
+        });
+      }, 2000); // Wait 2 seconds after task changes
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [tasks.length, isServiceWorkerReady, triggerBackup]);
 
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
@@ -285,6 +302,8 @@ const Index = () => {
           lastSaved={lastSaved} 
           isLoading={isPersistenceLoading}
           hasError={hasError}
+          isServiceWorkerReady={isServiceWorkerReady}
+          lastBackup={lastBackup}
         />
       </div>
       
@@ -374,6 +393,13 @@ const Index = () => {
         onToggle={handleToggleTask}
         onToggleSubtask={handleToggleSubtask}
         onEdit={handleEditTask}
+      />
+
+      {/* App Update Notification */}
+      <AppUpdateNotification
+        isServiceWorkerReady={isServiceWorkerReady}
+        triggerBackup={triggerBackup}
+        exportTasks={exportTasks}
       />
       </div>
     </div>
