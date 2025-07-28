@@ -115,6 +115,7 @@ const MonthlyCalendarPage: React.FC = () => {
     }
     // Guardar preferencia para mostrar modal de agregar tarea
     localStorage.setItem('stebe-view-mode', 'tasks');
+    localStorage.setItem('stebe-open-add-modal', 'true'); // Fuerza la apertura del modal
     navigate('/');
   };
 

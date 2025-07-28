@@ -71,6 +71,19 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Estado para doble clic
+  const [lastClickedDate, setLastClickedDate] = useState<string | null>(null);
+  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // Cleanup de timeouts
+  useEffect(() => {
+    return () => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+      }
+    };
+  }, [clickTimeout]);
+
   const isDark = theme === 'dark';
 
   // Configuración de localización para español
@@ -232,18 +245,41 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
     if (minDate && calendarDay.date < minDate) return;
     if (maxDate && calendarDay.date > maxDate) return;
 
-    if (enableMultipleSelection) {
-      const newSelectedDates = selectedMultipleDates.includes(calendarDay.dateString)
-        ? selectedMultipleDates.filter(date => date !== calendarDay.dateString)
-        : [...selectedMultipleDates, calendarDay.dateString];
+    // Manejar doble clic para añadir tarea
+    if (lastClickedDate === calendarDay.dateString && clickTimeout) {
+      clearTimeout(clickTimeout);
+      setClickTimeout(null);
+      setLastClickedDate(null);
       
-      setSelectedMultipleDates(newSelectedDates);
-      onDateSelect?.(calendarDay.dateString, newSelectedDates);
-    } else {
-      setSelectedDate(calendarDay.date);
-      onDateSelect?.(calendarDay.dateString);
+      // Doble clic detectado - añadir tarea para esta fecha
+      if (onAddTask) {
+        onAddTask(calendarDay.dateString);
+      }
+      return;
     }
-  }, [enableMultipleSelection, selectedMultipleDates, minDate, maxDate, onDateSelect]);
+
+    // Primer clic - establecer timeout para detectar doble clic
+    setLastClickedDate(calendarDay.dateString);
+    const timeout = setTimeout(() => {
+      setLastClickedDate(null);
+      setClickTimeout(null);
+      
+      // Solo un clic - proceder con selección normal
+      if (enableMultipleSelection) {
+        const newSelectedDates = selectedMultipleDates.includes(calendarDay.dateString)
+          ? selectedMultipleDates.filter(date => date !== calendarDay.dateString)
+          : [...selectedMultipleDates, calendarDay.dateString];
+        
+        setSelectedMultipleDates(newSelectedDates);
+        onDateSelect?.(calendarDay.dateString, newSelectedDates);
+      } else {
+        setSelectedDate(calendarDay.date);
+        onDateSelect?.(calendarDay.dateString);
+      }
+    }, 300); // 300ms para detectar doble clic
+    
+    setClickTimeout(timeout);
+  }, [enableMultipleSelection, selectedMultipleDates, minDate, maxDate, onDateSelect, onAddTask, lastClickedDate, clickTimeout]);
 
   // Obtener color según porcentaje de completación
   const getCompletionColor = useCallback((percentage: number) => {
@@ -684,11 +720,26 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
   return (
     <div className={`max-w-md mx-auto p-4 ${
       isDark ? 'bg-gray-900' : 'bg-gray-50'
-    } min-h-screen transition-colors duration-200`}>
+    } min-h-screen transition-colors duration-200 relative`}>
       <AnimatePresence mode="wait">
         {viewMode === 'month' && renderMonthView()}
         {viewMode === 'day' && renderDayView()}
       </AnimatePresence>
+      
+      {/* Botón flotante para añadir tarea */}
+      {onAddTask && viewMode === 'month' && (
+        <motion.button
+          onClick={() => onAddTask()}
+          className="fixed bottom-20 right-6 w-14 h-14 bg-black text-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 z-50"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Plus size={24} strokeWidth={2.5} />
+        </motion.button>
+      )}
     </div>
   );
 };

@@ -87,9 +87,12 @@ const Index = () => {
   // Verificar si hay una fecha seleccionada del calendario
   useEffect(() => {
     const selectedDate = localStorage.getItem('stebe-selected-date');
-    if (selectedDate) {
-      // Limpiar la fecha seleccionada
+    const shouldOpenModal = localStorage.getItem('stebe-open-add-modal');
+    
+    if (selectedDate || shouldOpenModal) {
+      // Limpiar los flags
       localStorage.removeItem('stebe-selected-date');
+      localStorage.removeItem('stebe-open-add-modal');
       
       // Abrir el modal de agregar tarea con la fecha pre-seleccionada
       setShowModal(true);
