@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import MonthlyCalendar from '@/components/MonthlyCalendar';
+import iPhoneCalendar from '@/components/iPhoneCalendar';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskPersistence } from '@/hooks/useTaskPersistence';
@@ -108,29 +108,48 @@ const MonthlyCalendarPage: React.FC = () => {
     }
   };
 
-  const handleAddTask = () => {
+  const handleAddTask = (date?: string) => {
+    // Si se proporciona una fecha específica, guardarla para el modal
+    if (date) {
+      localStorage.setItem('stebe-selected-date', date);
+    }
     // Guardar preferencia para mostrar modal de agregar tarea
     localStorage.setItem('stebe-view-mode', 'tasks');
     navigate('/');
   };
 
+  const handleDateSelect = (date: string) => {
+    // Guardar la fecha seleccionada para posibles usos futuros
+    localStorage.setItem('stebe-selected-calendar-date', date);
+  };
+
+  const handleShowTaskDetail = (taskId: string) => {
+    // Guardar el ID de la tarea para mostrar detalles
+    localStorage.setItem('stebe-selected-task', taskId);
+    navigate('/');
+  };
+
   return (
     <div className="relative">
-      {/* Botón de regreso */}
+      {/* Botón de regreso - Solo visible en desktop */}
       <motion.button
         onClick={() => navigate('/')}
-        className="absolute top-4 left-4 z-30 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
+        className="hidden md:flex absolute top-4 left-4 z-30 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg items-center justify-center hover:shadow-xl transition-all duration-300"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
-        <ArrowLeft className="w-5 h-5 text-black" />
+        <ArrowLeft className="w-5 h-5 text-black dark:text-white" />
       </motion.button>
       
-      <MonthlyCalendar 
+      {/* Nuevo calendario estilo iPhone */}
+      <iPhoneCalendar 
         tasks={tasks}
         onToggleTask={handleToggleTask}
         onToggleSubtask={handleToggleSubtask}
         onAddTask={handleAddTask}
+        onShowTaskDetail={handleShowTaskDetail}
+        onDateSelect={handleDateSelect}
+        enableMultipleSelection={false}
       />
     </div>
   );
