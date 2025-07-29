@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, CheckCircle, Clock } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -725,20 +725,18 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
         {viewMode === 'day' && renderDayView()}
       </AnimatePresence>
       
-      {/* Botón flotante para añadir tarea */}
-      {onAddTask && viewMode === 'month' && (
-        <motion.button
-          onClick={() => onAddTask()}
-          className="fixed bottom-20 right-6 w-14 h-14 bg-black text-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 z-50"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Plus size={24} strokeWidth={2.5} />
-        </motion.button>
-      )}
+      {/* Botón para volver a la pantalla principal */}
+      <motion.button
+        onClick={() => window.history.back()}
+        className="fixed bottom-20 right-6 w-14 h-14 bg-black text-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 z-50"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <ArrowLeft size={24} strokeWidth={2.5} />
+      </motion.button>
     </div>
   );
 };
