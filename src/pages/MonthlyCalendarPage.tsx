@@ -132,10 +132,10 @@ const MonthlyCalendarPage: React.FC = () => {
 
   return (
     <div className="relative">
-      {/* Botón de regreso - Solo visible en desktop */}
+      {/* Botón de regreso - Visible en todas las pantallas */}
       <motion.button
         onClick={() => navigate('/')}
-        className="hidden md:flex absolute top-4 left-4 z-30 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg items-center justify-center hover:shadow-xl transition-all duration-300"
+        className="absolute top-4 left-4 z-30 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
