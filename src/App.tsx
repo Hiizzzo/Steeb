@@ -10,6 +10,7 @@ import CompletedTasksPage from "./pages/CompletedTasksPage";
 import ImageManager from "./pages/ImageManager";
 import MonthlyCalendarPage from "./pages/MonthlyCalendarPage";
 import IPhoneCalendarDemo from "./pages/iPhoneCalendarDemo";
+import EnhancedCalendarPage from "./pages/EnhancedCalendarPage";
 
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
@@ -44,6 +45,7 @@ const App = () => {
             <Route path="/image-manager" element={<ImageManager />} />
             <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
             <Route path="/iphone-calendar-demo" element={<IPhoneCalendarDemo />} />
+            <Route path="/enhanced-calendar" element={<EnhancedCalendarPage />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
