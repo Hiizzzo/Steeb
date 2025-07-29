@@ -725,18 +725,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
         {viewMode === 'day' && renderDayView()}
       </AnimatePresence>
       
-      {/* Botón para volver a la pantalla principal */}
-      <motion.button
-        onClick={() => window.history.back()}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-black text-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 z-50"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <ArrowLeft size={24} strokeWidth={2.5} />
-      </motion.button>
+
     </div>
   );
 };
