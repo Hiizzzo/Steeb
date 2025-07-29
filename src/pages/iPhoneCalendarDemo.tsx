@@ -289,25 +289,29 @@ const IPhoneCalendarDemo: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${
+    <div className={`min-h-screen transition-colors duration-200 relative ${
       theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
-      {/* Header */}
+      {/* Nuevo botón de volver en la esquina superior izquierda */}
+      <motion.button
+        onClick={() => navigate('/')}
+        className={`absolute top-4 left-4 z-50 w-10 h-10 shadow-lg rounded-full flex items-center justify-center hover:shadow-xl transition-all duration-300 ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <ArrowLeft className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
+      </motion.button>
+
+      {/* Header simplificado sin botón de volver */}
       <div className={`sticky top-0 z-40 px-4 py-4 border-b ${
         theme === 'dark' 
           ? 'bg-gray-900 border-gray-800' 
           : 'bg-white border-gray-200'
       }`}>
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="p-2"
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          
-          <div className="text-center">
+        <div className="flex items-center justify-between max-w-md mx-auto">          
+          <div className="text-center flex-1">
             <h1 className={`text-lg font-semibold ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
