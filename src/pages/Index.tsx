@@ -2,11 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useTaskPersistence } from '@/hooks/useTaskPersistence';
+import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import ModalAddTask from '@/components/ModalAddTask';
+import CalendarView from '@/components/CalendarView';
 import TaskDetailModal from '@/components/TaskDetailModal';
+import SaveStatusIndicator from '@/components/SaveStatusIndicator';
+import AppUpdateNotification from '@/components/AppUpdateNotification';
+
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 
 interface SubTask {
@@ -38,57 +44,74 @@ const Index = () => {
     return phrases[Math.floor(Math.random() * phrases.length)];
   };
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
+  
+  // Usar el hook de persistencia mejorado
+  const { 
+    tasks, 
+    updateTasks, 
+    isLoading: isPersistenceLoading, 
+    lastSaved,
+    hasError,
+    exportTasks,
+    clearCorruptedData,
+    forceReload 
+  } = useTaskPersistence();
 
-  // Cargar tareas desde localStorage
+  // Hook para sincronización con Service Worker
+  const { 
+    isServiceWorkerReady, 
+    lastBackup, 
+    triggerBackup, 
+    triggerRestore 
+  } = useServiceWorkerSync();
+
+  // Cargar preferencia de vista desde localStorage
   useEffect(() => {
-    const savedTasks = localStorage.getItem('stebe-tasks');
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks);
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error('Error loading tasks from localStorage:', error);
-      }
+    const savedViewMode = localStorage.getItem('stebe-view-mode');
+    if (savedViewMode === 'calendar' || savedViewMode === 'tasks') {
+      setViewMode(savedViewMode);
+      // Limpiar la preferencia después de usarla
+      localStorage.removeItem('stebe-view-mode');
     }
   }, []);
 
-  // Guardar tareas en localStorage cuando cambien
-  useEffect(() => {
-    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
-  }, [tasks]);
+  // El hook useTaskPersistence maneja automáticamente la carga y guardado
 
   // Verificar si hay una fecha seleccionada del calendario
   useEffect(() => {
     const selectedDate = localStorage.getItem('stebe-selected-date');
-    if (selectedDate) {
-      // Limpiar la fecha seleccionada
+    const shouldOpenModal = localStorage.getItem('stebe-open-add-modal');
+    
+    if (selectedDate || shouldOpenModal) {
+      // Limpiar los flags
       localStorage.removeItem('stebe-selected-date');
+      localStorage.removeItem('stebe-open-add-modal');
       
       // Abrir el modal de agregar tarea con la fecha pre-seleccionada
       setShowModal(true);
     }
   }, []);
 
-  // Cargar tareas desde localStorage
+  // Backup automático cuando cambian las tareas importantes
   useEffect(() => {
-    const savedTasks = localStorage.getItem('stebe-tasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
+    if (tasks.length > 0 && isServiceWorkerReady) {
+      // Trigger backup when tasks change significantly
+      const timeoutId = setTimeout(() => {
+        triggerBackup().catch(error => {
+          console.warn('⚠️ Auto-backup por cambio de tareas falló:', error);
+        });
+      }, 2000); // Wait 2 seconds after task changes
 
-  // Guardar tareas en localStorage
-  useEffect(() => {
-    localStorage.setItem('stebe-tasks', JSON.stringify(tasks));
-  }, [tasks]);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [tasks.length, isServiceWorkerReady, triggerBackup]);
 
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
@@ -112,8 +135,8 @@ const Index = () => {
         completedDate: !task.completed ? new Date().toISOString() : undefined
       } : task
     );
-    setTasks(updatedTasks);
-    // localStorage se actualizará automáticamente por el useEffect
+    updateTasks(updatedTasks);
+    // Persistencia automática manejada por useTaskPersistence
     
     // Solo reproducir sonido y mostrar toast cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
@@ -143,8 +166,8 @@ const Index = () => {
       }
       return task;
     });
-    setTasks(updatedTasks);
-    // localStorage se actualizará automáticamente por el useEffect
+    updateTasks(updatedTasks);
+    // Persistencia automática manejada por useTaskPersistence
 
     // Verificar si se completó la última subtarea para reproducir sonido
     const task = tasks.find(t => t.id === taskId);
@@ -167,8 +190,8 @@ const Index = () => {
     const taskToDelete = tasks.find(t => t.id === id);
     if (taskToDelete) {
       const updatedTasks = tasks.filter(task => task.id !== id);
-      setTasks(updatedTasks);
-      // localStorage se actualizará automáticamente por el useEffect
+      updateTasks(updatedTasks);
+      // Persistencia automática manejada por useTaskPersistence
       toast({
         title: "Task deleted",
         description: `"${taskToDelete.title}" has been removed from your list.`,
@@ -192,8 +215,8 @@ const Index = () => {
       const updatedTasks = tasks.map(task => 
         task.id === selectedTask.id ? updatedTask : task
       );
-      setTasks(updatedTasks);
-      // localStorage se actualizará automáticamente por el useEffect
+      updateTasks(updatedTasks);
+      // Persistencia automática manejada por useTaskPersistence
       
       toast({
         title: "Tarea actualizada!",
@@ -215,8 +238,8 @@ const Index = () => {
       };
       
       const updatedTasks = [...tasks, newTask];
-      setTasks(updatedTasks);
-      // localStorage se actualizará automáticamente por el useEffect
+      updateTasks(updatedTasks);
+      // Persistencia automática manejada por useTaskPersistence
       
       toast({
         title: "New task added!",
@@ -256,18 +279,18 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen pb-8 relative bg-gray-50" 
+      className="min-h-screen pb-6 relative bg-gray-50" 
       style={{ 
         fontFamily: 'system-ui, -apple-system, sans-serif'
       }}
     >
       
       {/* Imagen de Steve Jobs en la esquina superior izquierda */}
-      <div className="absolute top-4 left-4 z-20">
+      <div className="absolute top-3 left-3 z-20">
         <img 
           src="/lovable-uploads/te obesrvo.png" 
           alt="Steve Jobs" 
-          className="w-24 h-24"
+          className="w-20 h-20"
         />
       </div>
       
@@ -276,51 +299,75 @@ const Index = () => {
       {/* Header */}
       <StebeHeader />
       
-      {/* Lista de Tareas */}
-      <div className="pt-2 max-w-md mx-auto">
-        {todaysTasks.length > 0 ? (
-          todaysTasks
-            .sort((a, b) => {
-              // Tareas no completadas primero, completadas al final
-              if (a.completed && !b.completed) return 1;
-              if (!a.completed && b.completed) return -1;
-              return 0;
-            })
-            .map(task => (
-              <TaskCard
-                key={task.id}
-                id={task.id}
-                title={task.title}
-                type={task.type}
-                completed={task.completed}
-                subtasks={task.subtasks}
-                scheduledDate={task.scheduledDate}
-                scheduledTime={task.scheduledTime}
-                notes={task.notes}
-                onToggle={handleToggleTask}
-                onToggleSubtask={handleToggleSubtask}
-                onDelete={handleDeleteTask}
-                onShowDetail={handleShowDetail}
-              />
-            ))
-        ) : (
-          <div className="text-center py-12 px-4">
-            <p className="text-lg text-gray-600 font-medium">
-              {getRandomNoTasksPhrase()}
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Press the + button to add your first task!
-            </p>
-          </div>
-        )}
+      {/* Save Status Indicator */}
+      <div className="flex justify-center mb-2">
+        <SaveStatusIndicator 
+          lastSaved={lastSaved} 
+          isLoading={isPersistenceLoading}
+          hasError={hasError}
+          isServiceWorkerReady={isServiceWorkerReady}
+          lastBackup={lastBackup}
+        />
       </div>
+      
+      {viewMode === 'tasks' ? (
+        <>
+          {/* Lista de Tareas */}
+          <div className="pt-1 max-w-sm mx-auto px-3">
+            {todaysTasks.length > 0 ? (
+              todaysTasks
+                .sort((a, b) => {
+                  // Tareas no completadas primero, completadas al final
+                  if (a.completed && !b.completed) return 1;
+                  if (!a.completed && b.completed) return -1;
+                  return 0;
+                })
+                .map(task => (
+                  <TaskCard
+                    key={task.id}
+                    id={task.id}
+                    title={task.title}
+                    type={task.type}
+                    completed={task.completed}
+                    subtasks={task.subtasks}
+                    scheduledDate={task.scheduledDate}
+                    scheduledTime={task.scheduledTime}
+                    notes={task.notes}
+                    onToggle={handleToggleTask}
+                    onToggleSubtask={handleToggleSubtask}
+                    onDelete={handleDeleteTask}
+                    onShowDetail={handleShowDetail}
+                  />
+                ))
+            ) : (
+              <div className="text-center py-12 px-4">
+                <p className="text-lg text-gray-600 font-medium">
+                  {getRandomNoTasksPhrase()}
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Press the + button to add your first task!
+                </p>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <CalendarView
+          tasks={tasks}
+          onToggleTask={handleToggleTask}
+          onToggleSubtask={handleToggleSubtask}
+          onAddTask={() => {
+            setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
+            setShowModal(true);
+          }}
+          onDelete={handleDeleteTask}
+          onShowDetail={handleShowDetail}
+        />
+      )}
 
       {/* Floating Buttons */}
       <FloatingButtons 
-        onAddTask={() => {
-          setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
-          setShowModal(true);
-        }}
+        onAddTask={handleAddTask}
       />
 
       {/* Modal para Agregar Tarea */}
@@ -349,6 +396,13 @@ const Index = () => {
         onToggle={handleToggleTask}
         onToggleSubtask={handleToggleSubtask}
         onEdit={handleEditTask}
+      />
+
+      {/* App Update Notification */}
+      <AppUpdateNotification
+        isServiceWorkerReady={isServiceWorkerReady}
+        triggerBackup={triggerBackup}
+        exportTasks={exportTasks}
       />
       </div>
     </div>
