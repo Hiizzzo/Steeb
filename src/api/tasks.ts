@@ -436,6 +436,87 @@ export const createOfflineTasksAPI = (localStorageKey: string = 'stebe-tasks') =
       };
     },
 
+    async updateTask(id: string, updates: Partial<Task>) {
+      try {
+        const response = await tasksAPI.updateTask(id, updates);
+        if (response.success && response.data) {
+          // Update local storage with server response
+          const localTasks = getLocalTasks();
+          const updatedTasks = localTasks.map(task => 
+            task.id === id ? response.data! : task
+          );
+          setLocalTasks(updatedTasks);
+          return response;
+        }
+      } catch (error) {
+        console.warn('API unavailable, updating locally');
+      }
+
+      // Fallback to local storage
+      const localTasks = getLocalTasks();
+      const taskIndex = localTasks.findIndex(task => task.id === id);
+      
+      if (taskIndex === -1) {
+        return {
+          success: false,
+          error: 'Task not found',
+          timestamp: new Date().toISOString(),
+        };
+      }
+
+      const updatedTask = {
+        ...localTasks[taskIndex],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const updatedTasks = [...localTasks];
+      updatedTasks[taskIndex] = updatedTask;
+      setLocalTasks(updatedTasks);
+
+      return {
+        success: true,
+        data: updatedTask,
+        timestamp: new Date().toISOString(),
+      };
+    },
+
+    async deleteTask(id: string) {
+      try {
+        const response = await tasksAPI.deleteTask(id);
+        if (response.success) {
+          // Update local storage
+          const localTasks = getLocalTasks();
+          const updatedTasks = localTasks.filter(task => task.id !== id);
+          setLocalTasks(updatedTasks);
+          return response;
+        }
+      } catch (error) {
+        console.warn('API unavailable, deleting locally');
+      }
+
+      // Fallback to local storage
+      const localTasks = getLocalTasks();
+      const taskExists = localTasks.find(task => task.id === id);
+      
+      if (!taskExists) {
+        return {
+          success: false,
+          error: 'Task not found',
+          timestamp: new Date().toISOString(),
+        };
+      }
+
+      const updatedTasks = localTasks.filter(task => task.id !== id);
+      setLocalTasks(updatedTasks);
+
+      return {
+        success: true,
+        data: { id },
+        timestamp: new Date().toISOString(),
+      };
+    },
+
     // Add more offline methods as needed...
   };
 };
