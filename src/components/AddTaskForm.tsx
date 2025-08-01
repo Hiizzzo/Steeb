@@ -4,7 +4,6 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { Task } from '@/components/TaskItem';
 
 interface AddTaskFormProps {
@@ -16,13 +15,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
   const [description, setDescription] = useState('');
   const [targetTime, setTargetTime] = useState('');
   const { toast } = useToast();
-  const { playButtonClickSound } = useSoundEffects();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Reproducir sonido de click
-    playButtonClickSound();
     
     if (!title.trim()) {
       toast({

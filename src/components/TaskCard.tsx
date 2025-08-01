@@ -190,7 +190,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <div className="relative mb-2">
+    <div className="relative mb-3">
       {/* Fondo negro de eliminación */}
       <div 
         className={`absolute inset-0 bg-black rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
@@ -203,7 +203,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {/* Tarjeta principal */}
       <div 
         ref={cardRef}
-        className={`bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 ease-out transform ${
+        className={`bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 ease-out transform ${
           completed ? 'opacity-40' : 'hover:border-black'
         } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''}`}
         style={{
@@ -221,7 +221,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       >
         <div className="flex items-center justify-between">
           {/* Icono + Texto */}
-          <div className="flex items-center space-x-2 flex-1">
+          <div className="flex items-center space-x-3 flex-1">
             {/* Icono del tipo */}
             <div className={`transition-all duration-300 ${completed ? 'opacity-60' : ''}`}>
               {getTypeIcon()}
@@ -230,7 +230,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             {/* Texto de la tarea y hora */}
             <div className="flex-1">
               <span 
-                className={`text-base font-medium transition-all duration-300 ${
+                className={`text-lg font-medium transition-all duration-300 ${
                   completed 
                     ? 'line-through text-gray-400' 
                     : 'text-black'
@@ -271,7 +271,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         
         {/* Subtareas */}
         {subtasks && subtasks.length > 0 && (
-          <div className="mt-2 ml-6">
+          <div className="mt-3 ml-8">
             {subtasks.map((subtask) => (
               <div 
                 key={subtask.id} 
@@ -309,7 +309,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         
         {/* Etiqueta de notas */}
         {notes && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 mt-2 rounded-r">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 mt-3 rounded-r">
             <div className="flex items-center">
               <FileText size={14} className="text-yellow-600 mr-2 flex-shrink-0" />
               <p className="text-xs text-yellow-800 line-clamp-2">

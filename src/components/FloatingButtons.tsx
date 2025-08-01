@@ -4,21 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
-import { useSoundEffects } from '@/hooks/useSoundEffects';
-
-interface SubTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
 
 interface FloatingButtonsProps {
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  onAddTask: () => void;
 }
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   const navigate = useNavigate();
-  const { playButtonClickSound } = useSoundEffects();
   const [isLongPressed, setIsLongPressed] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -28,9 +20,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
 
   // Handler para iniciar el long press
   const handlePointerDown = (e: React.PointerEvent) => {
-    // Reproducir sonido de click al presionar el botón
-    playButtonClickSound();
-    
     setIsLongPressed(true);
     setShowCalendar(false);
     
@@ -86,9 +75,11 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   };
 
   // Handler para crear tarea desde el modal
-  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+  const handleCreateTask = (taskData: { title: string; notes: string; date?: string; tag?: string }) => {
     setShowTaskModal(false);
-    onAddTask(title, type, subtasks, scheduledDate, scheduledTime, notes);
+    onAddTask(); // Mantener la funcionalidad original
+    // Aquí podrías procesar taskData si necesitas los datos del formulario
+    console.log('Nueva tarea creada:', taskData);
   };
 
   return (
