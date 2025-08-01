@@ -237,7 +237,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 }`}
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
-                {title}
+                {title.trim() || 'Tarea sin título'}
               </span>
               
               {/* Mostrar hora si está disponible */}

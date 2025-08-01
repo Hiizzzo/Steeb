@@ -85,6 +85,16 @@ const Index = () => {
 
   // El hook useTaskPersistence maneja automáticamente la carga y guardado
 
+  // Limpiar tareas con títulos vacíos al cargar
+  useEffect(() => {
+    const tasksWithEmptyTitles = tasks.filter(task => !task.title || !task.title.trim());
+    if (tasksWithEmptyTitles.length > 0) {
+      const cleanedTasks = tasks.filter(task => task.title && task.title.trim());
+      updateTasks(cleanedTasks);
+      console.log(`🧹 Eliminadas ${tasksWithEmptyTitles.length} tareas con títulos vacíos`);
+    }
+  }, [tasks.length]); // Solo ejecutar cuando cambie el número de tareas
+
   // Verificar si hay una fecha seleccionada del calendario
   useEffect(() => {
     const selectedDate = localStorage.getItem('stebe-selected-date');
@@ -201,16 +211,26 @@ const Index = () => {
   };
 
   const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+    // Validar que el título no esté vacío
+    if (!title.trim()) {
+      toast({
+        title: "Error",
+        description: "El título de la tarea no puede estar vacío.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (selectedTask) {
       // Estamos editando una tarea existente
       const updatedTask: Task = {
         ...selectedTask,
-        title,
+        title: title.trim(),
         type,
         subtasks,
         scheduledDate,
         scheduledTime,
-        notes
+        notes: notes?.trim()
       };
       
       const updatedTasks = tasks.map(task => 
@@ -229,13 +249,13 @@ const Index = () => {
       // Estamos creando una nueva tarea
       const newTask: Task = {
         id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        title,
+        title: title.trim(),
         type,
         completed: false,
         subtasks,
         scheduledDate: scheduledDate, // No establecer fecha automáticamente
         scheduledTime,
-        notes
+        notes: notes?.trim()
       };
       
       const updatedTasks = [...tasks, newTask];
@@ -274,6 +294,9 @@ const Index = () => {
   // Filter tasks for today and overdue
   const today = new Date().toISOString().split('T')[0];
   const todaysTasks = tasks.filter(task => {
+    // Filtrar tareas con títulos vacíos o solo espacios en blanco
+    if (!task.title || !task.title.trim()) return false;
+    
     if (!task.scheduledDate) return true; // Show tasks without date as today's
     return task.scheduledDate <= today;
   });
