@@ -1,23 +1,13 @@
-import React, { useState } from 'react';
-import { Calendar, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { useToast } from '@/components/ui/use-toast';
+import { Calendar, Pointer } from 'lucide-react';
 
-// Componente SVG del mouse pointer (mano apuntando)
-const MousePointerIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path 
-      d="M13.64 21.97C13.14 22.16 12.54 21.86 12.31 21.37L10.05 16.3L7.7 18.65C7.31 19.04 6.68 19.04 6.29 18.65L5.35 17.71C4.96 17.32 4.96 16.69 5.35 16.3L7.7 13.95L2.63 11.69C2.14 11.46 1.84 10.86 2.03 10.36L2.97 7.64C3.16 7.14 3.76 6.84 4.26 7.03L21.26 14.03C21.76 14.22 22.06 14.82 21.87 15.32L20.93 18.04C20.74 18.54 20.14 18.84 19.64 18.65L13.64 21.97Z" 
-      fill="white"
-      stroke="black"
-      strokeWidth="1.5"
-    />
-  </svg>
-);
+// Íconos simples para los tipos de tarea
+const PersonalIcon = () => <div className="w-4 h-4 bg-black rounded-full"></div>;
+const WorkIcon = () => <div className="w-4 h-4 bg-black rounded-sm"></div>;
+const MeditationIcon = () => <div className="w-4 h-4 bg-black rounded-full border-2 border-white"></div>;
 
 interface SubTask {
   id: string;
@@ -25,12 +15,24 @@ interface SubTask {
   completed: boolean;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  type: 'personal' | 'work' | 'meditation';
+  completed: boolean;
+  subtasks?: SubTask[];
+  scheduledDate?: string;
+  scheduledTime?: string;
+  notes?: string;
+}
+
 interface TaskCreationCardProps {
   onCancel: () => void;
   onCreate: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  editingTask?: Task | null;
 }
 
-const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate }) => {
+const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate, editingTask }) => {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -39,6 +41,24 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
   const [showTagPicker, setShowTagPicker] = useState(false);
   const { playButtonClickSound } = useSoundEffects();
   const { toast } = useToast();
+
+  // Pre-llenar campos cuando se está editando una tarea
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setNotes(editingTask.notes || '');
+      setSelectedTag(editingTask.type);
+      if (editingTask.scheduledDate) {
+        setSelectedDate(new Date(editingTask.scheduledDate));
+      }
+    } else {
+      // Resetear campos cuando se está creando una nueva tarea
+      setTitle('');
+      setNotes('');
+      setSelectedTag('personal');
+      setSelectedDate(undefined);
+    }
+  }, [editingTask]);
 
   const handleCreate = () => {
     if (title.trim()) {
@@ -55,9 +75,12 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
         notes.trim() || undefined
       );
       
+      // Cerrar el modal después de crear la tarea
+      onCancel();
+      
       toast({
-        title: "¡Tarea creada!",
-        description: "Tu nueva tarea ha sido añadida exitosamente.",
+        title: editingTask ? "¡Tarea actualizada!" : "¡Tarea creada!",
+        description: editingTask ? "Tu tarea ha sido actualizada exitosamente." : "Tu nueva tarea ha sido añadida exitosamente.",
       });
     } else {
       toast({
@@ -76,11 +99,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
     }
   };
 
-  const getTagColor = (tag: 'personal' | 'work' | 'meditation') => {
+  const getTagIcon = (tag: 'personal' | 'work' | 'meditation') => {
     switch (tag) {
-      case 'personal': return 'bg-blue-500';
-      case 'work': return 'bg-green-500';
-      case 'meditation': return 'bg-purple-500';
+      case 'personal': return <PersonalIcon />;
+      case 'work': return <WorkIcon />;
+      case 'meditation': return <MeditationIcon />;
     }
   };
 
@@ -106,12 +129,12 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
             onClick={handleCreate}
             className="flex items-center justify-center w-10 h-10 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
           >
-            <MousePointerIcon />
+            <Pointer size={20} className="text-white" strokeWidth={2} />
           </button>
           
           <button
             onClick={handleCreate}
-            className="text-black hover:text-gray-600 transition-colors font-medium"
+            className="text-black hover:text-gray-600 transition-colors font-bold text-lg"
           >
             Crear
           </button>
@@ -147,46 +170,46 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
 
         {/* Footer */}
         <div className="flex border-t border-gray-100">
-          {/* Date Section */}
+          {/* Date Section - Simplificado */}
           <button 
             onClick={() => setShowDatePicker(!showDatePicker)}
             className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
           >
-            <Calendar size={18} className="text-black" />
+            <Calendar size={20} className="text-black" />
             <span className="font-medium">
-              {selectedDate ? format(selectedDate, "dd MMM", { locale: es }) : "Fecha ..."}
+              {selectedDate ? selectedDate.toLocaleDateString() : "Fecha ..."}
             </span>
           </button>
           
           {/* Divider */}
           <div className="w-px bg-gray-100"></div>
           
-          {/* Tag Section */}
+          {/* Tag Section - Simplificado */}
           <button 
             onClick={() => setShowTagPicker(!showTagPicker)}
             className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
           >
-            <div className={`w-3 h-3 rounded-full ${getTagColor(selectedTag)}`}></div>
+            {getTagIcon(selectedTag)}
             <span className="font-medium">{getTagLabel(selectedTag)}</span>
           </button>
         </div>
 
-        {/* Date Picker */}
+        {/* Date Picker - Simplificado */}
         {showDatePicker && (
           <div className="border-t border-gray-100 p-4 bg-white">
-            <CalendarComponent
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                setSelectedDate(date);
+            <input
+              type="date"
+              value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+              onChange={(e) => {
+                setSelectedDate(e.target.value ? new Date(e.target.value) : undefined);
                 setShowDatePicker(false);
               }}
-              className="rounded-md border mx-auto"
+              className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
         )}
 
-        {/* Tag Picker */}
+        {/* Tag Picker - Simplificado */}
         {showTagPicker && (
           <div className="border-t border-gray-100 bg-white">
             {(['personal', 'work', 'meditation'] as const).map((tag) => (
@@ -198,7 +221,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate 
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
               >
-                <div className={`w-4 h-4 rounded-full ${getTagColor(tag)}`}></div>
+                {getTagIcon(tag)}
                 <span className="text-black font-medium">{getTagLabel(tag)}</span>
                 {selectedTag === tag && (
                   <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>

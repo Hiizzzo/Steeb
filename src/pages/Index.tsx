@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskPersistence } from '@/hooks/useTaskPersistence';
@@ -7,13 +8,13 @@ import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
-import ModalAddTask from '@/components/ModalAddTask';
 import CalendarView from '@/components/CalendarView';
 import TaskDetailModal from '@/components/TaskDetailModal';
-import SaveStatusIndicator from '@/components/SaveStatusIndicator';
+
 import AppUpdateNotification from '@/components/AppUpdateNotification';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
+import TaskCreationCard from '@/components/TaskCreationCard';
 
 interface SubTask {
   id: string;
@@ -227,7 +228,7 @@ const Index = () => {
     } else {
       // Estamos creando una nueva tarea
       const newTask: Task = {
-        id: Date.now().toString(),
+        id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title,
         type,
         completed: false,
@@ -299,17 +300,6 @@ const Index = () => {
       {/* Header */}
       <StebeHeader />
       
-      {/* Save Status Indicator */}
-      <div className="flex justify-center mb-2">
-        <SaveStatusIndicator 
-          lastSaved={lastSaved} 
-          isLoading={isPersistenceLoading}
-          hasError={hasError}
-          isServiceWorkerReady={isServiceWorkerReady}
-          lastBackup={lastBackup}
-        />
-      </div>
-      
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
@@ -370,16 +360,19 @@ const Index = () => {
         onAddTask={handleAddTask}
       />
 
-      {/* Modal para Agregar Tarea */}
-      <ModalAddTask
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setSelectedTask(null); // Limpiar la tarea seleccionada al cerrar
-        }}
-        onAddTask={handleAddTask}
-        editingTask={selectedTask}
-      />
+      {/* Modal para Agregar/Editar Tarea */}
+      <AnimatePresence>
+        {showModal && (
+          <TaskCreationCard
+            onCancel={() => {
+              setShowModal(false);
+              setSelectedTask(null);
+            }}
+            onCreate={handleAddTask}
+            editingTask={selectedTask}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Modal de Configuración de Tareas Diarias */}
       <DailyTasksConfig

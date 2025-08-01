@@ -34,15 +34,15 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
     setIsLongPressed(true);
     setShowCalendar(false);
     
-    // Mostrar loading después de 200ms (más rápido)
+    // Mostrar loading después de 300ms (más tiempo para ver el loading)
     loadingTimer.current = setTimeout(() => {
       setShowCalendar(true);
-    }, 200);
+    }, 300);
     
-    // Mostrar menú de calendarios después de 500ms (más rápido)
+    // Mostrar menú de calendarios después de 800ms (más tiempo para mantener presionado)
     longPressTimer.current = setTimeout(() => {
       setShowCalendarMenu(true);
-    }, 500);
+    }, 800);
   };
 
   // Handler para soltar el botón
@@ -61,8 +61,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
       setShowTaskModal(true);
     }
     
+    // Solo cerrar el estado de long press, pero mantener el menú abierto si ya se mostró
     setIsLongPressed(false);
     setShowCalendar(false);
+    // NO cerramos showCalendarMenu aquí - se mantiene abierto hasta que el usuario haga clic
   };
 
   // Handler para cancelar si el usuario sale del área
@@ -77,7 +79,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
     }
     setIsLongPressed(false);
     setShowCalendar(false);
-    setShowCalendarMenu(false);
+    // Solo cerrar el menú si no se ha abierto completamente
+    if (!showCalendarMenu) {
+      setShowCalendarMenu(false);
+    }
   };
 
   // Handler para crear tarea desde el modal
@@ -108,8 +113,15 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
                   animate={{ scale: 1, rotate: 0 }}
                   exit={{ scale: 0, rotate: 180 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="relative"
                 >
                   <Calendar size={28} className="text-white sm:w-8 sm:h-8" strokeWidth={3} />
+                  {/* Indicador de "mantener presionado" */}
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"
+                  />
                 </motion.div>
               ) : isLongPressed ? (
                 <motion.div
@@ -167,58 +179,37 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
               className="bg-white dark:bg-gray-800 rounded-2xl p-6 mx-4 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-center mb-6 text-gray-800 dark:text-white">
-                Selecciona un Calendario
-              </h3>
-              <div className="space-y-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/enhanced-calendar');
-                  }}
-                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all"
-                >
-                  <Sparkles size={24} />
-                  <div className="text-left">
-                    <div className="font-semibold">Enhanced Calendar</div>
-                    <div className="text-sm opacity-90">Calendario con animaciones avanzadas</div>
-                  </div>
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/monthly-calendar');
-                  }}
-                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all"
-                >
-                  <Calendar size={24} />
-                  <div className="text-left">
-                    <div className="font-semibold">Calendario Mensual</div>
-                    <div className="text-sm opacity-90">Vista tradicional del calendario</div>
-                  </div>
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/iphone-calendar-demo');
-                  }}
-                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all"
-                >
-                  <Calendar size={24} />
-                  <div className="text-left">
-                    <div className="font-semibold">iPhone Calendar</div>
-                    <div className="text-sm opacity-90">Estilo iOS nativo</div>
-                  </div>
-                </motion.button>
-              </div>
+                             <div className="flex justify-between items-center mb-6">
+                 <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                   🗓️ Selecciona un Calendario
+                 </h3>
+                 <button
+                   onClick={() => setShowCalendarMenu(false)}
+                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
+                 >
+                   ×
+                 </button>
+               </div>
+               <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
+                 Mantén presionado el botón + para ver este menú
+               </p>
+                             <div className="space-y-3">
+                 <motion.button
+                   whileHover={{ scale: 1.02 }}
+                   whileTap={{ scale: 0.95 }}
+                   onClick={() => {
+                     setShowCalendarMenu(false);
+                     navigate('/monthly-calendar');
+                   }}
+                                       className="w-full flex items-center gap-3 p-4 bg-black dark:bg-white text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
+                 >
+                   <Sparkles size={24} />
+                   <div className="text-left">
+                     <div className="font-semibold">Calendario</div>
+                     <div className="text-sm opacity-90">Calendario unificado con animaciones y funcionalidad completa</div>
+                   </div>
+                 </motion.button>
+               </div>
             </motion.div>
           </motion.div>
         )}
