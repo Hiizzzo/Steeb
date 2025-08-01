@@ -132,6 +132,13 @@ export const useTaskStore = create<TaskStore>()(
         },
 
         addTask: async (taskData) => {
+          // Validar que el título no esté vacío
+          if (!taskData.title || !taskData.title.trim()) {
+            console.warn('🚫 Intento de crear tarea con título vacío bloqueado en el store');
+            set({ isLoading: false, error: 'El título de la tarea no puede estar vacío' });
+            return;
+          }
+
           set({ isLoading: true, error: null });
           
           try {
@@ -140,6 +147,7 @@ export const useTaskStore = create<TaskStore>()(
             const optimisticTask: Task = {
               ...taskData,
               id: tempId,
+              title: taskData.title.trim(),
               status: taskData.status || 'pending',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
