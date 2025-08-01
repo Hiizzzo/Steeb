@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
-import { useTaskPersistence } from '@/hooks/useTaskPersistence';
+import { useTaskStore } from '@/store/useTaskStore';
 import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
-import CalendarView from '@/components/CalendarView';
+
 import TaskDetailModal from '@/components/TaskDetailModal';
 
 import AppUpdateNotification from '@/components/AppUpdateNotification';
@@ -53,17 +53,17 @@ const Index = () => {
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
   
-  // Usar el hook de persistencia mejorado
+  // Usar el store de tareas
   const { 
     tasks, 
-    updateTasks, 
+    setTasks: updateTasks, 
     isLoading: isPersistenceLoading, 
-    lastSaved,
-    hasError,
-    exportTasks,
-    clearCorruptedData,
-    forceReload 
-  } = useTaskPersistence();
+    addTask,
+    updateTask,
+    deleteTask,
+    toggleTask,
+    toggleSubtask
+  } = useTaskStore();
 
   // Hook para sincronización con Service Worker
   const { 
@@ -342,17 +342,9 @@ const Index = () => {
           </div>
         </>
       ) : (
-        <CalendarView
-          tasks={tasks}
-          onToggleTask={handleToggleTask}
-          onToggleSubtask={handleToggleSubtask}
-          onAddTask={() => {
-            setSelectedTask(null); // Limpiar tarea seleccionada para crear nueva
-            setShowModal(true);
-          }}
-          onDelete={handleDeleteTask}
-          onShowDetail={handleShowDetail}
-        />
+        <div className="text-center py-12">
+          <p className="text-lg text-gray-600">Vista de calendario no implementada</p>
+        </div>
       )}
 
       {/* Floating Buttons */}
@@ -395,7 +387,10 @@ const Index = () => {
       <AppUpdateNotification
         isServiceWorkerReady={isServiceWorkerReady}
         triggerBackup={triggerBackup}
-        exportTasks={exportTasks}
+                  exportTasks={() => {
+            // Función placeholder para exportar tareas
+            console.log('Exportar tareas');
+          }}
       />
       </div>
     </div>

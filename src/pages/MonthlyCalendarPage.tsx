@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Clock, Plu
 import { useTheme } from 'next-themes';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
-import { useTaskPersistence } from '@/hooks/useTaskPersistence';
+import { useTaskStore } from '@/store/useTaskStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -72,9 +72,9 @@ const MonthlyCalendarPage: React.FC = () => {
   
   const { 
     tasks, 
-    updateTasks, 
+    setTasks: updateTasks, 
     isLoading: isPersistenceLoading 
-  } = useTaskPersistence();
+  } = useTaskStore();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
