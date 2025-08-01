@@ -233,11 +233,8 @@ const Index = () => {
         notes: notes?.trim()
       };
       
-      const updatedTasks = tasks.map(task => 
-        task.id === selectedTask.id ? updatedTask : task
-      );
-      updateTasks(updatedTasks);
-      // Persistencia automática manejada por useTaskPersistence
+      // Usar updateTask del store en lugar de updateTasks directamente
+      updateTask(selectedTask.id, updatedTask).catch(console.error);
       
       toast({
         title: "Tarea actualizada!",
@@ -247,8 +244,7 @@ const Index = () => {
       setSelectedTask(null); // Limpiar la tarea seleccionada después de editar
     } else {
       // Estamos creando una nueva tarea
-      const newTask: Task = {
-        id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      const newTaskData = {
         title: title.trim(),
         type,
         completed: false,
@@ -258,9 +254,8 @@ const Index = () => {
         notes: notes?.trim()
       };
       
-      const updatedTasks = [...tasks, newTask];
-      updateTasks(updatedTasks);
-      // Persistencia automática manejada por useTaskPersistence
+      // Usar addTask del store en lugar de updateTasks directamente
+      addTask(newTaskData).catch(console.error);
       
       toast({
         title: "New task added!",
