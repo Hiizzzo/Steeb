@@ -16,23 +16,8 @@ import AppUpdateNotification from '@/components/AppUpdateNotification';
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 import TaskCreationCard from '@/components/TaskCreationCard';
 
-interface SubTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  type: 'personal' | 'work' | 'meditation';
-  completed: boolean;
-  subtasks?: SubTask[];
-  scheduledDate?: string;
-  scheduledTime?: string;
-  completedDate?: string;
-  notes?: string; // Notas adicionales de la tarea
-}
+// Import centralized types
+import { Task, SubTask } from '@/types';
 
 const Index = () => {
   // Random phrases for when there are no tasks
@@ -210,7 +195,7 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+  const handleAddTask = async (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     // Validar que el título no esté vacío
     if (!title.trim()) {
       toast({
@@ -223,49 +208,54 @@ const Index = () => {
 
     if (selectedTask) {
       // Estamos editando una tarea existente
-      const updatedTask: Task = {
-        ...selectedTask,
-        title: title.trim(),
-        type,
-        subtasks,
-        scheduledDate,
-        scheduledTime,
-        notes: notes?.trim()
-      };
-      
-      const updatedTasks = tasks.map(task => 
-        task.id === selectedTask.id ? updatedTask : task
-      );
-      updateTasks(updatedTasks);
-      // Persistencia automática manejada por useTaskPersistence
-      
-      toast({
-        title: "Tarea actualizada!",
-        description: "Los cambios han sido guardados.",
-      });
-      
-      setSelectedTask(null); // Limpiar la tarea seleccionada después de editar
+      try {
+        await updateTask(selectedTask.id, {
+          title: title.trim(),
+          type,
+          subtasks,
+          scheduledDate,
+          scheduledTime,
+          notes: notes?.trim()
+        });
+        
+        toast({
+          title: "Tarea actualizada!",
+          description: "Los cambios han sido guardados.",
+        });
+        
+        setSelectedTask(null); // Limpiar la tarea seleccionada después de editar
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo actualizar la tarea.",
+          variant: "destructive",
+        });
+      }
     } else {
       // Estamos creando una nueva tarea
-      const newTask: Task = {
-        id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        title: title.trim(),
-        type,
-        completed: false,
-        subtasks,
-        scheduledDate: scheduledDate, // No establecer fecha automáticamente
-        scheduledTime,
-        notes: notes?.trim()
-      };
-      
-      const updatedTasks = [...tasks, newTask];
-      updateTasks(updatedTasks);
-      // Persistencia automática manejada por useTaskPersistence
-      
-      toast({
-        title: "New task added!",
-        description: "Your task has been added to the list.",
-      });
+      try {
+        await addTask({
+          title: title.trim(),
+          type,
+          status: 'pending',
+          completed: false,
+          subtasks,
+          scheduledDate: scheduledDate, // No establecer fecha automáticamente
+          scheduledTime,
+          notes: notes?.trim()
+        });
+        
+        toast({
+          title: "New task added!",
+          description: "Your task has been added to the list.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo crear la tarea.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

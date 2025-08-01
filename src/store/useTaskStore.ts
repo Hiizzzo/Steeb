@@ -5,7 +5,10 @@
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { Task, TaskFilters, TaskStats, SyncStatus } from '@/types';
-import { tasksAPI } from '@/api/tasks';
+import { tasksAPI, createOfflineTasksAPI } from '@/api/tasks';
+
+// Use offline API for now until backend is fully implemented
+const api = createOfflineTasksAPI('stebe-tasks');
 
 interface TaskStore {
   // ========== STATE ==========
@@ -159,7 +162,7 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             // API call
-            const response = await tasksAPI.createTask(taskData);
+            const response = await api.createTask(taskData);
             
             if (response.success && response.data) {
               // Replace optimistic task with real task
@@ -206,7 +209,7 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             // API call
-            const response = await tasksAPI.updateTask(id, updates);
+            const response = await api.updateTask(id, updates);
             
             if (response.success && response.data) {
               set(state => ({
@@ -253,7 +256,7 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             // API call
-            const response = await tasksAPI.deleteTask(id);
+            const response = await api.deleteTask(id);
             
             if (response.success) {
               set(state => ({
@@ -453,7 +456,7 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            const response = await tasksAPI.getTasks(get().filters);
+            const response = await api.getTasks(get().filters);
             
             if (response.success && response.data) {
               set({ 
