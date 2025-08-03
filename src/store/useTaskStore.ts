@@ -135,146 +135,86 @@ export const useTaskStore = create<TaskStore>()(
           // Validar que el título no esté vacío
           if (!taskData.title || !taskData.title.trim()) {
             console.warn('🚫 Intento de crear tarea con título vacío bloqueado en el store');
-            set({ isLoading: false, error: 'El título de la tarea no puede estar vacío' });
+            set({ error: 'El título de la tarea no puede estar vacío' });
             return;
           }
 
-          set({ isLoading: true, error: null });
-          
           try {
-            // Optimistic update
-            const tempId = `temp-${Date.now()}`;
-            const optimisticTask: Task = {
+            // Crear nueva tarea directamente en localStorage
+            const newTask: Task = {
               ...taskData,
-              id: tempId,
+              id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               title: taskData.title.trim(),
               status: taskData.status || 'pending',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
             
+            console.log('✅ Creando nueva tarea:', newTask.title);
+            
             set(state => ({
-              tasks: [...state.tasks, optimisticTask],
-              syncStatus: { ...state.syncStatus, pendingChanges: state.syncStatus.pendingChanges + 1 }
+              tasks: [...state.tasks, newTask],
+              error: null
             }));
             
-            // API call
-            const response = await tasksAPI.createTask(taskData);
-            
-            if (response.success && response.data) {
-              // Replace optimistic task with real task
-              set(state => ({
-                tasks: state.tasks.map(task => 
-                  task.id === tempId ? response.data! : task
-                ),
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - 1) }
-              }));
-            } else {
-              // Remove optimistic task on failure
-              set(state => ({
-                tasks: state.tasks.filter(task => task.id !== tempId),
-                error: response.error || 'Failed to create task',
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - 1) }
-              }));
-            }
-          } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Failed to create task',
-              syncStatus: { ...get().syncStatus, hasError: true }
-            });
-          } finally {
-            set({ isLoading: false });
             get().calculateStats();
+            console.log('✅ Tarea añadida exitosamente al store');
+          } catch (error) {
+            console.error('❌ Error al crear tarea:', error);
+            set({ 
+              error: error instanceof Error ? error.message : 'Failed to create task'
+            });
           }
         },
 
         updateTask: async (id, updates) => {
-          set({ isLoading: true, error: null });
-          
           try {
-            // Optimistic update
             const previousTask = get().tasks.find(task => task.id === id);
             if (!previousTask) {
               throw new Error('Task not found');
             }
             
+            console.log('✅ Actualizando tarea:', id);
+            
             set(state => ({
               tasks: state.tasks.map(task =>
                 task.id === id ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
               ),
-              syncStatus: { ...state.syncStatus, pendingChanges: state.syncStatus.pendingChanges + 1 }
+              error: null
             }));
             
-            // API call
-            const response = await tasksAPI.updateTask(id, updates);
-            
-            if (response.success && response.data) {
-              set(state => ({
-                tasks: state.tasks.map(task => 
-                  task.id === id ? response.data! : task
-                ),
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - 1) }
-              }));
-            } else {
-              // Revert optimistic update on failure
-              set(state => ({
-                tasks: state.tasks.map(task => 
-                  task.id === id ? previousTask : task
-                ),
-                error: response.error || 'Failed to update task',
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - 1) }
-              }));
-            }
-          } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Failed to update task',
-              syncStatus: { ...get().syncStatus, hasError: true }
-            });
-          } finally {
-            set({ isLoading: false });
             get().calculateStats();
+            console.log('✅ Tarea actualizada exitosamente');
+          } catch (error) {
+            console.error('❌ Error al actualizar tarea:', error);
+            set({ 
+              error: error instanceof Error ? error.message : 'Failed to update task'
+            });
           }
         },
 
         deleteTask: async (id) => {
-          set({ isLoading: true, error: null });
-          
           try {
-            // Optimistic update
             const taskToDelete = get().tasks.find(task => task.id === id);
             if (!taskToDelete) {
               throw new Error('Task not found');
             }
             
+            console.log('✅ Eliminando tarea:', taskToDelete.title);
+            
             set(state => ({
               tasks: state.tasks.filter(task => task.id !== id),
               selectedTaskIds: state.selectedTaskIds.filter(taskId => taskId !== id),
-              syncStatus: { ...state.syncStatus, pendingChanges: state.syncStatus.pendingChanges + 1 }
+              error: null
             }));
             
-            // API call
-            const response = await tasksAPI.deleteTask(id);
-            
-            if (response.success) {
-              set(state => ({
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - 1) }
-              }));
-            } else {
-              // Restore task on failure
-              set(state => ({
-                tasks: [...state.tasks, taskToDelete],
-                error: response.error || 'Failed to delete task',
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - 1) }
-              }));
-            }
-          } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Failed to delete task',
-              syncStatus: { ...get().syncStatus, hasError: true }
-            });
-          } finally {
-            set({ isLoading: false });
             get().calculateStats();
+            console.log('✅ Tarea eliminada exitosamente');
+          } catch (error) {
+            console.error('❌ Error al eliminar tarea:', error);
+            set({ 
+              error: error instanceof Error ? error.message : 'Failed to delete task'
+            });
           }
         },
 
@@ -367,7 +307,7 @@ export const useTaskStore = create<TaskStore>()(
           const task = get().tasks.find(t => t.id === id);
           if (!task) return;
           
-          await get().updateTask(id, {
+          get().updateTask(id, {
             completed: !task.completed,
             status: !task.completed ? 'completed' : 'pending',
             completedDate: !task.completed ? new Date().toISOString() : undefined,
@@ -375,7 +315,7 @@ export const useTaskStore = create<TaskStore>()(
         },
 
         completeTask: async (id) => {
-          await get().updateTask(id, {
+          get().updateTask(id, {
             completed: true,
             status: 'completed',
             completedDate: new Date().toISOString(),
@@ -397,7 +337,7 @@ export const useTaskStore = create<TaskStore>()(
           // Check if all subtasks are completed
           const allCompleted = updatedSubtasks.every(subtask => subtask.completed);
           
-          await get().updateTask(taskId, {
+          get().updateTask(taskId, {
             subtasks: updatedSubtasks,
             completed: allCompleted,
             status: allCompleted ? 'completed' : task.status,
@@ -418,7 +358,7 @@ export const useTaskStore = create<TaskStore>()(
           
           const updatedSubtasks = [...(task.subtasks || []), newSubtask];
           
-          await get().updateTask(taskId, {
+          get().updateTask(taskId, {
             subtasks: updatedSubtasks,
           });
         },
@@ -431,7 +371,7 @@ export const useTaskStore = create<TaskStore>()(
             subtask.id === subtaskId ? { ...subtask, ...updates } : subtask
           );
           
-          await get().updateTask(taskId, {
+          get().updateTask(taskId, {
             subtasks: updatedSubtasks,
           });
         },
@@ -442,7 +382,7 @@ export const useTaskStore = create<TaskStore>()(
           
           const updatedSubtasks = task.subtasks.filter(subtask => subtask.id !== subtaskId);
           
-          await get().updateTask(taskId, {
+          get().updateTask(taskId, {
             subtasks: updatedSubtasks,
           });
         },
@@ -450,28 +390,16 @@ export const useTaskStore = create<TaskStore>()(
         // ========== DATA LOADING ==========
 
         loadTasks: async () => {
-          set({ isLoading: true, error: null });
-          
           try {
-            const response = await tasksAPI.getTasks(get().filters);
-            
-            if (response.success && response.data) {
-              set({ 
-                tasks: response.data.tasks,
-                lastSync: new Date().toISOString(),
-                syncStatus: { ...get().syncStatus, lastSync: new Date().toISOString(), hasError: false }
-              });
-            } else {
-              set({ error: response.error || 'Failed to load tasks' });
-            }
-          } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Failed to load tasks',
-              syncStatus: { ...get().syncStatus, hasError: true }
-            });
-          } finally {
-            set({ isLoading: false });
+            // Las tareas ya están cargadas desde localStorage por el middleware persist
+            // Solo necesitamos calcular las estadísticas
             get().calculateStats();
+            console.log('✅ Tareas cargadas desde localStorage');
+          } catch (error) {
+            console.error('❌ Error al cargar tareas:', error);
+            set({ 
+              error: error instanceof Error ? error.message : 'Failed to load tasks'
+            });
           }
         },
 
@@ -669,45 +597,8 @@ export const useTaskStore = create<TaskStore>()(
         // ========== SYNC OPERATIONS ==========
 
         syncWithServer: async () => {
-          set(state => ({
-            syncStatus: { ...state.syncStatus, syncInProgress: true }
-          }));
-          
-          try {
-            const response = await tasksAPI.syncTasks(get().tasks);
-            
-            if (response.success && response.data) {
-              set({
-                tasks: response.data.updated,
-                lastSync: response.data.lastSync,
-                syncStatus: {
-                  ...get().syncStatus,
-                  syncInProgress: false,
-                  lastSync: response.data.lastSync,
-                  pendingChanges: 0,
-                  hasError: false,
-                }
-              });
-            } else {
-              set(state => ({
-                syncStatus: {
-                  ...state.syncStatus,
-                  syncInProgress: false,
-                  hasError: true,
-                  errorMessage: response.error || 'Sync failed',
-                }
-              }));
-            }
-          } catch (error) {
-            set(state => ({
-              syncStatus: {
-                ...state.syncStatus,
-                syncInProgress: false,
-                hasError: true,
-                errorMessage: error instanceof Error ? error.message : 'Sync failed',
-              }
-            }));
-          }
+          // Sync is now handled by localStorage persistence
+          console.log('✅ Sync with localStorage - no server needed');
         },
 
         setSyncStatus: (status) => {
