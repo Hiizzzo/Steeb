@@ -211,8 +211,11 @@ const Index = () => {
   };
 
   const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+    console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes });
+    
     // Validar que el título no esté vacío
     if (!title.trim()) {
+      console.log('❌ Index.tsx: Título vacío detectado');
       toast({
         title: "Error",
         description: "El título de la tarea no puede estar vacío.",
@@ -254,8 +257,12 @@ const Index = () => {
         notes: notes?.trim()
       };
       
+      console.log('🆕 Index.tsx: Creando nueva tarea con datos:', newTaskData);
+      
       // Usar addTask del store en lugar de updateTasks directamente
-      addTask(newTaskData).catch(console.error);
+      addTask(newTaskData).catch((error) => {
+        console.error('❌ Index.tsx: Error al crear tarea:', error);
+      });
       
       toast({
         title: "New task added!",
@@ -367,7 +374,8 @@ const Index = () => {
 
       {/* Floating Buttons */}
       <FloatingButtons 
-        onAddTask={handleAddTask}
+        onAddTask={() => setShowModal(true)}
+        onCreateTask={handleAddTask}
       />
 
       {/* Modal para Agregar/Editar Tarea */}

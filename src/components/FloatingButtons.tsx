@@ -7,9 +7,10 @@ import TaskCreationCard from './TaskCreationCard';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
+  onCreateTask?: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
 }
 
-const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
+const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTask }) => {
   const navigate = useNavigate();
   const [isLongPressed, setIsLongPressed] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -75,11 +76,18 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask }) => {
   };
 
   // Handler para crear tarea desde el modal
-  const handleCreateTask = (taskData: { title: string; notes: string; date?: string; tag?: string }) => {
+  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     setShowTaskModal(false);
-    onAddTask(); // Mantener la funcionalidad original
-    // Aquí podrías procesar taskData si necesitas los datos del formulario
-    console.log('Nueva tarea creada:', taskData);
+    
+    // Si tenemos la función onCreateTask, la usamos para crear la tarea directamente
+    if (onCreateTask) {
+      console.log('🎯 Creando tarea desde FloatingButtons:', { title, type, scheduledDate, notes });
+      onCreateTask(title, type, subtasks, scheduledDate, scheduledTime, notes);
+    } else {
+      // Fallback: abrir el modal principal
+      console.log('⚠️ No se encontró onCreateTask, abriendo modal principal');
+      onAddTask();
+    }
   };
 
   return (
