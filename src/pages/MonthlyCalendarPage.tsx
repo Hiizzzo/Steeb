@@ -8,6 +8,7 @@ import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import ModalAddTask from '@/components/ModalAddTask';
 
 // Configuración de animaciones para Stebe
 const ANIMATION_CONFIG = {
@@ -516,120 +517,16 @@ const MonthlyCalendarPage: React.FC = () => {
           </AnimatePresence>
                  )}
 
-         {/* Modal de Agregar Tarea Simplificado */}
-         <AnimatePresence>
-           {showAddTaskModal && (
-             <motion.div
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-               onClick={() => {
-                 setShowAddTaskModal(false);
-                 setSelectedDateForTask(null);
-                 localStorage.removeItem('stebe-selected-date');
-               }}
-             >
-               <motion.div
-                 initial={{ scale: 0.8, opacity: 0 }}
-                 animate={{ scale: 1, opacity: 1 }}
-                 exit={{ scale: 0.8, opacity: 0 }}
-                 className="bg-white dark:bg-black rounded-xl p-6 w-full max-w-md shadow-2xl"
-                 onClick={(e) => e.stopPropagation()}
-               >
-                 <div className="flex justify-between items-center mb-4">
-                   <h2 className="text-xl font-bold text-black dark:text-white">
-                     ✨ Nueva Tarea
-                   </h2>
-                   <button
-                     onClick={() => {
-                       setShowAddTaskModal(false);
-                       setSelectedDateForTask(null);
-                       localStorage.removeItem('stebe-selected-date');
-                     }}
-                     className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
-                   >
-                     ×
-                   </button>
-                 </div>
-
-                 <div className="space-y-4">
-                   <div>
-                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                       Título de la tarea
-                     </label>
-                     <input
-                       type="text"
-                       id="taskTitle"
-                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                       placeholder="Escribe el título de tu tarea..."
-                     />
-                   </div>
-
-                   <div>
-                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                       Tipo de tarea
-                     </label>
-                     <select
-                       id="taskType"
-                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                     >
-                       <option value="personal">Personal</option>
-                       <option value="work">Trabajo</option>
-                       <option value="meditation">Meditación</option>
-                     </select>
-                   </div>
-
-                   {selectedDateForTask && (
-                     <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                         📅 Fecha seleccionada: {new Date(selectedDateForTask).toLocaleDateString('es-ES')}
-                       </p>
-                     </div>
-                   )}
-
-                   <div className="flex gap-3 pt-4">
-                     <button
-                       onClick={() => {
-                         setShowAddTaskModal(false);
-                         setSelectedDateForTask(null);
-                         localStorage.removeItem('stebe-selected-date');
-                       }}
-                       className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                     >
-                       Cancelar
-                     </button>
-                     <button
-                       onClick={() => {
-                         const titleInput = document.getElementById('taskTitle') as HTMLInputElement;
-                         const typeInput = document.getElementById('taskType') as HTMLSelectElement;
-                         
-                         if (titleInput && typeInput && titleInput.value.trim()) {
-                           handleCreateTask(
-                             titleInput.value.trim(),
-                             typeInput.value as 'personal' | 'work' | 'meditation',
-                             undefined,
-                             selectedDateForTask || undefined,
-                             undefined,
-                             undefined
-                           );
-                         } else {
-                           toast({
-                             title: "Campo requerido",
-                             description: "Por favor, ingresa el título de la tarea.",
-                           });
-                         }
-                       }}
-                       className="flex-1 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                     >
-                       Crear Tarea
-                     </button>
-                   </div>
-                 </div>
-               </motion.div>
-             </motion.div>
-           )}
-         </AnimatePresence>
+                 {/* Modal de Agregar Tarea usando ModalAddTask */}
+        <ModalAddTask
+          isOpen={showAddTaskModal}
+          onClose={() => {
+            setShowAddTaskModal(false);
+            setSelectedDateForTask(null);
+            localStorage.removeItem('stebe-selected-date');
+          }}
+          onAddTask={handleCreateTask}
+        />
        </div>
     </div>
   );
