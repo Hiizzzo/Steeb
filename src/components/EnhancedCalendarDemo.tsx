@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Sun, Moon, Sparkles, Calendar, CheckCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
 import EnhancedCalendar from './EnhancedCalendar';
-import ModalAddTask from './ModalAddTask';
+import TaskCreationCard from './TaskCreationCard';
 
 // Datos de ejemplo para demostrar el calendario
 const mockTasks = [
@@ -100,7 +100,7 @@ const EnhancedCalendarDemo: React.FC = () => {
   });
   
   // Estado para el modal de agregar tarea
-  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [showTaskCreation, setShowTaskCreation] = useState(false);
   const [selectedDateForTask, setSelectedDateForTask] = useState<string | null>(null);
 
   const isDark = theme === 'dark';
@@ -119,7 +119,13 @@ const EnhancedCalendarDemo: React.FC = () => {
       localStorage.setItem('stebe-selected-date', date);
     }
     setSelectedDateForTask(date || null);
-    setShowAddTaskModal(true);
+    setShowTaskCreation(true);
+  };
+
+  const handleCancelTaskCreation = () => {
+    setShowTaskCreation(false);
+    setSelectedDateForTask(null);
+    localStorage.removeItem('stebe-selected-date');
   };
 
   const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
@@ -134,7 +140,7 @@ const EnhancedCalendarDemo: React.FC = () => {
       subtasks
     };
     setTasks(prev => [...prev, newTask]);
-    setShowAddTaskModal(false);
+    setShowTaskCreation(false);
     setSelectedDateForTask(null);
     localStorage.removeItem('stebe-selected-date');
   };
@@ -519,16 +525,29 @@ const EnhancedCalendarDemo: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Modal de Agregar Tarea */}
-      <ModalAddTask
-        isOpen={showAddTaskModal}
-        onClose={() => {
-          setShowAddTaskModal(false);
-          setSelectedDateForTask(null);
-          localStorage.removeItem('stebe-selected-date');
-        }}
-        onAddTask={handleCreateTask}
-      />
+      {/* TaskCreationCard para agregar tareas */}
+      <AnimatePresence>
+        {showTaskCreation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+            >
+              <TaskCreationCard
+                onCancel={handleCancelTaskCreation}
+                onCreate={handleCreateTask}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
