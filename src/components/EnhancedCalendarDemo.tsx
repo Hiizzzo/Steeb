@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
 import EnhancedCalendar from './EnhancedCalendar';
+import ModalAddTask from './ModalAddTask';
 
 // Datos de ejemplo para demostrar el calendario
 const mockTasks = [
@@ -97,6 +98,10 @@ const EnhancedCalendarDemo: React.FC = () => {
     autoDetectTheme: true,
     enableMultipleSelection: false
   });
+  
+  // Estado para el modal de agregar tarea
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [selectedDateForTask, setSelectedDateForTask] = useState<string | null>(null);
 
   const isDark = theme === 'dark';
 
@@ -110,15 +115,28 @@ const EnhancedCalendarDemo: React.FC = () => {
   };
 
   const handleAddTask = (date?: string) => {
+    if (date) {
+      localStorage.setItem('stebe-selected-date', date);
+    }
+    setSelectedDateForTask(date || null);
+    setShowAddTaskModal(true);
+  };
+
+  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
     const newTask = {
       id: Date.now().toString(),
-      title: `Nueva tarea para ${date}`,
-      type: 'personal' as const,
+      title,
+      type,
       completed: false,
-      scheduledDate: date || new Date().toISOString().split('T')[0],
-      scheduledTime: '12:00'
+      scheduledDate: scheduledDate || selectedDateForTask || new Date().toISOString().split('T')[0],
+      scheduledTime,
+      notes,
+      subtasks
     };
     setTasks(prev => [...prev, newTask]);
+    setShowAddTaskModal(false);
+    setSelectedDateForTask(null);
+    localStorage.removeItem('stebe-selected-date');
   };
 
   const handleDateSelect = (date: string) => {
@@ -500,6 +518,17 @@ const EnhancedCalendarDemo: React.FC = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Modal de Agregar Tarea */}
+      <ModalAddTask
+        isOpen={showAddTaskModal}
+        onClose={() => {
+          setShowAddTaskModal(false);
+          setSelectedDateForTask(null);
+          localStorage.removeItem('stebe-selected-date');
+        }}
+        onAddTask={handleCreateTask}
+      />
     </div>
   );
 };
