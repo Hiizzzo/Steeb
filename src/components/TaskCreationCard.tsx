@@ -62,10 +62,19 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
   const handleCreate = () => {
     if (title.trim()) {
+      console.log('📝 TaskCreationCard: Iniciando creación de tarea...');
+      console.log('📝 Datos de la tarea:', { 
+        title: title.trim(), 
+        selectedTag, 
+        scheduledDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
+        notes: notes.trim() || undefined 
+      });
+      
       playButtonClickSound();
       
       const scheduledDate = selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
       
+      console.log('📝 TaskCreationCard: Llamando a onCreate...');
       onCreate(
         title.trim(), 
         selectedTag, 
