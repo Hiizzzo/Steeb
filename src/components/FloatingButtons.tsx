@@ -21,8 +21,14 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
 
   // Handler para iniciar el long press
   const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault(); // Prevenir comportamientos por defecto
+    e.stopPropagation(); // Prevenir propagación del evento
     setIsLongPressed(true);
     setShowCalendar(false);
+    
+    // Prevenir selección de texto en toda la página durante el long press
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
     
     // Mostrar loading después de 300ms (más tiempo para ver el loading)
     loadingTimer.current = setTimeout(() => {
@@ -35,8 +41,23 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     }, 800);
   };
 
+  // Handler para eventos touch (fallback para mejor compatibilidad móvil)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Simular el comportamiento de pointerdown para touch events
+    const syntheticEvent = {
+      preventDefault: () => e.preventDefault(),
+      stopPropagation: () => e.stopPropagation()
+    } as React.PointerEvent;
+    handlePointerDown(syntheticEvent);
+  };
+
   // Handler para soltar el botón
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
+    e.preventDefault(); // Prevenir comportamientos por defecto
+    e.stopPropagation(); // Prevenir propagación del evento
+    
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
@@ -45,6 +66,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
       clearTimeout(loadingTimer.current);
       loadingTimer.current = null;
     }
+    
+    // Restaurar selección de texto
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
     
     // Si no fue long press completo, abrir modal de tarea
     if (!showCalendar && !showCalendarMenu) {
@@ -57,8 +82,19 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     // NO cerramos showCalendarMenu aquí - se mantiene abierto hasta que el usuario haga clic
   };
 
+  // Handler para touch end
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const syntheticEvent = {
+      preventDefault: () => e.preventDefault(),
+      stopPropagation: () => e.stopPropagation()
+    } as React.PointerEvent;
+    handlePointerUp(syntheticEvent);
+  };
+
   // Handler para cancelar si el usuario sale del área
-  const handlePointerLeave = () => {
+  const handlePointerLeave = (e: React.PointerEvent) => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
@@ -67,6 +103,11 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
       clearTimeout(loadingTimer.current);
       loadingTimer.current = null;
     }
+    
+    // Restaurar selección de texto
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
+    
     setIsLongPressed(false);
     setShowCalendar(false);
     // Solo cerrar el menú si no se ha abierto completamente
@@ -74,6 +115,32 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
       setShowCalendarMenu(false);
     }
   };
+
+  // Handler para touch cancel/leave
+  const handleTouchCancel = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const syntheticEvent = {
+      preventDefault: () => e.preventDefault(),
+      stopPropagation: () => e.stopPropagation()
+    } as React.PointerEvent;
+    handlePointerLeave(syntheticEvent);
+  };
+
+  // Handler para prevenir menú contextual que puede interferir
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  // Limpiar estilos al desmontar el componente
+  useEffect(() => {
+    return () => {
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+    };
+  }, []);
 
   // Handler para crear tarea desde el modal
   const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
@@ -92,15 +159,27 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
 
   return (
     <>
-      <div className="fixed bottom-8 left-0 right-0 z-50 pointer-events-none">
-        <div className="flex items-center justify-center px-8 pointer-events-none">
+      <div className="fixed bottom-8 left-0 right-0 z-50 pointer-events-none no-select">
+        <div className="flex items-center justify-center px-8 pointer-events-none no-select">
           {/* Botón Principal */}
           <motion.button
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerLeave}
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 bg-black pointer-events-auto"
-            style={{ touchAction: 'none' }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchCancel}
+            onContextMenu={handleContextMenu}
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 bg-black pointer-events-auto touch-button no-select"
+            style={{ 
+              touchAction: 'none',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none',
+              WebkitTouchCallout: 'none',
+              WebkitTapHighlightColor: 'transparent'
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
