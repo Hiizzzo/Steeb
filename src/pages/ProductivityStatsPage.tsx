@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import ProductivityStatsConnected from '@/components/ProductivityStatsConnected';
-import ModalAddTask from '@/components/ModalAddTask';
+import TaskCreationCard from '@/components/TaskCreationCard';
 
 interface SubTask {
   id: string;
@@ -61,17 +62,37 @@ const ProductivityStatsPage: React.FC = () => {
     setShowModal(true);
   };
 
+  const handleCancelTaskCreation = () => {
+    setShowModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ProductivityStatsConnected onAddTask={handleOpenAddTask} />
       
-      {/* Modal para Agregar Tarea */}
-      <ModalAddTask
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onAddTask={handleAddTask}
-        editingTask={null}
-      />
+      {/* TaskCreationCard para agregar tareas */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+            >
+              <TaskCreationCard
+                onCancel={handleCancelTaskCreation}
+                onCreate={handleAddTask}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
