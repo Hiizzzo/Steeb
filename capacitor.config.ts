@@ -15,6 +15,9 @@ const config: CapacitorConfig = {
       backgroundColor: "#FFFFFF",
       showSpinner: true,
       spinnerColor: "#000000",
+    },
+    Filesystem: {
+      ioTimeout: 60000 // Timeout largo para descargas de modelos grandes
     }
   }
 };
