@@ -92,64 +92,120 @@ const ChatPage = () => {
   const generateFallbackResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
     
+    // Análisis básico de contexto y estado de ánimo
+    const isMotivated = lowerMessage.includes('bien') || lowerMessage.includes('genial') || lowerMessage.includes('listo');
+    const isDemotivated = lowerMessage.includes('mal') || lowerMessage.includes('cansado') || lowerMessage.includes('no puedo');
+    const isFrustrated = lowerMessage.includes('no funciona') || lowerMessage.includes('confuso') || lowerMessage.includes('difícil');
+    const isUrgent = lowerMessage.includes('urgente') || lowerMessage.includes('ya') || lowerMessage.includes('hoy');
+    
     // Respuestas relacionadas con productividad y tareas
     if (lowerMessage.includes('tarea') || lowerMessage.includes('hacer') || lowerMessage.includes('trabajo')) {
+      if (isDemotivated) {
+        const responses = [
+          'Entiendo que puede sentirse pesado cuando tienes mucho por hacer. Vamos a simplificar: ¿cuál es la tarea más pequeña que podrías completar ahora para generar momentum?',
+          'La resistencia mental es normal. La clave está en empezar con algo tan fácil que sea imposible fallar. ¿Qué paso de 2 minutos podrías dar ahora?',
+          'No necesitas estar motivado para empezar, solo empezar para estar motivado. Es neurociencia: la acción genera dopamina. ¿Cuál va a ser tu primer micro-paso?'
+        ];
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+      
+      if (isUrgent) {
+        const responses = [
+          'Urgencia detectada. Cuando el tiempo apremia, elimina todo lo que no sea esencial. ¿Qué es absolutamente crítico vs qué sería "bueno tener"?',
+          'Tiempo limitado = decisiones inteligentes. Regla 80/20: ¿cuál es la acción que te dará el 80% del resultado con el 20% del esfuerzo?',
+          'La urgencia puede ser tu aliada. Te fuerza a enfocarte en lo esencial. ¿Qué puedes eliminar para concentrarte en lo crítico?'
+        ];
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+      
       const responses = [
-        'Perfecto. Primero, divide esa tarea en pasos más pequeños. ¿Cuál sería el primer paso que podrías hacer ahora mismo?',
-        'Excelente. Recuerda: "El secreto para avanzar es comenzar." ¿Por dónde empezamos?',
-        'Me gusta tu enfoque. La claridad viene de la acción. ¿Qué necesitas para empezar?',
-        'Bien pensado. Las grandes cosas se construyen con pequeños pasos. ¿Cuál es tu próximo movimiento?'
+        'Excelente, hablemos de estrategia. Para maximizar resultados, necesitamos: objetivo claro, plan específico y criterios de éxito. ¿Con cuál empezamos?',
+        'Perfecto. La productividad real viene de hacer menos cosas pero mejor. ¿Cuáles son las 2-3 acciones con mayor impacto?',
+        'Bien pensado. Apliquemos el "siguiente paso más obvio": de todo lo que mencionas, ¿cuál es la primera acción concreta de 15 minutos?'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
     
     if (lowerMessage.includes('procrastina') || lowerMessage.includes('pereza') || lowerMessage.includes('motivación')) {
+      if (isFrustrated) {
+        const responses = [
+          'La frustración es energía mal dirigida. Significa que te importa, y eso es bueno. Ahora canalizemos esa energía: ¿qué específicamente te está bloqueando?',
+          'Entiendo esa tensión mental. A veces luchamos contra cosas que no podemos cambiar directamente. ¿Qué SÍ puedes controlar en esta situación?',
+          'La frustración es una señal: cambio de enfoque necesario. En lugar de luchar contra el problema, ¿qué podrías construir alrededor de él?'
+        ];
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+      
       const responses = [
-        'La procrastinación es el ladrón del tiempo. Hazme una pregunta: ¿qué es lo peor que podría pasar si empiezas ahora?',
-        'Tu único competidor eres tú de ayer. Cada minuto que esperas es una victoria para la mediocridad.',
-        'La motivación es lo que te pone en marcha. El hábito es lo que te mantiene en movimiento. Construyamos ese hábito.',
-        'No esperes a sentirte preparado. La acción crea claridad, no al revés.'
+        'La procrastinación no es pereza, es tu cerebro protegiéndote de algo que percibe como amenazante. ¿Qué es lo peor que podría pasar si empiezas ahora?',
+        'La motivación es como el clima: viene y va. La disciplina es tu paraguas: siempre está ahí. ¿Qué sistema podrías crear que no dependa de cómo te sientes?',
+        'Verdad directa: la acción crea motivación, no al revés. Cada pequeño logro libera dopamina. ¿Qué tarea de 2 minutos podrías completar ahora?'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
     
     if (lowerMessage.includes('meta') || lowerMessage.includes('objetivo') || lowerMessage.includes('lograr')) {
+      if (isMotivated) {
+        const responses = [
+          '¡Me gusta esa energía! Canalicemos esa motivación estratégicamente. Primero: ¿tu meta tiene fecha específica y métricas claras para medir progreso?',
+          'Excelente actitud. Las metas grandes se logran con sistemas pequeños ejecutados consistentemente. ¿Qué hábito diario te acercaría a este objetivo?',
+          'Perfecto momentum. Pero pregunta crítica: ¿esta meta es tuya o es lo que crees que deberías querer? Porque solo las metas personales sobreviven las crisis.'
+        ];
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+      
       const responses = [
-        'Las metas sin plazos son solo sueños. ¿Cuándo planeas lograr esto?',
-        'Excelente. Una meta es un sueño con fecha límite. ¿Cómo la vamos a medir?',
-        'Perfecto. La calidad nunca es un accidente. ¿Qué estándares vas a establecer?',
-        'Me gusta esa ambición. La innovación distingue entre un líder y un seguidor. ¿Cómo vas a destacar?'
+        'Me gusta que pienses en metas. Pero ojo: meta sin deadline = deseo bonito. Meta sin sistema de seguimiento = fantasía. ¿Tienes ambos?',
+        'Excelente. Las metas son direcciones, los sistemas son vehículos. ¿Qué sistema podrías implementar para que el progreso sea automático?',
+        'Bien planteado. Metas grandes requieren paciencia estratégica y urgencia táctica. ¿Cuál va a ser tu primera victoria rápida?'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
     
     if (lowerMessage.includes('tiempo') || lowerMessage.includes('horario') || lowerMessage.includes('planificar')) {
       const responses = [
-        'El tiempo es el recurso más valioso que tienes. ¿Cómo planeas invertirlo hoy?',
-        'La gestión del tiempo es la gestión de la vida. ¿Cuáles son tus prioridades?',
-        'Planificar es traer el futuro al presente para que puedas hacer algo al respecto ahora.',
-        'Tu tiempo es limitado, no lo malgastes viviendo la vida de otros. ¿Qué es realmente importante para ti?'
+        'El tiempo es tu recurso más valioso porque es irrecuperable. Regla de oro: planifica la noche anterior. ¿Cuáles son tus 3 prioridades para mañana?',
+        'Tiempo = vida. La gestión del tiempo es gestión de la vida. ¿Qué parte de tu día sientes que está más fuera de control?',
+        'La planificación no es rigidez, es libertad. Con plan, decides conscientemente cuándo desviarte. Sin plan, cada decisión agota energía mental.'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
     
     if (lowerMessage.includes('ayuda') || lowerMessage.includes('como') || lowerMessage.includes('consejo')) {
       const responses = [
-        'Estoy aquí para ayudarte a ser más productivo. Cuéntame, ¿cuál es tu mayor desafío en este momento?',
-        'Por supuesto. Mi función es ayudarte a mantenerte enfocado en lo que realmente importa. ¿Qué necesitas?',
-        'Excelente pregunta. La simplicidad es la sofisticación suprema. ¿Cómo podemos simplificar tu problema?',
-        'Perfecto. Hacer es mejor que perfecto. ¿En qué puedo ayudarte a empezar?'
+        'Estoy aquí para ser tu jefe personal que te organiza la vida. Cuéntame: ¿cuál es tu mayor desafío de productividad en este momento?',
+        'Por supuesto. Mi función es mantenerte enfocado en lo que realmente importa. Simplicidad = sofisticación suprema. ¿Cómo simplificamos tu problema?',
+        'Perfecto. Hacer > perfecto. La acción imperfecta supera a la inacción perfecta. ¿En qué puedo ayudarte a empezar YA?'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
     
-    // Respuestas generales inspiradoras
+    // Respuestas generales contextuales
+    if (isMotivated) {
+      const responses = [
+        '¡Excelente energía! Aprovechemos ese momentum. ¿Qué gran cosa podrías lograr hoy si mantienes esta actitud?',
+        'Me gusta esa vibra positiva. La motivación es un recurso limitado, úsenla inteligentemente. ¿Cuál es tu prioridad #1 ahora?',
+        'Perfecta mentalidad. El éxito ama la velocidad. ¿Qué decisión importante has estado posponiendo que podrías tomar ahora?'
+      ];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+    
+    if (isDemotivated) {
+      const responses = [
+        'Todos tenemos días difíciles. La diferencia está en cómo respondemos. ¿Qué es lo más pequeño que podrías hacer para sentirte un poco mejor?',
+        'La desmotivación es temporal, como una nube. Mientras pasa, trabajemos con lo que tenemos. ¿Qué te daría una pequeña sensación de logro?',
+        'No necesitas sentirte bien para hacer cosas buenas. A veces la acción precede al sentimiento. ¿Cuál va a ser tu primera pequeña victoria?'
+      ];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+    
+    // Respuestas generales mejoradas
     const generalResponses = [
-      'Interesante. Recuerda que la innovación distingue entre un líder y un seguidor. ¿Cómo puedes innovar en esto?',
-      'Me gusta tu perspectiva. La calidad nunca es un accidente, siempre es resultado de un esfuerzo inteligente. ¿Qué esfuerzo vas a hacer?',
-      'Bien planteado. Tu trabajo va a llenar gran parte de tu vida, asegúrate de que sea algo en lo que creas. ¿Crees en esto?',
-      'Exacto. Los detalles no son detalles, hacen el diseño. ¿En qué detalles deberías enfocarte?',
-      'Perfecto. Mantente hambriento, mantente tonto. ¿Qué puedes aprender de esta situación?'
+      'Interesante perspectiva. Como tu mentor de productividad: ¿qué patrón de tu rutina diaria necesita una actualización urgente?',
+      'Me gusta cómo piensas. Convirtamos esa reflexión en acción. Si pudieras mejorar UNA cosa de cómo manejas tu tiempo/energía, ¿cuál sería?',
+      'Perfecto enfoque. La diferencia entre soñar y lograr está en la implementación. ¿Cuál va a ser tu siguiente paso específico y medible?',
+      'Bien planteado. La productividad real viene del autoconocimiento: patrones, fortalezas, limitaciones. ¿Qué has descubierto sobre tu forma de trabajar?',
+      'Excelente. No necesitas más información, necesitas más ejecución. Con lo que ya sabes, ¿cuál es el paso más obvio a seguir?'
     ];
     
     return generalResponses[Math.floor(Math.random() * generalResponses.length)];
