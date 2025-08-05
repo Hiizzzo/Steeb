@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Sparkles } from 'lucide-react';
+import { Plus, Calendar, Sparkles, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 
@@ -161,6 +161,16 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     <>
       <div className="fixed bottom-8 left-0 right-0 z-50 pointer-events-none no-select">
         <div className="flex items-center justify-center px-8 pointer-events-none no-select">
+          {/* Botón de Chat */}
+          <motion.button
+            onClick={() => navigate('/chat')}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gray-800 hover:bg-gray-700 mr-4 pointer-events-auto"
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <MessageCircle size={24} className="text-white" strokeWidth={2} />
+          </motion.button>
+
           {/* Botón Principal */}
           <motion.button
             onPointerDown={handlePointerDown}

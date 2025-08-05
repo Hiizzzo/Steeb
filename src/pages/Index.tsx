@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
+import { notificationService } from '@/services/notificationService';
+import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
@@ -73,6 +75,9 @@ const Index = () => {
     triggerRestore 
   } = useServiceWorkerSync();
 
+  // Hook para notificaciones de tareas
+  const { scheduleTaskNotification, cancelTaskNotification } = useTaskNotifications(tasks);
+
   // Cargar preferencia de vista desde localStorage
   useEffect(() => {
     const savedViewMode = localStorage.getItem('stebe-view-mode');
@@ -81,6 +86,15 @@ const Index = () => {
       // Limpiar la preferencia después de usarla
       localStorage.removeItem('stebe-view-mode');
     }
+  }, []);
+
+  // Inicializar servicio de notificaciones
+  useEffect(() => {
+    notificationService.initialize().then((initialized) => {
+      if (initialized) {
+        console.log('🔔 Servicio de notificaciones STEBE listo');
+      }
+    });
   }, []);
 
   // El hook useTaskPersistence maneja automáticamente la carga y guardado

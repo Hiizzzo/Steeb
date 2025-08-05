@@ -21,7 +21,7 @@ const StebeHeader: React.FC = () => {
         <div className="bg-black py-2 px-4">
           <div className="flex items-center justify-center">
             <h1 className="text-white text-2xl font-light tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              TAREAS
+              STEBE
             </h1>
           </div>
         </div>
