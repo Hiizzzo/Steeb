@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ArrowLeft, Bell, BellOff } from 'lucide-react';
+import { Send, ArrowLeft, Bell, BellOff, Brain, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import StebeAI from '@/components/StebeAI';
+import mistralService, { ChatMessage } from '@/services/mistralService';
 
 interface Message {
   id: string;
@@ -15,7 +17,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: '¡Hola! Soy STEBE, tu asistente de productividad. Estoy aquí para ayudarte a cumplir tus metas y mantenerte enfocado. ¿En qué puedo ayudarte hoy?',
+      text: '¡Hola! Soy STEBE, tu asistente de productividad offline. Funciono completamente en tu dispositivo sin necesidad de internet. Estoy aquí para ayudarte a organizar tus tareas y alcanzar tus objetivos. ¿En qué puedo ayudarte hoy?',
       sender: 'stebe',
       timestamp: new Date()
     }
@@ -23,6 +25,8 @@ const ChatPage = () => {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showAIConfig, setShowAIConfig] = useState(false);
+  const [isUsingAI, setIsUsingAI] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -68,7 +72,24 @@ const ChatPage = () => {
     }
   };
 
-  const generateStebeResponse = (userMessage: string): string => {
+  const generateStebeResponse = async (userMessage: string): Promise<string> => {
+    // Si el modelo AI está disponible, usarlo
+    if (mistralService.isReady() && isUsingAI) {
+      try {
+        const response = await mistralService.getQuickResponse(userMessage);
+        return response;
+      } catch (error) {
+        console.error('Error usando Mistral AI:', error);
+        // Fallback a respuestas predefinidas
+        return generateFallbackResponse(userMessage);
+      }
+    }
+    
+    // Respuestas predefinidas como fallback
+    return generateFallbackResponse(userMessage);
+  };
+
+  const generateFallbackResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
     
     // Respuestas relacionadas con productividad y tareas
@@ -134,7 +155,7 @@ const ChatPage = () => {
     return generalResponses[Math.floor(Math.random() * generalResponses.length)];
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
     const userMessage: Message = {
@@ -145,21 +166,66 @@ const ChatPage = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputText;
     setInputText('');
     setIsTyping(true);
 
-    // Simular tiempo de respuesta de STEBE
-    setTimeout(() => {
+    try {
+      // Generar respuesta de STEBE (puede ser AI o fallback)
+      const responseText = await generateStebeResponse(currentInput);
+      
       const stebeResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: generateStebeResponse(inputText),
+        text: responseText,
         sender: 'stebe',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, stebeResponse]);
+    } catch (error) {
+      console.error('Error generando respuesta:', error);
+      
+      // Respuesta de error
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Disculpa, tuve un problema generando mi respuesta. ¿Podrías intentar de nuevo?',
+        sender: 'stebe',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1000 + Math.random() * 2000); // 1-3 segundos
+    }
+  };
+
+  const handleAIMessageGenerated = (message: string) => {
+    const aiMessage: Message = {
+      id: Date.now().toString(),
+      text: message,
+      sender: 'stebe',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
+  const toggleAIMode = () => {
+    if (mistralService.isReady()) {
+      setIsUsingAI(!isUsingAI);
+      toast({
+        title: isUsingAI ? "Modo AI desactivado" : "Modo AI activado",
+        description: isUsingAI 
+          ? "Usando respuestas predefinidas" 
+          : "Usando inteligencia artificial offline",
+      });
+    } else {
+      toast({
+        title: "AI no disponible",
+        description: "Primero configura Stebe AI desde el panel de configuración",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -193,13 +259,50 @@ const ChatPage = () => {
           </div>
         </div>
         
-        <button
-          onClick={requestNotificationPermission}
-          className={`p-2 rounded ${notificationsEnabled ? 'bg-green-600' : 'bg-gray-600'} hover:opacity-80`}
-        >
-          {notificationsEnabled ? <Bell size={16} /> : <BellOff size={16} />}
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowAIConfig(!showAIConfig)}
+            className="p-2 rounded bg-purple-600 hover:opacity-80"
+            title="Configuración de AI"
+          >
+            <Settings size={16} />
+          </button>
+          
+          <button
+            onClick={toggleAIMode}
+            className={`p-2 rounded ${isUsingAI && mistralService.isReady() ? 'bg-blue-600' : 'bg-gray-600'} hover:opacity-80`}
+            title={isUsingAI ? "AI activado" : "AI desactivado"}
+          >
+            <Brain size={16} />
+          </button>
+          
+          <button
+            onClick={requestNotificationPermission}
+            className={`p-2 rounded ${notificationsEnabled ? 'bg-green-600' : 'bg-gray-600'} hover:opacity-80`}
+          >
+            {notificationsEnabled ? <Bell size={16} /> : <BellOff size={16} />}
+          </button>
+        </div>
       </div>
+
+      {/* AI Configuration Panel */}
+      <AnimatePresence>
+        {showAIConfig && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-b bg-gray-50"
+          >
+            <div className="p-4">
+              <StebeAI 
+                onMessageGenerated={handleAIMessageGenerated}
+                className="max-w-lg mx-auto"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -218,12 +321,19 @@ const ChatPage = () => {
               }`}>
                 {message.sender === 'stebe' && (
                   <div className="flex items-center space-x-2 mb-2">
-                    <img 
-                      src="/lovable-uploads/te obesrvo.png" 
-                      alt="STEBE" 
-                      className="w-5 h-5 rounded-full"
-                    />
-                    <span className="text-xs font-medium text-gray-600">STEBE</span>
+                    <div className="flex items-center space-x-1">
+                      <img 
+                        src="/lovable-uploads/te obesrvo.png" 
+                        alt="STEBE" 
+                        className="w-5 h-5 rounded-full"
+                      />
+                      {isUsingAI && mistralService.isReady() && (
+                        <Brain className="w-3 h-3 text-blue-500" title="Respuesta generada por AI" />
+                      )}
+                    </div>
+                    <span className="text-xs font-medium text-gray-600">
+                      STEBE {isUsingAI && mistralService.isReady() ? '(AI)' : ''}
+                    </span>
                   </div>
                 )}
                 <p className="text-sm leading-relaxed">{message.text}</p>
@@ -251,7 +361,7 @@ const ChatPage = () => {
                   alt="STEBE" 
                   className="w-5 h-5 rounded-full"
                 />
-                <span className="text-xs font-medium text-gray-600">STEBE</span>
+                <span className="text-xs font-medium text-gray-600">STEBE escribiendo...</span>
               </div>
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
