@@ -44,6 +44,25 @@ const ChatPage = () => {
     if ('Notification' in window) {
       setNotificationsEnabled(Notification.permission === 'granted');
     }
+    
+    // Intentar auto-inicializar STEBE AI
+    const autoInitAI = async () => {
+      try {
+        console.log('🔄 Auto-inicializando STEBE AI...');
+        const ready = await mistralService.ensureReady();
+        if (ready) {
+          console.log('✅ STEBE AI auto-inicializado correctamente');
+          // Activar AI mode por defecto si está listo
+          setIsUsingAI(true);
+        } else {
+          console.log('⚠️ STEBE AI no pudo auto-inicializarse');
+        }
+      } catch (error) {
+        console.error('❌ Error en auto-inicialización:', error);
+      }
+    };
+    
+    autoInitAI();
   }, []);
 
   const requestNotificationPermission = async () => {
@@ -73,18 +92,30 @@ const ChatPage = () => {
   };
 
   const generateStebeResponse = async (userMessage: string): Promise<string> => {
-    // Si el modelo AI está disponible, usarlo
-    if (mistralService.isReady() && isUsingAI) {
+    console.log(`💭 Generando respuesta para: "${userMessage}"`);
+    console.log(`🤖 AI Mode: ${isUsingAI ? 'ON' : 'OFF'}`);
+    console.log(`⚡ AI Ready: ${mistralService.isReady()}`);
+    
+    // Si el modo AI está activado, intentar usarlo
+    if (isUsingAI) {
       try {
+        console.log('🚀 Intentando usar Mistral AI...');
         const response = await mistralService.getQuickResponse(userMessage);
+        console.log('✅ Respuesta AI generada exitosamente');
         return response;
       } catch (error) {
-        console.error('Error usando Mistral AI:', error);
+        console.error('❌ Error usando Mistral AI:', error);
+        toast({
+          title: "AI temporalmente no disponible",
+          description: "Usando respuestas predefinidas como respaldo",
+          variant: "default"
+        });
         // Fallback a respuestas predefinidas
         return generateFallbackResponse(userMessage);
       }
     }
     
+    console.log('📝 Usando respuestas predefinidas');
     // Respuestas predefinidas como fallback
     return generateFallbackResponse(userMessage);
   };
@@ -266,21 +297,35 @@ const ChatPage = () => {
     setMessages(prev => [...prev, aiMessage]);
   };
 
-  const toggleAIMode = () => {
-    if (mistralService.isReady()) {
-      setIsUsingAI(!isUsingAI);
-      toast({
-        title: isUsingAI ? "Modo AI desactivado" : "Modo AI activado",
-        description: isUsingAI 
-          ? "Usando respuestas predefinidas" 
-          : "Usando inteligencia artificial offline",
-      });
+  const toggleAIMode = async () => {
+    console.log('🔄 Toggling AI mode...');
+    
+    if (!isUsingAI) {
+      // Intentar activar AI - verificar si está listo o puede inicializarse
+      const ready = await mistralService.ensureReady();
+      if (ready) {
+        setIsUsingAI(true);
+        toast({
+          title: "Modo AI activado",
+          description: "Usando inteligencia artificial offline",
+        });
+        console.log('✅ AI mode activated');
+      } else {
+        toast({
+          title: "AI no disponible",
+          description: "Primero configura Stebe AI desde el panel de configuración",
+          variant: "destructive"
+        });
+        console.log('❌ AI activation failed');
+      }
     } else {
+      // Desactivar AI
+      setIsUsingAI(false);
       toast({
-        title: "AI no disponible",
-        description: "Primero configura Stebe AI desde el panel de configuración",
-        variant: "destructive"
+        title: "Modo AI desactivado",
+        description: "Usando respuestas predefinidas",
       });
+      console.log('🔄 AI mode deactivated');
     }
   };
 
