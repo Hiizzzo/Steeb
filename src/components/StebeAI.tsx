@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Download, Cpu, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import mistralService, { ChatMessage, MistralConfig } from '@/services/mistralService';
+import geminiService, { ChatMessage, GeminiConfig } from '@/services/geminiService';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,8 +42,8 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   }, []);
 
   const checkInitializationStatus = () => {
-    const status = mistralService.getInitializationStatus();
-    const isReady = mistralService.isReady();
+    const status = geminiService.getInitializationStatus();
+    const isReady = geminiService.isReady();
     
     console.log('📊 StebeAI Status Check:', { 
       ...status, 
@@ -75,13 +75,13 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
     try {
       setInitState(prev => ({ ...prev, error: null, isInitializing: true }));
       
-      const config: MistralConfig = {
+      const config: GeminiConfig = {
         temperature: 0.7,
         maxTokens: 1024,
-        contextSize: 2048
+        model: 'gemma2:2b'
       };
 
-      const success = await mistralService.initialize(config, (progress, status) => {
+      const success = await geminiService.initialize(config, (progress, status) => {
         setInitState(prev => ({
           ...prev,
           progress,
@@ -128,11 +128,11 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   };
 
   const generateWelcomeMessage = async () => {
-    if (!mistralService.isReady()) return;
+    if (!geminiService.isReady()) return;
 
     try {
       setIsGenerating(true);
-      const welcomeMessage = await mistralService.getProductivitySuggestion();
+      const welcomeMessage = await geminiService.getProductivitySuggestion();
       onMessageGenerated?.(welcomeMessage);
     } catch (error) {
       console.error('Error generando mensaje de bienvenida:', error);
@@ -142,7 +142,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   };
 
   const generateMotivationalMessage = async () => {
-    if (!mistralService.isReady()) {
+    if (!geminiService.isReady()) {
       toast({
         title: "Stebe AI no está disponible",
         description: "Primero debes inicializar el modelo",
@@ -153,7 +153,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
     try {
       setIsGenerating(true);
-      const suggestion = await mistralService.getProductivitySuggestion();
+              const suggestion = await geminiService.getProductivitySuggestion();
       onMessageGenerated?.(suggestion);
 
       toast({
@@ -220,7 +220,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <div className="text-center space-y-4">
                     <div className="flex items-center justify-center space-x-2 text-gray-600">
                       <Cpu className="h-6 w-6" />
-                      <span>Modelo Mistral 7B listo para descargar</span>
+                      <span>Modelo Gemini con Ollama listo para usar</span>
                     </div>
                     <Button 
                       onClick={handleInitialize}
@@ -301,7 +301,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                 <div className="text-xs text-gray-500 space-y-1">
                   <div className="flex justify-between">
                     <span>Modelo:</span>
-                    <span>Mistral 7B Instruct</span>
+                    <span>Gemini 2B via Ollama</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Estado:</span>

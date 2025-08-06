@@ -4,7 +4,7 @@ import { Send, ArrowLeft, Bell, BellOff, Brain, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import StebeAI from '@/components/StebeAI';
-import mistralService, { ChatMessage } from '@/services/mistralService';
+import geminiService, { ChatMessage } from '@/services/geminiService';
 
 interface Message {
   id: string;
@@ -49,7 +49,7 @@ const ChatPage = () => {
     const autoInitAI = async () => {
       try {
         console.log('🔄 Auto-inicializando STEBE AI...');
-        const ready = await mistralService.ensureReady();
+        const ready = await geminiService.ensureReady();
         if (ready) {
           console.log('✅ STEBE AI auto-inicializado correctamente');
           // Activar AI mode por defecto si está listo
@@ -94,17 +94,17 @@ const ChatPage = () => {
   const generateStebeResponse = async (userMessage: string): Promise<string> => {
     console.log(`💭 Generando respuesta para: "${userMessage}"`);
     console.log(`🤖 AI Mode: ${isUsingAI ? 'ON' : 'OFF'}`);
-    console.log(`⚡ AI Ready: ${mistralService.isReady()}`);
+    console.log(`⚡ AI Ready: ${geminiService.isReady()}`);
     
     // Si el modo AI está activado, intentar usarlo
     if (isUsingAI) {
       try {
-        console.log('🚀 Intentando usar Mistral AI...');
-        const response = await mistralService.getQuickResponse(userMessage);
+        console.log('🚀 Intentando usar Gemini AI...');
+        const response = await geminiService.getQuickResponse(userMessage);
         console.log('✅ Respuesta AI generada exitosamente');
         return response;
       } catch (error) {
-        console.error('❌ Error usando Mistral AI:', error);
+        console.error('❌ Error usando Gemini AI:', error);
         toast({
           title: "AI temporalmente no disponible",
           description: "Usando respuestas predefinidas como respaldo",
@@ -302,7 +302,7 @@ const ChatPage = () => {
     
     if (!isUsingAI) {
       // Intentar activar AI - verificar si está listo o puede inicializarse
-      const ready = await mistralService.ensureReady();
+      const ready = await geminiService.ensureReady();
       if (ready) {
         setIsUsingAI(true);
         toast({
@@ -371,7 +371,7 @@ const ChatPage = () => {
           
           <button
             onClick={toggleAIMode}
-            className={`p-2 rounded ${isUsingAI && mistralService.isReady() ? 'bg-blue-600' : 'bg-gray-600'} hover:opacity-80`}
+            className={`p-2 rounded ${isUsingAI && geminiService.isReady() ? 'bg-blue-600' : 'bg-gray-600'} hover:opacity-80`}
             title={isUsingAI ? "AI activado" : "AI desactivado"}
           >
             <Brain size={16} />
@@ -428,12 +428,12 @@ const ChatPage = () => {
                         alt="STEBE" 
                         className="w-5 h-5 rounded-full"
                       />
-                      {isUsingAI && mistralService.isReady() && (
+                      {isUsingAI && geminiService.isReady() && (
                         <Brain className="w-3 h-3 text-blue-500" title="Respuesta generada por AI" />
                       )}
                     </div>
                     <span className="text-xs font-medium text-gray-600">
-                      STEBE {isUsingAI && mistralService.isReady() ? '(AI)' : ''}
+                      STEBE {isUsingAI && geminiService.isReady() ? '(AI)' : ''}
                     </span>
                   </div>
                 )}
