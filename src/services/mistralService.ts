@@ -98,11 +98,30 @@ class MistralService {
       // Verificar si estamos en un entorno nativo
       if (!Capacitor.isNativePlatform()) {
         // Simular inicialización para desarrollo web
-        onProgress?.(50, 'Modo de desarrollo detectado...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        onProgress?.(25, 'Modo de desarrollo detectado...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        onProgress?.(50, 'Configurando modelo simulado...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        onProgress?.(75, 'Cargando contexto...');
+        await new Promise(resolve => setTimeout(resolve, 500));
         onProgress?.(100, 'Stebe AI listo (modo desarrollo)');
+        
+        // Asegurar que el contexto esté configurado
+        this.context = { 
+          ready: true, 
+          config: { 
+            temperature: 0.7, 
+            maxTokens: 2048, 
+            contextSize: 4096, 
+            ...config 
+          } 
+        };
+        
         this.isInitialized = true;
         this.isInitializing = false;
+        this.downloadProgress = 100;
+        
+        console.log('✅ STEBE AI inicializado correctamente en modo desarrollo');
         return true;
       }
 
@@ -131,15 +150,18 @@ class MistralService {
       // Simular inicialización de contexto
       await new Promise(resolve => setTimeout(resolve, 1000));
       this.context = { ready: true, config: defaultConfig };
+      this.downloadProgress = 100;
 
       onProgress?.(100, 'Modelo Stebe listo!');
       this.isInitialized = true;
       this.isInitializing = false;
       
+      console.log('✅ STEBE AI inicializado correctamente');
       return true;
     } catch (error) {
-      console.error('Error inicializando Mistral:', error);
+      console.error('❌ Error inicializando Mistral:', error);
       this.isInitializing = false;
+      this.downloadProgress = 0;
       onProgress?.(0, `Error: ${error.message}`);
       return false;
     }
@@ -759,6 +781,12 @@ class MistralService {
   }
 
   async getQuickResponse(userMessage: string): Promise<string> {
+    // Asegurar que esté inicializado antes de generar respuesta
+    const isReady = await this.ensureReady();
+    if (!isReady) {
+      throw new Error('STEBE AI no pudo inicializarse correctamente');
+    }
+    
     return new Promise((resolve, reject) => {
       let response = '';
       
@@ -780,7 +808,37 @@ class MistralService {
   }
 
   isReady(): boolean {
-    return this.isInitialized && this.context !== null;
+    const ready = this.isInitialized && this.context !== null;
+    console.log(`🔍 STEBE AI ready check: ${ready} (initialized: ${this.isInitialized}, context: ${!!this.context})`);
+    return ready;
+  }
+
+  // Método para auto-inicializar si no está listo
+  async ensureReady(): Promise<boolean> {
+    if (this.isReady()) {
+      return true;
+    }
+    
+    if (this.isInitializing) {
+      // Esperar a que termine la inicialización actual
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!this.isInitializing) {
+            clearInterval(checkInterval);
+            resolve(this.isReady());
+          }
+        }, 100);
+        
+        // Timeout después de 30 segundos
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          resolve(false);
+        }, 30000);
+      });
+    }
+    
+    console.log('🚀 Auto-inicializando STEBE AI...');
+    return await this.initialize();
   }
 
   getInitializationStatus(): { isInitialized: boolean; isInitializing: boolean; progress: number } {

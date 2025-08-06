@@ -43,6 +43,13 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
   const checkInitializationStatus = () => {
     const status = mistralService.getInitializationStatus();
+    const isReady = mistralService.isReady();
+    
+    console.log('📊 StebeAI Status Check:', { 
+      ...status, 
+      isReady
+    });
+    
     setInitState(prev => ({
       ...prev,
       isInitialized: status.isInitialized,
@@ -55,6 +62,11 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
       setInitState(prev => ({
         ...prev,
         status: 'Stebe AI está listo para configurarse'
+      }));
+    } else if (status.isInitialized) {
+      setInitState(prev => ({
+        ...prev,
+        status: '✅ STEBE AI Listo para usar'
       }));
     }
   };
