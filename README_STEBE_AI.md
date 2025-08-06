@@ -9,7 +9,7 @@
 Stebe es tu "jefe personal" - un mentor de productividad que:
 - ✅ **Funciona 100% offline** (sin internet, sin APIs, sin tokens)
 - ✅ **Mantiene privacidad total** (todas las conversaciones en tu dispositivo)
-- ✅ **Usa IA avanzada** (preparado para Mistral 7B GGUF)
+- ✅ **Usa IA avanzada** (integrado con Gemini via Ollama)
 - ✅ **Interfaz intuitiva** (integrado perfectamente en tu app)
 - ✅ **Respuestas inteligentes** (especializado en productividad personal)
 
@@ -29,7 +29,7 @@ npm run dev
 
 ### Componentes Clave
 
-1. **`mistralService.ts`** - Servicio principal de IA
+1. **`geminiService.ts`** - Servicio principal de IA con Ollama
    - Gestión de modelos GGUF
    - Streaming de respuestas
    - Fallback inteligente
@@ -74,7 +74,7 @@ npx cap open ios
 - **Análisis de palabras clave** para respuestas específicas
 - **Personalidad consistente** como mentor personal
 
-### Futuro con Mistral 7B
+### Configuración con Ollama
 - **Modelo real GGUF** descargado automáticamente
 - **Generación neural** usando llama.cpp
 - **Contextualización avanzada** con memoria de conversación
@@ -102,7 +102,7 @@ npx cap open ios
 - **CPU**: Mínimo impacto
 - **Offline**: 100% funcional
 
-### Con Mistral 7B Real
+### Con Ollama y Gemini
 - **Modelo**: ~4.3GB en disco
 - **RAM**: 6GB recomendados
 - **Velocidad**: 1-3 tokens/segundo
@@ -134,7 +134,7 @@ npm install llama.rn react-native-fs2
 ```
 
 ### Paso 3: Activar Modelo Real
-En `mistralService.ts`, descomentar:
+El servicio Gemini está listo para usar. Solo necesitas:
 - `downloadModel()` real 
 - `initLlama()` con llama.cpp
 - Streaming con `TokenData`
