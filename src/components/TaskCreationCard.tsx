@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useToast } from '@/components/ui/use-toast';
-import { Calendar, Pointer } from 'lucide-react';
+import { Calendar, Clock, Pointer } from 'lucide-react';
 
 // Íconos simples para los tipos de tarea
 const PersonalIcon = () => <div className="w-4 h-4 bg-black rounded-full"></div>;
@@ -36,8 +36,10 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<'personal' | 'work' | 'meditation'>('personal');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
   const { playButtonClickSound } = useSoundEffects();
   const { toast } = useToast();
@@ -51,12 +53,16 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       if (editingTask.scheduledDate) {
         setSelectedDate(new Date(editingTask.scheduledDate));
       }
+      if (editingTask.scheduledTime) {
+        setSelectedTime(editingTask.scheduledTime);
+      }
     } else {
       // Resetear campos cuando se está creando una nueva tarea
       setTitle('');
       setNotes('');
       setSelectedTag('personal');
       setSelectedDate(undefined);
+      setSelectedTime('');
     }
   }, [editingTask]);
 
@@ -67,6 +73,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         title: title.trim(), 
         selectedTag, 
         scheduledDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
+        scheduledTime: selectedTime || undefined,
         notes: notes.trim() || undefined 
       });
       
@@ -80,7 +87,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         selectedTag, 
         undefined, // subtasks - not implemented in this simple version
         scheduledDate,
-        undefined, // scheduledTime - not implemented in this simple version
+        selectedTime || undefined,
         notes.trim() || undefined
       );
       
@@ -179,7 +186,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Footer */}
         <div className="flex border-t border-gray-100">
-          {/* Date Section - Simplificado */}
+          {/* Date Section */}
           <button 
             onClick={() => setShowDatePicker(!showDatePicker)}
             className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
@@ -190,10 +197,21 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             </span>
           </button>
           
+          {/* Time Section */}
+          <button 
+            onClick={() => setShowTimePicker(!showTimePicker)}
+            className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <Clock size={20} className="text-black" />
+            <span className="font-medium">
+              {selectedTime || "Hora ..."}
+            </span>
+          </button>
+          
           {/* Divider */}
           <div className="w-px bg-gray-100"></div>
           
-          {/* Tag Section - Simplificado */}
+          {/* Tag Section */}
           <button 
             onClick={() => setShowTagPicker(!showTagPicker)}
             className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
@@ -203,7 +221,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           </button>
         </div>
 
-        {/* Date Picker - Simplificado */}
+        {/* Date Picker */}
         {showDatePicker && (
           <div className="border-t border-gray-100 p-4 bg-white">
             <input
@@ -218,7 +236,22 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           </div>
         )}
 
-        {/* Tag Picker - Simplificado */}
+        {/* Time Picker */}
+        {showTimePicker && (
+          <div className="border-t border-gray-100 p-4 bg-white">
+            <input
+              type="time"
+              value={selectedTime}
+              onChange={(e) => {
+                setSelectedTime(e.target.value);
+                setShowTimePicker(false);
+              }}
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+        )}
+
+        {/* Tag Picker */}
         {showTagPicker && (
           <div className="border-t border-gray-100 bg-white">
             {(['personal', 'work', 'meditation'] as const).map((tag) => (
