@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Download, Cpu, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import geminiService, { ChatMessage, GeminiConfig } from '@/services/geminiService';
+import groqService, { GroqConfig } from '@/services/groqService';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,8 +42,8 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   }, []);
 
   const checkInitializationStatus = () => {
-    const statusString = geminiService.getInitializationStatus();
-    const isReady = geminiService.isReady();
+    const statusString = groqService.getInitializationStatus();
+    const isReady = groqService.isReady();
     
     console.log('📊 StebeAI Status Check:', { 
       status: statusString, 
@@ -51,23 +51,22 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
     });
     
     // Determinar el estado basado en el string de estado
-    const isInitialized = statusString.includes('listo') || statusString.includes('Gemini listo');
-    const isInitializing = statusString.includes('Inicializando');
+    const isInitialized = statusString.includes('listo') || statusString.includes('Groq');
+    const isInitializing = false; // Groq no tiene proceso de descarga
     
     setInitState(prev => ({
       ...prev,
       isInitialized,
       isInitializing,
-      progress: isInitialized ? 100 : isInitializing ? 50 : 0
+      progress: isInitialized ? 100 : 0
     }));
 
-    if (!isInitialized && !isInitializing) {
-      // El modelo no está inicializado, mostrar opciones al usuario
+    if (!isInitialized) {
       setInitState(prev => ({
         ...prev,
         status: 'Stebe AI está listo para configurarse'
       }));
-    } else if (isInitialized) {
+    } else {
       setInitState(prev => ({
         ...prev,
         status: '✅ STEBE AI Listo para usar'
@@ -79,20 +78,13 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
     try {
       setInitState(prev => ({ ...prev, error: null, isInitializing: true }));
       
-      const config: GeminiConfig = {
+      const config: GroqConfig = {
         temperature: 0.7,
         maxTokens: 1024,
-        model: 'gemma2:2b'
+        model: 'llama-3.1-70b-versatile'
       };
 
-      const success = await geminiService.initialize(config, (progress, status) => {
-        setInitState(prev => ({
-          ...prev,
-          progress,
-          status,
-          isInitializing: true
-        }));
-      });
+      const success = await groqService.initialize(config);
 
       if (success) {
         setInitState(prev => ({
@@ -102,11 +94,6 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
           progress: 100,
           status: '¡Stebe AI está listo para ayudarte!'
         }));
-
-        toast({
-          title: "🧠 Stebe AI Activado",
-          description: "Tu asistente personal offline está listo para organizar tu día",
-        });
 
         // Generar mensaje de bienvenida
         setTimeout(() => generateWelcomeMessage(), 1000);
@@ -122,21 +109,15 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
         progress: 0,
         status: 'Error de inicialización'
       }));
-
-      toast({
-        title: "Error",
-        description: "No se pudo inicializar Stebe AI: " + error.message,
-        variant: "destructive"
-      });
     }
   };
 
   const generateWelcomeMessage = async () => {
-    if (!geminiService.isReady()) return;
+    if (!groqService.isReady()) return;
 
     try {
       setIsGenerating(true);
-      const welcomeMessage = await geminiService.getProductivitySuggestion();
+      const welcomeMessage = await groqService.getProductivitySuggestion();
       onMessageGenerated?.(welcomeMessage);
     } catch (error) {
       console.error('Error generando mensaje de bienvenida:', error);
@@ -146,7 +127,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   };
 
   const generateMotivationalMessage = async () => {
-    if (!geminiService.isReady()) {
+    if (!groqService.isReady()) {
       toast({
         title: "Stebe AI no está disponible",
         description: "Primero debes inicializar el modelo",
@@ -157,7 +138,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
     try {
       setIsGenerating(true);
-              const suggestion = await geminiService.getProductivitySuggestion();
+      const suggestion = await groqService.getProductivitySuggestion();
       onMessageGenerated?.(suggestion);
 
       toast({
@@ -224,18 +205,18 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <div className="text-center space-y-4">
                     <div className="flex items-center justify-center space-x-2 text-gray-600">
                       <Cpu className="h-6 w-6" />
-                      <span>Modelo Gemini con Ollama listo para usar</span>
+                      <span>Modelo Llama 3.1 70B con Groq listo para usar</span>
                     </div>
                     <Button 
                       onClick={handleInitialize}
                       className="w-full"
                       size="lg"
                     >
-                      <Download className="mr-2 h-4 w-4" />
-                      Activar Stebe AI (~ 4.3GB)
+                      <Brain className="mr-2 h-4 w-4" />
+                      Activar Stebe AI (Gratis)
                     </Button>
                     <p className="text-xs text-gray-500">
-                      La primera descarga puede tomar varios minutos dependiendo de tu conexión
+                      Requiere una API key gratuita de Groq - Te guiaremos en el proceso
                     </p>
                   </div>
                 )}
@@ -302,16 +283,16 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   </Button>
                 </div>
 
-                <div className="text-xs text-gray-500 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Modelo:</span>
-                    <span>Gemini 2B via Ollama</span>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Modelo:</span>
+                      <span>Llama 3.1 70B via Groq</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Estado:</span>
+                      <span className="text-green-600">Conectado y privado</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Estado:</span>
-                    <span className="text-green-600">Offline y privado</span>
-                  </div>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
