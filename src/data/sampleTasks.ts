@@ -1,7 +1,62 @@
 // Sample tasks for demonstration purposes
 export const generateSampleTasks = () => {
   const now = new Date();
+  const today = new Date().toISOString().split('T')[0];
   const tasks = [];
+
+  // Add some tasks completed today for testing the hide functionality
+  const todayTasks = [
+    {
+      id: `today-completed-1`,
+      title: `Revisar emails matutinos`,
+      type: 'work' as 'personal' | 'work' | 'meditation',
+      completed: true,
+      completedDate: new Date().toISOString(),
+      scheduledDate: today,
+      category: 'work' as any,
+      notes: `Completada hoy para testear funcionalidad`
+    },
+    {
+      id: `today-completed-2`,
+      title: `Ejercicio de 30 minutos`,
+      type: 'personal' as 'personal' | 'work' | 'meditation',
+      completed: true,
+      completedDate: new Date().toISOString(),
+      scheduledDate: today,
+      category: 'exercise' as any,
+      notes: `Completada hoy para testear funcionalidad`
+    },
+    {
+      id: `today-completed-3`,
+      title: `Meditación matutina`,
+      type: 'meditation' as 'personal' | 'work' | 'meditation',
+      completed: true,
+      completedDate: new Date().toISOString(),
+      scheduledDate: today,
+      category: 'personal' as any,
+      notes: `Completada hoy para testear funcionalidad`
+    },
+    {
+      id: `today-pending-1`,
+      title: `Llamada importante`,
+      type: 'work' as 'personal' | 'work' | 'meditation',
+      completed: false,
+      scheduledDate: today,
+      category: 'work' as any,
+      notes: `Tarea pendiente para hoy`
+    },
+    {
+      id: `today-pending-2`,
+      title: `Leer capítulo del libro`,
+      type: 'personal' as 'personal' | 'work' | 'meditation',
+      completed: false,
+      scheduledDate: today,
+      category: 'study' as any,
+      notes: `Tarea pendiente para hoy`
+    }
+  ];
+
+  tasks.push(...todayTasks);
 
   // Generate tasks for this week (showing various patterns)
   const startOfWeek = new Date(now);

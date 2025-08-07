@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, CheckCircle, Clock, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, CheckCircle, Clock, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -70,6 +70,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showCompletedToday, setShowCompletedToday] = useState(false);
 
   // Estado para doble clic
   const [lastClickedDate, setLastClickedDate] = useState<string | null>(null);
@@ -597,92 +598,417 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
         {/* Lista de tareas del día */}
         <div className="space-y-3">
           {selectedDay && selectedDay.tasks.length > 0 ? (
-            selectedDay.tasks.map(task => (
-              <Card key={task.id} className={`p-4 ${
-                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onToggleTask?.(task.id)}
-                      className="p-0 h-auto"
-                    >
-                      {task.completed ? (
-                        <CheckCircle size={20} className="text-green-500" />
-                      ) : (
-                        <div className={`w-5 h-5 rounded-full border-2 ${
-                          isDark ? 'border-gray-400' : 'border-gray-300'
-                        }`} />
-                      )}
-                    </Button>
-                    
-                    <div className="flex-1">
-                      <h3 className={`font-medium ${
-                        task.completed 
-                          ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
-                          : (isDark ? 'text-white' : 'text-gray-900')
+            (() => {
+              const today = new Date().toISOString().split('T')[0];
+              const selectedDateString = selectedDate.toISOString().split('T')[0];
+              
+              // Si la fecha seleccionada es hoy, separar tareas completadas hoy de otras
+              if (selectedDateString === today) {
+                const pendingTasks = selectedDay.tasks.filter(task => !task.completed);
+                const completedTodayTasks = selectedDay.tasks.filter(task => 
+                  task.completed && 
+                  task.completedDate && 
+                  task.completedDate.split('T')[0] === today
+                );
+                const otherCompletedTasks = selectedDay.tasks.filter(task => 
+                  task.completed && 
+                  (!task.completedDate || task.completedDate.split('T')[0] !== today)
+                );
+
+                return (
+                  <>
+                    {/* Tareas Pendientes */}
+                    {pendingTasks.map(task => (
+                      <Card key={task.id} className={`p-4 ${
+                        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                       }`}>
-                        {task.title}
-                      </h3>
-                      
-                      {task.scheduledTime && (
-                        <p className={`text-sm ${
-                          isDark ? 'text-gray-400' : 'text-gray-600'
-                        }`}>
-                          <Clock size={14} className="inline mr-1" />
-                          {task.scheduledTime}
-                        </p>
-                      )}
-                      
-                      {task.subtasks && task.subtasks.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {task.subtasks.map(subtask => (
-                            <div key={subtask.id} className="flex items-center gap-2 ml-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onToggleTask?.(task.id)}
+                              className="p-0 h-auto"
+                            >
+                              {task.completed ? (
+                                <CheckCircle size={20} className="text-green-500" />
+                              ) : (
+                                <div className={`w-5 h-5 rounded-full border-2 ${
+                                  isDark ? 'border-gray-400' : 'border-gray-300'
+                                }`} />
+                              )}
+                            </Button>
+                            
+                            <div className="flex-1">
+                              <h3 className={`font-medium ${
+                                task.completed 
+                                  ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                                  : (isDark ? 'text-white' : 'text-gray-900')
+                              }`}>
+                                {task.title}
+                              </h3>
+                              
+                              {task.scheduledTime && (
+                                <p className={`text-sm ${
+                                  isDark ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                  <Clock size={14} className="inline mr-1" />
+                                  {task.scheduledTime}
+                                </p>
+                              )}
+                              
+                              {task.subtasks && task.subtasks.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {task.subtasks.map(subtask => (
+                                    <div key={subtask.id} className="flex items-center gap-2 ml-4">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onToggleSubtask?.(task.id, subtask.id)}
+                                        className="p-0 h-auto"
+                                      >
+                                        {subtask.completed ? (
+                                          <CheckCircle size={16} className="text-green-500" />
+                                        ) : (
+                                          <div className={`w-4 h-4 rounded-full border-2 ${
+                                            isDark ? 'border-gray-500' : 'border-gray-400'
+                                          }`} />
+                                        )}
+                                      </Button>
+                                      <span className={`text-sm ${
+                                        subtask.completed 
+                                          ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                                          : (isDark ? 'text-gray-300' : 'text-gray-600')
+                                      }`}>
+                                        {subtask.title}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-1">
+                            {onShowTaskDetail && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => onToggleSubtask?.(task.id, subtask.id)}
-                                className="p-0 h-auto"
+                                onClick={() => onShowTaskDetail(task.id)}
+                                className="p-1"
                               >
-                                {subtask.completed ? (
-                                  <CheckCircle size={16} className="text-green-500" />
-                                ) : (
-                                  <div className={`w-4 h-4 rounded-full border-2 ${
-                                    isDark ? 'border-gray-500' : 'border-gray-400'
-                                  }`} />
-                                )}
+                                <Calendar size={16} />
                               </Button>
-                              <span className={`text-sm ${
-                                subtask.completed 
-                                  ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
-                                  : (isDark ? 'text-gray-300' : 'text-gray-600')
-                              }`}>
-                                {subtask.title}
-                              </span>
-                            </div>
-                          ))}
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-1">
-                    {onShowTaskDetail && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onShowTaskDetail(task.id)}
-                        className="p-1"
-                      >
-                        <Calendar size={16} />
-                      </Button>
+                      </Card>
+                    ))}
+
+                    {/* Tareas Completadas de Otros Días */}
+                    {otherCompletedTasks.map(task => (
+                      <Card key={task.id} className={`p-4 ${
+                        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                      }`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onToggleTask?.(task.id)}
+                              className="p-0 h-auto"
+                            >
+                              {task.completed ? (
+                                <CheckCircle size={20} className="text-green-500" />
+                              ) : (
+                                <div className={`w-5 h-5 rounded-full border-2 ${
+                                  isDark ? 'border-gray-400' : 'border-gray-300'
+                                }`} />
+                              )}
+                            </Button>
+                            
+                            <div className="flex-1">
+                              <h3 className={`font-medium ${
+                                task.completed 
+                                  ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                                  : (isDark ? 'text-white' : 'text-gray-900')
+                              }`}>
+                                {task.title}
+                              </h3>
+                              
+                              {task.scheduledTime && (
+                                <p className={`text-sm ${
+                                  isDark ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                  <Clock size={14} className="inline mr-1" />
+                                  {task.scheduledTime}
+                                </p>
+                              )}
+                              
+                              {task.subtasks && task.subtasks.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {task.subtasks.map(subtask => (
+                                    <div key={subtask.id} className="flex items-center gap-2 ml-4">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onToggleSubtask?.(task.id, subtask.id)}
+                                        className="p-0 h-auto"
+                                      >
+                                        {subtask.completed ? (
+                                          <CheckCircle size={16} className="text-green-500" />
+                                        ) : (
+                                          <div className={`w-4 h-4 rounded-full border-2 ${
+                                            isDark ? 'border-gray-500' : 'border-gray-400'
+                                          }`} />
+                                        )}
+                                      </Button>
+                                      <span className={`text-sm ${
+                                        subtask.completed 
+                                          ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                                          : (isDark ? 'text-gray-300' : 'text-gray-600')
+                                      }`}>
+                                        {subtask.title}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-1">
+                            {onShowTaskDetail && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onShowTaskDetail(task.id)}
+                                className="p-1"
+                              >
+                                <Calendar size={16} />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+
+                    {/* Sección Colapsable para Tareas Completadas Hoy */}
+                    {completedTodayTasks.length > 0 && (
+                      <div className="mt-4">
+                        <button
+                          onClick={() => setShowCompletedToday(!showCompletedToday)}
+                          className={`w-full flex items-center justify-between p-3 rounded-lg mb-2 hover:opacity-80 transition-colors ${
+                            isDark 
+                              ? 'bg-green-900 border-green-700 text-green-300' 
+                              : 'bg-green-50 border-green-200 text-green-700'
+                          } border`}
+                        >
+                          <span className="font-medium">
+                            Completadas hoy ({completedTodayTasks.length})
+                          </span>
+                          {showCompletedToday ? (
+                            <ChevronUp className="w-5 h-5" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5" />
+                          )}
+                        </button>
+                        
+                        <AnimatePresence>
+                          {showCompletedToday && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="overflow-hidden space-y-3"
+                            >
+                              {completedTodayTasks.map(task => (
+                                <div key={task.id} className="opacity-75">
+                                  <Card className={`p-4 ${
+                                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                                  }`}>
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex items-start gap-3 flex-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => onToggleTask?.(task.id)}
+                                          className="p-0 h-auto"
+                                        >
+                                          {task.completed ? (
+                                            <CheckCircle size={20} className="text-green-500" />
+                                          ) : (
+                                            <div className={`w-5 h-5 rounded-full border-2 ${
+                                              isDark ? 'border-gray-400' : 'border-gray-300'
+                                            }`} />
+                                          )}
+                                        </Button>
+                                        
+                                        <div className="flex-1">
+                                          <h3 className={`font-medium ${
+                                            task.completed 
+                                              ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                                              : (isDark ? 'text-white' : 'text-gray-900')
+                                          }`}>
+                                            {task.title}
+                                          </h3>
+                                          
+                                          {task.scheduledTime && (
+                                            <p className={`text-sm ${
+                                              isDark ? 'text-gray-400' : 'text-gray-600'
+                                            }`}>
+                                              <Clock size={14} className="inline mr-1" />
+                                              {task.scheduledTime}
+                                            </p>
+                                          )}
+                                          
+                                          {task.subtasks && task.subtasks.length > 0 && (
+                                            <div className="mt-2 space-y-1">
+                                              {task.subtasks.map(subtask => (
+                                                <div key={subtask.id} className="flex items-center gap-2 ml-4">
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => onToggleSubtask?.(task.id, subtask.id)}
+                                                    className="p-0 h-auto"
+                                                  >
+                                                    {subtask.completed ? (
+                                                      <CheckCircle size={16} className="text-green-500" />
+                                                    ) : (
+                                                      <div className={`w-4 h-4 rounded-full border-2 ${
+                                                        isDark ? 'border-gray-500' : 'border-gray-400'
+                                                      }`} />
+                                                    )}
+                                                  </Button>
+                                                  <span className={`text-sm ${
+                                                    subtask.completed 
+                                                      ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                                                      : (isDark ? 'text-gray-300' : 'text-gray-600')
+                                                  }`}>
+                                                    {subtask.title}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="flex gap-1">
+                                        {onShowTaskDetail && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => onShowTaskDetail(task.id)}
+                                            className="p-1"
+                                          >
+                                            <Calendar size={16} />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </Card>
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     )}
-                  </div>
-                </div>
-              </Card>
-            ))
+                  </>
+                );
+              } else {
+                // Para fechas que no sean hoy, mostrar tareas normalmente
+                return selectedDay.tasks.map(task => (
+                  <Card key={task.id} className={`p-4 ${
+                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                  }`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 flex-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onToggleTask?.(task.id)}
+                          className="p-0 h-auto"
+                        >
+                          {task.completed ? (
+                            <CheckCircle size={20} className="text-green-500" />
+                          ) : (
+                            <div className={`w-5 h-5 rounded-full border-2 ${
+                              isDark ? 'border-gray-400' : 'border-gray-300'
+                            }`} />
+                          )}
+                        </Button>
+                        
+                        <div className="flex-1">
+                          <h3 className={`font-medium ${
+                            task.completed 
+                              ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                              : (isDark ? 'text-white' : 'text-gray-900')
+                          }`}>
+                            {task.title}
+                          </h3>
+                          
+                          {task.scheduledTime && (
+                            <p className={`text-sm ${
+                              isDark ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              <Clock size={14} className="inline mr-1" />
+                              {task.scheduledTime}
+                            </p>
+                          )}
+                          
+                          {task.subtasks && task.subtasks.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {task.subtasks.map(subtask => (
+                                <div key={subtask.id} className="flex items-center gap-2 ml-4">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onToggleSubtask?.(task.id, subtask.id)}
+                                    className="p-0 h-auto"
+                                  >
+                                    {subtask.completed ? (
+                                      <CheckCircle size={16} className="text-green-500" />
+                                    ) : (
+                                      <div className={`w-4 h-4 rounded-full border-2 ${
+                                        isDark ? 'border-gray-500' : 'border-gray-400'
+                                      }`} />
+                                    )}
+                                  </Button>
+                                  <span className={`text-sm ${
+                                    subtask.completed 
+                                      ? `line-through ${isDark ? 'text-gray-500' : 'text-gray-400'}` 
+                                      : (isDark ? 'text-gray-300' : 'text-gray-600')
+                                  }`}>
+                                    {subtask.title}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-1">
+                        {onShowTaskDetail && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onShowTaskDetail(task.id)}
+                            className="p-1"
+                          >
+                            <Calendar size={16} />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ));
+              }
+            })()
+            )
           ) : (
             <div className={`text-center py-8 ${
               isDark ? 'text-gray-400' : 'text-gray-600'
