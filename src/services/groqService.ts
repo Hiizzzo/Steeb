@@ -23,30 +23,57 @@ class GroqService {
   private isInitialized = false;
 
   // System prompt para Stebe - Asistente de productividad
-  private readonly systemPrompt = `Eres Stebe, un asistente personal de productividad profesional pero cercano. Tu trabajo es ayudar a las personas a organizar sus tareas y ser más productivas.
+  private readonly systemPrompt = `Eres Stebe, un asistente personal de productividad inteligente y altamente capaz. Tu misión principal es entender completamente las peticiones del usuario y crear automáticamente las tareas necesarias para ayudarlo a alcanzar sus objetivos.
 
-PERSONALIDAD:
-- Profesional pero amigable
-- Motivador y positivo
-- Directo y práctico
-- Empático pero exigente
+CAPACIDADES PRINCIPALES:
+1. COMPRENSIÓN INTELIGENTE: Analiza cada mensaje del usuario para identificar:
+   - Objetivos principales y secundarios
+   - Tareas explícitas e implícitas
+   - Plazos y prioridades
+   - Contexto y dependencias entre tareas
 
-REGLAS IMPORTANTES:
+2. CREACIÓN AUTOMÁTICA DE TAREAS: Cuando el usuario menciona algo que requiere acción:
+   - Crea tareas específicas y accionables
+   - Desglosa objetivos grandes en subtareas manejables
+   - Establece prioridades lógicas
+   - Sugiere plazos realistas
+
+3. ANÁLISIS CONTEXTUAL: Considera:
+   - El estado emocional del usuario
+   - La complejidad de las tareas mencionadas
+   - Las capacidades y limitaciones aparentes
+   - El contexto temporal (urgente vs. importante)
+
+PERSONALIDAD Y COMUNICACIÓN:
+- Profesional pero cercano y empático
+- Motivador sin ser excesivamente entusiasta
+- Directo y práctico en tus consejos
+- Usa emojis moderadamente para humanizar la conversación
+
+REGLAS DE RESPUESTA:
 - SIEMPRE responde en español
-- Mantén respuestas concisas (máximo 3-4 líneas)
-- Enfócate SOLO en productividad, organización de tareas y motivación
-- No respondas preguntas fuera de tu especialidad
-- Usa emojis ocasionalmente para hacer más amigable la conversación
-- Sé práctico: da consejos específicos y accionables
+- Cuando identifiques tareas, lístalas claramente con formato numerado
+- Pregunta detalles específicos cuando sea necesario para crear mejores tareas
+- Ofrece técnicas de productividad relevantes al contexto
+- Mantén respuestas concisas pero completas (máximo 5-6 líneas)
 
-ESTILO DE RESPUESTA:
-- Saluda de manera profesional pero cercana
-- Pregunta sobre tareas pendientes cuando sea relevante
-- Ofrece técnicas de productividad específicas
-- Motiva sin ser excesivamente entusiasta
-- Sugiere organización y priorización
+FORMATO PARA CREAR TAREAS:
+Cuando detectes que el usuario necesita hacer algo, responde con:
+"He identificado las siguientes tareas para ti:
+1. [Tarea específica y accionable]
+2. [Siguiente tarea en orden lógico]
+3. [Etc.]
 
-Recuerda: Tu objetivo es ayudar al usuario a ser más productivo y organizado. Mantén el foco en esto siempre.`;
+¿Te parece bien esta organización o prefieres ajustar algo?"
+
+ESPECIALIZACIÓN:
+- Gestión de tareas y proyectos
+- Técnicas de productividad (Pomodoro, GTD, etc.)
+- Organización del tiempo
+- Establecimiento de prioridades
+- Motivación y seguimiento de progreso
+
+Recuerda: Tu objetivo es hacer la vida del usuario más organizada y productiva mediante comprensión inteligente y creación automática de tareas útiles.`;
 
   async initialize(config?: GroqConfig): Promise<boolean> {
     try {
@@ -236,6 +263,224 @@ Recuerda: Tu objetivo es ayudar al usuario a ser más productivo y organizado. M
     this.apiKey = null;
     localStorage.removeItem('groq_api_key');
     this.isInitialized = false;
+  }
+
+  // NUEVOS MÉTODOS PARA ANÁLISIS INTELIGENTE Y CREACIÓN DE TAREAS
+
+  /**
+   * Analiza un mensaje del usuario para extraer intenciones y necesidades de tareas
+   */
+  async analyzeUserMessage(message: string): Promise<{
+    intent: 'task_creation' | 'question' | 'progress_update' | 'motivation_request';
+    extractedTasks: string[];
+    priority: 'high' | 'medium' | 'low';
+    urgency: 'urgent' | 'soon' | 'someday';
+    category: string;
+    suggestedDeadline?: string;
+  }> {
+    if (!this.isInitialized || !this.apiKey) {
+      throw new Error('Stebe AI no está inicializado');
+    }
+
+    const analysisPrompt = `Analiza este mensaje del usuario y extrae la información en formato JSON:
+"${message}"
+
+Responde ÚNICAMENTE con un JSON válido con esta estructura:
+{
+  "intent": "task_creation|question|progress_update|motivation_request",
+  "extractedTasks": ["tarea1", "tarea2"],
+  "priority": "high|medium|low",
+  "urgency": "urgent|soon|someday",
+  "category": "trabajo|personal|estudio|salud|etc",
+  "suggestedDeadline": "fecha sugerida o null"
+}`;
+
+    try {
+      const response = await this.sendMessageForAnalysis(analysisPrompt);
+      return JSON.parse(response);
+    } catch (error) {
+      console.error('Error analizando mensaje:', error);
+      // Fallback a análisis básico
+      return this.basicMessageAnalysis(message);
+    }
+  }
+
+  /**
+   * Genera tareas inteligentes basadas en un objetivo o petición del usuario
+   */
+  async generateSmartTasks(userRequest: string, context?: {
+    existingTasks?: string[];
+    userPreferences?: any;
+    timeAvailable?: string;
+  }): Promise<{
+    tasks: Array<{
+      title: string;
+      description: string;
+      priority: 'high' | 'medium' | 'low';
+      estimatedTime: string;
+      category: string;
+      subtasks?: string[];
+    }>;
+    motivation: string;
+    nextSteps: string[];
+  }> {
+    if (!this.isInitialized || !this.apiKey) {
+      throw new Error('Stebe AI no está inicializado');
+    }
+
+    const taskCreationPrompt = `El usuario me ha pedido: "${userRequest}"
+
+${context?.existingTasks ? `Tareas existentes: ${context.existingTasks.join(', ')}` : ''}
+${context?.timeAvailable ? `Tiempo disponible: ${context.timeAvailable}` : ''}
+
+Como experto en productividad, crea tareas específicas y accionables. Responde en español con formato JSON:
+
+{
+  "tasks": [
+    {
+      "title": "Título de la tarea",
+      "description": "Descripción detallada",
+      "priority": "high|medium|low",
+      "estimatedTime": "tiempo estimado",
+      "category": "categoría",
+      "subtasks": ["subtarea1", "subtarea2"]
+    }
+  ],
+  "motivation": "Mensaje motivacional personalizado",
+  "nextSteps": ["próximo paso 1", "próximo paso 2"]
+}`;
+
+    try {
+      const response = await this.sendMessageForAnalysis(taskCreationPrompt);
+      return JSON.parse(response);
+    } catch (error) {
+      console.error('Error generando tareas:', error);
+      return this.generateBasicTasks(userRequest);
+    }
+  }
+
+  /**
+   * Proporciona respuesta inteligente y contextual al usuario
+   */
+  async getIntelligentResponse(userMessage: string, context?: {
+    recentTasks?: string[];
+    userMood?: string;
+    timeOfDay?: string;
+  }): Promise<string> {
+    if (!this.isInitialized || !this.apiKey) {
+      return this.getFallbackResponse(userMessage);
+    }
+
+    try {
+      // Primero analizar el mensaje
+      const analysis = await this.analyzeUserMessage(userMessage);
+      
+      // Preparar contexto enriquecido
+      let contextualPrompt = `Usuario dice: "${userMessage}"
+
+Contexto adicional:
+- Intención detectada: ${analysis.intent}
+- Prioridad: ${analysis.priority}
+- Categoría: ${analysis.category}`;
+
+      if (context?.recentTasks) {
+        contextualPrompt += `\n- Tareas recientes: ${context.recentTasks.join(', ')}`;
+      }
+      
+      if (context?.userMood) {
+        contextualPrompt += `\n- Estado del usuario: ${context.userMood}`;
+      }
+
+      contextualPrompt += `\n\nResponde como Stebe, siendo útil, motivador y práctico. Si detectas necesidad de tareas, créalas automáticamente.`;
+
+      return await this.sendMessage(contextualPrompt);
+    } catch (error) {
+      console.error('Error generando respuesta inteligente:', error);
+      return this.getFallbackResponse(userMessage);
+    }
+  }
+
+  // MÉTODOS AUXILIARES PRIVADOS
+
+  private async sendMessageForAnalysis(prompt: string): Promise<string> {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: this.config.model,
+        messages: [
+          { role: 'system', content: 'Eres un analizador experto que responde ÚNICAMENTE en JSON válido.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 500,
+        temperature: 0.3 // Menos creatividad para análisis más consistente
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error en análisis');
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || '{}';
+  }
+
+  private basicMessageAnalysis(message: string): any {
+    const lowerMessage = message.toLowerCase();
+    
+    // Detección básica de intenciones
+    let intent = 'question';
+    if (lowerMessage.includes('hacer') || lowerMessage.includes('tarea') || lowerMessage.includes('necesito')) {
+      intent = 'task_creation';
+    } else if (lowerMessage.includes('motivación') || lowerMessage.includes('ayuda')) {
+      intent = 'motivation_request';
+    }
+
+    // Detección de urgencia
+    let urgency = 'someday';
+    if (lowerMessage.includes('urgente') || lowerMessage.includes('ahora') || lowerMessage.includes('hoy')) {
+      urgency = 'urgent';
+    } else if (lowerMessage.includes('pronto') || lowerMessage.includes('mañana')) {
+      urgency = 'soon';
+    }
+
+    return {
+      intent,
+      extractedTasks: [],
+      priority: 'medium',
+      urgency,
+      category: 'general',
+      suggestedDeadline: null
+    };
+  }
+
+  private generateBasicTasks(request: string): any {
+    return {
+      tasks: [{
+        title: `Completar: ${request}`,
+        description: 'Tarea generada automáticamente',
+        priority: 'medium',
+        estimatedTime: '30 minutos',
+        category: 'general',
+        subtasks: []
+      }],
+      motivation: '¡Vamos! Cada pequeño paso te acerca a tu objetivo 💪',
+      nextSteps: ['Empezar con el primer paso', 'Mantener el enfoque']
+    };
+  }
+
+  private getFallbackResponse(message: string): string {
+    const responses = [
+      "Entiendo que necesitas ayuda con eso. ¿Puedes darme más detalles para crear las tareas adecuadas?",
+      "¡Perfecto! Vamos a organizarlo paso a paso. ¿Cuál es tu prioridad principal?",
+      "Me parece un objetivo interesante. ¿Qué obstáculos ves para lograrlo?",
+      "Entiendo tu situación. ¿Prefieres empezar con algo pequeño y manejable?"
+    ];
+    
+    return responses[Math.floor(Math.random() * responses.length)];
   }
 }
 
