@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -52,6 +53,7 @@ const Index = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
+  const [showCompletedToday, setShowCompletedToday] = useState(false);
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
   
@@ -96,6 +98,8 @@ const Index = () => {
       }
     });
   }, []);
+
+
 
   // El hook useTaskPersistence maneja automáticamente la carga y guardado
 
@@ -317,6 +321,18 @@ const Index = () => {
     return task.scheduledDate <= today;
   });
 
+  // Separate tasks into pending and completed today
+  const pendingTasks = todaysTasks.filter(task => !task.completed);
+  const completedTodayTasks = todaysTasks.filter(task => 
+    task.completed && 
+    task.completedDate && 
+    task.completedDate.split('T')[0] === today
+  );
+  const otherCompletedTasks = todaysTasks.filter(task => 
+    task.completed && 
+    (!task.completedDate || task.completedDate.split('T')[0] !== today)
+  );
+
   return (
     <div 
       className="min-h-screen pb-6 relative bg-gray-50" 
@@ -339,19 +355,16 @@ const Index = () => {
       {/* Header */}
       <StebeHeader />
       
+
+      
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
           <div className="pt-1 max-w-sm mx-auto px-3">
             {todaysTasks.length > 0 ? (
-              todaysTasks
-                .sort((a, b) => {
-                  // Tareas no completadas primero, completadas al final
-                  if (a.completed && !b.completed) return 1;
-                  if (!a.completed && b.completed) return -1;
-                  return 0;
-                })
-                .map(task => (
+              <>
+                {/* Tareas Pendientes */}
+                {pendingTasks.map(task => (
                   <TaskCard
                     key={task.id}
                     id={task.id}
@@ -367,7 +380,77 @@ const Index = () => {
                     onDelete={handleDeleteTask}
                     onShowDetail={handleShowDetail}
                   />
-                ))
+                ))}
+
+                {/* Tareas Completadas de Otros Días */}
+                {otherCompletedTasks.map(task => (
+                  <TaskCard
+                    key={task.id}
+                    id={task.id}
+                    title={task.title}
+                    type={task.type}
+                    completed={task.completed}
+                    subtasks={task.subtasks}
+                    scheduledDate={task.scheduledDate}
+                    scheduledTime={task.scheduledTime}
+                    notes={task.notes}
+                    onToggle={handleToggleTask}
+                    onToggleSubtask={handleToggleSubtask}
+                    onDelete={handleDeleteTask}
+                    onShowDetail={handleShowDetail}
+                  />
+                ))}
+
+                {/* Sección Colapsable para Tareas Completadas Hoy */}
+                {completedTodayTasks.length > 0 && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => setShowCompletedToday(!showCompletedToday)}
+                      className="w-full flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg mb-2 hover:bg-green-100 transition-colors"
+                    >
+                      <span className="text-green-700 font-medium">
+                        Completadas hoy ({completedTodayTasks.length})
+                      </span>
+                      {showCompletedToday ? (
+                        <ChevronUp className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-green-600" />
+                      )}
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showCompletedToday && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          {completedTodayTasks.map(task => (
+                            <div key={task.id} className="opacity-75">
+                              <TaskCard
+                                id={task.id}
+                                title={task.title}
+                                type={task.type}
+                                completed={task.completed}
+                                subtasks={task.subtasks}
+                                scheduledDate={task.scheduledDate}
+                                scheduledTime={task.scheduledTime}
+                                notes={task.notes}
+                                onToggle={handleToggleTask}
+                                onToggleSubtask={handleToggleSubtask}
+                                onDelete={handleDeleteTask}
+                                onShowDetail={handleShowDetail}
+                              />
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-12 px-4">
                 <p className="text-lg text-gray-600 font-medium">
