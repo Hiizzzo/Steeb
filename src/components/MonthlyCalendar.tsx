@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Flame, CheckCircle, Calendar, Trophy, Plus, ArrowLeft, Clock, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import CompactStats from './CompactStats';
+// import CompactStats from './CompactStats';  // Component not found
 
 interface SubTask {
   id: string;
@@ -468,7 +468,9 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
         </motion.div>
 
         {/* Tarjetas de estadísticas */}
-        <CompactStats stats={stats} />
+        <div className="text-center text-sm text-gray-500">
+          {stats.completedTasks} tareas completadas • {stats.activeDays} días activos
+        </div>
 
         {/* Calendario mensual */}
         <motion.div 

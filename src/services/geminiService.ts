@@ -459,23 +459,50 @@ class GeminiService {
   private getSimulatedResponse(message: string): string {
     const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('hola') || lowerMessage.includes('hi')) {
-      return "¡Hola! Soy Stebe, tu asistente personal de productividad. Estoy aquí para ayudarte a organizar tus tareas y ser más eficiente. ¿En qué puedo ayudarte hoy?";
+    // Respuestas más inteligentes y contextuales como si fuera un asistente real
+    if (lowerMessage.includes('hola') || lowerMessage.includes('hi') || lowerMessage.includes('buenas')) {
+      const greetings = [
+        "¡Hola! Soy Stebe, tu mentor personal de productividad. Estoy aquí para convertirte en una máquina de cumplir objetivos. ¿Cuál es tu mayor desafío productivo hoy?",
+        "¡Saludos! Como tu jefe personal que organiza tu vida, pregunto directamente: ¿qué necesitas lograr hoy y qué te está frenando?",
+        "¡Hola! Excelente que me busques. Soy tu sistema operativo personal de productividad. ¿En qué área de tu vida necesitas más control y organización?"
+      ];
+      return greetings[Math.floor(Math.random() * greetings.length)];
     }
     
-    if (lowerMessage.includes('tarea') || lowerMessage.includes('task')) {
-      return "Perfecto, hablemos de tareas. Como tu mentor de productividad, te recomiendo:\n\n• Priorizar las tareas más importantes\n• Dividir tareas grandes en subtareas\n• Establecer plazos realistas\n• Celebrar cada logro\n\n¿Tienes alguna tarea específica que necesites organizar?";
+    if (lowerMessage.includes('organizar') || lowerMessage.includes('dia') || lowerMessage.includes('día') || lowerMessage.includes('planificar')) {
+      return "Perfecto, hablemos de estrategia. Para organizar tu día como un profesional:\n\n🎯 **Prioridad #1**: ¿Cuál es LA cosa más importante que DEBE pasar hoy?\n⏰ **Bloques de tiempo**: Asigna horarios específicos, no listas infinitas\n🚫 **Elimina despiadadamente**: ¿Qué puedes NO hacer hoy?\n\n¿Cuál es tu mayor prioridad ahora mismo?";
     }
     
-    if (lowerMessage.includes('ayuda') || lowerMessage.includes('help')) {
-      return "¡Por supuesto que te ayudo! Como tu jefe personal de productividad, puedo asistirte con:\n\n• Crear y organizar tareas\n• Establecer prioridades\n• Dividir proyectos grandes\n• Motivarte a cumplir objetivos\n• Dar consejos de productividad\n\n¿En qué área específica necesitas mi apoyo?";
+    if (lowerMessage.includes('tarea') || lowerMessage.includes('trabajo') || lowerMessage.includes('hacer')) {
+      return "Excelente enfoque en la ejecución. Como tu mentor de productividad, esto es lo que funciona:\n\n✅ **Regla 2-minutos**: Si toma menos de 2 min, hazlo YA\n🔥 **Una cosa a la vez**: Multitasking = mediocridad garantizada\n⚡ **Sesiones de 25 min**: Pomodoro funciona porque respeta tu neurología\n\n¿Qué tarea específica necesita tu atención inmediata?";
     }
     
-    if (lowerMessage.includes('motivaci') || lowerMessage.includes('motiv')) {
-      return "¡Excelente que busques motivación! Recuerda que cada pequeño paso cuenta. Como dice el dicho: 'Un viaje de mil millas comienza con un solo paso'.\n\n💪 Tú puedes lograr todo lo que te propongas\n🎯 Enfócate en una tarea a la vez\n⭐ Celebra cada progreso, por pequeño que sea\n\n¿Hay algún objetivo específico que te esté costando alcanzar?";
+    if (lowerMessage.includes('motivaci') || lowerMessage.includes('procrastina') || lowerMessage.includes('pereza') || lowerMessage.includes('no puedo')) {
+      return "Entiendo esa resistencia mental. La procrastinación no es pereza, es tu cerebro protegiéndote de algo que percibe como amenazante.\n\n💡 **Verdad cruda**: La motivación viene DESPUÉS de la acción, no antes\n🔬 **Neurociencia**: Cada pequeño logro libera dopamina = momentum\n⚡ **Truco**: ¿Qué es lo más pequeño que podrías hacer en 2 minutos?\n\n¿Cuál va a ser tu primer micro-paso ahora mismo?";
     }
     
-    return "Entiendo tu consulta. Como tu asistente de productividad, estoy aquí para ayudarte a organizar mejor tu tiempo y tareas. ¿Podrías contarme más específicamente en qué necesitas ayuda? Puedo asistirte con planificación, priorización de tareas, o cualquier aspecto de tu productividad personal.";
+    if (lowerMessage.includes('tiempo') || lowerMessage.includes('horario') || lowerMessage.includes('cuando')) {
+      return "El tiempo es tu recurso más valioso porque es irrecuperable. Estrategia inteligente:\n\n⏰ **Planifica la noche anterior**: Las decisiones matutinas agotan energía mental\n🎯 **3 prioridades máximo**: Más = dilución de esfuerzo\n📱 **Protege tu atención**: Notificaciones = ladrones de productividad\n\n¿Qué parte de tu día sientes más fuera de control?";
+    }
+    
+    if (lowerMessage.includes('ayuda') || lowerMessage.includes('como') || lowerMessage.includes('cómo') || lowerMessage.includes('consejo')) {
+      return "Por supuesto. Soy tu arquitecto de productividad personal. Mi función es simple: convertir el caos en sistema.\n\n🧠 **Primero**: Identifica tu patrón de mayor energía (¿mañana/tarde?)\n⚡ **Segundo**: Protege ese tiempo para trabajo importante\n🎯 **Tercero**: Todo lo demás es secundario\n\n¿Cuál es tu mayor dolor de cabeza productivo ahora mismo?";
+    }
+    
+    if (lowerMessage.includes('meta') || lowerMessage.includes('objetivo') || lowerMessage.includes('lograr')) {
+      return "Excelente mentalidad orientada a resultados. Las metas se logran con sistemas, no con inspiración:\n\n📊 **Meta sin deadline = deseo bonito**\n🔄 **Sistema sin seguimiento = fantasía**\n⚡ **Progreso > perfección**: Siempre\n\n¿Tu objetivo tiene fecha específica y métricas claras para medir progreso?";
+    }
+    
+    // Respuestas contextuales más inteligentes
+    const contextualResponses = [
+      "Perfecto enfoque. Como tu jefe personal de productividad: la diferencia entre soñar y lograr está en la implementación. ¿Cuál va a ser tu siguiente paso específico y medible?",
+      "Me gusta cómo piensas. Convirtamos esa reflexión en acción. Si pudieras mejorar UNA cosa de cómo manejas tu tiempo/energía hoy, ¿cuál sería?",
+      "Excelente. No necesitas más información, necesitas más ejecución. Con lo que ya sabes, ¿cuál es el paso más obvio que deberías dar ahora?",
+      "Interesante perspectiva. Como tu mentor de productividad: ¿qué patrón de tu rutina diaria necesita una actualización urgente?",
+      "Bien planteado. La productividad real viene del autoconocimiento: patrones, fortalezas, limitaciones. ¿Qué has descubierto sobre tu forma de trabajar?"
+    ];
+    
+    return contextualResponses[Math.floor(Math.random() * contextualResponses.length)];
   }
 
   updateConversationContext(userMessage: string, assistantResponse: string): void {

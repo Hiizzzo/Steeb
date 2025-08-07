@@ -42,28 +42,32 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   }, []);
 
   const checkInitializationStatus = () => {
-    const status = geminiService.getInitializationStatus();
+    const statusString = geminiService.getInitializationStatus();
     const isReady = geminiService.isReady();
     
     console.log('📊 StebeAI Status Check:', { 
-      ...status, 
+      status: statusString, 
       isReady
     });
     
+    // Determinar el estado basado en el string de estado
+    const isInitialized = statusString.includes('listo') || statusString.includes('Gemini listo');
+    const isInitializing = statusString.includes('Inicializando');
+    
     setInitState(prev => ({
       ...prev,
-      isInitialized: status.isInitialized,
-      isInitializing: status.isInitializing,
-      progress: status.progress
+      isInitialized,
+      isInitializing,
+      progress: isInitialized ? 100 : isInitializing ? 50 : 0
     }));
 
-    if (!status.isInitialized && !status.isInitializing) {
+    if (!isInitialized && !isInitializing) {
       // El modelo no está inicializado, mostrar opciones al usuario
       setInitState(prev => ({
         ...prev,
         status: 'Stebe AI está listo para configurarse'
       }));
-    } else if (status.isInitialized) {
+    } else if (isInitialized) {
       setInitState(prev => ({
         ...prev,
         status: '✅ STEBE AI Listo para usar'
