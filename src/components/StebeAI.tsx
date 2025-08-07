@@ -117,10 +117,17 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
     try {
       setIsGenerating(true);
-      const welcomeMessage = await groqService.getProductivitySuggestion();
+      // Usar la nueva respuesta inteligente
+      const welcomeMessage = await groqService.getIntelligentResponse(
+        "¡Hola! Soy nuevo en esto y me gustaría conocer cómo puedes ayudarme con mis tareas.",
+        { timeOfDay: new Date().getHours() < 12 ? 'mañana' : 'tarde' }
+      );
       onMessageGenerated?.(welcomeMessage);
     } catch (error) {
       console.error('Error generando mensaje de bienvenida:', error);
+      // Fallback
+      const fallbackMessage = "¡Hola! 👋 Soy Stebe, tu asistente de productividad. Cuéntame qué necesitas hacer y te ayudo a organizarlo en tareas específicas.";
+      onMessageGenerated?.(fallbackMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -138,7 +145,17 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
     try {
       setIsGenerating(true);
-      const suggestion = await groqService.getProductivitySuggestion();
+      
+      // Usar la nueva capacidad de respuesta inteligente
+      const motivationalRequest = "Dame un consejo motivacional personalizado para ser más productivo";
+      const suggestion = await groqService.getIntelligentResponse(
+        motivationalRequest,
+        {
+          userMood: 'neutral',
+          timeOfDay: new Date().getHours() < 12 ? 'mañana' : new Date().getHours() < 18 ? 'tarde' : 'noche'
+        }
+      );
+      
       onMessageGenerated?.(suggestion);
 
       toast({
@@ -150,6 +167,80 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
       toast({
         title: "Error",
         description: "No se pudo generar el mensaje",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // NUEVA FUNCIÓN: Generar tareas automáticamente
+  const generateTasksFromRequest = async () => {
+    if (!groqService.isReady()) {
+      toast({
+        title: "Stebe AI no está disponible",
+        description: "Primero debes inicializar el modelo",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      
+      // Solicitar al usuario qué quiere hacer
+      const userRequest = prompt(
+        "💼 ¿Qué necesitas hacer hoy?\n\n" +
+        "Describe tu objetivo y yo crearé las tareas específicas para ti:\n\n" +
+        "Ejemplos:\n" +
+        "• 'Preparar una presentación para el trabajo'\n" +
+        "• 'Organizar mi casa para las vacaciones'\n" +
+        "• 'Estudiar para mi examen de matemáticas'"
+      );
+
+      if (!userRequest || userRequest.trim() === '') {
+        return;
+      }
+
+      // Generar tareas inteligentes
+      const taskData = await groqService.generateSmartTasks(userRequest.trim());
+      
+      // Crear mensaje formateado con las tareas
+      let message = `🎯 **He creado un plan para: "${userRequest}"**\n\n`;
+      
+      message += "**📋 Tareas recomendadas:**\n";
+      taskData.tasks.forEach((task, index) => {
+        message += `${index + 1}. **${task.title}**\n`;
+        message += `   • ${task.description}\n`;
+        message += `   • ⏱️ Tiempo estimado: ${task.estimatedTime}\n`;
+        message += `   • 🔥 Prioridad: ${task.priority}\n`;
+        if (task.subtasks && task.subtasks.length > 0) {
+          message += `   • Subtareas: ${task.subtasks.join(', ')}\n`;
+        }
+        message += '\n';
+      });
+
+      message += `**💪 Motivación:** ${taskData.motivation}\n\n`;
+      
+      if (taskData.nextSteps.length > 0) {
+        message += "**🚀 Próximos pasos:**\n";
+        taskData.nextSteps.forEach((step, index) => {
+          message += `${index + 1}. ${step}\n`;
+        });
+      }
+
+      onMessageGenerated?.(message);
+
+      toast({
+        title: "🎉 ¡Tareas creadas!",
+        description: `He creado ${taskData.tasks.length} tarea(s) para ayudarte`,
+      });
+
+    } catch (error) {
+      console.error('Error generando tareas:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron crear las tareas automáticamente",
         variant: "destructive"
       });
     } finally {
@@ -281,6 +372,30 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                       </>
                     )}
                   </Button>
+                  
+                  <Button 
+                    onClick={generateTasksFromRequest}
+                    disabled={isGenerating}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                        Creando tareas...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Crear tareas automáticamente
+                      </>
+                    )}
+                  </Button>
+                  
+                  <div className="text-center mt-2">
+                    <p className="text-xs text-gray-600">
+                      💡 Describe cualquier objetivo y Stebe creará un plan detallado con tareas específicas
+                    </p>
+                  </div>
                 </div>
 
                   <div className="text-xs text-gray-500 space-y-1">
