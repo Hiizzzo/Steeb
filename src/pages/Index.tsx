@@ -10,6 +10,7 @@ import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
+import { Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 import TaskDetailModal from '@/components/TaskDetailModal';
 
@@ -54,6 +55,7 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
+  const [showCompletedToday, setShowCompletedToday] = useState(false);
   
   // Usar el store de tareas
   const { 
@@ -317,6 +319,16 @@ const Index = () => {
     return task.scheduledDate <= today;
   });
 
+  // Dividir tareas de hoy en pendientes y completadas (hoy y anteriores)
+  const pendingTodaysTasks = todaysTasks.filter(t => !t.completed);
+  const completedTodaysTasks = todaysTasks.filter(t => t.completed);
+  const completedToday = completedTodaysTasks.filter(t =>
+    t.completedDate ? t.completedDate.split('T')[0] === today : false
+  );
+  const completedBeforeToday = completedTodaysTasks.filter(t =>
+    !(t.completedDate && t.completedDate.split('T')[0] === today)
+  );
+
   return (
     <div 
       className="min-h-screen pb-6 relative bg-gray-50" 
@@ -343,14 +355,8 @@ const Index = () => {
         <>
           {/* Lista de Tareas */}
           <div className="pt-1 max-w-sm mx-auto px-3">
-            {todaysTasks.length > 0 ? (
-              todaysTasks
-                .sort((a, b) => {
-                  // Tareas no completadas primero, completadas al final
-                  if (a.completed && !b.completed) return 1;
-                  if (!a.completed && b.completed) return -1;
-                  return 0;
-                })
+            {pendingTodaysTasks.length > 0 ? (
+              pendingTodaysTasks
                 .map(task => (
                   <TaskCard
                     key={task.id}
@@ -376,6 +382,78 @@ const Index = () => {
                 <p className="text-sm text-gray-500 mt-2">
                   Press the + button to add your first task!
                 </p>
+              </div>
+            )}
+
+            {/* Sección de tareas completadas */}
+            {(completedTodaysTasks.length > 0) && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className="text-gray-700" />
+                    <h3 className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                      Tareas completadas
+                    </h3>
+                    <span className="text-xs text-gray-500">({completedTodaysTasks.length})</span>
+                  </div>
+                  {/* Toggle mostrar/ocultar las de hoy */}
+                  <button
+                    className="flex items-center space-x-1 text-gray-600 hover:text-black text-sm"
+                    onClick={() => setShowCompletedToday(prev => !prev)}
+                    aria-label={showCompletedToday ? 'Ocultar completadas de hoy' : 'Mostrar completadas de hoy'}
+                  >
+                    {showCompletedToday ? <EyeOff size={16} /> : <Eye size={16} />}
+                    <span>{showCompletedToday ? 'Ocultar hoy' : 'Ver hoy'}</span>
+                  </button>
+                </div>
+
+                {/* Completadas antes de hoy */}
+                {completedBeforeToday.length > 0 && (
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500 mb-2">Anteriores</p>
+                    {completedBeforeToday.map(task => (
+                      <TaskCard
+                        key={task.id}
+                        id={task.id}
+                        title={task.title}
+                        type={task.type}
+                        completed={task.completed}
+                        subtasks={task.subtasks}
+                        scheduledDate={task.scheduledDate}
+                        scheduledTime={task.scheduledTime}
+                        notes={task.notes}
+                        onToggle={handleToggleTask}
+                        onToggleSubtask={handleToggleSubtask}
+                        onDelete={handleDeleteTask}
+                        onShowDetail={handleShowDetail}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Completadas de hoy (toggle) */}
+                {completedToday.length > 0 && showCompletedToday && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-2">Hoy</p>
+                    {completedToday.map(task => (
+                      <TaskCard
+                        key={task.id}
+                        id={task.id}
+                        title={task.title}
+                        type={task.type}
+                        completed={task.completed}
+                        subtasks={task.subtasks}
+                        scheduledDate={task.scheduledDate}
+                        scheduledTime={task.scheduledTime}
+                        notes={task.notes}
+                        onToggle={handleToggleTask}
+                        onToggleSubtask={handleToggleSubtask}
+                        onDelete={handleDeleteTask}
+                        onShowDetail={handleShowDetail}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
