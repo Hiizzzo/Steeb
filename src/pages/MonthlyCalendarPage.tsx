@@ -9,6 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import TaskCreationCard from '@/components/TaskCreationCard';
+import { Task, SubTask } from '@/types';
 
 // Configuración de animaciones para Stebe
 const ANIMATION_CONFIG = {
@@ -34,23 +35,7 @@ const ANIMATION_CONFIG = {
   }
 };
 
-interface SubTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  type: 'personal' | 'work' | 'meditation';
-  completed: boolean;
-  subtasks?: SubTask[];
-  scheduledDate?: string;
-  scheduledTime?: string;
-  completedDate?: string;
-  notes?: string;
-}
+// Types imported from '@/types'
 
 interface CalendarDay {
   day: number;
@@ -213,11 +198,14 @@ const MonthlyCalendarPage: React.FC = () => {
         id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title,
         type,
+        status: 'pending',
         completed: false,
         subtasks: subtasks || [],
         scheduledDate: scheduledDate || selectedDateForTask || undefined,
         scheduledTime,
         notes,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       const updatedTasks = [...tasks, newTask];
@@ -297,7 +285,7 @@ const MonthlyCalendarPage: React.FC = () => {
       transition={{
         duration: ANIMATION_CONFIG.daySelection,
         delay: index * 0.02,
-        ease: ANIMATION_CONFIG.easing
+        ease: ANIMATION_CONFIG.easing as any
       }}
               className={`
           relative min-h-[60px] p-1 border border-gray-200 dark:border-gray-700 rounded-lg
@@ -331,7 +319,7 @@ const MonthlyCalendarPage: React.FC = () => {
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${day.completionPercentage}%` }}
-              transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing }}
+              transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
               className="h-full rounded-full"
               style={{ background: getCompletionColor(day.completionPercentage) }}
             />

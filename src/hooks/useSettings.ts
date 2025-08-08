@@ -266,7 +266,7 @@ export const useSettings = () => {
   // Apply timezone settings
   useEffect(() => {
     // Store timezone for date/time operations
-    window.__STEBE_TIMEZONE__ = settings.timezone;
+    (window as any).__STEBE_TIMEZONE__ = settings.timezone;
   }, [settings.timezone]);
 
   // Mark as having unsaved changes when settings are updated locally

@@ -500,7 +500,7 @@ const ChatPage = () => {
                         className="w-5 h-5 rounded-full"
                       />
                       {isUsingAI && (groqService.isReady() || geminiService.isReady()) && (
-                        <Brain className="w-3 h-3 text-blue-500" title="Respuesta generada por AI" />
+                        <Brain className="w-3 h-3 text-blue-500" />
                       )}
                     </div>
                     <span className="text-xs font-medium text-gray-600">

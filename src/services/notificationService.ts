@@ -103,18 +103,6 @@ export class NotificationService {
         badge: '/lovable-uploads/te obesrvo.png',
         tag: 'task-reminder',
         requireInteraction: true,
-        actions: [
-          {
-            action: 'mark-done',
-            title: 'Marcar como hecho',
-            icon: '/icons/check.png'
-          },
-          {
-            action: 'snooze',
-            title: 'Recordar en 10 min',
-            icon: '/icons/clock.png'
-          }
-        ]
       });
 
       notification.onclick = () => {
@@ -139,18 +127,6 @@ export class NotificationService {
         badge: '/lovable-uploads/te obesrvo.png',
         tag: 'task-due',
         requireInteraction: true,
-        actions: [
-          {
-            action: 'start-task',
-            title: 'Empezar ahora',
-            icon: '/icons/play.png'
-          },
-          {
-            action: 'postpone',
-            title: 'Posponer 30 min',
-            icon: '/icons/clock.png'
-          }
-        ]
       });
 
       notification.onclick = () => {
@@ -272,18 +248,6 @@ export class NotificationService {
         icon: '/lovable-uploads/te obesrvo.png',
         badge: '/lovable-uploads/te obesrvo.png',
         tag: 'productivity-check',
-        actions: [
-          {
-            action: 'chat',
-            title: 'Hablar con STEBE',
-            icon: '/icons/chat.png'
-          },
-          {
-            action: 'tasks',
-            title: 'Ver tareas',
-            icon: '/icons/tasks.png'
-          }
-        ]
       });
 
       notification.onclick = () => {

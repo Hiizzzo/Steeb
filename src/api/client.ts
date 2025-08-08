@@ -5,7 +5,7 @@
 import { ApiResponse } from '@/types';
 
 class ApiClient {
-  private baseURL: string;
+  public baseURL: string;
   private headers: Record<string, string>;
 
   constructor() {
@@ -110,11 +110,12 @@ class ApiClient {
     }
   }
 
-  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+  async delete<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
       });
 
       return this.handleResponse<T>(response);

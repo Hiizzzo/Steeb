@@ -79,7 +79,7 @@ const mockTasks = [
 
 const EnhancedCalendarDemo: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const [tasks, setTasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState<any[]>(mockTasks as any[]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
   

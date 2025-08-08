@@ -114,13 +114,13 @@ export const useNotifications = () => {
     }
 
     try {
-      const notification = new Notification(title, {
-        ...options,
+      const notifOptions: NotificationOptions = {
+        ...(options as NotificationOptions),
         icon: options.icon || '/favicon.ico',
         badge: options.badge || '/favicon.ico',
-        vibrate: settings.vibration ? (options.vibrate || [200, 100, 200]) : [],
         silent: !settings.sound || options.silent,
-      });
+      };
+      const notification = new Notification(title, notifOptions);
 
       // Auto-close after 5 seconds
       setTimeout(() => {

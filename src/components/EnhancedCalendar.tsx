@@ -389,7 +389,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
   };
 
   // Variantes para el cambio de vista (Mes/Semana)
-  const viewModeVariants = {
+  const viewModeVariants: any = {
     initial: { scale: 0.8, opacity: 0, rotateX: -15 },
     animate: { 
       scale: 1, 
@@ -415,7 +415,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
     <motion.div
       key={`month-${currentDate.getMonth()}-${currentDate.getFullYear()}`}
       custom={slideDirection}
-      variants={slideVariants}
+      variants={slideVariants as any}
       initial="initial"
       animate="animate"
       exit="exit"
@@ -780,7 +780,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   const isHovered = hoveredDate?.toDateString() === calendarDay.date.toDateString();
   
   // Animación de rebote para la selección
-  const bounceVariants = {
+  const bounceVariants: any = {
     idle: { scale: 1 },
     hover: { scale: config.hoverScale },
     tap: { 
@@ -798,7 +798,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
 
   return (
     <motion.div
-      variants={enableAnimations ? bounceVariants : {}}
+      variants={enableAnimations ? (bounceVariants as any) : {}}
       initial="idle"
       animate={calendarDay.isSelected ? "selected" : "idle"}
       whileHover={enableAnimations ? "hover" : {}}
