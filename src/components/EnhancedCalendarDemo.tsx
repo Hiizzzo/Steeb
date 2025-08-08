@@ -128,7 +128,7 @@ const EnhancedCalendarDemo: React.FC = () => {
     localStorage.removeItem('stebe-selected-date');
   };
 
-  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
     const newTask = {
       id: Date.now().toString(),
       title,
@@ -137,7 +137,8 @@ const EnhancedCalendarDemo: React.FC = () => {
       scheduledDate: scheduledDate || selectedDateForTask || new Date().toISOString().split('T')[0],
       scheduledTime,
       notes,
-      subtasks
+      subtasks,
+      tags: isPrimary ? ['principal'] : []
     };
     setTasks(prev => [...prev, newTask]);
     setShowTaskCreation(false);

@@ -7,7 +7,7 @@ import TaskCreationCard from './TaskCreationCard';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
-  onCreateTask?: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  onCreateTask?: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => void;
 }
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTask }) => {
@@ -143,13 +143,13 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
   }, []);
 
   // Handler para crear tarea desde el modal
-  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
     setShowTaskModal(false);
     
     // Si tenemos la función onCreateTask, la usamos para crear la tarea directamente
     if (onCreateTask) {
-      console.log('🎯 Creando tarea desde FloatingButtons:', { title, type, scheduledDate, notes });
-      onCreateTask(title, type, subtasks, scheduledDate, scheduledTime, notes);
+      console.log('🎯 Creando tarea desde FloatingButtons:', { title, type, scheduledDate, notes, isPrimary });
+      onCreateTask(title, type, subtasks, scheduledDate, scheduledTime, notes, isPrimary);
     } else {
       // Fallback: abrir el modal principal
       console.log('⚠️ No se encontró onCreateTask, abriendo modal principal');

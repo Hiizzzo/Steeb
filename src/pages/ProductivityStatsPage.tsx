@@ -20,6 +20,7 @@ interface Task {
   scheduledTime?: string;
   completedDate?: string;
   notes?: string;
+  tags?: string[];
 }
 
 const ProductivityStatsPage: React.FC = () => {
@@ -42,7 +43,7 @@ const ProductivityStatsPage: React.FC = () => {
     }
   }, [tasks]);
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
@@ -51,7 +52,8 @@ const ProductivityStatsPage: React.FC = () => {
       subtasks,
       scheduledDate,
       scheduledTime,
-      notes
+      notes,
+      tags: isPrimary ? ['principal'] : []
     };
     
     setTasks(prevTasks => [...prevTasks, newTask]);

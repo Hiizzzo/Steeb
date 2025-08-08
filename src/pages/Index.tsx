@@ -35,6 +35,7 @@ interface Task {
   scheduledTime?: string;
   completedDate?: string;
   notes?: string; // Notas adicionales de la tarea
+  tags?: string[];
 }
 
 const Index = () => {
@@ -226,8 +227,8 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
-    console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes });
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
+    console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes, isPrimary });
     
     // Validar que el título no esté vacío
     if (!title.trim()) {
@@ -242,6 +243,8 @@ const Index = () => {
 
     if (selectedTask) {
       // Estamos editando una tarea existente
+      const otherTags = (selectedTask.tags || []).filter(t => t !== 'principal');
+      const nextTags = isPrimary ? [...otherTags, 'principal'] : otherTags;
       const updatedTask: Task = {
         ...selectedTask,
         title: title.trim(),
@@ -249,7 +252,8 @@ const Index = () => {
         subtasks,
         scheduledDate,
         scheduledTime,
-        notes: notes?.trim()
+        notes: notes?.trim(),
+        tags: nextTags
       };
       
       // Usar updateTask del store en lugar de updateTasks directamente
@@ -271,7 +275,8 @@ const Index = () => {
         subtasks,
         scheduledDate: scheduledDate, // No establecer fecha automáticamente
         scheduledTime,
-        notes: notes?.trim()
+        notes: notes?.trim(),
+        tags: isPrimary ? ['principal'] : []
       };
       
       console.log('🆕 Index.tsx: Creando nueva tarea con datos:', newTaskData);

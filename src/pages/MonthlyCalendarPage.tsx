@@ -192,7 +192,7 @@ const MonthlyCalendarPage: React.FC = () => {
     localStorage.removeItem('stebe-selected-date');
   };
 
-  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
     try {
       const newTask: Task = {
         id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -206,6 +206,7 @@ const MonthlyCalendarPage: React.FC = () => {
         notes,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        tags: isPrimary ? ['principal'] : []
       };
 
       const updatedTasks = [...tasks, newTask];

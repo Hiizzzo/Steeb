@@ -24,11 +24,12 @@ interface Task {
   scheduledDate?: string;
   scheduledTime?: string;
   notes?: string;
+  tags?: string[];
 }
 
 interface TaskCreationCardProps {
   onCancel: () => void;
-  onCreate: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  onCreate: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => void;
   editingTask?: Task | null;
 }
 
@@ -41,6 +42,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
+  const [isPrimary, setIsPrimary] = useState(false);
   const { playButtonClickSound } = useSoundEffects();
   const { toast } = useToast();
 
@@ -56,6 +58,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       if (editingTask.scheduledTime) {
         setSelectedTime(editingTask.scheduledTime);
       }
+      setIsPrimary(!!editingTask.tags?.includes('principal'));
     } else {
       // Resetear campos cuando se está creando una nueva tarea
       setTitle('');
@@ -63,6 +66,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       setSelectedTag('personal');
       setSelectedDate(undefined);
       setSelectedTime('');
+      setIsPrimary(false);
     }
   }, [editingTask]);
 
@@ -74,7 +78,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         selectedTag, 
         scheduledDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
         scheduledTime: selectedTime || undefined,
-        notes: notes.trim() || undefined 
+        notes: notes.trim() || undefined,
+        isPrimary
       });
       
       playButtonClickSound();
@@ -88,7 +93,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         undefined, // subtasks - not implemented in this simple version
         scheduledDate,
         selectedTime || undefined,
-        notes.trim() || undefined
+        notes.trim() || undefined,
+        isPrimary
       );
       
       // Cerrar el modal después de crear la tarea
@@ -181,6 +187,20 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               placeholder="Notas"
               className="w-full text-sm text-gray-500 placeholder-gray-400 border-none outline-none bg-transparent resize-none min-h-[40px]"
             />
+          </div>
+
+          {/* Mission Type */}
+          <div className="mb-4 flex items-center gap-2">
+            <input
+              id="isPrimary"
+              type="checkbox"
+              checked={isPrimary}
+              onChange={(e) => setIsPrimary(e.target.checked)}
+              className="w-4 h-4 accent-black"
+            />
+            <label htmlFor="isPrimary" className="text-sm text-black">
+              Marcar como misión principal
+            </label>
           </div>
         </div>
 
