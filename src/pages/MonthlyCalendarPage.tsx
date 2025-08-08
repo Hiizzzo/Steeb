@@ -262,6 +262,33 @@ const MonthlyCalendarPage: React.FC = () => {
     return '#000000'; // Siempre negro para mantener consistencia
   };
 
+  // Estadísticas del mes actual (tareas completadas y programadas)
+  const monthStats = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
+
+    const parseDateOnly = (dateString: string) => {
+      const [yyyy, mm, dd] = dateString.split('-').map(Number);
+      return new Date(yyyy, (mm || 1) - 1, dd || 1);
+    };
+
+    const completed = tasks.filter(t => (
+      t.completed && t.completedDate &&
+      new Date(t.completedDate) >= monthStart && new Date(t.completedDate) <= monthEnd
+    )).length;
+
+    const scheduled = tasks
+      .filter(t => !!t.scheduledDate)
+      .filter(t => {
+        const d = parseDateOnly(t.scheduledDate!);
+        return d >= monthStart && d <= monthEnd;
+      }).length;
+
+    return { completed, scheduled };
+  }, [currentDate, tasks]);
+
   const renderCalendarDay = (day: CalendarDay, index: number) => (
     <motion.div
       key={day.dateString}
@@ -399,18 +426,27 @@ const MonthlyCalendarPage: React.FC = () => {
               <ChevronLeft className="w-6 h-6" />
       </motion.button>
       
-            <motion.h2
-              key={currentDate.toISOString()}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="text-2xl font-bold text-gray-800 dark:text-white"
-            >
-              {currentDate.toLocaleDateString('es-ES', { 
-                month: 'long', 
-                year: 'numeric' 
-              })}
-            </motion.h2>
+            <div className="flex flex-col items-center">
+              <motion.h2
+                key={currentDate.toISOString()}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="text-2xl font-bold text-gray-800 dark:text-white"
+              >
+                {currentDate.toLocaleDateString('es-ES', { 
+                  month: 'long', 
+                  year: 'numeric' 
+                })}
+              </motion.h2>
+              <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                <span>{monthStats.completed} completadas</span>
+                {monthStats.scheduled > 0 && (
+                  <span>• {monthStats.scheduled} programadas</span>
+                )}
+              </div>
+            </div>
 
             <motion.button
               onClick={nextMonth}
