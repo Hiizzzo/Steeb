@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Clock, Plus, Sparkles } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy } from 'lucide-react';
+
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -54,7 +54,7 @@ const MonthlyCalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
-  const { theme } = useTheme();
+  
   
   const { 
     tasks, 
@@ -66,7 +66,7 @@ const MonthlyCalendarPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
 
-  const isDark = theme === 'dark';
+  
 
   // Generar días del calendario
   const calendarDays = useMemo(() => {
@@ -247,9 +247,6 @@ const MonthlyCalendarPage: React.FC = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
-  const getCompletionColor = (percentage: number) => {
-    return '#000000'; // Siempre negro para mantener consistencia
-  };
 
   // Estadísticas del mes actual (tareas completadas y programadas)
   const monthStats = useMemo(() => {
@@ -289,10 +286,10 @@ const MonthlyCalendarPage: React.FC = () => {
         ease: ANIMATION_CONFIG.easing as any
       }}
               className={`
-          relative min-h-[60px] p-1 border border-gray-200 dark:border-gray-700 rounded-lg
-          ${day.isCurrentMonth ? 'bg-white dark:bg-black' : 'bg-gray-50 dark:bg-gray-900'}
-          ${day.isToday ? 'ring-2 ring-black dark:ring-white' : ''}
-          ${day.isSelected ? 'ring-2 ring-black dark:ring-white' : ''}
+          relative min-h-[60px] p-1 border rounded-lg
+          ${day.isCurrentMonth ? 'bg-background' : 'bg-muted/50'}
+          ${day.isToday ? 'ring-2 ring-foreground' : ''}
+          ${day.isSelected ? 'border-2 border-foreground' : ''}
           cursor-pointer transition-all duration-300
           hover:shadow-lg hover:scale-105
         `}
@@ -305,10 +302,8 @@ const MonthlyCalendarPage: React.FC = () => {
       {/* Número del día */}
       <div className={`
         text-xs font-semibold mb-1
-        ${day.isCurrentMonth ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600'}
-        ${day.isToday ? 'text-black dark:text-white' : ''}
-        ${day.isSelected ? 'text-black dark:text-white' : ''}
-      `}>
+        ${day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
+     `}>
         {day.day}
       </div>
 
@@ -316,25 +311,25 @@ const MonthlyCalendarPage: React.FC = () => {
       {day.totalTasks > 0 && (
         <div className="space-y-1">
                      {/* Barra de progreso */}
-           <div className="w-full h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+           <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${day.completionPercentage}%` }}
               transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
               className="h-full rounded-full"
-              style={{ background: getCompletionColor(day.completionPercentage) }}
+              style={{ background: 'hsl(var(--foreground))' }}
             />
           </div>
           
                      {/* Contador de tareas */}
            <div className="flex items-center justify-between text-[10px]">
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className="text-muted-foreground">
               {day.completedTasks}/{day.totalTasks}
             </span>
-                         {day.completionPercentage === 100 && (
-               <CheckCircle className="w-2 h-2 text-black dark:text-white" />
-             )}
-          </div>
+            {day.completionPercentage === 100 && (
+              <CheckCircle className="w-2 h-2 text-foreground" />
+            )}
+           </div>
         </div>
       )}
 
@@ -345,7 +340,7 @@ const MonthlyCalendarPage: React.FC = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute inset-0 bg-gray-100 dark:bg-gray-800 rounded-lg -z-10"
+            className="absolute inset-0 bg-muted rounded-lg -z-10"
           />
         )}
       </AnimatePresence>
@@ -353,14 +348,14 @@ const MonthlyCalendarPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black p-4">
+    <div className="min-h-screen bg-background p-4">
       {/* Header con navegación */}
       <div className="max-w-6xl mx-auto">
         {/* Botón Volver */}
         <div className="flex justify-start mb-4">
           <motion.button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            className="flex items-center gap-2 px-4 py-2 bg-card border rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -375,12 +370,9 @@ const MonthlyCalendarPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <h1 className="text-3xl font-bold text-black dark:text-white">
-            Calendario
+          <h1 className="text-[28px] sm:text-3xl font-bold text-foreground">
+            Hoy es un gran día para tachar pendientes
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Organiza tu tiempo con estilo
-          </p>
         </motion.div>
 
         {/* Botón Agregar Tarea centrado */}
@@ -389,7 +381,7 @@ const MonthlyCalendarPage: React.FC = () => {
             {selectedDate && (
               <motion.button
                 onClick={() => handleAddTask(selectedDate)}
-                className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
@@ -403,12 +395,38 @@ const MonthlyCalendarPage: React.FC = () => {
           </AnimatePresence>
         </div>
 
+        {/* Tarjetas de métricas */}
+        <div className="mb-6 -mx-1 px-1">
+          <div className="flex gap-2 overflow-x-auto">
+            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <Flame className="w-6 h-6" />
+              <div className="text-xl font-semibold text-foreground">{currentStreak}</div>
+              <div className="text-xs text-muted-foreground">días de racha</div>
+            </div>
+            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <CheckCircle className="w-6 h-6" />
+              <div className="text-xl font-semibold text-foreground">{totalCompleted}</div>
+              <div className="text-xs text-muted-foreground">tareas completadas</div>
+            </div>
+            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <Calendar className="w-6 h-6" />
+              <div className="text-xl font-semibold text-foreground">{daysWithCompletedInMonth}</div>
+              <div className="text-xs text-muted-foreground">días activos</div>
+            </div>
+            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <Trophy className="w-6 h-6" />
+              <div className="text-xl font-semibold text-foreground">{bestStreak}</div>
+              <div className="text-xs text-muted-foreground">mejor racha</div>
+            </div>
+          </div>
+        </div>
+
         {/* Controles del calendario */}
-        <Card className="p-6 mb-6 bg-white dark:bg-black border border-gray-200 dark:border-gray-800">
+        <Card className="p-6 mb-6 bg-background border">
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-full hover:bg-muted transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -421,14 +439,14 @@ const MonthlyCalendarPage: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="text-2xl font-bold text-gray-800 dark:text-white"
+                className="text-2xl font-bold text-foreground"
               >
                 {currentDate.toLocaleDateString('es-ES', { 
                   month: 'long', 
                   year: 'numeric' 
                 })}
               </motion.h2>
-              <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+              <div className="mt-1 text-sm text-muted-foreground flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
                 <span>{monthStats.completed} completadas</span>
                 {monthStats.scheduled > 0 && (
@@ -439,7 +457,7 @@ const MonthlyCalendarPage: React.FC = () => {
 
             <motion.button
               onClick={nextMonth}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-full hover:bg-muted transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -455,7 +473,7 @@ const MonthlyCalendarPage: React.FC = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="text-center text-sm font-semibold text-gray-600 dark:text-gray-400 py-2"
+                className="text-center text-sm font-semibold text-muted-foreground py-2"
               >
                 {day}
               </motion.div>
@@ -468,22 +486,41 @@ const MonthlyCalendarPage: React.FC = () => {
              initial={{ opacity: 0 }}
              animate={{ opacity: 1 }}
              transition={{ duration: ANIMATION_CONFIG.monthTransition }}
-             className="grid grid-cols-7 gap-1"
-           >
-            {calendarDays.map((day, index) => renderCalendarDay(day, index))}
-          </motion.div>
-        </Card>
+           className="grid grid-cols-7 gap-1"
+         >
+          {calendarDays.map((day, index) => renderCalendarDay(day, index))}
+        </motion.div>
 
-        {/* Tareas del día seleccionado */}
+        <div className="mt-4">
+          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+            <span>Menos</span>
+            <div className="flex gap-1">
+              <span className="h-2 w-4 rounded-sm bg-foreground/20" />
+              <span className="h-2 w-4 rounded-sm bg-foreground/40" />
+              <span className="h-2 w-4 rounded-sm bg-foreground/60" />
+              <span className="h-2 w-4 rounded-sm bg-foreground/80" />
+              <span className="h-2 w-4 rounded-sm bg-foreground" />
+            </div>
+            <span>Más</span>
+          </div>
+          {selectedDate && (
+            <p className="mt-2 text-center text-sm text-foreground">
+              {new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+            </p>
+          )}
+        </div>
+      </Card>
+
+      {/* Tareas del día seleccionado */}
         {selectedDate && (
           <AnimatePresence>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-lg"
+              className="bg-background border rounded-xl p-6 shadow-lg"
             >
-              <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+              <h3 className="text-xl font-bold mb-4 text-foreground">
                 Tareas del {new Date(selectedDate).toLocaleDateString('es-ES', { 
                   weekday: 'long', 
                   year: 'numeric', 
@@ -493,12 +530,12 @@ const MonthlyCalendarPage: React.FC = () => {
               </h3>
               
               {calendarDays.find(d => d.dateString === selectedDate)?.tasks.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div className="text-center py-8 text-muted-foreground">
                   <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>No hay tareas programadas para este día</p>
                   <Button
                     onClick={() => handleAddTask(selectedDate)}
-                    className="mt-4 bg-black dark:bg-white text-white dark:text-black"
+                    className="mt-4 bg-foreground text-background"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Agregar Tarea
@@ -511,24 +548,24 @@ const MonthlyCalendarPage: React.FC = () => {
                       key={task.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                     >
                       <button
                         onClick={() => handleToggleTask(task.id)}
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                           task.completed 
-                            ? 'bg-black dark:bg-white border-black dark:border-white text-white dark:text-black' 
-                            : 'border-gray-300 dark:border-gray-600'
+                            ? 'bg-foreground border-foreground text-background' 
+                            : 'border'
                         }`}
                       >
                         {task.completed && <CheckCircle className="w-3 h-3" />}
                       </button>
                       
                       <div className="flex-1">
-                        <p className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800 dark:text-white'}`}>
+                        <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                           {task.title}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                           {task.type} • {task.scheduledTime || 'Sin hora'}
                         </p>
                       </div>
