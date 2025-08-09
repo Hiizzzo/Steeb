@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AlarmClock, CheckCircle, XCircle } from 'lucide-react';
-import { Task } from '@/components/TaskItem';
+import { Task } from '@/types';
 import SteveAvatar from '@/components/SteveAvatar';
 
 interface TaskTimerProps {
   task: Task | null;
-  onComplete: (id: string, timeSpent: number) => void;
+  onComplete: (id: string, timeSpentMinutes: number) => void;
   onCancel: () => void;
 }
 
@@ -22,7 +22,9 @@ const TaskTimer: React.FC<TaskTimerProps> = ({ task, onComplete, onCancel }) => 
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
     const remainingSeconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds
+      .toString()
+      .padStart(2, '0')}`;
   };
   
   // Iniciar/pausar el temporizador
@@ -36,11 +38,11 @@ const TaskTimer: React.FC<TaskTimerProps> = ({ task, onComplete, onCancel }) => 
     onComplete(task.id, Math.floor(seconds / 60));
   };
   
-  // Cambiar el humor de Steve basado en el tiempo
+  // Cambiar el humor de Steve basado en el tiempo objetivo estimado
   useEffect(() => {
-    if (!task?.targetTime || !isActive) return;
+    if (!task?.estimatedDuration || !isActive) return;
     
-    const targetSeconds = task.targetTime * 60;
+    const targetSeconds = task.estimatedDuration * 60;
     
     if (seconds < targetSeconds * 0.5) {
       setSteveMood('happy');
@@ -66,7 +68,7 @@ const TaskTimer: React.FC<TaskTimerProps> = ({ task, onComplete, onCancel }) => 
     
     if (isActive) {
       interval = window.setInterval(() => {
-        setSeconds(seconds => seconds + 1);
+        setSeconds((seconds) => seconds + 1);
       }, 1000);
     } else {
       clearInterval(interval);
@@ -102,12 +104,12 @@ const TaskTimer: React.FC<TaskTimerProps> = ({ task, onComplete, onCancel }) => 
           <span>{formatTime(seconds)}</span>
         </div>
         
-        {task.targetTime && (
+        {task.estimatedDuration && (
           <div className="text-center text-sm mb-4">
-            Tiempo estimado: {task.targetTime} minutos
-            {seconds > task.targetTime * 60 && (
+            Tiempo estimado: {task.estimatedDuration} minutos
+            {seconds > task.estimatedDuration * 60 && (
               <span className="block text-red-500 font-medium mt-1">
-                ¡Te has excedido por {formatTime(seconds - task.targetTime * 60)}!
+                ¡Te has excedido por {formatTime(seconds - task.estimatedDuration * 60)}!
               </span>
             )}
           </div>

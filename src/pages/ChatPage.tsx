@@ -6,6 +6,10 @@ import { useToast } from '@/components/ui/use-toast';
 import StebeAI from '@/components/StebeAI';
 import geminiService, { ChatMessage } from '@/services/geminiService';
 import groqService from '@/services/groqService';
+import { useTaskStore } from '@/store/useTaskStore';
+import SmartTaskReview, { SmartTaskPlan, SmartTaskItem } from '@/components/SmartTaskReview';
+import TaskTimer from '@/components/TaskTimer';
+import { notificationService } from '@/services/notificationService';
 
 interface Message {
   id: string;
@@ -31,6 +35,10 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const taskStore = useTaskStore();
+  const [showPlanReview, setShowPlanReview] = useState<null | SmartTaskPlan>(null);
+  const [pendingPlanUserText, setPendingPlanUserText] = useState<string>('');
+  const [timerTask, setTimerTask] = useState<null | import('@/types').Task>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -92,7 +100,90 @@ const ChatPage = () => {
     }
   };
 
+  const createTasksFromSmartPlan = async (selected: Array<SmartTaskItem & { scheduledDate?: string; scheduledTime?: string }>) => {
+    // Crear tareas en el store y programar recordatorios
+    const created: import('@/types').Task[] = [];
+    for (const item of selected) {
+      await taskStore.addTask({
+        title: item.title,
+        type: 'personal',
+        status: 'pending',
+        completed: false,
+        notes: item.description,
+        scheduledDate: item.scheduledDate,
+        scheduledTime: item.scheduledTime,
+        estimatedDuration: item.estimatedTime ? parseInt((item.estimatedTime.match(/(\d+)/)?.[1] || '30'), 10) : undefined,
+        priority: item.priority as any,
+      });
+      // El addTask genera id internamente; recuperamos última tarea
+    }
+    // Recuperar últimas N tareas creadas (aprox) y programar recordatorios
+    const nowTasks = useTaskStore.getState().tasks;
+    const lastN = selected.length;
+    const toSchedule = nowTasks.slice(-lastN).map(t => ({
+      id: t.id,
+      title: t.title,
+      scheduledDate: t.scheduledDate,
+      scheduledTime: t.scheduledTime,
+    }));
+    notificationService.scheduleBatchReminders(toSchedule);
+
+    setShowPlanReview(null);
+
+    // Devolver feedback en chat
+    const confirmation = `✅ He creado ${selected.length} tarea(s). ¿Querés verlas en el calendario?`;
+    handleAIMessageGenerated(confirmation);
+  };
+
+  const tryParseTimerCommand = (text: string) => {
+    const lower = text.toLowerCase();
+    // formatos: "empezar pomodoro", "iniciar temporizador", opcional "de 25 min" y nombre entre comillas
+    const hasStart = lower.includes('pomodoro') || lower.includes('temporizador');
+    if (!hasStart) return null;
+    const durationMatch = lower.match(/(\d+)[\s-]*min/);
+    const duration = durationMatch ? parseInt(durationMatch[1], 10) : 25;
+    const quoted = text.match(/"([^"]+)"/);
+    const taskTitle = quoted ? quoted[1] : null;
+    return { duration, taskTitle };
+  };
+
+  const openTimerForTaskTitle = (title: string, durationMin: number) => {
+    const t = taskStore.tasks.slice().reverse().find(tt => tt.title.toLowerCase() === title.toLowerCase()) ||
+              taskStore.tasks.find(tt => tt.title.toLowerCase().includes(title.toLowerCase()));
+    const taskObj: import('@/types').Task | null = t || {
+      id: `temp-${Date.now()}`,
+      title,
+      type: 'personal',
+      status: 'in_progress',
+      completed: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      estimatedDuration: durationMin,
+    } as any;
+    setTimerTask(taskObj);
+  };
+
+  const summarizeDay = () => {
+    const all = taskStore.tasks;
+    const today = new Date().toISOString().split('T')[0];
+    const completed = all.filter(t => t.completed && t.completedDate?.startsWith(today));
+    const pending = all.filter(t => !t.completed && t.scheduledDate === today);
+    const msg = `📈 Resumen de hoy\n\nCompletadas: ${completed.length}\nPendientes de hoy: ${pending.length}\n\nSugerencia: elegí 1-3 tareas clave para mañana y definí horario.`;
+    return msg;
+  };
+
   const generateStebeResponse = async (userMessage: string): Promise<string> => {
+    // Intentos de comandos antes de IA
+    const timerCmd = tryParseTimerCommand(userMessage);
+    if (timerCmd) {
+      if (timerCmd.taskTitle) openTimerForTaskTitle(timerCmd.taskTitle, timerCmd.duration);
+      return `⏱️ Iniciando pomodoro de ${timerCmd.duration} minutos${timerCmd.taskTitle ? ` para "${timerCmd.taskTitle}"` : ''}. Cuando termines, decime "terminar pomodoro".`;
+    }
+
+    if (userMessage.toLowerCase().includes('resumen del día')) {
+      return summarizeDay();
+    }
+
     console.log(`💭 Generando respuesta inteligente para: "${userMessage}"`);
     console.log(`🤖 AI Mode: ${isUsingAI ? 'ON' : 'OFF'}`);
     console.log(`⚡ Groq Ready: ${groqService.isReady()}`);
@@ -519,6 +610,18 @@ const ChatPage = () => {
           ))}
         </AnimatePresence>
 
+        {/* Plan Review Inline */}
+        {showPlanReview && (
+          <div className="mt-2">
+            <SmartTaskReview
+              plan={showPlanReview}
+              defaultScheduledDate={new Date().toISOString().split('T')[0]}
+              onCancel={() => setShowPlanReview(null)}
+              onConfirm={createTasksFromSmartPlan}
+            />
+          </div>
+        )}
+
         {/* Typing Indicator */}
         {isTyping && (
           <motion.div
@@ -546,6 +649,22 @@ const ChatPage = () => {
         
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Timer Overlay */}
+      {timerTask && (
+        <TaskTimer
+          task={timerTask}
+          onCancel={() => setTimerTask(null)}
+          onComplete={async (id, mins) => {
+            setTimerTask(null);
+            const t = taskStore.tasks.find(tt => tt.id === id);
+            if (t) {
+              await taskStore.updateTask(t.id, { actualDuration: mins, status: 'completed', completed: true, completedDate: new Date().toISOString() });
+            }
+            handleAIMessageGenerated(`✅ Pomodoro completado (${mins} min). ¡Buen trabajo!`);
+          }}
+        />
+      )}
 
       {/* Input Area */}
       <div className="border-t bg-white p-4">

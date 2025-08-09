@@ -79,6 +79,15 @@ export class NotificationService {
     }
   }
 
+  // Programar recordatorios para varias tareas a la vez
+  scheduleBatchReminders(tasks: Array<{ id: string; title: string; scheduledDate?: string; scheduledTime?: string }>) {
+    tasks.forEach(t => {
+      if (t.scheduledDate) {
+        this.scheduleTaskReminder(t.id, t.title, t.scheduledDate, t.scheduledTime);
+      }
+    });
+  }
+
   // Cancelar recordatorio de tarea
   cancelTaskReminder(taskId: string) {
     const timeout = this.notificationTimeouts.get(taskId);
