@@ -269,7 +269,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               {getStatusIcon()}
-              <CardTitle className="text-lg">Stebe AI - Asistente Offline</CardTitle>
+              <CardTitle className="text-lg">Stebe AI - Asistente Inteligente</CardTitle>
             </div>
             <Badge variant={getStatusColor()}>
               {initState.isInitialized ? 'Activo' : 
@@ -278,7 +278,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
             </Badge>
           </div>
           <CardDescription>
-            Tu mentor personal de productividad que funciona completamente offline
+            Tu mentor personal de productividad impulsado por Groq
           </CardDescription>
         </CardHeader>
 
