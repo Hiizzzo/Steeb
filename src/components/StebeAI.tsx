@@ -391,6 +391,26 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                     )}
                   </Button>
                   
+                  <Button 
+                    onClick={async () => {
+                      if (!groqService.isReady()) return;
+                      setIsGenerating(true);
+                      try {
+                        const today = new Date();
+                        const req = `Generá un plan del día con 3-5 tareas priorizadas para hoy (${today.toLocaleDateString('es-AR')}).`;
+                        const plan = await groqService.getIntelligentResponse(req);
+                        onMessageGenerated?.(plan);
+                      } finally {
+                        setIsGenerating(false);
+                      }
+                    }}
+                    disabled={isGenerating}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isGenerating ? 'Generando plan...' : 'Plan del día'}
+                  </Button>
+                  
                   <div className="text-center mt-2">
                     <p className="text-xs text-gray-600">
                       💡 Describe cualquier objetivo y Stebe creará un plan detallado con tareas específicas
