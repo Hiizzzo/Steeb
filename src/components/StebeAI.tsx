@@ -50,8 +50,8 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
       isReady
     });
     
-    // Determinar el estado basado en el string de estado
-    const isInitialized = statusString.includes('listo') || statusString.includes('Groq');
+    // Determinar el estado basado en el readiness real del servicio
+    const isInitialized = isReady;
     const isInitializing = false; // Groq no tiene proceso de descarga
     
     setInitState(prev => ({
