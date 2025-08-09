@@ -22,7 +22,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: '¡Hola! Soy STEBE, tu asistente de productividad offline. Funciono completamente en tu dispositivo sin necesidad de internet. Estoy aquí para ayudarte a organizar tus tareas y alcanzar tus objetivos. ¿En qué puedo ayudarte hoy?',
+             text: '¡Hola! Soy STEBE, tu asistente de productividad. Estoy aquí para ayudarte a organizar tus tareas y alcanzar tus objetivos. ¿En qué puedo ayudarte hoy?',
       sender: 'stebe',
       timestamp: new Date()
     }
@@ -53,25 +53,11 @@ const ChatPage = () => {
     if ('Notification' in window) {
       setNotificationsEnabled(Notification.permission === 'granted');
     }
-    
-    // Intentar auto-inicializar STEBE AI
-    const autoInitAI = async () => {
-      try {
-        console.log('🔄 Auto-inicializando STEBE AI...');
-        const ready = await geminiService.ensureReady();
-        if (ready) {
-          console.log('✅ STEBE AI auto-inicializado correctamente');
-          // Activar AI mode por defecto si está listo
-          setIsUsingAI(true);
-        } else {
-          console.log('⚠️ STEBE AI no pudo auto-inicializarse');
-        }
-      } catch (error) {
-        console.error('❌ Error en auto-inicialización:', error);
-      }
-    };
-    
-    autoInitAI();
+
+    // No auto-inicializamos Gemini/Ollama. Si Groq ya está listo, activamos AI.
+    if (groqService.isReady()) {
+      setIsUsingAI(true);
+    }
   }, []);
 
   const requestNotificationPermission = async () => {
