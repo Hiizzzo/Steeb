@@ -237,6 +237,17 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               )}
             </AnimatePresence>
           </motion.button>
+ 
+          {/* Botón Calendario (acceso directo) */}
+          <motion.button
+            onClick={() => navigate('/monthly-calendar')}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gray-800 hover:bg-gray-700 ml-4 pointer-events-auto"
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Calendar size={24} className="text-white" strokeWidth={2.5} />
+          </motion.button>
+ 
         </div>
       </div>
 
