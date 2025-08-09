@@ -6,11 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Index from "./pages/Index";
-import CompletedTasksPage from "./pages/CompletedTasksPage";
-import ImageManager from "./pages/ImageManager";
 import MonthlyCalendarPage from "./pages/MonthlyCalendarPage";
-import IPhoneCalendarDemo from "./pages/iPhoneCalendarDemo";
-import EnhancedCalendarPage from "./pages/EnhancedCalendarPage";
 import ChatPage from "./pages/ChatPage";
 import MisionesPage from "./pages/MisionesPage";
 import NotFound from "./pages/NotFound";
@@ -42,11 +38,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/completed-tasks" element={<CompletedTasksPage />} />
-            <Route path="/image-manager" element={<ImageManager />} />
             <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
-            <Route path="/iphone-calendar-demo" element={<IPhoneCalendarDemo />} />
-            <Route path="/enhanced-calendar" element={<EnhancedCalendarPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/misiones" element={<MisionesPage />} />
 
