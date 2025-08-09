@@ -360,6 +360,11 @@ const Index = () => {
       <div className="max-w-sm mx-auto px-3 mt-2 mb-2">
         <a href="/misiones" className="inline-block text-xs px-3 py-1 rounded-full border border-gray-300 hover:border-black transition-colors">Ver Misiones del día</a>
       </div>
+
+      {/* Enlace rápido al Calendario */}
+      <div className="max-w-sm mx-auto px-3 mt-1 mb-3">
+        <a href="/monthly-calendar" className="inline-block text-xs px-3 py-1 rounded-full border border-gray-300 hover:border-black transition-colors">Ver Calendario</a>
+      </div>
       
       {viewMode === 'tasks' ? (
         <>
