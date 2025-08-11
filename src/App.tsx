@@ -11,6 +11,7 @@ import ChatPage from "./pages/ChatPage";
 import MisionesPage from "./pages/MisionesPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
+import VersionIndicator from "./components/VersionIndicator";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <VersionIndicator version="0.1.0" />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
