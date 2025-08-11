@@ -73,6 +73,7 @@ class GeminiService {
       focusAreas: []
     }
   };
+  private isSimulated = false;
 
   async initialize(
     config: GeminiConfig = {},
@@ -108,6 +109,7 @@ class GeminiService {
         console.warn('⚠️ Ollama no está disponible, usando modo simulado');
         this.isInitialized = true;
         this.isInitializing = false;
+        this.isSimulated = true;
         return true;
       }
       
@@ -125,6 +127,7 @@ class GeminiService {
       
       this.isInitialized = true;
       this.isInitializing = false;
+      this.isSimulated = false;
       
       console.log('✅ Gemini Service inicializado correctamente con Ollama');
       return true;
@@ -136,6 +139,7 @@ class GeminiService {
       // En caso de error, usar modo simulado
       this.isInitialized = true;
       this.isInitializing = false;
+      this.isSimulated = true;
       return true;
     }
   }
@@ -228,6 +232,9 @@ class GeminiService {
 
   getInitializationStatus(): string {
     if (this.isInitialized) {
+      if (this.isSimulated) {
+        return `Gemini en modo simulado (Ollama no disponible)`;
+      }
       return `Gemini listo con modelo ${this.currentModel}`;
     } else if (this.isInitializing) {
       return 'Inicializando Gemini con Ollama...';
@@ -599,6 +606,19 @@ class GeminiService {
 
   getOllamaUrl(): string {
     return this.ollamaUrl;
+  }
+
+  // Nuevos métodos públicos para control de disponibilidad y modo simulado
+  async isLocalAvailable(): Promise<boolean> {
+    try {
+      return await this.checkOllamaAvailability();
+    } catch {
+      return false;
+    }
+  }
+
+  isSimulatedMode(): boolean {
+    return this.isSimulated;
   }
 }
 
