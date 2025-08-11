@@ -216,7 +216,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <Card className="w-full">
+      <Card className="w-full bg-white text-black border-black">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -246,28 +246,28 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
               >
                 {!initState.isInitializing && !initState.error && (
                   <div className="text-center space-y-4">
-                    <div className="flex items-center justify-center space-x-2 text-gray-600">
+                    <div className="flex items-center justify-center space-x-2 text-black/70">
                       <Cpu className="h-6 w-6" />
                       <span>Ollama local listo. Modelo por defecto: gemma2:2b</span>
                     </div>
                     {/* Configuración rápida */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                       <div>
-                        <label className="text-xs text-gray-500">URL de Ollama</label>
+                        <label className="text-xs text-black/70">URL de Ollama</label>
                         <input
                           type="text"
                           defaultValue={geminiService.getOllamaUrl()}
                           onBlur={(e) => geminiService.setOllamaUrl(e.target.value)}
-                          className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                          className="mt-1 w-full border border-black rounded px-3 py-2 text-sm"
                           placeholder="http://localhost:11434"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500">Modelo</label>
+                        <label className="text-xs text-black/70">Modelo</label>
                         <select
                           defaultValue={geminiService.getCurrentModel()}
                           onChange={(e) => geminiService.setModel(e.target.value)}
-                          className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                          className="mt-1 w-full border border-black rounded px-3 py-2 text-sm"
                         >
                           {geminiService.getAvailableModels().map(m => (
                             <option key={m} value={m}>{m}</option>
@@ -277,13 +277,13 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                     </div>
                     <Button 
                       onClick={handleInitialize}
-                      className="w-full"
+                      className="w-full bg-black text-white hover:bg-black/80"
                       size="lg"
                     >
                       <Brain className="mr-2 h-4 w-4" />
                       Activar Stebe AI (Offline)
                     </Button>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-black/70">
                       Se descargará el modelo si no está instalado. Puedes cambiar el modelo y la URL antes de iniciar.
                     </p>
                   </div>
@@ -293,10 +293,10 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{initState.status}</span>
-                      <span className="text-sm text-gray-500">{initState.progress}%</span>
+                      <span className="text-sm text-black/70">{initState.progress}%</span>
                     </div>
                     <Progress value={initState.progress} className="w-full" />
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-xs text-black/70 text-center">
                       Configurando tu asistente personal...
                     </p>
                   </div>
@@ -304,13 +304,13 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
                 {initState.error && (
                   <div className="text-center space-y-4">
-                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                      <p className="text-red-800 text-sm">{initState.error}</p>
+                    <div className="p-4 bg-white rounded-lg border border-black">
+                      <p className="text-red-700 text-sm">{initState.error}</p>
                     </div>
                     <Button 
                       onClick={handleInitialize}
                       variant="outline"
-                      className="w-full"
+                      className="w-full border-black"
                     >
                       Reintentar inicialización
                     </Button>
@@ -325,7 +325,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
-                <div className="flex items-center justify-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                <div className="flex items-center justify-center space-x-2 text-black bg-white p-3 rounded-lg border">
                   <CheckCircle2 className="h-5 w-5" />
                   <span className="font-medium">Stebe AI está activo y listo</span>
                 </div>
@@ -335,7 +335,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                     onClick={generateMotivationalMessage}
                     disabled={isGenerating}
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-black"
                   >
                     {isGenerating ? (
                       <>
@@ -353,7 +353,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <Button 
                     onClick={generateTasksFromRequest}
                     disabled={isGenerating}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="w-full bg-black text-white hover:bg-black/80"
                   >
                     {isGenerating ? (
                       <>
@@ -383,26 +383,26 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                     }}
                     disabled={isGenerating}
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-black"
                   >
                     {isGenerating ? 'Generando plan...' : 'Plan del día'}
                   </Button>
                   
                   <div className="text-center mt-2">
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-black/70">
                       💡 Describe cualquier objetivo y Stebe creará un plan detallado con tareas específicas
                     </p>
                   </div>
                 </div>
 
-                  <div className="text-xs text-gray-500 space-y-1">
+                  <div className="text-xs text-black/70 space-y-1">
                     <div className="flex justify-between">
                       <span>Modelo:</span>
                       <span>{geminiService.getCurrentModel()} via Ollama (local)</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Estado:</span>
-                      <span className="text-green-600">Conectado y privado</span>
+                      <span className="">Conectado y privado</span>
                     </div>
                   </div>
               </motion.div>
