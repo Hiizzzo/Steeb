@@ -63,12 +63,12 @@ const MonthlyCalendarPage: React.FC = () => {
   } = useTaskStore();
 
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split('T')[0]);
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
 
-  
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-  // Generar días del calendario
+  // Generar días del calendario (inicio en lunes)
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -76,7 +76,9 @@ const MonthlyCalendarPage: React.FC = () => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    // Ajustar para que la semana comience en lunes (0 = lunes)
+    const mondayIndex = (firstDay.getDay() + 6) % 7; // 0..6 (lun..dom)
+    startDate.setDate(startDate.getDate() - mondayIndex);
     
     const days: CalendarDay[] = [];
     const today = new Date();
@@ -341,69 +343,67 @@ const MonthlyCalendarPage: React.FC = () => {
   const renderCalendarDay = (day: CalendarDay, index: number) => (
     <motion.div
       key={day.dateString}
-      initial={{ opacity: 0, scale: 0.8 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{
         duration: ANIMATION_CONFIG.daySelection,
-        delay: index * 0.02,
+        delay: index * 0.01,
         ease: ANIMATION_CONFIG.easing as any
       }}
-              className={`
-          relative min-h-[60px] p-1 border rounded-lg
-          ${day.isCurrentMonth ? 'bg-background' : 'bg-muted/50'}
-          ${day.isToday ? 'ring-2 ring-foreground' : ''}
-          ${day.isSelected ? 'border-2 border-foreground' : ''}
-          cursor-pointer transition-all duration-300
-          hover:shadow-lg hover:scale-105
+      className={`
+          relative h-14 sm:h-16 rounded-xl bg-white border
+          ${day.isCurrentMonth ? 'border-neutral-200' : 'border-neutral-100'}
+          ${day.isToday ? 'ring-2 ring-black' : ''}
+          ${day.isSelected ? 'outline outline-2 outline-black' : ''}
+          cursor-pointer transition-colors duration-150 hover:bg-neutral-50
         `}
       onClick={() => handleDateSelect(day.dateString)}
       onMouseEnter={() => setHoveredDate(day.date)}
       onMouseLeave={() => setHoveredDate(null)}
-      whileHover={{ scale: ANIMATION_CONFIG.hoverScale }}
-      whileTap={{ scale: ANIMATION_CONFIG.tapScale }}
     >
       {/* Número del día */}
-      <div className={`
-        text-xs font-semibold mb-1
-        ${day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
-     `}>
+      <div
+        className={`absolute top-2 left-1/2 -translate-x-1/2 text-[14px] sm:text-[15px] tabular-nums
+          ${day.isCurrentMonth ? 'text-neutral-900' : 'text-neutral-400'}
+          ${day.isToday ? 'font-bold' : 'font-semibold'}`}
+      >
         {day.day}
       </div>
 
-      {/* Indicadores de tareas */}
-      {day.totalTasks > 0 && (
-        <div className="space-y-1">
-                     {/* Barra de progreso */}
-           <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${day.completionPercentage}%` }}
-              transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
-              className="h-full rounded-full"
-              style={{ background: 'hsl(var(--foreground))' }}
-            />
-          </div>
-          
-                     {/* Contador de tareas */}
-           <div className="flex items-center justify-between text-[10px]">
-            <span className="text-muted-foreground">
-              {day.completedTasks}/{day.totalTasks}
-            </span>
-            {day.completionPercentage === 100 && (
-              <CheckCircle className="w-2 h-2 text-foreground" />
-            )}
-           </div>
-        </div>
-      )}
+      {/* Contador de tareas completadas del día (solo cuando está seleccionado) */}
+      <AnimatePresence>
+        {day.isSelected && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            className="absolute left-1/2 -translate-x-1/2 bottom-4 text-[10px] tabular-nums text-neutral-800"
+          >
+            {day.completedTasks}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Efecto de hover */}
+      {/* Barra de progreso diaria (siempre visible) */}
+      <div className={`absolute left-2 right-2 bottom-2 h-1.5 rounded-full overflow-hidden 
+        ${day.isCurrentMonth ? 'bg-neutral-200' : 'bg-neutral-100'}`}
+      >
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${day.completionPercentage}%` }}
+          transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
+          className={`h-full rounded-full ${day.totalTasks > 0 ? 'bg-neutral-800' : 'bg-neutral-300'}`}
+        />
+      </div>
+
+      {/* Hover sutil */}
       <AnimatePresence>
         {hoveredDate?.toDateString() === day.date.toDateString() && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute inset-0 bg-muted rounded-lg -z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.06 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 rounded-xl bg-neutral-800"
           />
         )}
       </AnimatePresence>
@@ -411,19 +411,31 @@ const MonthlyCalendarPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-white p-4">
       {/* Header con navegación */}
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-[430px] mx-auto">
         {/* Botón Volver */}
         <div className="flex justify-start mb-4">
           <motion.button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 px-4 py-2 bg-card border rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Volver</span>
+          </motion.button>
+        </div>
+
+        {/* Botón Ver más detalles */}
+        <div className="flex justify-center mb-3">
+          <motion.button
+            onClick={() => navigate('/productivity-stats')}
+            className="px-4 py-1.5 rounded-full border bg-white hover:bg-black hover:text-white transition-colors text-sm shadow-sm"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            Ver más detalles
           </motion.button>
         </div>
 
@@ -433,94 +445,70 @@ const MonthlyCalendarPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <h1 className="text-[28px] sm:text-3xl font-bold text-foreground">
+          <h1 className="text-[28px] sm:text-3xl font-bold text-black">
             Hoy es un gran día para tachar pendientes
           </h1>
         </motion.div>
 
-        {/* Botón Agregar Tarea centrado */}
-        <div className="flex justify-center mb-6">
-          <AnimatePresence>
-            {selectedDate && (
-              <motion.button
-                onClick={() => handleAddTask(selectedDate)}
-                className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Plus className="w-5 h-5" />
-                <span className="font-medium">Agregar Tarea</span>
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </div>
-
         {/* Tarjetas de métricas */}
-        <div className="mb-6 -mx-1 px-1">
-          <div className="flex gap-2 overflow-x-auto">
-            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <Flame className="w-6 h-6" />
-              <div className="text-xl font-semibold text-foreground">{currentStreak}</div>
-              <div className="text-xs text-muted-foreground">días de racha</div>
+        <div className="mb-4 -mx-1 px-1">
+          <div className="grid grid-cols-4 gap-2">
+            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <Flame className="w-4 h-4" />
+              <div className="text-lg font-bold">{currentStreak}</div>
+              <div className="text-[11px] text-gray-600 leading-none mt-0.5">días de racha</div>
             </div>
-            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <CheckCircle className="w-6 h-6" />
-              <div className="text-xl font-semibold text-foreground">{totalCompleted}</div>
-              <div className="text-xs text-muted-foreground">tareas completadas</div>
+            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <CheckCircle className="w-4 h-4" />
+              <div className="text-lg font-bold">{totalCompleted}</div>
+              <div className="text-[11px] text-gray-600 leading-none mt-0.5">tareas completadas</div>
             </div>
-            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <Calendar className="w-6 h-6" />
-              <div className="text-xl font-semibold text-foreground">{daysWithCompletedInMonth}</div>
-              <div className="text-xs text-muted-foreground">días activos</div>
+            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <Calendar className="w-4 h-4" />
+              <div className="text-lg font-bold">{daysWithCompletedInMonth}</div>
+              <div className="text-[11px] text-gray-600 leading-none mt-0.5">Días activos</div>
             </div>
-            <div className="min-w-[140px] flex-1 sm:flex-none basis-[22%] rounded-lg border bg-card text-card-foreground p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <Trophy className="w-6 h-6" />
-              <div className="text-xl font-semibold text-foreground">{bestStreak}</div>
-              <div className="text-xs text-muted-foreground">mejor racha</div>
+            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+              <Trophy className="w-4 h-4" />
+              <div className="text-lg font-bold">{bestStreak}</div>
+              <div className="text-[11px] text-gray-600 leading-none mt-0.5">mejor racha</div>
             </div>
           </div>
         </div>
 
         {/* Controles del calendario */}
-        <Card className="p-6 mb-6 bg-background border">
+        <Card className="p-5 mb-3 bg-white border">
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
-              className="p-2 rounded-full hover:bg-muted transition-colors"
+              className="p-2 rounded-full hover:bg-black/5 transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
               <ChevronLeft className="w-6 h-6" />
-      </motion.button>
-      
+            </motion.button>
+
             <div className="flex flex-col items-center">
               <motion.h2
                 key={currentDate.toISOString()}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="text-2xl font-bold text-foreground"
+                className="text-2xl font-bold text-black"
               >
-                {currentDate.toLocaleDateString('es-ES', { 
+                {capitalize(currentDate.toLocaleDateString('es-ES', { 
                   month: 'long', 
                   year: 'numeric' 
-                })}
+                }))}
               </motion.h2>
-              <div className="mt-1 text-sm text-muted-foreground flex items-center gap-2">
-                <CheckCircle className="w-4 h-4" />
-                <span>{monthStats.completed} completadas</span>
-                {monthStats.scheduled > 0 && (
-                  <span>• {monthStats.scheduled} programadas</span>
-                )}
+              <div className="mt-1 text-sm text-gray-600">
+                {currentDate.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace('de ', '')}
               </div>
             </div>
 
             <motion.button
               onClick={nextMonth}
-              className="p-2 rounded-full hover:bg-muted transition-colors"
+              className="p-2 rounded-full hover:bg-black/5 transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -528,62 +516,61 @@ const MonthlyCalendarPage: React.FC = () => {
             </motion.button>
           </div>
 
-                     {/* Días de la semana */}
-           <div className="grid grid-cols-7 gap-1 mb-2">
-            {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day, index) => (
+          {/* Días de la semana (LUN-DOM) */}
+          <div className="grid grid-cols-7 gap-[6px] mb-2">
+            {['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'].map((day, index) => (
               <motion.div
                 key={day}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center text-sm font-semibold text-muted-foreground py-2"
+                transition={{ delay: index * 0.05 }}
+                className="text-center text-xs sm:text-sm font-semibold text-gray-700 py-2"
               >
                 {day}
               </motion.div>
             ))}
           </div>
 
-                     {/* Días del calendario */}
-           <motion.div
-             key={currentDate.toISOString()}
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             transition={{ duration: ANIMATION_CONFIG.monthTransition }}
-           className="grid grid-cols-7 gap-1"
-         >
-          {calendarDays.map((day, index) => renderCalendarDay(day, index))}
-        </motion.div>
+          {/* Días del calendario */}
+          <motion.div
+            key={currentDate.toISOString()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: ANIMATION_CONFIG.monthTransition }}
+            className="grid grid-cols-7 gap-[6px]"
+          >
+            {calendarDays.map((day, index) => renderCalendarDay(day, index))}
+          </motion.div>
 
-        <div className="mt-4">
-          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-            <span>Menos</span>
-            <div className="flex gap-1">
-              <span className="h-2 w-4 rounded-sm bg-foreground/20" />
-              <span className="h-2 w-4 rounded-sm bg-foreground/40" />
-              <span className="h-2 w-4 rounded-sm bg-foreground/60" />
-              <span className="h-2 w-4 rounded-sm bg-foreground/80" />
-              <span className="h-2 w-4 rounded-sm bg-foreground" />
+          {/* Leyenda y fecha seleccionada */}
+          <div className="mt-4">
+            <div className="flex items-center justify-center gap-3 text-xs text-gray-700">
+              <span>Menos</span>
+              <div className="flex gap-1">
+                <span className="h-2 w-4 rounded-sm bg-black/10" />
+                <span className="h-2 w-4 rounded-sm bg-black/30" />
+                <span className="h-2 w-4 rounded-sm bg-black/50" />
+                <span className="h-2 w-4 rounded-sm bg-black/70" />
+                <span className="h-2 w-4 rounded-sm bg-black" />
+              </div>
+              <span>Más</span>
             </div>
-            <span>Más</span>
-          </div>
-          {selectedDate && (
-            <p className="mt-2 text-center text-sm text-foreground">
-              {new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+            <p className="mt-2 text-center text-sm text-gray-800">
+              {new Date(selectedDate || new Date().toISOString().split('T')[0]).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
             </p>
-          )}
-        </div>
-      </Card>
+          </div>
+        </Card>
 
-      {/* Tareas del día seleccionado */}
+        {/* Tareas del día seleccionado */}
         {selectedDate && (
           <AnimatePresence>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="bg-background border rounded-xl p-6 shadow-lg"
+              exit={{ opacity: 0, y: 12 }}
+              className="bg-white border rounded-2xl p-4 shadow-sm"
             >
-              <h3 className="text-xl font-bold mb-4 text-foreground">
+              <h3 className="text-lg font-semibold mb-3 text-black text-center">
                 Tareas del {new Date(selectedDate).toLocaleDateString('es-ES', { 
                   weekday: 'long', 
                   year: 'numeric', 
@@ -591,53 +578,49 @@ const MonthlyCalendarPage: React.FC = () => {
                   day: 'numeric' 
                 })}
               </h3>
-              
+
               {calendarDays.find(d => d.dateString === selectedDate)?.tasks.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No hay tareas programadas para este día</p>
+                <div className="text-center py-6 text-gray-700">
+                  <Calendar className="w-10 h-10 mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm">No hay tareas programadas para este día</p>
                   <Button
                     onClick={() => handleAddTask(selectedDate)}
-                    className="mt-4 bg-foreground text-background"
+                    className="mt-3 bg-black text-white rounded-full px-3 py-1.5 h-auto text-sm shadow-sm"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Agregar Tarea
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {calendarDays.find(d => d.dateString === selectedDate)?.tasks.map((task) => (
                     <motion.div
                       key={task.id}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                      className="flex items-center gap-3 p-2.5 rounded-xl border hover:bg-black/5 transition-colors"
                     >
                       <button
                         onClick={() => handleToggleTask(task.id)}
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                           task.completed 
-                            ? 'bg-foreground border-foreground text-background' 
-                            : 'border'
+                            ? 'bg-black border-black text-white' 
+                            : 'border-black/40'
                         }`}
                       >
                         {task.completed && <CheckCircle className="w-3 h-3" />}
                       </button>
                       
-                      <div className="flex-1">
-                        <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[15px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>
                           {task.title}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-gray-600">
                           {task.type} • {task.scheduledTime || 'Sin hora'}
                         </p>
                       </div>
                       
-                      <Button
-                        onClick={() => handleShowTaskDetail(task.id)}
-                        variant="ghost"
-                        size="sm"
-                      >
+                      <Button onClick={() => handleShowTaskDetail(task.id)} variant="ghost" size="sm" className="h-8 px-2">
                         Ver
                       </Button>
                     </motion.div>
@@ -646,9 +629,9 @@ const MonthlyCalendarPage: React.FC = () => {
               )}
             </motion.div>
           </AnimatePresence>
-                 )}
+        )}
 
-                 {/* TaskCreationCard para agregar tareas */}
+        {/* TaskCreationCard para agregar tareas */}
         <AnimatePresence>
           {showTaskCreation && (
             <motion.div
@@ -671,7 +654,7 @@ const MonthlyCalendarPage: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
-       </div>
+      </div>
     </div>
   );
 };

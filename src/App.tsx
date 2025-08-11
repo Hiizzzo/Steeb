@@ -12,6 +12,7 @@ import MisionesPage from "./pages/MisionesPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import VersionIndicator from "./components/VersionIndicator";
+import ProductivityStatsPage from "./pages/ProductivityStatsPage";
 
 const queryClient = new QueryClient();
 
@@ -36,11 +37,12 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <VersionIndicator version="0.1.0" />
+        <VersionIndicator version="0.11" />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
+            <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/misiones" element={<MisionesPage />} />
 
