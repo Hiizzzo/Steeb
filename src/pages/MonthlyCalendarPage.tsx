@@ -88,7 +88,9 @@ const MonthlyCalendarPage: React.FC = () => {
       date.setDate(startDate.getDate() + i);
       
       const dateString = date.toISOString().split('T')[0];
-      const dayTasks = tasks.filter(task => task.scheduledDate === dateString);
+      const dayTasks = tasks.filter(task =>
+        task.scheduledDate === dateString || task.completedDate?.split('T')[0] === dateString
+      );
       const completedTasks = dayTasks.filter(task => task.completed).length;
       const totalTasks = dayTasks.length;
       const completionPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
