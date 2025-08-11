@@ -351,7 +351,7 @@ const MonthlyCalendarPage: React.FC = () => {
         ease: ANIMATION_CONFIG.easing as any
       }}
       className={`
-          relative h-14 sm:h-16 rounded-xl bg-white border
+          relative h-12 sm:h-14 rounded-xl bg-white border
           ${day.isCurrentMonth ? 'border-neutral-200' : 'border-neutral-100'}
           ${day.isToday ? 'ring-2 ring-black' : ''}
           ${day.isSelected ? 'outline outline-2 outline-black' : ''}
@@ -363,7 +363,7 @@ const MonthlyCalendarPage: React.FC = () => {
     >
       {/* Número del día */}
       <div
-        className={`absolute top-2 left-1/2 -translate-x-1/2 text-[14px] sm:text-[15px] tabular-nums
+        className={`absolute top-1 left-1/2 -translate-x-1/2 text-[13px] sm:text-[15px] tabular-nums
           ${day.isCurrentMonth ? 'text-neutral-900' : 'text-neutral-400'}
           ${day.isToday ? 'font-bold' : 'font-semibold'}`}
       >
@@ -377,7 +377,7 @@ const MonthlyCalendarPage: React.FC = () => {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            className="absolute left-1/2 -translate-x-1/2 bottom-4 text-[10px] tabular-nums text-neutral-800"
+            className="absolute left-1/2 -translate-x-1/2 bottom-3 text-[10px] tabular-nums text-neutral-800"
           >
             {day.completedTasks}
           </motion.div>
@@ -385,7 +385,7 @@ const MonthlyCalendarPage: React.FC = () => {
       </AnimatePresence>
 
       {/* Barra de progreso diaria (siempre visible) */}
-      <div className={`absolute left-2 right-2 bottom-2 h-1.5 rounded-full overflow-hidden 
+      <div className={`absolute left-2 right-2 bottom-1 h-1 rounded-full overflow-hidden 
         ${day.isCurrentMonth ? 'bg-neutral-200' : 'bg-neutral-100'}`}
       >
         <motion.div
@@ -411,11 +411,11 @@ const MonthlyCalendarPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white p-4">
+    <div className="min-h-screen bg-white p-2 pt-1">
       {/* Header con navegación */}
       <div className="max-w-[430px] mx-auto">
         {/* Botón Volver */}
-        <div className="flex justify-start mb-4">
+        <div className="flex justify-start mb-2">
           <motion.button
             onClick={() => navigate('/')}
             className="flex items-center gap-2 px-4 py-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200"
@@ -428,7 +428,7 @@ const MonthlyCalendarPage: React.FC = () => {
         </div>
 
         {/* Botón Ver más detalles */}
-        <div className="flex justify-center mb-3">
+        <div className="flex justify-center mb-2">
           <motion.button
             onClick={() => navigate('/productivity-stats')}
             className="px-4 py-1.5 rounded-full border bg-white hover:bg-black hover:text-white transition-colors text-sm shadow-sm"
@@ -443,32 +443,32 @@ const MonthlyCalendarPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
+          className="text-center mb-3 hidden sm:block"
         >
-          <h1 className="text-[28px] sm:text-3xl font-bold text-black">
+          <h1 className="text-xl sm:text-2xl font-bold text-black">
             Hoy es un gran día para tachar pendientes
           </h1>
         </motion.div>
 
         {/* Tarjetas de métricas */}
-        <div className="mb-4 -mx-1 px-1">
+        <div className="mb-2 -mx-1 px-1 hidden sm:block">
           <div className="grid grid-cols-4 gap-2">
-            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
               <Flame className="w-4 h-4" />
               <div className="text-lg font-bold">{currentStreak}</div>
               <div className="text-[11px] text-gray-600 leading-none mt-0.5">días de racha</div>
             </div>
-            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
               <CheckCircle className="w-4 h-4" />
               <div className="text-lg font-bold">{totalCompleted}</div>
               <div className="text-[11px] text-gray-600 leading-none mt-0.5">tareas completadas</div>
             </div>
-            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
               <Calendar className="w-4 h-4" />
               <div className="text-lg font-bold">{daysWithCompletedInMonth}</div>
               <div className="text-[11px] text-gray-600 leading-none mt-0.5">Días activos</div>
             </div>
-            <div className="rounded-xl border bg-white text-black p-2.5 flex flex-col items-center justify-center gap-1 shadow-sm">
+            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
               <Trophy className="w-4 h-4" />
               <div className="text-lg font-bold">{bestStreak}</div>
               <div className="text-[11px] text-gray-600 leading-none mt-0.5">mejor racha</div>
@@ -477,7 +477,7 @@ const MonthlyCalendarPage: React.FC = () => {
         </div>
 
         {/* Controles del calendario */}
-        <Card className="p-5 mb-3 bg-white border">
+        <Card className="p-3 mb-2 bg-white border">
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
@@ -524,7 +524,7 @@ const MonthlyCalendarPage: React.FC = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="text-center text-xs sm:text-sm font-semibold text-gray-700 py-2"
+                className="text-center text-xs sm:text-sm font-semibold text-gray-700 py-1"
               >
                 {day}
               </motion.div>
@@ -543,7 +543,7 @@ const MonthlyCalendarPage: React.FC = () => {
           </motion.div>
 
           {/* Leyenda y fecha seleccionada */}
-          <div className="mt-4">
+          <div className="mt-2">
             <div className="flex items-center justify-center gap-3 text-xs text-gray-700">
               <span>Menos</span>
               <div className="flex gap-1">
