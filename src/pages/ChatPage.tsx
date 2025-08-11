@@ -59,6 +59,19 @@ const ChatPage = () => {
     if (geminiService.isReady()) {
       setIsUsingAI(true);
     }
+
+    // Auto-inicializar Groq si hay API key en env o localStorage
+    try {
+      const envKey = (import.meta as any)?.env?.VITE_GROQ_API_KEY as string | undefined;
+      const storedKey = localStorage.getItem('groq_api_key') || undefined;
+      if (!groqService.isReady()) {
+        if (envKey) {
+          groqService.initialize({ apiKey: envKey });
+        } else if (storedKey) {
+          groqService.initialize({ apiKey: storedKey });
+        }
+      }
+    } catch {}
   }, []);
 
   const requestNotificationPermission = async () => {

@@ -41,6 +41,20 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
     if (!initAttempted.current) {
       initAttempted.current = true;
       checkInitializationStatus();
+      // Intentar Groq según env/localStorage
+      try {
+        const envKey = (import.meta as any)?.env?.VITE_GROQ_API_KEY as string | undefined;
+        const storedKey = localStorage.getItem('groq_api_key') || undefined;
+        if (!groqService.isReady()) {
+          if (envKey) {
+            groqService.initialize({ apiKey: envKey }).then(setGroqReady);
+          } else if (storedKey) {
+            groqService.initialize({ apiKey: storedKey }).then(setGroqReady);
+          }
+        } else {
+          setGroqReady(true);
+        }
+      } catch {}
     }
   }, []);
 
