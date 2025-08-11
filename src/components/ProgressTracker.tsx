@@ -83,7 +83,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ tasks }) => {
             className="h-3 bg-steve-gray-light"
           />
           <p className="text-xs text-steve-gray-dark mt-1 text-center">
-            {Math.round(completionRate)}% completado
+            {completedTasks.length} de {totalTasks} tareas ({Math.round(completionRate)}%) completadas
           </p>
         </div>
         

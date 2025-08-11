@@ -364,12 +364,14 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
                 touch-manipulation select-none
               `}
             >
-              <div className="text-sm font-medium">{day.day}</div>
-              {day.completionCount > 0 && (
-                <div className="absolute top-0 right-0 w-3 h-3 bg-white text-black text-xs rounded-full flex items-center justify-center font-bold">
-                  {day.completionCount > 9 ? '9+' : day.completionCount}
-                </div>
-              )}
+              <div className="flex flex-col items-center justify-center h-full">
+                <div className="text-sm font-medium">{day.day}</div>
+                {day.completionCount > 0 && (
+                  <div className="mt-1 px-2 py-0.5 bg-white text-black text-[10px] rounded-full border font-bold">
+                    {day.completionCount > 9 ? '9+' : day.completionCount}
+                  </div>
+                )}
+              </div>
             </button>
           ))}
         </div>
