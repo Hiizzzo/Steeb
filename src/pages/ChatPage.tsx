@@ -186,7 +186,10 @@ const ChatPage = () => {
     
     if (isUsingAI && geminiService.isReady()) {
       try {
-        const response = await geminiService.getResponse(userMessage);
+        const chatContext: ChatMessage[] = messages
+          .slice(-6)
+          .map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }));
+        const response = await geminiService.getResponse(userMessage, chatContext);
         console.log('✅ Respuesta AI local generada exitosamente');
         return response;
       } catch (error) {
@@ -232,6 +235,16 @@ const ChatPage = () => {
   // Nueva función mejorada para respuestas fallback con detección de tareas
   const generateEnhancedFallbackResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
+    // Confirmaciones de presencia/escucha
+    if (
+      lowerMessage.includes('me escuchas') ||
+      lowerMessage.includes('me oyes') ||
+      lowerMessage.includes('me lees') ||
+      lowerMessage.includes('estas ahi') ||
+      lowerMessage.includes('estás ahí')
+    ) {
+      return 'Sí, te leo perfecto y estoy atento. Decime en una oración qué necesitás lograr y te ayudo a organizarlo en pasos claros.';
+    }
     
     // Detectar si el usuario está describiendo algo que necesita hacer
     const taskIndicators = [
@@ -411,13 +424,13 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       {/* Header */}
       <div className="bg-black text-white p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => navigate('/')}
-            className="p-1 hover:bg-gray-800 rounded"
+            className="p-1 hover:bg-white/10 rounded"
           >
             <ArrowLeft size={20} />
           </button>
@@ -429,7 +442,7 @@ const ChatPage = () => {
             />
             <div>
               <h1 className="font-medium">STEBE</h1>
-              <p className="text-xs text-gray-300">Asistente de Productividad</p>
+              <p className="text-xs text-white/70">Asistente de Productividad</p>
             </div>
           </div>
         </div>
@@ -437,7 +450,7 @@ const ChatPage = () => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setShowAIConfig(!showAIConfig)}
-            className="p-2 rounded bg-purple-600 hover:opacity-80"
+            className="p-2 rounded bg-black text-white border border-white hover:opacity-80"
             title="Configuración de AI"
           >
             <Settings size={16} />
@@ -445,7 +458,7 @@ const ChatPage = () => {
           
           <button
             onClick={toggleAIMode}
-            className={`p-2 rounded ${isUsingAI && geminiService.isReady() ? 'bg-blue-600' : 'bg-gray-600'} hover:opacity-80`}
+            className={`p-2 rounded ${isUsingAI && geminiService.isReady() ? 'bg-black text-white' : 'bg-white text-black border'} hover:opacity-80`}
             title={isUsingAI ? "AI activado" : "AI desactivado"}
           >
             <Brain size={16} />
@@ -453,7 +466,7 @@ const ChatPage = () => {
           
           <button
             onClick={requestNotificationPermission}
-            className={`p-2 rounded ${notificationsEnabled ? 'bg-green-600' : 'bg-gray-600'} hover:opacity-80`}
+            className={`p-2 rounded ${notificationsEnabled ? 'bg-black text-white' : 'bg-white text-black border'} hover:opacity-80`}
           >
             {notificationsEnabled ? <Bell size={16} /> : <BellOff size={16} />}
           </button>
@@ -467,7 +480,7 @@ const ChatPage = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-b bg-gray-50"
+            className="border-b bg-white"
           >
             <div className="p-4">
               <StebeAI 
@@ -492,7 +505,7 @@ const ChatPage = () => {
               <div className={`max-w-[80%] rounded-lg p-3 ${
                 message.sender === 'user' 
                   ? 'bg-black text-white' 
-                  : 'bg-gray-100 text-black border'
+                  : 'bg-white text-black border'
               }`}>
                 {message.sender === 'stebe' && (
                   <div className="flex items-center space-x-2 mb-2">
@@ -503,17 +516,17 @@ const ChatPage = () => {
                         className="w-5 h-5 rounded-full"
                       />
                       {isUsingAI && geminiService.isReady() && (
-                        <Brain className="w-3 h-3 text-blue-500" />
+                        <Brain className="w-3 h-3 text-black" />
                       )}
                     </div>
-                    <span className="text-xs font-medium text-gray-600">
+                    <span className="text-xs font-medium text-black/70">
                       STEBE {isUsingAI && geminiService.isReady() ? '(AI)' : ''}
                     </span>
                   </div>
                 )}
                 <p className="text-sm leading-relaxed">{message.text}</p>
                 <p className={`text-xs mt-2 ${
-                  message.sender === 'user' ? 'text-gray-300' : 'text-gray-500'
+                  message.sender === 'user' ? 'text-white/70' : 'text-black/70'
                 }`}>
                   {formatTime(message.timestamp)}
                 </p>
@@ -541,19 +554,19 @@ const ChatPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-start"
           >
-            <div className="bg-gray-100 border rounded-lg p-3 max-w-[80%]">
+            <div className="bg-white border rounded-lg p-3 max-w-[80%]">
               <div className="flex items-center space-x-2 mb-2">
                 <img 
                   src="/lovable-uploads/te obesrvo.png" 
                   alt="STEBE" 
                   className="w-5 h-5 rounded-full"
                 />
-                <span className="text-xs font-medium text-gray-600">STEBE escribiendo...</span>
+                <span className="text-xs font-medium text-black/70">STEBE escribiendo...</span>
               </div>
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="w-2 h-2 bg-black/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-black/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-black/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </motion.div>
@@ -587,12 +600,12 @@ const ChatPage = () => {
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Escribe tu mensaje a STEBE..."
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-black"
+            className="flex-1 border border-black rounded-lg px-4 py-2 focus:outline-none focus:border-black"
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputText.trim()}
-            className="bg-black text-white p-2 rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="bg-black text-white p-2 rounded-lg hover:bg-black/80 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send size={20} />
           </button>
