@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import StebeAI from '@/components/StebeAI';
 import geminiService, { ChatMessage } from '@/services/geminiService';
-import groqService from '@/services/groqService';
+
 import { useTaskStore } from '@/store/useTaskStore';
 import SmartTaskReview, { SmartTaskPlan, SmartTaskItem } from '@/components/SmartTaskReview';
 import TaskTimer from '@/components/TaskTimer';
@@ -54,8 +54,8 @@ const ChatPage = () => {
       setNotificationsEnabled(Notification.permission === 'granted');
     }
 
-    // No auto-inicializamos Gemini/Ollama. Si Groq ya está listo, activamos AI.
-    if (groqService.isReady()) {
+    // Si el servicio local (Ollama) ya está listo, activamos AI.
+    if (geminiService.isReady()) {
       setIsUsingAI(true);
     }
   }, []);
@@ -172,7 +172,7 @@ const ChatPage = () => {
 
     console.log(`💭 Generando respuesta inteligente para: "${userMessage}"`);
     console.log(`🤖 AI Mode: ${isUsingAI ? 'ON' : 'OFF'}`);
-    console.log(`⚡ Groq Ready: ${groqService.isReady()}`);
+    console.log(`⚡ Local AI Ready: ${geminiService.isReady()}`);
     
     // Preparar contexto para respuesta más inteligente
     const context = {
@@ -184,85 +184,22 @@ const ChatPage = () => {
       timeOfDay: new Date().getHours() < 12 ? 'mañana' : new Date().getHours() < 18 ? 'tarde' : 'noche'
     };
     
-    // Si el modo AI está activado y Groq está listo, usar inteligencia artificial
-    if (isUsingAI && groqService.isReady()) {
+    if (isUsingAI && geminiService.isReady()) {
       try {
-        console.log('🧠 Usando Stebe AI inteligente con Groq...');
-        
-        // Primero analizar si el mensaje requiere creación de tareas
-        const analysis = await groqService.analyzeUserMessage(userMessage);
-        console.log('📊 Análisis del mensaje:', analysis);
-        
-        // Si se detecta intención de crear tareas, generar automáticamente
-        if (analysis.intent === 'task_creation' && analysis.extractedTasks.length === 0) {
-          // Si no hay tareas extraídas pero hay intención, usar generación inteligente
-          try {
-            const taskData = await groqService.generateSmartTasks(userMessage, {
-              existingTasks: context.recentTasks
-            });
-            
-            // Formatear respuesta con tareas creadas
-            let response = `🎯 **He analizado tu petición y creé un plan personalizado:**\n\n`;
-            
-            response += "**📋 Tareas que sugiero:**\n";
-            taskData.tasks.forEach((task, index) => {
-              response += `${index + 1}. **${task.title}**\n`;
-              response += `   • ${task.description}\n`;
-              response += `   • ⏱️ ${task.estimatedTime} | 🔥 Prioridad: ${task.priority}\n`;
-              if (task.subtasks && task.subtasks.length > 0) {
-                response += `   • Subtareas: ${task.subtasks.join(', ')}\n`;
-              }
-              response += '\n';
-            });
-
-            response += `**💪 ${taskData.motivation}**\n\n`;
-            
-            if (taskData.nextSteps.length > 0) {
-              response += "**🚀 Te recomiendo empezar por:**\n";
-              taskData.nextSteps.forEach((step, index) => {
-                response += `${index + 1}. ${step}\n`;
-              });
-            }
-
-            response += "\n¿Te parece bien este plan o prefieres que ajuste algo? 🤝";
-            
-            console.log('✅ Tareas automáticas generadas exitosamente');
-            return response;
-          } catch (taskError) {
-            console.error('❌ Error generando tareas automáticas:', taskError);
-            // Continuar con respuesta inteligente normal
-          }
-        }
-        
-        // Usar la nueva función de respuesta inteligente
-        const response = await groqService.getIntelligentResponse(userMessage, context);
-        console.log('✅ Respuesta AI inteligente generada exitosamente');
+        const response = await geminiService.getResponse(userMessage);
+        console.log('✅ Respuesta AI local generada exitosamente');
         return response;
       } catch (error) {
-        console.error('❌ Error usando Stebe AI:', error);
+        console.error('❌ Error usando Stebe AI local:', error);
         toast({
           title: "AI temporalmente no disponible",
           description: "Usando respuestas predefinidas como respaldo",
           variant: "default"
         });
-        // Fallback a respuestas predefinidas
         return generateEnhancedFallbackResponse(userMessage);
       }
     }
     
-    // Si no está activado el AI, intentar usar Gemini como segunda opción
-    if (isUsingAI && geminiService.isReady()) {
-      try {
-        console.log('🚀 Intentando usar Gemini AI...');
-        const response = await geminiService.getQuickResponse(userMessage);
-        console.log('✅ Respuesta Gemini generada exitosamente');
-        return response;
-      } catch (error) {
-        console.error('❌ Error usando Gemini AI:', error);
-        // Fallback a respuestas predefinidas
-        return generateEnhancedFallbackResponse(userMessage);
-      }
-    }
     
     console.log('📝 Usando respuestas predefinidas inteligentes');
     // Respuestas predefinidas mejoradas como último fallback
@@ -439,32 +376,21 @@ const ChatPage = () => {
     console.log('🔄 Toggling AI mode...');
     
     if (!isUsingAI) {
-      // Intentar activar AI - verificar si Groq está listo primero
-      if (groqService.isReady()) {
+      const geminiReady = await geminiService.ensureReady();
+      if (geminiReady) {
         setIsUsingAI(true);
         toast({
           title: "Modo AI activado",
-          description: "Usando Stebe AI inteligente con Groq",
+          description: "Usando Stebe AI local (Ollama)",
         });
-        console.log('✅ AI mode activated with Groq');
+        console.log('✅ AI mode activated with Ollama');
       } else {
-        // Si Groq no está listo, intentar con Gemini como fallback
-        const geminiReady = await geminiService.ensureReady();
-        if (geminiReady) {
-          setIsUsingAI(true);
-          toast({
-            title: "Modo AI activado",
-            description: "Usando inteligencia artificial offline (Gemini)",
-          });
-          console.log('✅ AI mode activated with Gemini fallback');
-        } else {
-          toast({
-            title: "AI no disponible",
-            description: "Activa Stebe AI desde el panel de configuración para usar IA",
-            variant: "destructive"
-          });
-          console.log('❌ AI activation failed - neither service ready');
-        }
+        toast({
+          title: "AI no disponible",
+          description: "Activa Stebe AI desde el panel de configuración para usar IA",
+          variant: "destructive"
+        });
+        console.log('❌ AI activation failed - service not ready');
       }
     } else {
       // Desactivar AI
@@ -519,7 +445,7 @@ const ChatPage = () => {
           
           <button
             onClick={toggleAIMode}
-            className={`p-2 rounded ${isUsingAI && (groqService.isReady() || geminiService.isReady()) ? 'bg-blue-600' : 'bg-gray-600'} hover:opacity-80`}
+            className={`p-2 rounded ${isUsingAI && geminiService.isReady() ? 'bg-blue-600' : 'bg-gray-600'} hover:opacity-80`}
             title={isUsingAI ? "AI activado" : "AI desactivado"}
           >
             <Brain size={16} />
@@ -576,12 +502,12 @@ const ChatPage = () => {
                         alt="STEBE" 
                         className="w-5 h-5 rounded-full"
                       />
-                      {isUsingAI && (groqService.isReady() || geminiService.isReady()) && (
+                      {isUsingAI && geminiService.isReady() && (
                         <Brain className="w-3 h-3 text-blue-500" />
                       )}
                     </div>
                     <span className="text-xs font-medium text-gray-600">
-                      STEBE {isUsingAI && (groqService.isReady() || geminiService.isReady()) ? '(AI)' : ''}
+                      STEBE {isUsingAI && geminiService.isReady() ? '(AI)' : ''}
                     </span>
                   </div>
                 )}

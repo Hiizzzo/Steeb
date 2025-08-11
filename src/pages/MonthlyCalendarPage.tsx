@@ -275,6 +275,69 @@ const MonthlyCalendarPage: React.FC = () => {
     return { completed, scheduled };
   }, [currentDate, tasks]);
 
+  // Métricas superiores
+  const { currentStreak, bestStreak, totalCompleted, daysWithCompletedInMonth } = useMemo(() => {
+    const normalize = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const today = normalize(new Date());
+
+    // Fechas con al menos una tarea completada (set por día)
+    const completedDates = tasks
+      .filter(t => t.completed && t.completedDate)
+      .map(t => new Date(t.completedDate!))
+      .map(normalize);
+
+    const key = (d: Date) => d.toISOString();
+    const completedSet = new Set(completedDates.map(key));
+
+    // Calcular racha actual (hasta hoy) y mejor racha histórica
+    let current = 0;
+    let best = 0;
+
+    // Recorrer hacia atrás desde hoy mientras existan días consecutivos completados
+    let probe = new Date(today);
+    while (completedSet.has(key(probe))) {
+      current += 1;
+      probe.setDate(probe.getDate() - 1);
+    }
+
+    // Mejor racha: recorrer el rango total de fechas completadas
+    if (completedDates.length > 0) {
+      // Ordenar únicas
+      const uniqueDates = Array.from(completedSet).map(s => new Date(s)).sort((a,b)=>a.getTime()-b.getTime());
+      let streak = 1;
+      for (let i = 1; i < uniqueDates.length; i++) {
+        const prev = uniqueDates[i-1];
+        const curr = uniqueDates[i];
+        const prevNext = new Date(prev);
+        prevNext.setDate(prevNext.getDate() + 1);
+        if (key(prevNext) === key(curr)) {
+          streak += 1;
+        } else {
+          best = Math.max(best, streak);
+          streak = 1;
+        }
+      }
+      best = Math.max(best, streak);
+    }
+
+    // Días activos del mes visible (con al menos una completada)
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+    let daysActive = 0;
+    for (let d = new Date(monthStart); d <= monthEnd; d.setDate(d.getDate() + 1)) {
+      if (completedSet.has(key(normalize(d)))) daysActive += 1;
+    }
+
+    return {
+      currentStreak: current,
+      bestStreak: best,
+      totalCompleted: tasks.filter(t => t.completed).length,
+      daysWithCompletedInMonth: daysActive,
+    };
+  }, [tasks, currentDate]);
+
   const renderCalendarDay = (day: CalendarDay, index: number) => (
     <motion.div
       key={day.dateString}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Download, Cpu, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import groqService, { GroqConfig } from '@/services/groqService';
+import geminiService, { GeminiConfig } from '@/services/geminiService';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,49 +42,37 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   }, []);
 
   const checkInitializationStatus = () => {
-    const statusString = groqService.getInitializationStatus();
-    const isReady = groqService.isReady();
-    
-    console.log('📊 StebeAI Status Check:', { 
-      status: statusString, 
+    const statusString = geminiService.getInitializationStatus();
+    const isReady = geminiService.isReady();
+
+    console.log('📊 StebeAI Status Check:', {
+      status: statusString,
       isReady
     });
-    
-    // Determinar el estado basado en el readiness real del servicio
-    const isInitialized = isReady;
-    const isInitializing = false; // Groq no tiene proceso de descarga
-    
+
     setInitState(prev => ({
       ...prev,
-      isInitialized,
-      isInitializing,
-      progress: isInitialized ? 100 : 0
+      isInitialized: isReady,
+      isInitializing: false,
+      progress: isReady ? 100 : 0,
+      status: isReady ? '✅ STEBE AI (Ollama) listo' : 'Stebe AI está listo para configurarse'
     }));
-
-    if (!isInitialized) {
-      setInitState(prev => ({
-        ...prev,
-        status: 'Stebe AI está listo para configurarse'
-      }));
-    } else {
-      setInitState(prev => ({
-        ...prev,
-        status: '✅ STEBE AI Listo para usar'
-      }));
-    }
   };
 
   const handleInitialize = async () => {
     try {
-      setInitState(prev => ({ ...prev, error: null, isInitializing: true }));
-      
-      const config: GroqConfig = {
+      setInitState(prev => ({ ...prev, error: null, isInitializing: true, status: 'Conectando con Ollama...' }));
+
+      const config: GeminiConfig = {
         temperature: 0.7,
         maxTokens: 1024,
-        model: 'llama-3.1-70b-versatile'
+        model: 'gemma2:2b',
+        ollamaUrl: geminiService.getOllamaUrl()
       };
 
-      const success = await groqService.initialize(config);
+      const success = await geminiService.initialize(config, (progress, status) => {
+        setInitState(prev => ({ ...prev, progress, status }));
+      });
 
       if (success) {
         setInitState(prev => ({
@@ -92,19 +80,19 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
           isInitialized: true,
           isInitializing: false,
           progress: 100,
-          status: '¡Stebe AI está listo para ayudarte!'
+          status: '¡Stebe AI (Ollama) está listo para ayudarte!'
         }));
 
         // Generar mensaje de bienvenida
-        setTimeout(() => generateWelcomeMessage(), 1000);
+        setTimeout(() => generateWelcomeMessage(), 500);
       } else {
         throw new Error('No se pudo inicializar el modelo');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error inicializando Stebe AI:', error);
       setInitState(prev => ({
         ...prev,
-        error: error.message,
+        error: error?.message || 'Error de inicialización',
         isInitializing: false,
         progress: 0,
         status: 'Error de inicialización'
@@ -113,20 +101,15 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   };
 
   const generateWelcomeMessage = async () => {
-    if (!groqService.isReady()) return;
+    if (!geminiService.isReady()) return;
 
     try {
       setIsGenerating(true);
-      // Usar la nueva respuesta inteligente
-      const welcomeMessage = await groqService.getIntelligentResponse(
-        "¡Hola! Soy nuevo en esto y me gustaría conocer cómo puedes ayudarme con mis tareas.",
-        { timeOfDay: new Date().getHours() < 12 ? 'mañana' : 'tarde' }
-      );
+      const welcomeMessage = await geminiService.getProductivitySuggestion();
       onMessageGenerated?.(welcomeMessage);
     } catch (error) {
       console.error('Error generando mensaje de bienvenida:', error);
-      // Fallback
-      const fallbackMessage = "¡Hola! 👋 Soy Stebe, tu asistente de productividad. Cuéntame qué necesitas hacer y te ayudo a organizarlo en tareas específicas.";
+      const fallbackMessage = "¡Hola! 👋 Soy Stebe, tu asistente de productividad offline. Contame qué querés lograr hoy y te ayudo a organizarlo en pasos claros.";
       onMessageGenerated?.(fallbackMessage);
     } finally {
       setIsGenerating(false);
@@ -134,7 +117,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   };
 
   const generateMotivationalMessage = async () => {
-    if (!groqService.isReady()) {
+    if (!geminiService.isReady()) {
       toast({
         title: "Stebe AI no está disponible",
         description: "Primero debes inicializar el modelo",
@@ -145,17 +128,9 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
     try {
       setIsGenerating(true);
-      
-      // Usar la nueva capacidad de respuesta inteligente
-      const motivationalRequest = "Dame un consejo motivacional personalizado para ser más productivo";
-      const suggestion = await groqService.getIntelligentResponse(
-        motivationalRequest,
-        {
-          userMood: 'neutral',
-          timeOfDay: new Date().getHours() < 12 ? 'mañana' : new Date().getHours() < 18 ? 'tarde' : 'noche'
-        }
+      const suggestion = await geminiService.getResponse(
+        'Dame un consejo motivacional breve y práctico para mejorar mi productividad hoy. Usa viñetas.'
       );
-      
       onMessageGenerated?.(suggestion);
 
       toast({
@@ -176,7 +151,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
   // NUEVA FUNCIÓN: Generar tareas automáticamente
   const generateTasksFromRequest = async () => {
-    if (!groqService.isReady()) {
+    if (!geminiService.isReady()) {
       toast({
         title: "Stebe AI no está disponible",
         description: "Primero debes inicializar el modelo",
@@ -187,55 +162,32 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
 
     try {
       setIsGenerating(true);
-      
-      // Solicitar al usuario qué quiere hacer
       const userRequest = prompt(
         "💼 ¿Qué necesitas hacer hoy?\n\n" +
-        "Describe tu objetivo y yo crearé las tareas específicas para ti:\n\n" +
-        "Ejemplos:\n" +
-        "• 'Preparar una presentación para el trabajo'\n" +
-        "• 'Organizar mi casa para las vacaciones'\n" +
-        "• 'Estudiar para mi examen de matemáticas'"
+          "Describe tu objetivo y crearé tareas claras y priorizadas para ti (en viñetas).\n\n" +
+          "Ejemplos:\n" +
+          "• 'Preparar una presentación para el trabajo'\n" +
+          "• 'Organizar mi casa para las vacaciones'\n" +
+          "• 'Estudiar para mi examen de matemáticas'"
       );
 
-      if (!userRequest || userRequest.trim() === '') {
-        return;
-      }
+      if (!userRequest || userRequest.trim() === '') return;
 
-      // Generar tareas inteligentes
-      const taskData = await groqService.generateSmartTasks(userRequest.trim());
-      
-      // Crear mensaje formateado con las tareas
-      let message = `🎯 **He creado un plan para: "${userRequest}"**\n\n`;
-      
-      message += "**📋 Tareas recomendadas:**\n";
-      taskData.tasks.forEach((task, index) => {
-        message += `${index + 1}. **${task.title}**\n`;
-        message += `   • ${task.description}\n`;
-        message += `   • ⏱️ Tiempo estimado: ${task.estimatedTime}\n`;
-        message += `   • 🔥 Prioridad: ${task.priority}\n`;
-        if (task.subtasks && task.subtasks.length > 0) {
-          message += `   • Subtareas: ${task.subtasks.join(', ')}\n`;
-        }
-        message += '\n';
-      });
+      const taskPrompt = `Quiero un plan de tareas en español, sólo sobre productividad.\n\n` +
+        `Instrucciones:\n` +
+        `- Desglosa en 3-6 tareas concretas con subtareas si corresponde\n` +
+        `- Indica prioridad y tiempo estimado por tarea\n` +
+        `- Termina con próximos pasos en 2-3 viñetas\n` +
+        `- Formatea todo en viñetas o números\n\n` +
+        `Objetivo del usuario: ${userRequest}`;
 
-      message += `**💪 Motivación:** ${taskData.motivation}\n\n`;
-      
-      if (taskData.nextSteps.length > 0) {
-        message += "**🚀 Próximos pasos:**\n";
-        taskData.nextSteps.forEach((step, index) => {
-          message += `${index + 1}. ${step}\n`;
-        });
-      }
-
+      const message = await geminiService.getResponse(taskPrompt);
       onMessageGenerated?.(message);
 
       toast({
-        title: "🎉 ¡Tareas creadas!",
-        description: `He creado ${taskData.tasks.length} tarea(s) para ayudarte`,
+        title: "🎉 ¡Tareas sugeridas!",
+        description: `Plan generado a partir de tu objetivo`,
       });
-
     } catch (error) {
       console.error('Error generando tareas:', error);
       toast({
@@ -278,7 +230,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
             </Badge>
           </div>
           <CardDescription>
-            Tu mentor personal de productividad impulsado por Groq
+            Tu mentor personal de productividad que funciona completamente offline con Ollama
           </CardDescription>
         </CardHeader>
 
@@ -296,7 +248,32 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <div className="text-center space-y-4">
                     <div className="flex items-center justify-center space-x-2 text-gray-600">
                       <Cpu className="h-6 w-6" />
-                      <span>Modelo Llama 3.1 70B con Groq listo para usar</span>
+                      <span>Ollama local listo. Modelo por defecto: gemma2:2b</span>
+                    </div>
+                    {/* Configuración rápida */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                      <div>
+                        <label className="text-xs text-gray-500">URL de Ollama</label>
+                        <input
+                          type="text"
+                          defaultValue={geminiService.getOllamaUrl()}
+                          onBlur={(e) => geminiService.setOllamaUrl(e.target.value)}
+                          className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                          placeholder="http://localhost:11434"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">Modelo</label>
+                        <select
+                          defaultValue={geminiService.getCurrentModel()}
+                          onChange={(e) => geminiService.setModel(e.target.value)}
+                          className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                        >
+                          {geminiService.getAvailableModels().map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <Button 
                       onClick={handleInitialize}
@@ -304,10 +281,10 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                       size="lg"
                     >
                       <Brain className="mr-2 h-4 w-4" />
-                      Activar Stebe AI (Gratis)
+                      Activar Stebe AI (Offline)
                     </Button>
                     <p className="text-xs text-gray-500">
-                      Requiere una API key gratuita de Groq - Te guiaremos en el proceso
+                      Se descargará el modelo si no está instalado. Puedes cambiar el modelo y la URL antes de iniciar.
                     </p>
                   </div>
                 )}
@@ -393,12 +370,12 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   
                   <Button 
                     onClick={async () => {
-                      if (!groqService.isReady()) return;
+                      if (!geminiService.isReady()) return;
                       setIsGenerating(true);
                       try {
                         const today = new Date();
-                        const req = `Generá un plan del día con 3-5 tareas priorizadas para hoy (${today.toLocaleDateString('es-AR')}).`;
-                        const plan = await groqService.getIntelligentResponse(req);
+                        const req = `Genera un plan del día con 3-5 tareas priorizadas para hoy (${today.toLocaleDateString('es-AR')}). Usa viñetas y mantente en temas de productividad.`;
+                        const plan = await geminiService.getResponse(req);
                         onMessageGenerated?.(plan);
                       } finally {
                         setIsGenerating(false);
@@ -421,7 +398,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <div className="text-xs text-gray-500 space-y-1">
                     <div className="flex justify-between">
                       <span>Modelo:</span>
-                      <span>Llama 3.1 70B via Groq</span>
+                      <span>{geminiService.getCurrentModel()} via Ollama (local)</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Estado:</span>
