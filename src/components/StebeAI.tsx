@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Download, Cpu, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import geminiService, { GeminiConfig } from '@/services/geminiService';
+import groqService from '@/services/groqService';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,12 +33,28 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const initAttempted = useRef(false);
+  const [groqReady, setGroqReady] = useState<boolean>(false);
+  const [groqApiKey, setGroqApiKey] = useState<string>(localStorage.getItem('groq_api_key') || '');
 
   useEffect(() => {
     // Auto-inicializar solo una vez
     if (!initAttempted.current) {
       initAttempted.current = true;
       checkInitializationStatus();
+      // Intentar Groq según env/localStorage
+      try {
+        const envKey = (import.meta as any)?.env?.VITE_GROQ_API_KEY as string | undefined;
+        const storedKey = localStorage.getItem('groq_api_key') || undefined;
+        if (!groqService.isReady()) {
+          if (envKey) {
+            groqService.initialize({ apiKey: envKey }).then(setGroqReady);
+          } else if (storedKey) {
+            groqService.initialize({ apiKey: storedKey }).then(setGroqReady);
+          }
+        } else {
+          setGroqReady(true);
+        }
+      } catch {}
     }
   }, []);
 
@@ -55,7 +72,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
       isInitialized: isReady,
       isInitializing: false,
       progress: isReady ? 100 : 0,
-      status: isReady ? '✅ STEBE AI (Ollama) listo' : 'Stebe AI está listo para configurarse'
+      status: isReady ? (geminiService.isSimulatedMode() ? '⚠️ Modo simulado (Ollama no disponible)' : '✅ STEBE AI (Ollama) listo') : 'Stebe AI está listo para configurarse'
     }));
   };
 
@@ -80,7 +97,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
           isInitialized: true,
           isInitializing: false,
           progress: 100,
-          status: '¡Stebe AI (Ollama) está listo para ayudarte!'
+          status: geminiService.isSimulatedMode() ? '⚠️ Modo simulado (sin modelo local)' : '¡Stebe AI (Ollama) está listo para ayudarte!'
         }));
 
         // Generar mensaje de bienvenida
@@ -97,6 +114,15 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
         progress: 0,
         status: 'Error de inicialización'
       }));
+    }
+  };
+
+  const handleGroqInit = async () => {
+    try {
+      const ok = await groqService.initialize({ apiKey: groqApiKey });
+      setGroqReady(ok);
+    } catch (e) {
+      setGroqReady(false);
     }
   };
 
@@ -248,7 +274,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <div className="text-center space-y-4">
                     <div className="flex items-center justify-center space-x-2 text-gray-600">
                       <Cpu className="h-6 w-6" />
-                      <span>Ollama local listo. Modelo por defecto: gemma2:2b</span>
+                      <span>Ollama local: {geminiService.isSimulatedMode() ? 'No disponible (modo simulado)' : 'Disponible'}. Modelo por defecto: gemma2:2b</span>
                     </div>
                     {/* Configuración rápida */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
@@ -283,6 +309,21 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                       <Brain className="mr-2 h-4 w-4" />
                       Activar Stebe AI (Offline)
                     </Button>
+                    <div className="text-left border rounded p-3 space-y-2">
+                      <div className="text-sm font-medium">Proveedor alternativo (Groq)</div>
+                      <input
+                        type="password"
+                        value={groqApiKey}
+                        onChange={(e) => setGroqApiKey(e.target.value)}
+                        placeholder="Pega tu API key de Groq"
+                        className="w-full border rounded px-3 py-2 text-sm"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" onClick={handleGroqInit}>Conectar Groq</Button>
+                        <Badge variant={groqReady ? 'default' : 'outline'}>{groqReady ? 'Groq activo' : 'Groq inactivo'}</Badge>
+                      </div>
+                      <p className="text-xs text-gray-500">Si Ollama no está disponible, el chat podrá usar Groq como fallback real.</p>
+                    </div>
                     <p className="text-xs text-gray-500">
                       Se descargará el modelo si no está instalado. Puedes cambiar el modelo y la URL antes de iniciar.
                     </p>
@@ -349,6 +390,14 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                       </>
                     )}
                   </Button>
+                  <div className="flex items-center justify-between text-xs text-gray-600">
+                    <span>Estado local:</span>
+                    <span>{geminiService.isSimulatedMode() ? 'Simulado' : 'Ollama real'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-600">
+                    <span>Proveedor alternativo:</span>
+                    <span>{groqReady ? 'Groq conectado' : 'No conectado'}</span>
+                  </div>
                   
                   <Button 
                     onClick={generateTasksFromRequest}
@@ -402,7 +451,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                     </div>
                     <div className="flex justify-between">
                       <span>Estado:</span>
-                      <span className="text-green-600">Conectado y privado</span>
+                      <span className="text-green-600">{geminiService.isSimulatedMode() ? 'Simulado (privado)' : 'Conectado y privado'}</span>
                     </div>
                   </div>
               </motion.div>

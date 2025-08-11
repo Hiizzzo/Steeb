@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import StebeAI from '@/components/StebeAI';
 import geminiService, { ChatMessage } from '@/services/geminiService';
+import groqService from '@/services/groqService';
 
 import { useTaskStore } from '@/store/useTaskStore';
 import SmartTaskReview, { SmartTaskPlan, SmartTaskItem } from '@/components/SmartTaskReview';
@@ -58,6 +59,19 @@ const ChatPage = () => {
     if (geminiService.isReady()) {
       setIsUsingAI(true);
     }
+
+    // Auto-inicializar Groq si hay API key en env o localStorage
+    try {
+      const envKey = (import.meta as any)?.env?.VITE_GROQ_API_KEY as string | undefined;
+      const storedKey = localStorage.getItem('groq_api_key') || undefined;
+      if (!groqService.isReady()) {
+        if (envKey) {
+          groqService.initialize({ apiKey: envKey });
+        } else if (storedKey) {
+          groqService.initialize({ apiKey: storedKey });
+        }
+      }
+    } catch {}
   }, []);
 
   const requestNotificationPermission = async () => {
@@ -186,20 +200,47 @@ const ChatPage = () => {
     
     if (isUsingAI && geminiService.isReady()) {
       try {
+        // Si está en modo simulado y Groq está disponible, usar Groq como fallback real
+        if (geminiService.isSimulatedMode()) {
+          try {
+            const alt = await groqService.sendMessage(
+              `Responde como Stebe. Usuario: ${userMessage}`
+            );
+            console.log('✅ Respuesta via Groq');
+            return alt;
+          } catch (e) {
+            console.warn('Groq no disponible o no inicializado, uso fallback predefinido');
+            return generateEnhancedFallbackResponse(userMessage);
+          }
+        }
         const response = await geminiService.getResponse(userMessage);
         console.log('✅ Respuesta AI local generada exitosamente');
         return response;
       } catch (error) {
         console.error('❌ Error usando Stebe AI local:', error);
-        toast({
-          title: "AI temporalmente no disponible",
-          description: "Usando respuestas predefinidas como respaldo",
-          variant: "default"
-        });
-        return generateEnhancedFallbackResponse(userMessage);
+        // Intentar Groq antes del fallback predefinido
+        try {
+          const alt = await groqService.sendMessage(`Responde como Stebe. Usuario: ${userMessage}`);
+          return alt;
+        } catch (e2) {
+          toast({
+            title: "AI temporalmente no disponible",
+            description: "Usando respuestas predefinidas como respaldo",
+            variant: "default"
+          });
+          return generateEnhancedFallbackResponse(userMessage);
+        }
       }
     }
     
+    // Si AI está desactivado pero Groq está activo, permitir uso opcional
+    try {
+      const isGroqReady = groqService.isReady?.();
+      if (isGroqReady) {
+        const alt = await groqService.sendMessage(`Responde como Stebe. Usuario: ${userMessage}`);
+        return alt;
+      }
+    } catch {}
     
     console.log('📝 Usando respuestas predefinidas inteligentes');
     // Respuestas predefinidas mejoradas como último fallback
@@ -502,12 +543,12 @@ const ChatPage = () => {
                         alt="STEBE" 
                         className="w-5 h-5 rounded-full"
                       />
-                      {isUsingAI && geminiService.isReady() && (
+                      {isUsingAI && geminiService.isReady() && !geminiService.isSimulatedMode() && (
                         <Brain className="w-3 h-3 text-blue-500" />
                       )}
                     </div>
                     <span className="text-xs font-medium text-gray-600">
-                      STEBE {isUsingAI && geminiService.isReady() ? '(AI)' : ''}
+                      STEBE {isUsingAI && geminiService.isReady() && !geminiService.isSimulatedMode() ? '(AI local)' : ''}
                     </span>
                   </div>
                 )}
