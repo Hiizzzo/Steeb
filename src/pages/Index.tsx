@@ -355,7 +355,7 @@ const Index = () => {
       {/* Contenido principal */}
       <div className="relative z-10">
       {/* Header */}
-      <StebeHeader />
+      <StebeHeader pendingCount={pendingTodaysTasks.length} />
       {/* Quick link to Misiones */}
       <div className="max-w-sm mx-auto px-3 mt-2 mb-2">
         <a href="/misiones" className="inline-block text-xs px-3 py-1 rounded-full border border-gray-300 hover:border-black transition-colors">Ver Misiones del día</a>
@@ -410,15 +410,15 @@ const Index = () => {
                   <button
                     className="flex items-center space-x-1 text-gray-600 hover:text-black text-sm"
                     onClick={() => setShowCompletedToday(prev => !prev)}
-                    aria-label={showCompletedToday ? 'Ocultar completadas de hoy' : 'Mostrar completadas de hoy'}
+                    aria-label={showCompletedToday ? 'Ocultar completadas' : 'Mostrar completadas'}
                   >
                     {showCompletedToday ? <EyeOff size={16} /> : <Eye size={16} />}
-                    <span>{showCompletedToday ? 'Ocultar hoy' : 'Ver hoy'}</span>
+                    <span>{showCompletedToday ? 'Ocultar' : 'Ver'}</span>
                   </button>
                 </div>
 
                 {/* Completadas antes de hoy */}
-                {completedBeforeToday.length > 0 && (
+                {completedBeforeToday.length > 0 && showCompletedToday && (
                   <div className="mb-2">
                     <p className="text-xs text-gray-500 mb-2">Anteriores</p>
                     {completedBeforeToday.map(task => (
