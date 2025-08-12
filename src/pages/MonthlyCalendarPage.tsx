@@ -549,6 +549,15 @@ const MonthlyCalendarPage: React.FC = () => {
             <p className="mt-2 text-center text-sm text-gray-800">
               {new Date(selectedDate || new Date().toISOString().split('T')[0]).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
             </p>
+            {/* Resumen de tareas del día seleccionado */}
+            <p className="mt-1 text-center text-xs text-gray-600">
+              {(() => {
+                const day = calendarDays.find(d => d.dateString === (selectedDate || new Date().toISOString().split('T')[0]));
+                const completed = day?.completedTasks ?? 0;
+                const total = day?.totalTasks ?? 0;
+                return `${completed} ${completed === 1 ? 'tarea hecha' : 'tareas hechas'}${total > 0 ? ` · ${total} en total` : ''}`;
+              })()}
+            </p>
           </div>
         </Card>
 
