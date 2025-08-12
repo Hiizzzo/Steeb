@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Sparkles, MessageCircle } from 'lucide-react';
+import { Plus, Calendar, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 
@@ -161,16 +161,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     <>
       <div className="fixed bottom-8 left-0 right-0 z-50 pointer-events-none no-select">
         <div className="flex items-center justify-center px-8 pointer-events-none no-select">
-          {/* Botón de Chat */}
-          <motion.button
-            onClick={() => navigate('/chat')}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gray-800 hover:bg-gray-700 mr-4 pointer-events-auto"
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <MessageCircle size={24} className="text-white" strokeWidth={2} />
-          </motion.button>
-
           {/* Botón Principal */}
           <motion.button
             onPointerDown={handlePointerDown}
@@ -250,7 +240,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
         )}
       </AnimatePresence>
 
-      {/* Menú de Calendarios */}
+      {/* Menú de Acciones (long press) */}
       <AnimatePresence>
         {showCalendarMenu && (
           <motion.div
@@ -267,37 +257,52 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               className="bg-white dark:bg-gray-800 rounded-2xl p-6 mx-4 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-                             <div className="flex justify-between items-center mb-6">
-                 <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-                   🗓️ Selecciona un Calendario
-                 </h3>
-                 <button
-                   onClick={() => setShowCalendarMenu(false)}
-                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
-                 >
-                   ×
-                 </button>
-               </div>
-               <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
-                 Mantén presionado el botón + para ver este menú
-               </p>
-                             <div className="space-y-3">
-                 <motion.button
-                   whileHover={{ scale: 1.02 }}
-                   whileTap={{ scale: 0.95 }}
-                   onClick={() => {
-                     setShowCalendarMenu(false);
-                     navigate('/monthly-calendar');
-                   }}
-                                       className="w-full flex items-center gap-3 p-4 bg-black dark:bg-white text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
-                 >
-                   <Sparkles size={24} />
-                   <div className="text-left">
-                     <div className="font-semibold">Calendario</div>
-                     <div className="text-sm opacity-90">Calendario unificado con animaciones y funcionalidad completa</div>
-                   </div>
-                 </motion.button>
-               </div>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  Acciones rápidas
+                </h3>
+                <button
+                  onClick={() => setShowCalendarMenu(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
+                Mantén presionado el botón + para abrir este menú
+              </p>
+              <div className="space-y-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setShowCalendarMenu(false);
+                    navigate('/monthly-calendar');
+                  }}
+                  className="w-full flex items-center gap-3 p-4 bg-black dark:bg-white text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
+                >
+                  <Calendar size={24} />
+                  <div className="text-left">
+                    <div className="font-semibold">Calendario</div>
+                    <div className="text-sm opacity-90">Ver tus tareas en el calendario mensual</div>
+                  </div>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setShowCalendarMenu(false);
+                    navigate('/chat');
+                  }}
+                  className="w-full flex items-center gap-3 p-4 bg-gray-900 dark:bg-gray-100 text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
+                >
+                  <MessageCircle size={24} />
+                  <div className="text-left">
+                    <div className="font-semibold">Chat con Stebe</div>
+                    <div className="text-sm opacity-90">Habla con tu asistente inteligente</div>
+                  </div>
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}
