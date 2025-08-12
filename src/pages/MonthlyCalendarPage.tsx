@@ -379,12 +379,17 @@ const MonthlyCalendarPage: React.FC = () => {
       <div className={`absolute left-2 right-2 bottom-1 h-1 rounded-full overflow-hidden 
         ${day.isCurrentMonth ? 'bg-neutral-200' : 'bg-neutral-100'}`}
       >
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${day.completionPercentage}%` }}
-          transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
-          className={`h-full rounded-full ${day.totalTasks > 0 ? 'bg-neutral-800' : 'bg-neutral-300'}`}
-        />
+        {(() => {
+          const width = day.totalTasks === 0 ? '0%' : (day.completedTasks === day.totalTasks ? '100%' : '50%');
+          return (
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width }}
+              transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
+              className={`h-full rounded-full ${day.totalTasks > 0 ? 'bg-neutral-800' : 'bg-neutral-300'}`}
+            />
+          );
+        })()}
       </div>
 
       {/* Hover sutil */}
