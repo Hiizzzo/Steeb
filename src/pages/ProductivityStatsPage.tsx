@@ -31,7 +31,7 @@ const ProductivityStatsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <ProductivityStatsConnected onAddTask={() => setShowModal(true)} />
 
       <AnimatePresence>
