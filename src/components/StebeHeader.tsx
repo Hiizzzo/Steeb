@@ -29,13 +29,7 @@ const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
             }}>TAREAS
             </h1>
             </div>
-            {typeof pendingCount === 'number' && (
-              <div className="absolute right-0 top-1/2 -translate-y-1/2">
-                <span className="inline-flex items-center justify-center min-w-12 px-2 py-1 text-xs font-medium bg-white text-black rounded-full border border-gray-300">
-                  {pendingCount}
-                </span>
-              </div>
-            )}
+
           </div>
         </div>
       </div>
