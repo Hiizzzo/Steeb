@@ -392,7 +392,7 @@ const Index = () => {
             )}
 
             {/* Sección de tareas completadas */}
-            {(completedTodaysTasks.length > 0) && (
+            {(completedToday.length > 0) && (
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
@@ -400,7 +400,7 @@ const Index = () => {
                     <h3 className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                       Tareas completadas
                     </h3>
-                    <span className="text-xs text-gray-500">({completedTodaysTasks.length})</span>
+                    <span className="text-xs text-gray-500">({completedToday.length})</span>
                   </div>
                   {/* Toggle mostrar/ocultar las de hoy */}
                   <button
@@ -412,30 +412,6 @@ const Index = () => {
                     <span>{showCompletedToday ? 'Ocultar' : 'Ver'}</span>
                   </button>
                 </div>
-
-                {/* Completadas antes de hoy */}
-                {completedBeforeToday.length > 0 && showCompletedToday && (
-                  <div className="mb-2">
-                    <p className="text-xs text-gray-500 mb-2">Anteriores</p>
-                    {completedBeforeToday.map(task => (
-                      <TaskCard
-                        key={task.id}
-                        id={task.id}
-                        title={task.title}
-                        type={task.type}
-                        completed={task.completed}
-                        subtasks={task.subtasks}
-                        scheduledDate={task.scheduledDate}
-                        scheduledTime={task.scheduledTime}
-                        notes={task.notes}
-                        onToggle={handleToggleTask}
-                        onToggleSubtask={handleToggleSubtask}
-                        onDelete={handleDeleteTask}
-                        onShowDetail={handleShowDetail}
-                      />
-                    ))}
-                  </div>
-                )}
 
                 {/* Completadas de hoy (toggle) */}
                 {completedToday.length > 0 && showCompletedToday && (
