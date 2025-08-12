@@ -355,11 +355,7 @@ const Index = () => {
       {/* Contenido principal */}
       <div className="relative z-10">
       {/* Header */}
-      <StebeHeader pendingCount={pendingTodaysTasks.length} />
-      {/* Quick link to Misiones */}
-      <div className="max-w-sm mx-auto px-3 mt-2 mb-2">
-        <a href="/misiones" className="inline-block text-xs px-3 py-1 rounded-full border border-gray-300 hover:border-black transition-colors">Ver Misiones del día</a>
-      </div>
+      <StebeHeader />
       
       {viewMode === 'tasks' ? (
         <>
