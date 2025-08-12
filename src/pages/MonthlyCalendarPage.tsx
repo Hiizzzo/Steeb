@@ -372,19 +372,8 @@ const MonthlyCalendarPage: React.FC = () => {
         {day.day}
       </div>
 
-      {/* Contador de tareas completadas del día (solo cuando está seleccionado) */}
-      <AnimatePresence>
-        {day.isSelected && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            className="absolute left-1/2 -translate-x-1/2 bottom-3 text-[10px] tabular-nums text-neutral-800"
-          >
-            {day.completedTasks}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Contador de tareas completadas del día (eliminado) */}
+      {/* Se removió la visualización del número de tareas completadas para no mostrarlo en cada día */}
 
       {/* Barra de progreso diaria (siempre visible) */}
       <div className={`absolute left-2 right-2 bottom-1 h-1 rounded-full overflow-hidden 
