@@ -8,6 +8,8 @@ interface DayBar {
   label: string;
   value: number;
   isCurrent?: boolean;
+  iso?: string;
+  isSelected?: boolean;
 }
 
 interface ProductivityStatsConnectedProps {
@@ -32,22 +34,29 @@ function formatISODate(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().split('T')[0];
 }
 
-const BarsChart: React.FC<{ data: DayBar[] }> = ({ data }) => {
+const BarsChart: React.FC<{ data: DayBar[]; onSelect?: (iso: string) => void }> = ({ data, onSelect }) => {
   const max = Math.max(...data.map(d => d.value), 1);
   return (
     <div className="w-full mt-10">
       <div className="h-36 flex items-end justify-between gap-1 px-3">
         {data.map((bar, i) => {
           const heightPct = (bar.value / max) * 100;
+          const isEmphasized = bar.isCurrent || bar.isSelected;
           return (
-            <div key={`${bar.label}-${i}`} className="flex-1 flex flex-col items-center">
+            <div
+              key={`${bar.label}-${i}`}
+              className={`flex-1 flex flex-col items-center ${bar.iso ? 'cursor-pointer' : ''}`}
+              onClick={() => {
+                if (bar.iso && onSelect) onSelect(bar.iso);
+              }}
+            >
               <motion.div
-                className={`w-full bg-black rounded-t`}
+                className={`w-full ${isEmphasized ? 'bg-black' : 'bg-neutral-900'} rounded-t`}
                 initial={{ height: '4%' }}
                 animate={{ height: `${Math.max(heightPct, 4)}%` }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
               />
-              <span className={`mt-2 text-xs ${bar.isCurrent ? 'font-bold text-black' : 'text-neutral-700'}`}>{bar.label}</span>
+              <span className={`mt-2 text-xs ${isEmphasized ? 'font-bold text-black' : 'text-neutral-700'}`}>{bar.label}</span>
             </div>
           );
         })}
@@ -88,6 +97,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
   const [period, setPeriod] = useState<Period>('day');
   const today = new Date();
   const todayISO = formatISODate(today);
+  const [selectedISO, setSelectedISO] = useState<string>(todayISO);
 
   const { mainNumber, secondaryText, bars } = useMemo(() => {
     // Filter helpers
@@ -101,14 +111,23 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       const d = new Date(weekStart);
       d.setDate(weekStart.getDate() + i);
       const iso = formatISODate(d);
-      return { label: weekDayLabels[i], value: getCompletedOnDate(iso), isCurrent: iso === todayISO };
+      return {
+        label: weekDayLabels[i],
+        value: getCompletedOnDate(iso),
+        isCurrent: iso === todayISO,
+        iso,
+        isSelected: iso === selectedISO,
+      };
     });
 
     if (period === 'day') {
-      const completedToday = getCompletedOnDate(todayISO);
+      const targetISO = selectedISO || todayISO;
+      const completedForSelected = getCompletedOnDate(targetISO);
+      const isToday = targetISO === todayISO;
+      const dateLabel = new Date(targetISO + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
       return {
-        mainNumber: completedToday,
-        secondaryText: 'tareas completadas hoy',
+        mainNumber: completedForSelected,
+        secondaryText: isToday ? 'tareas completadas hoy' : `tareas completadas el ${dateLabel}`,
         bars: weekBars,
       };
     }
@@ -149,7 +168,12 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       secondaryText: 'tareas completadas este mes',
       bars: monthBars,
     };
-  }, [tasks, period]);
+  }, [tasks, period, selectedISO]);
+
+  const handleSelectDay = (iso: string) => {
+    setSelectedISO(iso);
+    if (period !== 'day') setPeriod('day');
+  };
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-white text-black px-6 pt-12 pb-20">
@@ -170,7 +194,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
         </AnimatePresence>
         <AnimatePresence mode="wait">
           <motion.div
-            key={`sub-${period}`}
+            key={`sub-${period}-${selectedISO}`}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
@@ -184,18 +208,23 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={`chart-${period}-${bars.map(b=>b.value).join(',')}`}
+          key={`chart-${period}-${bars.map(b=>b.value).join(',')}-${selectedISO}`}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.35 }}
           className="mt-10"
         >
-          <BarsChart data={bars} />
+          <BarsChart data={bars} onSelect={handleSelectDay} />
         </motion.div>
       </AnimatePresence>
 
-      <PeriodSelector value={period} onChange={setPeriod} />
+      <PeriodSelector value={period} onChange={(p)=>{
+        setPeriod(p);
+        if (p !== 'day') return;
+        // when returning to day, keep selection; if undefined set to today
+        setSelectedISO(prev => prev || todayISO);
+      }} />
     </div>
   );
 };
