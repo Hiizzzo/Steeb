@@ -365,7 +365,7 @@ const Index = () => {
           alt="Steve Jobs" 
           className="w-20 h-20"
         />
-        <a href="/images" className="text-[10px] text-blue-600 underline block mt-1">Cambiar</a>
+
       </div>
       
       {/* Contenido principal */}
