@@ -1,6 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '@/store/useTaskStore';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Tooltip,
+} from 'recharts';
 
 type Period = 'day' | 'week' | 'month';
 
@@ -34,60 +45,67 @@ function formatISODate(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().split('T')[0];
 }
 
-const BarsChart: React.FC<{ data: DayBar[]; onSelect?: (iso: string) => void }> = ({ data, onSelect }) => {
-  const max = Math.max(...data.map(d => d.value), 1);
-  return (
-    <div className="w-full mt-10">
-      <div className="h-36 flex items-end justify-between gap-1 px-3">
-        {data.map((bar, i) => {
-          const heightPct = (bar.value / max) * 100;
-          const isEmphasized = bar.isCurrent || bar.isSelected;
-          return (
-            <div
-              key={`${bar.label}-${i}`}
-              className={`flex-1 flex flex-col items-center ${bar.iso ? 'cursor-pointer' : ''}`}
-              onClick={() => {
-                if (bar.iso && onSelect) onSelect(bar.iso);
-              }}
-            >
-              <motion.div
-                className={`w-full ${isEmphasized ? 'bg-black' : 'bg-neutral-900'} rounded-t`}
-                initial={{ height: '4%' }}
-                animate={{ height: `${Math.max(heightPct, 4)}%` }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-              />
-              <span className={`mt-2 text-xs ${isEmphasized ? 'font-bold text-black' : 'text-neutral-700'}`}>{bar.label}</span>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 h-px bg-neutral-200 mx-3" />
-    </div>
-  );
-};
+function getWeekOfMonth(date: Date) {
+  const dayOfMonth = date.getDate();
+  return Math.min(5, Math.ceil(dayOfMonth / 7)); // S1..S5
+}
 
-const PeriodSelector: React.FC<{ value: Period; onChange: (p: Period) => void }>
-  = ({ value, onChange }) => {
-  const items: { key: Period; label: string }[] = [
-    { key: 'day', label: 'Día' },
-    { key: 'week', label: 'Semana' },
-    { key: 'month', label: 'Mes' },
-  ];
+const CentralStatsChart: React.FC<{
+  period: Period;
+  dayData: { hour: number; label: string; value: number }[];
+  weekData: { label: string; value: number; iso: string; isCurrent?: boolean; isSelected?: boolean }[];
+  monthData: { label: string; value: number }[];
+  onSelectDay?: (iso: string) => void;
+}> = ({ period, dayData, weekData, monthData, onSelectDay }) => {
+  const axisStyle = { fontSize: 12, fill: '#111' } as const;
+  const gridStroke = '#e5e7eb';
+  const commonChartProps = { margin: { top: 10, right: 8, bottom: 0, left: 0 } } as const;
+
   return (
-    <div className="mt-10 flex items-center justify-center">
-      <div className="flex w-full max-w-sm border border-black rounded-full overflow-hidden">
-        {items.map((it) => (
-          <button
-            key={it.key}
-            onClick={() => onChange(it.key)}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-              value === it.key ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'
-            }`}
-          >
-            {it.label}
-          </button>
-        ))}
-      </div>
+    <div className="w-full h-56">
+      <ResponsiveContainer width="100%" height="100%">
+        {period === 'day' ? (
+          <LineChart data={dayData} {...commonChartProps}>
+            <CartesianGrid stroke={gridStroke} vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={axisStyle}
+              axisLine={false}
+              tickLine={false}
+              interval={3}
+            />
+            <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
+            <Tooltip cursor={{ stroke: '#d1d5db' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
+            <Line type="monotone" dataKey="value" stroke="#000" strokeWidth={2} dot={false} isAnimationActive animationDuration={200} />
+          </LineChart>
+        ) : period === 'week' ? (
+          <BarChart data={weekData} {...commonChartProps}>
+            <CartesianGrid stroke={gridStroke} vertical={false} />
+            <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
+            <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
+            <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
+            <Bar
+              dataKey="value"
+              fill="#000"
+              radius={[2, 2, 0, 0]}
+              onClick={(data) => {
+                const payload = (data as any)?.payload;
+                if (payload?.iso && onSelectDay) onSelectDay(payload.iso);
+              }}
+              isAnimationActive
+              animationDuration={200}
+            />
+          </BarChart>
+        ) : (
+          <BarChart data={monthData} {...commonChartProps}>
+            <CartesianGrid stroke={gridStroke} vertical={false} />
+            <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
+            <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
+            <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
+            <Bar dataKey="value" fill="#000" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} />
+          </BarChart>
+        )}
+      </ResponsiveContainer>
     </div>
   );
 };
@@ -99,15 +117,15 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
   const todayISO = formatISODate(today);
   const [selectedISO, setSelectedISO] = useState<string>(todayISO);
 
-  const { mainNumber, secondaryText, bars } = useMemo(() => {
-    // Filter helpers
+  const { mainNumber, secondaryText, weekData, monthData, dayData } = useMemo(() => {
     const getCompletedOnDate = (isoDate: string) =>
-      tasks.filter(t => t.completed && (t.completedDate?.split('T')[0] === isoDate || t.scheduledDate === isoDate)).length;
+      tasks.filter(t => t.completed && t.completedDate?.split('T')[0] === isoDate).length;
 
-    // Semana actual - por día
     const weekStart = startOfWeek(today);
     const weekEnd = endOfWeek(today);
-    const weekBars: DayBar[] = Array.from({ length: 7 }, (_, i) => {
+
+    // Semana actual por día
+    const weekData: { label: string; value: number; iso: string; isCurrent?: boolean; isSelected?: boolean }[] = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(weekStart);
       d.setDate(weekStart.getDate() + i);
       const iso = formatISODate(d);
@@ -120,53 +138,68 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       };
     });
 
+    // Día seleccionado por horas
+    const targetISO = selectedISO || todayISO;
+    const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, label: `${h}`, value: 0 }));
+    tasks.forEach(t => {
+      if (!t.completed || !t.completedDate) return;
+      const d = new Date(t.completedDate);
+      const iso = d.toISOString().split('T')[0];
+      if (iso === targetISO) {
+        const h = d.getHours();
+        hours[h].value += 1;
+      }
+    });
+
+    // Mes actual por semana (S1..S5)
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const nextMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const monthBuckets = [0, 0, 0, 0, 0];
+    tasks.forEach(t => {
+      if (!t.completed || !t.completedDate) return;
+      const d = new Date(t.completedDate);
+      if (d >= monthStart && d < nextMonthStart) {
+        const w = getWeekOfMonth(d) - 1; // 0..4
+        monthBuckets[w] += 1;
+      }
+    });
+    const monthData = monthBuckets.map((v, i) => ({ label: `S${i + 1}`, value: v }));
+
     if (period === 'day') {
-      const targetISO = selectedISO || todayISO;
       const completedForSelected = getCompletedOnDate(targetISO);
       const isToday = targetISO === todayISO;
-      const dateLabel = new Date(targetISO + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
       return {
         mainNumber: completedForSelected,
-        secondaryText: isToday ? 'tareas completadas hoy' : `tareas completadas el ${dateLabel}`,
-        bars: weekBars,
+        secondaryText: isToday ? 'tareas completadas hoy' : `tareas completadas el ${new Date(targetISO + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })}`,
+        weekData,
+        monthData,
+        dayData: hours,
       };
     }
 
     if (period === 'week') {
-      // Total completadas en la semana actual
       const totalWeek = tasks.filter(t => {
-        const raw = t.completedDate || t.scheduledDate;
-        if (!raw) return false;
-        const d = new Date(raw);
-        return t.completed && d >= weekStart && d <= weekEnd;
+        if (!t.completed || !t.completedDate) return false;
+        const d = new Date(t.completedDate);
+        return d >= weekStart && d <= weekEnd;
       }).length;
       return {
         mainNumber: totalWeek,
         secondaryText: 'tareas completadas esta semana',
-        bars: weekBars,
+        weekData,
+        monthData,
+        dayData: hours,
       };
     }
 
-    // Mes actual: agregamos por día de la semana (D..S)
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const nextMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const counts = new Array(7).fill(0) as number[];
-    tasks.forEach(t => {
-      if (!t.completed) return;
-      const raw = t.completedDate || t.scheduledDate;
-      if (!raw) return;
-      const d = new Date(raw);
-      if (d >= monthStart && d < nextMonthStart) {
-        counts[d.getDay()] += 1; // 0..6 Domingo..Sábado
-      }
-    });
-    const monthBars: DayBar[] = counts.map((v, i) => ({ label: weekDayLabels[i], value: v, isCurrent: i === today.getDay() }));
-    const totalMonth = counts.reduce((a, b) => a + b, 0);
-
+    // Mes
+    const totalMonth = monthBuckets.reduce((a, b) => a + b, 0);
     return {
       mainNumber: totalMonth,
       secondaryText: 'tareas completadas este mes',
-      bars: monthBars,
+      weekData,
+      monthData,
+      dayData: hours,
     };
   }, [tasks, period, selectedISO]);
 
@@ -186,7 +219,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="leading-none"
           >
             <div className="text-[100px] sm:text-[120px] font-black tabular-nums">{mainNumber}</div>
@@ -198,7 +231,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="text-xl sm:text-2xl text-center"
           >
             {secondaryText}
@@ -208,23 +241,47 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={`chart-${period}-${bars.map(b=>b.value).join(',')}-${selectedISO}`}
+          key={`chart-${period}-${selectedISO}`}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.2 }}
           className="mt-10"
         >
-          <BarsChart data={bars} onSelect={handleSelectDay} />
+          <CentralStatsChart
+            period={period}
+            dayData={dayData}
+            weekData={weekData}
+            monthData={monthData}
+            onSelectDay={handleSelectDay}
+          />
         </motion.div>
       </AnimatePresence>
 
-      <PeriodSelector value={period} onChange={(p)=>{
-        setPeriod(p);
-        if (p !== 'day') return;
-        // when returning to day, keep selection; if undefined set to today
-        setSelectedISO(prev => prev || todayISO);
-      }} />
+      <div className="mt-10 flex items-center justify-center">
+        <div className="flex w-full max-w-sm border border-black rounded-full overflow-hidden">
+          {([
+            { key: 'day', label: 'Día' },
+            { key: 'week', label: 'Semana' },
+            { key: 'month', label: 'Mes' },
+          ] as { key: Period; label: string }[]).map((it) => (
+            <button
+              key={it.key}
+              onClick={() => {
+                setPeriod(it.key);
+                if (it.key === 'day') {
+                  setSelectedISO(prev => prev || todayISO);
+                }
+              }}
+              className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+                period === it.key ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'
+              }`}
+            >
+              {it.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
