@@ -56,8 +56,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
     switch (type) {
       case 'productividad':
         return <div className="w-5 h-5 border border-black" />;
-      case 'creatividad':
-        return <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-18 h-18" />;
+              case 'creatividad':
+          return <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-6 h-6" />;
       case 'aprendizaje':
         return <div className="w-5 h-5 border border-black rounded" />;
       case 'organizacion':
