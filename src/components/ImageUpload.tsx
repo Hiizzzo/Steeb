@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadedImagePath, setUploadedImagePath] = useState<string>('');
+  const [previewUrl, setPreviewUrl] = useState<string>('');
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -23,6 +24,19 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
       setUploadStatus('idle');
     }
   };
+
+  useEffect(() => {
+    if (!selectedFile) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl('');
+      return;
+    }
+    const url = URL.createObjectURL(selectedFile);
+    setPreviewUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [selectedFile]);
 
   const handleUpload = async () => {
     if (!selectedFile) return;
@@ -87,6 +101,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
             disabled={uploading}
           />
         </div>
+
+        {previewUrl && (
+          <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+            <img src={previewUrl} alt="Vista previa" className="max-w-full max-h-full object-contain" />
+          </div>
+        )}
 
         {selectedFile && (
           <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">

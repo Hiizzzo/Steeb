@@ -84,7 +84,9 @@ const ImagesPage: React.FC = () => {
 							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
 								{images.map((img) => (
 									<div key={img.filename} className="border rounded-lg overflow-hidden bg-white">
-										<img src={img.path} alt={img.filename} className="w-full h-32 object-cover" />
+										<div className="w-full h-32 bg-gray-100 flex items-center justify-center">
+											<img src={img.path} alt={img.filename} className="max-w-full max-h-full object-contain" />
+										</div>
 										<div className="p-2 space-y-2">
 											<p className="text-xs break-all">{img.filename}</p>
 											<div className="flex gap-2">
