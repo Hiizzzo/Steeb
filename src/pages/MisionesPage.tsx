@@ -157,8 +157,12 @@ const MisionesPage: React.FC = () => {
                   <div key={index} className="flex items-center justify-between p-2 bg-white rounded border border-blue-100">
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        {task.subgroup} • {task.estimatedDuration}min • {task.priority}
+                      <p className="text-xs text-gray-500 capitalize flex items-center gap-2">
+                        {/* Icono de subgrupo a la izquierda */}
+                        {task.subgroup === 'creatividad' ? (
+                          <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-4 h-4" />
+                        ) : null}
+                        <span>{task.subgroup} • {task.estimatedDuration}min • {task.priority}</span>
                       </p>
                     </div>
                     <Button
