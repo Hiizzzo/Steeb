@@ -12,6 +12,16 @@ export interface SubTask {
 
 export type TaskType = 'personal' | 'work' | 'meditation';
 
+export type TaskSubgroup =
+  | 'productividad'
+  | 'creatividad'
+  | 'aprendizaje'
+  | 'organizacion'
+  | 'social'
+  | 'salud'
+  | 'entretenimiento'
+  | 'extra';
+
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
@@ -21,6 +31,7 @@ export interface Task {
   title: string;
   description?: string;
   type: TaskType;
+  subgroup?: TaskSubgroup;
   priority?: TaskPriority;
   status: TaskStatus;
   completed: boolean;
