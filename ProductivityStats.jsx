@@ -143,7 +143,8 @@ const ProductivityStats = () => {
       {/* Header */}
       <header className="header">
         <StebeCharacter />
-        <div className="motivation-text">Tu esfuerzo es tu mejor inversión</div>
+        <div className="motivation-text">Trabajo</div>
+        <img src="/lovable-uploads/trabajo-icon.svg" alt="Trabajo" className="title-icon" />
       </header>
 
       {/* KPI Cards */}
