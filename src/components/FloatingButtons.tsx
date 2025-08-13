@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, MessageCircle } from 'lucide-react';
+import { Plus, Calendar, MessageCircle, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 
@@ -285,6 +285,21 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   <div className="text-left">
                     <div className="font-semibold">Calendario</div>
                     <div className="text-sm opacity-90">Ver tus tareas en el calendario mensual</div>
+                  </div>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setShowCalendarMenu(false);
+                    navigate('/productivity-stats');
+                  }}
+                  className="w-full flex items-center gap-3 p-4 bg-gray-900 dark:bg-gray-100 text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
+                >
+                  <BarChart2 size={24} />
+                  <div className="text-left">
+                    <div className="font-semibold">Estadísticas</div>
+                    <div className="text-sm opacity-90">Ver tus estadísticas de productividad</div>
                   </div>
                 </motion.button>
                 <motion.button
