@@ -137,7 +137,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const getTagIcon = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
       case 'productividad': return <div className="w-4 h-4 border border-black" />;
-      case 'creatividad': return <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-6 h-6" />;
+      case 'creatividad': return <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-18 h-18" />;
       case 'aprendizaje': return <div className="w-4 h-4 border border-black rounded" />;
       case 'organizacion': return <div className="w-4 h-4 border-black border-l-4" />;
       case 'salud': return <div className="w-4 h-4 border-black border-b-4" />;
