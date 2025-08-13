@@ -19,15 +19,6 @@ interface Task {
   id: string;
   title: string;
   type: 'personal' | 'work' | 'meditation';
-  subgroup?:
-    | 'productividad'
-    | 'creatividad'
-    | 'aprendizaje'
-    | 'organizacion'
-    | 'social'
-    | 'salud'
-    | 'entretenimiento'
-    | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -45,16 +36,7 @@ interface TaskCreationCardProps {
     scheduledDate?: string,
     scheduledTime?: string,
     notes?: string,
-    isPrimary?: boolean,
-    subgroup?:
-      | 'productividad'
-      | 'creatividad'
-      | 'aprendizaje'
-      | 'organizacion'
-      | 'social'
-      | 'salud'
-      | 'entretenimiento'
-      | 'extra'
+    isPrimary?: boolean
   ) => void;
   editingTask?: Task | null;
 }
@@ -69,18 +51,6 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [isPrimary, setIsPrimary] = useState(false);
-  const [showSubgroupPicker, setShowSubgroupPicker] = useState(false);
-  const [selectedSubgroup, setSelectedSubgroup] = useState<
-    | 'productividad'
-    | 'creatividad'
-    | 'aprendizaje'
-    | 'organizacion'
-    | 'social'
-    | 'salud'
-    | 'entretenimiento'
-    | 'extra'
-    | undefined
-  >(undefined);
   const { playButtonClickSound } = useSoundEffects();
   const { toast } = useToast();
 
@@ -97,7 +67,6 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         setSelectedTime(editingTask.scheduledTime);
       }
       setIsPrimary(!!editingTask.tags?.includes('principal'));
-      setSelectedSubgroup(editingTask.subgroup);
     } else {
       // Resetear campos cuando se está creando una nueva tarea
       setTitle('');
@@ -106,7 +75,6 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       setSelectedDate(undefined);
       setSelectedTime('');
       setIsPrimary(false);
-      setSelectedSubgroup(undefined);
     }
   }, [editingTask]);
 
@@ -119,8 +87,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         scheduledDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
         scheduledTime: selectedTime || undefined,
         notes: notes.trim() || undefined,
-        isPrimary,
-        selectedSubgroup
+        isPrimary
       });
       
       playButtonClickSound();
@@ -135,8 +102,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         scheduledDate,
         selectedTime || undefined,
         notes.trim() || undefined,
-        isPrimary,
-        selectedSubgroup
+        isPrimary
       );
       
       // Cerrar el modal después de crear la tarea
@@ -171,38 +137,6 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     }
   };
 
-  const subgroupOptions: Array<{
-    key:
-      | 'productividad'
-      | 'creatividad'
-      | 'aprendizaje'
-      | 'organizacion'
-      | 'social'
-      | 'salud'
-      | 'entretenimiento'
-      | 'extra';
-    label: string;
-    icon: React.ReactNode;
-  }> = [
-    { key: 'productividad', label: 'Productividad', icon: <div className="w-4 h-4 border border-black" /> },
-    { key: 'creatividad', label: 'Creatividad', icon: <div className="w-4 h-4 border-2 border-black rotate-45" /> },
-    { key: 'aprendizaje', label: 'Aprendizaje', icon: <div className="w-4 h-4 border border-black rounded" /> },
-    { key: 'organizacion', label: 'Organización', icon: <div className="w-4 h-4 border-black border-l-4" /> },
-    { key: 'social', label: 'Social', icon: <div className="w-4 h-4 border border-black rounded-full" /> },
-    { key: 'salud', label: 'Salud', icon: <div className="w-4 h-4 border-black border-b-4" /> },
-    { key: 'entretenimiento', label: 'Entretenimiento', icon: <div className="w-4 h-4 border border-black border-dashed" /> },
-    { key: 'extra', label: 'Extra', icon: <div className="w-4 h-4 bg-black" /> },
-  ];
-
-  const getSelectedSubgroupLabel = () => {
-    const found = subgroupOptions.find(o => o.key === selectedSubgroup);
-    return found ? found.label : 'Subgrupo';
-  };
-
-  const getSelectedSubgroupIcon = () => {
-    const found = subgroupOptions.find(o => o.key === selectedSubgroup);
-    return found ? found.icon : <div className="w-4 h-4 border border-black" />;
-  };
 
   return (
     <motion.div
@@ -316,17 +250,6 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           </button>
         </div>
 
-        {/* Subgroup Selector Bar */}
-        <div className="flex border-t border-gray-100">
-          <button
-            onClick={() => setShowSubgroupPicker(!showSubgroupPicker)}
-            className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            {getSelectedSubgroupIcon()}
-            <span className="font-medium">{getSelectedSubgroupLabel()}</span>
-          </button>
-        </div>
-
         {/* Date Picker */}
         {showDatePicker && (
           <div className="border-t border-gray-100 p-4 bg-white">
@@ -372,28 +295,6 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                 {getTagIcon(tag)}
                 <span className="text-black font-medium">{getTagLabel(tag)}</span>
                 {selectedTag === tag && (
-                  <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Subgroup Picker */}
-        {showSubgroupPicker && (
-          <div className="border-t border-gray-100 bg-white">
-            {subgroupOptions.map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => {
-                  setSelectedSubgroup(opt.key);
-                  setShowSubgroupPicker(false);
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-              >
-                {opt.icon}
-                <span className="text-black font-medium">{opt.label}</span>
-                {selectedSubgroup === opt.key && (
                   <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
                 )}
               </button>
