@@ -93,6 +93,7 @@ const ChatPage = () => {
       await taskStore.addTask({
         title: item.title,
         type: 'personal',
+        subgroup: undefined,
         status: 'pending',
         completed: false,
         notes: item.description,

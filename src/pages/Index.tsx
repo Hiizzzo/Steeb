@@ -227,7 +227,7 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
+  const handleAddTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
     console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes, isPrimary });
     
     // Validar que el título no esté vacío
@@ -246,15 +246,16 @@ const Index = () => {
       const otherTags = (selectedTask.tags || []).filter(t => t !== 'principal');
       const nextTags = isPrimary ? [...otherTags, 'principal'] : otherTags;
       const updatedTask: Task = {
-        ...selectedTask,
-        title: title.trim(),
-        type,
-        subtasks,
-        scheduledDate,
-        scheduledTime,
-        notes: notes?.trim(),
-        tags: nextTags
-      };
+         ...selectedTask,
+         title: title.trim(),
+         type,
+         subgroup,
+         subtasks,
+         scheduledDate,
+         scheduledTime,
+         notes: notes?.trim(),
+         tags: nextTags
+       };
       
       // Usar updateTask del store en lugar de updateTasks directamente
       updateTask(selectedTask.id, updatedTask).catch(console.error);
@@ -268,16 +269,17 @@ const Index = () => {
     } else {
       // Estamos creando una nueva tarea
       const newTaskData = {
-        title: title.trim(),
-        type,
-        status: 'pending' as const,
-        completed: false,
-        subtasks,
-        scheduledDate: scheduledDate, // No establecer fecha automáticamente
-        scheduledTime,
-        notes: notes?.trim(),
-        tags: isPrimary ? ['principal'] : []
-      };
+         title: title.trim(),
+         type,
+         subgroup,
+         status: 'pending' as const,
+         completed: false,
+         subtasks,
+         scheduledDate: scheduledDate, // No establecer fecha automáticamente
+         scheduledTime,
+         notes: notes?.trim(),
+         tags: isPrimary ? ['principal'] : []
+       };
       
       console.log('🆕 Index.tsx: Creando nueva tarea con datos:', newTaskData);
       

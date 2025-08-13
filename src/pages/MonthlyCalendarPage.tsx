@@ -196,14 +196,15 @@ const MonthlyCalendarPage: React.FC = () => {
     localStorage.removeItem('stebe-selected-date');
   };
 
-  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
+  const handleCreateTask = (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
     try {
       const newTask: Task = {
         id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title,
         type,
-        status: 'pending',
-        completed: false,
+         subgroup,
+         status: 'pending',
+         completed: false,
         subtasks: subtasks || [],
         scheduledDate: scheduledDate || selectedDateForTask || undefined,
         scheduledTime,

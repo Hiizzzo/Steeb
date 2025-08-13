@@ -26,13 +26,15 @@ const ProductivityStatsPage: React.FC = () => {
     scheduledDate?: string,
     scheduledTime?: string,
     notes?: string,
-    isPrimary?: boolean
+    isPrimary?: boolean,
+    subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra'
   ) => {
     await addTask({
       title,
       type,
-      completed: false,
-      subtasks,
+       subgroup,
+       completed: false,
+       subtasks,
       scheduledDate,
       scheduledTime,
       notes,
