@@ -18,6 +18,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
   const [showCalendarMenu, setShowCalendarMenu] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const loadingTimer = useRef<NodeJS.Timeout | null>(null);
+  const hasLongPressTriggered = useRef(false);
 
   // Handler para iniciar el long press
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -25,6 +26,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     e.stopPropagation(); // Prevenir propagación del evento
     setIsLongPressed(true);
     setShowCalendar(false);
+    hasLongPressTriggered.current = false;
     
     // Prevenir selección de texto en toda la página durante el long press
     document.body.style.userSelect = 'none';
@@ -37,6 +39,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     
     // Mostrar menú de calendarios después de 800ms (más tiempo para mantener presionado)
     longPressTimer.current = setTimeout(() => {
+      hasLongPressTriggered.current = true;
       setShowCalendarMenu(true);
     }, 800);
   };
@@ -71,8 +74,8 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     document.body.style.userSelect = '';
     document.body.style.webkitUserSelect = '';
     
-    // Si no fue long press completo, abrir modal de tarea
-    if (!showCalendar && !showCalendarMenu) {
+    // Si no alcanzó el umbral de long press, abrir modal de tarea
+    if (!hasLongPressTriggered.current) {
       setShowTaskModal(true);
     }
     
@@ -110,6 +113,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     
     setIsLongPressed(false);
     setShowCalendar(false);
+    hasLongPressTriggered.current = false;
     // Solo cerrar el menú si no se ha abierto completamente
     if (!showCalendarMenu) {
       setShowCalendarMenu(false);
