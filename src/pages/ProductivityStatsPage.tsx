@@ -32,9 +32,10 @@ const ProductivityStatsPage: React.FC = () => {
     await addTask({
       title,
       type,
-       subgroup,
-       completed: false,
-       subtasks,
+      subgroup,
+      status: 'pending',
+      completed: false,
+      subtasks,
       scheduledDate,
       scheduledTime,
       notes,

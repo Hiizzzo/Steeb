@@ -29,6 +29,7 @@ interface Task {
   id: string;
   title: string;
   type: 'personal' | 'work' | 'meditation';
+  subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -36,6 +37,7 @@ interface Task {
   completedDate?: string;
   notes?: string; // Notas adicionales de la tarea
   tags?: string[];
+  updatedAt?: string;
 }
 
 const Index = () => {
@@ -254,7 +256,8 @@ const Index = () => {
          scheduledDate,
          scheduledTime,
          notes: notes?.trim(),
-         tags: nextTags
+         tags: nextTags,
+         updatedAt: new Date().toISOString()
        };
       
       // Usar updateTask del store en lugar de updateTasks directamente

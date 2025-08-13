@@ -97,7 +97,6 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         setSelectedTime(editingTask.scheduledTime);
       }
       setIsPrimary(!!editingTask.tags?.includes('principal'));
-      // @ts-expect-error legacy tasks may not have subgroup
       setSelectedSubgroup(editingTask.subgroup);
     } else {
       // Resetear campos cuando se está creando una nueva tarea

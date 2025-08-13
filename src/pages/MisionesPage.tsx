@@ -3,12 +3,14 @@ import { useTaskStore } from '@/store/useTaskStore';
 import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Star, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, Star, ArrowLeft, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { personalTasks } from '@/data/personalTasks';
 
 const MisionesPage: React.FC = () => {
-  const { tasks, updateTask, toggleTask } = useTaskStore();
+  const { tasks, updateTask, toggleTask, addTask } = useTaskStore();
   const [filterToday, setFilterToday] = useState(true);
+  const [showPersonalSuggestions, setShowPersonalSuggestions] = useState(false);
 
   useEffect(() => {
     document.title = 'Misiones principales y secundarias | STEBE';
@@ -50,6 +52,18 @@ const MisionesPage: React.FC = () => {
     const has = current.includes('principal');
     const next = has ? current.filter(x => x !== 'principal') : [...current, 'principal'];
     updateTask(id, { tags: next }).catch(console.error);
+  };
+
+  const addPersonalTask = async (taskData: typeof personalTasks[0]) => {
+    await addTask({
+      title: taskData.title,
+      type: taskData.type,
+      subgroup: taskData.subgroup,
+      priority: taskData.priority,
+      estimatedDuration: taskData.estimatedDuration,
+      status: 'pending',
+      completed: false,
+    });
   };
 
   return (
@@ -120,8 +134,46 @@ const MisionesPage: React.FC = () => {
               <CheckCircle2 className="w-5 h-5 text-gray-600" />
               <h2 id="secundarias-title" className="text-lg font-semibold">Tareas secundarias</h2>
             </div>
-            <span className="text-xs text-gray-500">{normalized.secundarias.length}</span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowPersonalSuggestions(!showPersonalSuggestions)}
+                className="text-xs"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Personal
+              </Button>
+              <span className="text-xs text-gray-500">{normalized.secundarias.length}</span>
+            </div>
           </div>
+
+          {/* Sugerencias de tareas personales */}
+          {showPersonalSuggestions && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="text-sm font-medium text-blue-900 mb-2">Tareas personales sugeridas:</h3>
+              <div className="grid gap-2">
+                {personalTasks.map((task, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-white rounded border border-blue-100">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">{task.title}</p>
+                      <p className="text-xs text-gray-500 capitalize">
+                        {task.subgroup} • {task.estimatedDuration}min • {task.priority}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => addPersonalTask(task)}
+                      className="text-xs"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Añadir
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {normalized.secundarias.length === 0 ? (
             <p className="text-sm text-gray-500">No hay tareas secundarias.</p>
