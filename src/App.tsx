@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import VersionIndicator from "./components/VersionIndicator";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
+import ImagesPage from "./pages/ImagesPage";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => {
             <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/misiones" element={<MisionesPage />} />
+            <Route path="/images" element={<ImagesPage />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

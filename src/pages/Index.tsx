@@ -340,6 +340,16 @@ const Index = () => {
     !(t.completedDate && t.completedDate.split('T')[0] === today)
   );
 
+  // Imagen superior configurable desde localStorage
+  const [topLeftImage, setTopLeftImage] = useState<string>(() => {
+    return localStorage.getItem('stebe-top-left-image') || '/lovable-uploads/te obesrvo.png';
+  });
+  useEffect(() => {
+    const handler = () => setTopLeftImage(localStorage.getItem('stebe-top-left-image') || '/lovable-uploads/te obesrvo.png');
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
+
   return (
     <div 
       className="min-h-screen pb-6 relative bg-gray-50" 
@@ -351,10 +361,11 @@ const Index = () => {
       {/* Imagen de Steve Jobs en la esquina superior izquierda */}
       <div className="absolute top-3 left-3 z-20">
         <img 
-          src="/lovable-uploads/te obesrvo.png" 
+          src={topLeftImage}
           alt="Steve Jobs" 
           className="w-20 h-20"
         />
+        <a href="/images" className="text-[10px] text-blue-600 underline block mt-1">Cambiar</a>
       </div>
       
       {/* Contenido principal */}
