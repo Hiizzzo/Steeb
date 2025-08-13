@@ -18,7 +18,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
+  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -31,7 +31,7 @@ interface TaskCreationCardProps {
   onCancel: () => void;
   onCreate: (
     title: string,
-    type: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra',
+    type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra',
     subtasks?: SubTask[],
     scheduledDate?: string,
     scheduledTime?: string,
@@ -46,7 +46,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedTag, setSelectedTag] = useState<'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra'>('personal');
+  const [selectedTag, setSelectedTag] = useState<'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra'>('productividad');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
@@ -71,7 +71,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       // Resetear campos cuando se está creando una nueva tarea
       setTitle('');
       setNotes('');
-      setSelectedTag('personal');
+      setSelectedTag('productividad');
       setSelectedDate(undefined);
       setSelectedTime('');
       setIsPrimary(false);
@@ -121,11 +121,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     }
   };
 
-  const getTagLabel = (tag: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
+  const getTagLabel = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
-      case 'personal': return 'Personal';
-      case 'work': return 'Trabajo';
-      case 'meditation': return 'Meditación';
       case 'productividad': return 'Productividad';
       case 'creatividad': return 'Creatividad';
       case 'aprendizaje': return 'Aprendizaje';
@@ -137,11 +134,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     }
   };
 
-  const getTagIcon = (tag: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
+  const getTagIcon = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
-      case 'personal': return <PersonalIcon />;
-      case 'work': return <WorkIcon />;
-      case 'meditation': return <MeditationIcon />;
       case 'productividad': return <div className="w-4 h-4 border border-black" />;
       case 'creatividad': return <div className="w-4 h-4 border-2 border-black rotate-45" />;
       case 'aprendizaje': return <div className="w-4 h-4 border border-black rounded" />;
@@ -262,7 +256,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
           >
             {getTagIcon(selectedTag)}
-            <span className="font-medium">{getTagLabel(selectedTag)}</span>
+            <span className="font-medium">Categoría</span>
           </button>
         </div>
 
@@ -298,23 +292,25 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Tag Picker */}
         {showTagPicker && (
-          <div className="border-t border-gray-100 bg-white">
-            {(['personal', 'work', 'meditation', 'productividad', 'creatividad', 'aprendizaje', 'organizacion', 'salud', 'social', 'entretenimiento', 'extra'] as const).map((tag) => (
-              <button
-                key={tag}
-                onClick={() => {
-                  setSelectedTag(tag);
-                  setShowTagPicker(false);
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-              >
-                {getTagIcon(tag)}
-                <span className="text-black font-medium">{getTagLabel(tag)}</span>
-                {selectedTag === tag && (
-                  <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
-                )}
-              </button>
-            ))}
+          <div className="border-t border-gray-100 bg-white z-50">
+            <div className="grid grid-cols-2 gap-2 p-4">
+              {(['productividad', 'creatividad', 'aprendizaje', 'organizacion', 'salud', 'social', 'entretenimiento', 'extra'] as const).map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    setSelectedTag(tag);
+                    setShowTagPicker(false);
+                  }}
+                  className="flex items-center gap-3 px-3 py-3 hover:bg-gray-50 transition-colors rounded-lg border border-gray-200"
+                >
+                  {getTagIcon(tag)}
+                  <span className="text-black font-medium text-sm">{getTagLabel(tag)}</span>
+                  {selectedTag === tag && (
+                    <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle, Trash2, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TaskType } from '@/types';
 
 interface SubTask {
   id: string;
@@ -12,7 +13,7 @@ interface SubTask {
 interface TaskCardProps {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation';
+  type: TaskType;
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -53,14 +54,24 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   const getTypeIcon = () => {
     switch (type) {
-      case 'personal':
-        return <ShoppingCart size={20} className="text-black" />;
-      case 'work':
-        return <Pencil size={20} className="text-black" />;
-      case 'meditation':
-        return <Calendar size={20} className="text-black" />;
+      case 'productividad':
+        return <div className="w-5 h-5 border border-black" />;
+      case 'creatividad':
+        return <div className="w-5 h-5 border-2 border-black rotate-45" />;
+      case 'aprendizaje':
+        return <div className="w-5 h-5 border border-black rounded" />;
+      case 'organizacion':
+        return <div className="w-5 h-5 border-black border-l-4" />;
+      case 'salud':
+        return <div className="w-5 h-5 border-black border-b-4" />;
+      case 'social':
+        return <div className="w-5 h-5 border border-black rounded-full" />;
+      case 'entretenimiento':
+        return <div className="w-5 h-5 border border-black border-dashed" />;
+      case 'extra':
+        return <div className="w-5 h-5 bg-black" />;
       default:
-        return <Pencil size={20} className="text-black" />;
+        return <div className="w-5 h-5 border border-black" />;
     }
   };
 

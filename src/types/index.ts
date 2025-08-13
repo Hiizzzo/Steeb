@@ -10,7 +10,7 @@ export interface SubTask {
   completedAt?: string;
 }
 
-export type TaskType = 'personal' | 'work' | 'meditation';
+export type TaskType = 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
 
 export type TaskSubgroup =
   | 'productividad'
