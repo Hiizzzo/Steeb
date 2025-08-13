@@ -24,24 +24,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault(); // Prevenir comportamientos por defecto
     e.stopPropagation(); // Prevenir propagación del evento
-    setIsLongPressed(true);
-    setShowCalendar(false);
+    
+    // Deshabilitamos la lógica de long-press para que un toque/click NO abra Acciones rápidas
     hasLongPressTriggered.current = false;
-    
-    // Prevenir selección de texto en toda la página durante el long press
-    document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
-    
-    // Mostrar loading después de 300ms (más tiempo para ver el loading)
-    loadingTimer.current = setTimeout(() => {
-      setShowCalendar(true);
-    }, 300);
-    
-    // Mostrar menú de calendarios después de 800ms (más tiempo para mantener presionado)
-    longPressTimer.current = setTimeout(() => {
-      hasLongPressTriggered.current = true;
-      setShowCalendarMenu(true);
-    }, 800);
   };
 
   // Handler para eventos touch (fallback para mejor compatibilidad móvil)
