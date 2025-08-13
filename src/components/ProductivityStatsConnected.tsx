@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '@/store/useTaskStore';
 import {
@@ -12,6 +12,7 @@ import {
   Bar,
   Tooltip,
 } from 'recharts';
+import { Pin } from 'lucide-react';
 
 type Period = 'day' | 'week' | 'month';
 
@@ -117,6 +118,26 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
   const todayISO = formatISODate(today);
   const [selectedISO, setSelectedISO] = useState<string>(todayISO);
 
+  // Objetivo del mes (persistido en localStorage)
+  const [monthlyGoal, setMonthlyGoal] = useState<string>('');
+  const [monthlyGoalDone, setMonthlyGoalDone] = useState<boolean>(false);
+  const goalInputRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    const storedText = localStorage.getItem('stebe-monthly-goal-text');
+    const storedDone = localStorage.getItem('stebe-monthly-goal-done');
+    if (storedText !== null) setMonthlyGoal(storedText);
+    if (storedDone !== null) setMonthlyGoalDone(storedDone === 'true');
+  }, []);
+
+  useEffect(() => {
+    const el = goalInputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const maxHeightPx = 56; // hasta ~2 líneas
+    el.style.height = Math.min(el.scrollHeight, maxHeightPx) + 'px';
+  }, [monthlyGoal]);
+
   const { mainNumber, secondaryText, weekData, monthData, dayData } = useMemo(() => {
     const getCompletedOnDate = (isoDate: string) =>
       tasks.filter(t => t.completed && t.completedDate?.split('T')[0] === isoDate).length;
@@ -211,6 +232,49 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
   return (
     <div className="max-w-md mx-auto min-h-screen bg-white text-black px-6 pt-12 pb-20">
       <h1 className="text-center text-4xl sm:text-5xl font-extrabold tracking-wider uppercase">ESTADÍSTICAS</h1>
+
+      {/* Objetivo del mes */}
+      <div className="mt-6">
+        <div className="w-full border border-black rounded-2xl p-4 bg-white">
+          <div className="flex items-start gap-3">
+            <Pin className="w-5 h-5 mt-1" />
+            <div className="flex-1 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 items-center">
+              <div className="col-span-2 text-base sm:text-lg font-semibold">Objetivo del mes</div>
+              <textarea
+                ref={goalInputRef}
+                rows={1}
+                value={monthlyGoal}
+                onChange={(e) => {
+                  setMonthlyGoal(e.target.value);
+                  localStorage.setItem('stebe-monthly-goal-text', e.target.value);
+                }}
+                onInput={(e) => {
+                  const el = e.currentTarget;
+                  el.style.height = 'auto';
+                  const maxHeightPx = 56;
+                  el.style.height = Math.min(el.scrollHeight, maxHeightPx) + 'px';
+                }}
+                placeholder="Escribe tu objetivo..."
+                className="col-start-1 bg-transparent outline-none resize-none overflow-hidden text-lg sm:text-xl font-medium text-black placeholder-gray-400 leading-snug"
+              />
+              <label className="col-start-2 row-start-2 flex items-center justify-end gap-2">
+                <span className="text-sm font-medium">{monthlyGoalDone ? 'Cumplido' : 'Pendiente'}</span>
+                <input
+                  type="checkbox"
+                  aria-label="Marcar objetivo mensual como cumplido"
+                  checked={monthlyGoalDone}
+                  onChange={(e) => {
+                    const done = e.target.checked;
+                    setMonthlyGoalDone(done);
+                    localStorage.setItem('stebe-monthly-goal-done', String(done));
+                  }}
+                  className="w-5 h-5 accent-black"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="mt-12 flex flex-col items-center justify-center select-none">
         <AnimatePresence mode="wait">
