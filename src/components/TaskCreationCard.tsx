@@ -18,7 +18,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation';
+  type: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -31,7 +31,7 @@ interface TaskCreationCardProps {
   onCancel: () => void;
   onCreate: (
     title: string,
-    type: 'personal' | 'work' | 'meditation',
+    type: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra',
     subtasks?: SubTask[],
     scheduledDate?: string,
     scheduledTime?: string,
@@ -46,7 +46,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedTag, setSelectedTag] = useState<'personal' | 'work' | 'meditation'>('personal');
+  const [selectedTag, setSelectedTag] = useState<'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra'>('personal');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
@@ -121,19 +121,35 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     }
   };
 
-  const getTagLabel = (tag: 'personal' | 'work' | 'meditation') => {
+  const getTagLabel = (tag: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
       case 'personal': return 'Personal';
       case 'work': return 'Trabajo';
       case 'meditation': return 'Meditación';
+      case 'productividad': return 'Productividad';
+      case 'creatividad': return 'Creatividad';
+      case 'aprendizaje': return 'Aprendizaje';
+      case 'organizacion': return 'Organización';
+      case 'salud': return 'Salud';
+      case 'social': return 'Social';
+      case 'entretenimiento': return 'Entretenimiento';
+      case 'extra': return 'Extra';
     }
   };
 
-  const getTagIcon = (tag: 'personal' | 'work' | 'meditation') => {
+  const getTagIcon = (tag: 'personal' | 'work' | 'meditation' | 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
       case 'personal': return <PersonalIcon />;
       case 'work': return <WorkIcon />;
       case 'meditation': return <MeditationIcon />;
+      case 'productividad': return <div className="w-4 h-4 border border-black" />;
+      case 'creatividad': return <div className="w-4 h-4 border-2 border-black rotate-45" />;
+      case 'aprendizaje': return <div className="w-4 h-4 border border-black rounded" />;
+      case 'organizacion': return <div className="w-4 h-4 border-black border-l-4" />;
+      case 'salud': return <div className="w-4 h-4 border-black border-b-4" />;
+      case 'social': return <div className="w-4 h-4 border border-black rounded-full" />;
+      case 'entretenimiento': return <div className="w-4 h-4 border border-black border-dashed" />;
+      case 'extra': return <div className="w-4 h-4 bg-black" />;
     }
   };
 
@@ -283,7 +299,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         {/* Tag Picker */}
         {showTagPicker && (
           <div className="border-t border-gray-100 bg-white">
-            {(['personal', 'work', 'meditation'] as const).map((tag) => (
+            {(['personal', 'work', 'meditation', 'productividad', 'creatividad', 'aprendizaje', 'organizacion', 'salud', 'social', 'entretenimiento', 'extra'] as const).map((tag) => (
               <button
                 key={tag}
                 onClick={() => {
