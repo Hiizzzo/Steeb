@@ -354,9 +354,11 @@ const Index = () => {
     const stored = localStorage.getItem('stebe-top-left-image');
     if (!stored) {
       fetch('/api/images/latest').then(r => r.json()).then(data => {
-        if (data?.image?.path) {
-          localStorage.setItem('stebe-top-left-image', data.image.path);
-          setTopLeftImage(data.image.path);
+        if (data?.image) {
+          // Preferir original_url sobre path
+          const imageUrl = data.image.original_url || data.image.path;
+          localStorage.setItem('stebe-top-left-image', imageUrl);
+          setTopLeftImage(imageUrl);
         }
       }).catch(() => {});
     }
