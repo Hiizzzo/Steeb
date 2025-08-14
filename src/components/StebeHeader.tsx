@@ -21,10 +21,10 @@ const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
       
       {/* Título centrado en bloque negro sin imagen */}
       <div className="w-full">
-        <div className="bg-black py-2 px-4">
+        <div className="bg-black dark:bg-[#ffffff] py-2 px-4">
           <div className="relative">
             <div className="flex items-center justify-center">
-              <h1 className="text-white text-2xl font-light tracking-wide" style={{
+              <h1 className="text-white dark:text-[#000000] text-2xl font-light tracking-wide" style={{
               fontFamily: 'system-ui, -apple-system, sans-serif'
             }}>TAREAS
             </h1>
