@@ -14,7 +14,7 @@ interface SubTask {
 interface DailyTasksConfigProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  onAddTask: (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
 }
 
 const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, onAddTask }) => {
@@ -93,7 +93,7 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
 
       onAddTask(
         task.title,
-        task.type,
+        'productividad', // Mapear a un tipo válido
         subtasks.length > 0 ? subtasks : undefined,
         new Date().toISOString().split('T')[0],
         task.scheduledTime,

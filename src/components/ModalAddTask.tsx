@@ -19,7 +19,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation';
+  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -31,7 +31,7 @@ interface Task {
 interface ModalAddTaskProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  onAddTask: (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
   editingTask?: Task;
 }
 
@@ -65,17 +65,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
       setNotes(editingTask.notes || '');
       
       // Mapear el tipo de tarea al selectedList
-      switch (editingTask.type) {
-        case 'personal':
-          setSelectedList('Tareas');
-          break;
-        case 'work':
-          setSelectedList('Trabajo');
-          break;
-        case 'meditation':
-          setSelectedList('Meditación');
-          break;
-      }
+      setSelectedList('Tareas');
 
       // Configurar fecha si existe
       if (editingTask.scheduledDate) {
@@ -149,7 +139,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
       // Añadir la tarea
       onAddTask(
         task.title,
-        task.type,
+        'productividad', // Mapear a un tipo válido
         taskSubtasks.length > 0 ? taskSubtasks : undefined,
         new Date().toISOString().split('T')[0], // Hoy
         task.scheduledTime
@@ -184,12 +174,12 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
       
       const scheduledDate = hasDate && selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
       
-      // Map list to type for backward compatibility
-      const taskType = selectedList === 'Work' ? 'work' : selectedList === 'Personal' ? 'personal' : 'work';
+      // Map list to type for new system
+      const taskType = 'productividad'; // Usar tipo por defecto
       
       onAddTask(
         title.trim(), 
-        taskType, 
+        taskType,
         validSubtasks.length > 0 ? validSubtasks : undefined, 
         scheduledDate,
         hasTime ? selectedTime : undefined,

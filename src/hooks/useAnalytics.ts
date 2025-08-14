@@ -308,9 +308,14 @@ export const useAnalytics = (tasks: Task[] = []) => {
 
     // Calculate stats by type
     const byType = {
-      personal: calculateStats(tasks.filter(task => task.type === 'personal')),
-      work: calculateStats(tasks.filter(task => task.type === 'work')),
-      meditation: calculateStats(tasks.filter(task => task.type === 'meditation')),
+      productividad: calculateStats(tasks.filter(task => task.type === 'productividad')),
+      creatividad: calculateStats(tasks.filter(task => task.type === 'creatividad')),
+      aprendizaje: calculateStats(tasks.filter(task => task.type === 'aprendizaje')),
+      organizacion: calculateStats(tasks.filter(task => task.type === 'organizacion')),
+      salud: calculateStats(tasks.filter(task => task.type === 'salud')),
+      social: calculateStats(tasks.filter(task => task.type === 'social')),
+      entretenimiento: calculateStats(tasks.filter(task => task.type === 'entretenimiento')),
+      extra: calculateStats(tasks.filter(task => task.type === 'extra')),
     };
 
     // Calculate stats by priority

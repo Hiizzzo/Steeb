@@ -13,7 +13,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation';
+  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -358,13 +358,8 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                         </h3>
                         
                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                          <div className={`px-2 py-1 rounded-full text-xs ${
-                            task.type === 'personal' ? 'bg-blue-100 text-blue-700' :
-                            task.type === 'work' ? 'bg-purple-100 text-purple-700' :
-                            'bg-green-100 text-green-700'
-                          }`}>
-                            {task.type === 'personal' ? 'Personal' : 
-                             task.type === 'work' ? 'Trabajo' : 'Meditación'}
+                          <div className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                            {task.type}
                           </div>
                           
                           {task.scheduledTime && (

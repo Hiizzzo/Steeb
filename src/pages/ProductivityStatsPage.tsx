@@ -21,7 +21,7 @@ const ProductivityStatsPage: React.FC = () => {
 
   const handleAddTask = async (
     title: string,
-    type: 'personal' | 'work' | 'meditation',
+    type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra',
     subtasks?: { id: string; title: string; completed: boolean }[],
     scheduledDate?: string,
     scheduledTime?: string,

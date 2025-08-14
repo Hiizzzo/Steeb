@@ -12,7 +12,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation';
+  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -413,10 +413,9 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
                     <div className="flex-1">
                       <h4 className="font-medium text-white">{task.title}</h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-700 text-gray-200 border border-gray-600">
-                          {task.type === 'work' ? 'Trabajo' : 
-                           task.type === 'personal' ? 'Personal' : 'Meditación'}
-                        </span>
+                         <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-700 text-gray-200 border border-gray-600">
+                           {task.type}
+                         </span>
                         {task.subtasks && task.subtasks.length > 0 && (
                           <span className="text-xs text-gray-400">
                             {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} subtareas

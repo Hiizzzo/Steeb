@@ -646,7 +646,7 @@ export const useTaskSelectors = () => {
   
   return {
     // Filter selectors
-    getTasksByType: (type: 'personal' | 'work' | 'meditation') =>
+    getTasksByType: (type: import('@/types').TaskType) =>
       store.tasks.filter(task => task.type === type),
     
     getTasksByStatus: (status: 'pending' | 'in_progress' | 'completed' | 'cancelled') =>
