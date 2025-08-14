@@ -369,12 +369,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div 
-      className="min-h-screen pb-6 relative bg-steve-gray-light dark:bg-steve-gray-dark" 
-      style={{ 
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}
-    >
+          <div className="min-h-screen pb-6 relative bg-steve-gray-light dark:bg-steve-gray-dark font-varela">
       
       {/* Imagen de Steve Jobs en la esquina superior izquierda */}
       <div className="absolute top-3 left-3 z-20">
@@ -454,7 +449,7 @@ const Index = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
                     <CheckCircle size={16} className="text-gray-700" />
-                    <h3 className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                    <h3 className="text-sm font-semibold text-gray-700 font-varela">
                       Tareas completadas
                     </h3>
                     <span className="text-xs text-gray-500">({completedToday.length})</span>
