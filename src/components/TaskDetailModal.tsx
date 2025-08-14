@@ -90,7 +90,10 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {task.title}
               </h2>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black border border-gray-300`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black border border-gray-300 flex items-center`}>
+                  {task.type === 'extra' && (
+                    <img src="/lovable-uploads/extra-icon.svg" alt="Extra" className="w-4 h-4 mr-1" />
+                  )}
                   {getTypeLabel(task.type)}
                 </span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
