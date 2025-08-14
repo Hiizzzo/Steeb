@@ -96,6 +96,41 @@ app.get('/api/images', (req, res) => {
   }
 });
 
+// Endpoint para obtener la última imagen subida (por mtime)
+app.get('/api/images/latest', (req, res) => {
+  try {
+    const uploadDir = path.join(__dirname, 'public', 'lovable-uploads');
+
+    if (!fs.existsSync(uploadDir)) {
+      return res.json({ image: null });
+    }
+
+    const files = fs.readdirSync(uploadDir)
+      .filter(file => ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(path.extname(file).toLowerCase()))
+      .map(file => {
+        const stats = fs.statSync(path.join(uploadDir, file));
+        return { file, mtime: stats.mtimeMs, size: stats.size };
+      })
+      .sort((a, b) => b.mtime - a.mtime);
+
+    if (files.length === 0) {
+      return res.json({ image: null });
+    }
+
+    const latest = files[0];
+    return res.json({
+      image: {
+        filename: latest.file,
+        path: `/lovable-uploads/${latest.file}`,
+        size: latest.size
+      }
+    });
+  } catch (error) {
+    console.error('Error obtaining latest image:', error);
+    res.status(500).json({ error: 'Error al obtener la última imagen' });
+  }
+});
+
 // Endpoint para eliminar imagen
 app.delete('/api/images/:filename', (req, res) => {
   try {

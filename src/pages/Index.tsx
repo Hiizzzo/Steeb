@@ -349,6 +349,18 @@ const Index = () => {
     window.addEventListener('storage', handler);
     return () => window.removeEventListener('storage', handler);
   }, []);
+  useEffect(() => {
+    // Si no hay imagen configurada, intentar usar la última subida desde el servidor
+    const stored = localStorage.getItem('stebe-top-left-image');
+    if (!stored) {
+      fetch('/api/images/latest').then(r => r.json()).then(data => {
+        if (data?.image?.path) {
+          localStorage.setItem('stebe-top-left-image', data.image.path);
+          setTopLeftImage(data.image.path);
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   return (
     <div 
