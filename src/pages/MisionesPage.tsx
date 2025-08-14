@@ -162,6 +162,9 @@ const MisionesPage: React.FC = () => {
                                         {task.subgroup === 'creatividad' ? (
                   <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-6 h-6" />
                         ) : null}
+                                        {task.subgroup === 'entretenimiento' ? (
+                  <img src="/lovable-uploads/entretenimiento-icon.svg" alt="Entretenimiento" className="w-6 h-6" />
+                        ) : null}
                         <span>{task.subgroup} • {task.estimatedDuration}min • {task.priority}</span>
                       </p>
                     </div>
