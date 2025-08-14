@@ -71,8 +71,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       case 'extra':
         return (
           <div className="flex items-center gap-1">
-            <img src="/lovable-uploads/new-lightbulb-icon.svg" alt="Lightbulb" className="w-5 h-5" />
-            <img src="/lovable-uploads/extra-icon.svg" alt="Extra" className="w-6 h-6" />
+            <img src="/lovable-uploads/new-lightbulb-icon.svg" alt="Extra" className="w-5 h-5" />
           </div>
         );
       default:
