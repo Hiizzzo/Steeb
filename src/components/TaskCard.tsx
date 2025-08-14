@@ -69,7 +69,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       case 'entretenimiento':
         return <div className="w-5 h-5 border border-black border-dashed" />;
       case 'extra':
-        return <div className="w-5 h-5 bg-black" />;
+        return <img src="/lovable-uploads/extra-icon.svg" alt="Extra" className="w-6 h-6" />;
       default:
         return <div className="w-5 h-5 border border-black" />;
     }
