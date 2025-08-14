@@ -340,6 +340,10 @@ const Index = () => {
     !(t.completedDate && t.completedDate.split('T')[0] === today)
   );
 
+  // Pendientes: separar exactamente hoy (o sin fecha) vs. vencidas
+  const pendingTodayExact = pendingTodaysTasks.filter(t => !t.scheduledDate || t.scheduledDate === today);
+  const pendingOverdue = pendingTodaysTasks.filter(t => t.scheduledDate && t.scheduledDate < today);
+
   // Imagen superior configurable desde localStorage
   const [topLeftImage, setTopLeftImage] = useState<string>(() => {
     return localStorage.getItem('stebe-top-left-image') || '/lovable-uploads/te obesrvo.png';
@@ -392,8 +396,8 @@ const Index = () => {
           {/* Lista de Tareas */}
           <div className="pt-1 max-w-sm mx-auto px-3">
             {pendingTodaysTasks.length > 0 ? (
-              pendingTodaysTasks
-                .map(task => (
+              <>
+                {pendingTodayExact.map(task => (
                   <TaskCard
                     key={task.id}
                     id={task.id}
@@ -409,7 +413,30 @@ const Index = () => {
                     onDelete={handleDeleteTask}
                     onShowDetail={handleShowDetail}
                   />
-                ))
+                ))}
+
+                {pendingTodayExact.length > 0 && pendingOverdue.length > 0 && (
+                  <div className="my-2 border-t dark:border-white/70 border-transparent" />
+                )}
+
+                {pendingOverdue.map(task => (
+                  <TaskCard
+                    key={task.id}
+                    id={task.id}
+                    title={task.title}
+                    type={task.type}
+                    completed={task.completed}
+                    subtasks={task.subtasks}
+                    scheduledDate={task.scheduledDate}
+                    scheduledTime={task.scheduledTime}
+                    notes={task.notes}
+                    onToggle={handleToggleTask}
+                    onToggleSubtask={handleToggleSubtask}
+                    onDelete={handleDeleteTask}
+                    onShowDetail={handleShowDetail}
+                  />
+                ))}
+              </>
             ) : (
               <div className="text-center py-12 px-4">
                 <p className="text-lg text-gray-600 font-medium">
