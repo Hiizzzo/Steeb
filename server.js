@@ -6,6 +6,7 @@ import cors from 'cors';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -212,6 +213,93 @@ app.post('/api/upload-image-base64', async (req, res) => {
   } catch (error) {
     console.error('Error uploading image from base64:', error);
     return res.status(500).json({ error: 'Error al importar imagen por base64' });
+  }
+});
+
+// Helper: subir buffer a GitHub (crea o actualiza si existe)
+async function uploadBufferToGitHub(fileBuffer, filename, {
+  owner = process.env.GITHUB_OWNER || 'Hiizzzo',
+  repo = process.env.GITHUB_REPO || 'ste-be-assets',
+  branch = process.env.GITHUB_BRANCH || 'main',
+  token = process.env.GITHUB_TOKEN
+} = {}) {
+  if (!token) {
+    throw new Error('Falta GITHUB_TOKEN en variables de entorno');
+  }
+
+  const pathInRepo = `uploads/${filename}`;
+  const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(pathInRepo)}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
+
+  // Verificar si el archivo existe para obtener su SHA
+  let existingSha = undefined;
+  const getRes = await fetch(`${apiBase}?ref=${encodeURIComponent(branch)}`, { headers });
+  if (getRes.status === 200) {
+    const json = await getRes.json();
+    existingSha = json.sha;
+  } else if (getRes.status !== 404) {
+    throw new Error(`GitHub GET fallo: ${getRes.status} ${await getRes.text()}`);
+  }
+
+  const contentBase64 = fileBuffer.toString('base64');
+  const body = {
+    message: existingSha ? `update ${filename} from server` : `upload ${filename} from server`,
+    content: contentBase64,
+    branch,
+    sha: existingSha
+  };
+
+  const putRes = await fetch(apiBase, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(body)
+  });
+
+  if (!putRes.ok) {
+    throw new Error(`GitHub PUT fallo: ${putRes.status} ${await putRes.text()}`);
+  }
+
+  const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${encodeURIComponent(pathInRepo)}`;
+  return { rawUrl, pathInRepo };
+}
+
+// Endpoint: subir una imagen recibida y enviarla a GitHub
+app.post('/api/github/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se proporcionó ningún archivo' });
+    }
+
+    // Nombre final en el repo: se puede forzar con body.filename, o usar originalname
+    const requestedName = (req.body && req.body.filename) ? String(req.body.filename) : req.file.originalname;
+    const safeName = requestedName
+      .replace(/[^a-zA-Z0-9._-]/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 128) || 'image.png';
+
+    // Leer el archivo subido por multer (disco)
+    const localPath = req.file.path;
+    const buffer = fs.readFileSync(localPath);
+
+    // Subir a GitHub
+    const { rawUrl, pathInRepo } = await uploadBufferToGitHub(buffer, safeName);
+
+    // Opcional: eliminar copia local
+    try { fs.unlinkSync(localPath); } catch (_) {}
+
+    return res.json({
+      success: true,
+      github_raw_url: rawUrl,
+      github_path: pathInRepo,
+      message: 'Imagen subida a GitHub correctamente'
+    });
+  } catch (error) {
+    console.error('Error uploading image to GitHub:', error);
+    return res.status(500).json({ error: error.message || 'Error al subir imagen a GitHub' });
   }
 });
 
