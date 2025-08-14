@@ -67,7 +67,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       case 'social':
         return <div className="w-5 h-5 border border-black rounded-full" />;
       case 'entretenimiento':
-        return <div className="w-5 h-5 border border-black border-dashed" />;
+        return <img src="/lovable-uploads/entretenimiento-icon.svg" alt="Entretenimiento" className="w-6 h-6" />;
       case 'extra':
         return (
           <div className="flex items-center gap-1">
