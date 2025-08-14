@@ -81,6 +81,140 @@ app.post('/api/upload-image', upload.single('image'), (req, res) => {
   }
 });
 
+// Añadir: subir imagen por URL (sin modificaciones)
+app.post('/api/upload-image-url', async (req, res) => {
+  try {
+    const { imageUrl } = req.body || {};
+    if (!imageUrl || typeof imageUrl !== 'string') {
+      return res.status(400).json({ error: 'Falta imageUrl' });
+    }
+
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      return res.status(400).json({ error: 'No se pudo descargar la imagen' });
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.startsWith('image/')) {
+      return res.status(400).json({ error: 'La URL no apunta a una imagen' });
+    }
+
+    // Determinar extensión por content-type o por la URL
+    const mimeToExt = (mime) => {
+      const map = {
+        'image/jpeg': '.jpg',
+        'image/jpg': '.jpg',
+        'image/png': '.png',
+        'image/gif': '.gif',
+        'image/webp': '.webp',
+        'image/svg+xml': '.svg'
+      };
+      return map[mime] || '';
+    };
+
+    let ext = mimeToExt(contentType);
+    if (!ext) {
+      const urlExt = path.extname(new URL(imageUrl).pathname).toLowerCase();
+      if (['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(urlExt)) {
+        ext = urlExt;
+      } else {
+        ext = '.jpg';
+      }
+    }
+
+    const uploadDir = path.join(__dirname, 'public', 'lovable-uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const filename = `url-${uniqueSuffix}${ext}`;
+    const filePath = path.join(uploadDir, filename);
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    fs.writeFileSync(filePath, buffer);
+
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    const originalUrl = `${baseUrl}/lovable-uploads/${filename}`;
+
+    return res.json({
+      success: true,
+      filename,
+      path: `/lovable-uploads/${filename}`,
+      original_url: originalUrl,
+      thumbnail_url: null,
+      analysis: null,
+      message: 'Imagen importada por URL sin modificaciones'
+    });
+  } catch (error) {
+    console.error('Error uploading image by URL:', error);
+    return res.status(500).json({ error: 'Error al importar imagen por URL' });
+  }
+});
+
+// Añadir: subir imagen por data URL base64 (sin modificaciones)
+app.post('/api/upload-image-base64', async (req, res) => {
+  try {
+    const { dataUrl, suggestedName } = req.body || {};
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
+      return res.status(400).json({ error: 'Falta dataUrl válido (data:image/*;base64,...)' });
+    }
+
+    // data:[mime];base64,[data]
+    const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
+    if (!match) {
+      return res.status(400).json({ error: 'Formato de dataUrl inválido' });
+    }
+
+    const mime = match[1];
+    const base64Data = match[2];
+
+    const mimeToExt = (mime) => {
+      const map = {
+        'image/jpeg': '.jpg',
+        'image/jpg': '.jpg',
+        'image/png': '.png',
+        'image/gif': '.gif',
+        'image/webp': '.webp',
+        'image/svg+xml': '.svg'
+      };
+      return map[mime] || '.jpg';
+    };
+
+    const ext = mimeToExt(mime);
+
+    const uploadDir = path.join(__dirname, 'public', 'lovable-uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const safeName = (suggestedName || 'image').replace(/[^a-zA-Z0-9-_]/g, '').slice(0, 32) || 'image';
+    const filename = `${safeName}-${uniqueSuffix}${ext}`;
+    const filePath = path.join(uploadDir, filename);
+
+    const buffer = Buffer.from(base64Data, 'base64');
+    fs.writeFileSync(filePath, buffer);
+
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    const originalUrl = `${baseUrl}/lovable-uploads/${filename}`;
+
+    return res.json({
+      success: true,
+      filename,
+      path: `/lovable-uploads/${filename}`,
+      original_url: originalUrl,
+      thumbnail_url: null,
+      analysis: null,
+      message: 'Imagen importada por base64 sin modificaciones'
+    });
+  } catch (error) {
+    console.error('Error uploading image from base64:', error);
+    return res.status(500).json({ error: 'Error al importar imagen por base64' });
+  }
+});
+
 // Endpoint para generar thumbnail (solo si se solicita explícitamente)
 app.post('/api/generate-thumbnail', async (req, res) => {
   try {

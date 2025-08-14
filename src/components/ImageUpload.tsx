@@ -17,6 +17,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
   const [uploadedImagePath, setUploadedImagePath] = useState<string>('');
   const [uploadedOriginalUrl, setUploadedOriginalUrl] = useState<string>('');
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [dataUrl, setDataUrl] = useState<string>('');
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -40,43 +42,58 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
   }, [selectedFile]);
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile && !imageUrl && !dataUrl) return;
 
     setUploading(true);
     setUploadStatus('idle');
 
     try {
-      // Crear FormData para enviar el archivo
-      const formData = new FormData();
-      formData.append('image', selectedFile);
+      let result: any = null;
 
-      // Enviar al servidor de desarrollo de Vite
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+        const response = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!response.ok) throw new Error('Error al subir la imagen');
+        result = await response.json();
+      } else if (imageUrl) {
+        const response = await fetch('/api/upload-image-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl }),
+        });
+        if (!response.ok) throw new Error('Error al importar la imagen por URL');
+        result = await response.json();
+      } else if (dataUrl) {
+        const response = await fetch('/api/upload-image-base64', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dataUrl }),
+        });
+        if (!response.ok) throw new Error('Error al importar la imagen por base64');
+        result = await response.json();
+      }
 
-      if (response.ok) {
-        const result = await response.json();
-        const imagePath = result.path || `/lovable-uploads/${result.filename}`;
-        const originalUrl = result.original_url;
-        
-        setUploadedImagePath(imagePath);
-        setUploadedOriginalUrl(originalUrl);
-        setUploadStatus('success');
-        
-        // Notificar al componente padre con la URL original
-        if (onImageUploaded) {
-          onImageUploaded(imagePath, originalUrl);
-        }
-        
-        // Limpiar el formulario
-        setSelectedFile(null);
-        if (document.getElementById('file-input') as HTMLInputElement) {
-          (document.getElementById('file-input') as HTMLInputElement).value = '';
-        }
-      } else {
-        throw new Error('Error al subir la imagen');
+      const imagePath = result.path || `/lovable-uploads/${result.filename}`;
+      const originalUrl = result.original_url;
+
+      setUploadedImagePath(imagePath);
+      setUploadedOriginalUrl(originalUrl);
+      setUploadStatus('success');
+
+      if (onImageUploaded) {
+        onImageUploaded(imagePath, originalUrl);
+      }
+
+      // Limpiar inputs
+      setSelectedFile(null);
+      setImageUrl('');
+      setDataUrl('');
+      if (document.getElementById('file-input') as HTMLInputElement) {
+        (document.getElementById('file-input') as HTMLInputElement).value = '';
       }
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -119,12 +136,36 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
           </div>
         )}
 
+        <div className="space-y-2">
+          <Label htmlFor="url-input">O pegar URL de imagen</Label>
+          <Input
+            id="url-input"
+            type="url"
+            placeholder="https://... .png/.jpg/.webp"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            disabled={uploading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="dataurl-input">O pegar Data URL (base64)</Label>
+          <textarea
+            id="dataurl-input"
+            placeholder="data:image/png;base64,iVBORw0KGgo..."
+            value={dataUrl}
+            onChange={(e) => setDataUrl(e.target.value)}
+            className="w-full h-24 border rounded p-2 text-sm"
+            disabled={uploading}
+          />
+        </div>
+
         <Button 
           onClick={handleUpload} 
-          disabled={!selectedFile || uploading}
+          disabled={!(selectedFile || imageUrl || dataUrl) || uploading}
           className="w-full"
         >
-          {uploading ? 'Subiendo...' : 'Subir Imagen'}
+          {uploading ? 'Subiendo...' : 'Subir / Importar Imagen'}
         </Button>
 
         {uploadStatus === 'success' && (
