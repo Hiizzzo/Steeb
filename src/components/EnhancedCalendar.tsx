@@ -434,8 +434,8 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
             disabled={isAnimating}
             className={`p-3 rounded-xl transition-all duration-300 ${
               isDark 
-                ? 'hover:bg-gray-800 text-gray-200 hover:shadow-lg hover:shadow-blue-500/20' 
-                : 'hover:bg-gray-100 text-gray-700 hover:shadow-lg hover:shadow-blue-500/20'
+                ? 'hover:bg-gray-800 text-gray-200 hover:shadow-lg hover:shadow-gray-500/20' 
+                : 'hover:bg-gray-100 text-gray-700 hover:shadow-lg hover:shadow-gray-500/20'
             }`}
           >
             <ChevronLeft size={24} />
@@ -450,7 +450,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
           <motion.h2 
             className={`text-3xl font-bold bg-gradient-to-r ${
               isDark 
-                ? 'from-blue-400 to-purple-400 text-transparent bg-clip-text' 
+                ? 'from-gray-300 to-gray-500 text-transparent bg-clip-text' 
                 : 'from-blue-600 to-purple-600 text-transparent bg-clip-text'
             }`}
             layout
@@ -475,8 +475,8 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
             disabled={isAnimating}
             className={`p-3 rounded-xl transition-all duration-300 ${
               isDark 
-                ? 'hover:bg-gray-800 text-gray-200 hover:shadow-lg hover:shadow-blue-500/20' 
-                : 'hover:bg-gray-100 text-gray-700 hover:shadow-lg hover:shadow-blue-500/20'
+                ? 'hover:bg-gray-800 text-gray-200 hover:shadow-lg hover:shadow-gray-500/20' 
+                : 'hover:bg-gray-100 text-gray-700 hover:shadow-lg hover:shadow-gray-500/20'
             }`}
           >
             <ChevronRight size={24} />
@@ -496,7 +496,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 viewMode === mode
                   ? (isDark 
-                    ? 'bg-blue-600 text-white shadow-lg' 
+                    ? 'bg-gray-600 text-white shadow-lg' 
                     : 'bg-blue-500 text-white shadow-lg')
                   : (isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
               }`}
@@ -662,7 +662,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
                 className={`p-4 rounded-2xl border-2 transition-all duration-300 ${
                   isToday
                     ? (isDark 
-                      ? 'bg-blue-900/50 border-blue-500 shadow-lg shadow-blue-500/20' 
+                      ? 'bg-gray-800/60 border-gray-500 shadow-lg shadow-gray-500/20' 
                       : 'bg-blue-50 border-blue-500 shadow-lg shadow-blue-500/20')
                     : (isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200')
                 }`}
@@ -674,7 +674,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
                     {dayNames[date.getDay()]}
                   </p>
                   <p className={`text-2xl font-bold ${
-                    isToday ? 'text-blue-500' : (isDark ? 'text-white' : 'text-gray-900')
+                    isToday ? 'text-gray-200' : (isDark ? 'text-white' : 'text-gray-900')
                   }`}>
                     {date.getDate()}
                   </p>
@@ -737,7 +737,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
       {/* Fondo con gradiente sutil */}
       <div className={`absolute inset-0 ${
         isDark 
-          ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-blue-900/20' 
+          ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/20' 
           : 'bg-gradient-to-br from-gray-50 via-white to-blue-50/30'
       }`} />
       
@@ -811,12 +811,12 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         }
         ${calendarDay.isToday 
           ? (isDark 
-            ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-xl shadow-blue-500/30' 
+            ? 'bg-gray-700 text-white shadow-xl' 
             : 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-xl shadow-blue-500/30'
             ) 
           : calendarDay.isSelected
             ? (isDark 
-              ? 'bg-gradient-to-br from-blue-700 to-blue-600 text-white shadow-lg shadow-blue-500/20' 
+              ? 'bg-gray-600 text-white shadow-lg' 
               : 'bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20')
             : (isDark 
               ? 'bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600' 

@@ -563,6 +563,7 @@ const MonthlyCalendarPage: React.FC = () => {
                 return `${completed} ${completed === 1 ? 'tarea hecha' : 'tareas hechas'}${total > 0 ? ` · ${total} en total` : ''}`;
               })()}
             </p>
+            <div className="border-t mt-3 dark:border-white/10 border-black/10" />
           </div>
         </Card>
 
