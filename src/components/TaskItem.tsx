@@ -303,11 +303,11 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     {task.actualTime && (
                       <div className="flex items-center">
                         {task.actualTime > task.targetTime ? (
-                          <>
-                            <Zap size={12} className="mr-1 text-orange-500" />
-                            <span className="text-orange-600 inline-flex items-center">
+                                                    <>
+                             <Zap size={12} className="mr-1 text-orange-500" />
+                             <span className="text-orange-600 inline-flex items-center">
                               +{task.actualTime - task.targetTime} min
-                              <img src="/lovable-uploads/new-lightbulb-icon.svg" alt="Extra" className="w-3 h-3 mx-1" />
+                              <img src="/lovable-uploads/lightbulb-icon.svg" alt="Extra" className="w-3 h-3 mx-1" />
                               extra
                             </span>
                           </>
