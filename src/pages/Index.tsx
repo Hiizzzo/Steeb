@@ -366,7 +366,7 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen pb-6 relative bg-gray-50" 
+      className="min-h-screen pb-6 relative bg-steve-gray-light dark:bg-steve-gray-dark" 
       style={{ 
         fontFamily: 'system-ui, -apple-system, sans-serif'
       }}
