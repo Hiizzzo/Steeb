@@ -9,8 +9,9 @@ const LoadingScreen: React.FC = () => {
           className="text-6xl font-bold text-black animate-pulse"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          Steve
+          STEBE
         </h1>
+        <div className="mt-2 text-sm text-black/70">v0.12</div>
         
         {/* Puntos animados debajo del texto */}
         <div className="flex justify-center items-center space-x-1 mt-6">
