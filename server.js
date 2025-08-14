@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import cors from 'cors';
+import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -14,6 +15,7 @@ const PORT = 3001;
 
 // Configurar CORS
 app.use(cors());
+app.use(express.json()); // Para parsear JSON en el body de las peticiones
 
 // Configurar multer para uploads
 const storage = multer.diskStorage({
@@ -58,17 +60,122 @@ app.post('/api/upload-image', upload.single('image'), (req, res) => {
     }
 
     const filename = req.file.filename;
-    const imagePath = `/lovable-uploads/${filename}`;
-
-    res.json({
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    const originalUrl = `${baseUrl}/lovable-uploads/${filename}`;
+    
+    // Preparar respuesta con estructura mejorada
+    const response = {
       success: true,
       filename: filename,
-      path: imagePath,
-      message: 'Imagen subida exitosamente'
-    });
+      path: `/lovable-uploads/${filename}`,
+      original_url: originalUrl, // URL directa de la imagen original
+      thumbnail_url: null, // Por ahora null, se implementará si el usuario lo pide
+      analysis: null, // Por ahora null, se implementará si el usuario lo pide
+      message: 'Imagen subida exitosamente sin modificaciones'
+    };
+
+    res.json(response);
   } catch (error) {
     console.error('Error uploading image:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para generar thumbnail (solo si se solicita explícitamente)
+app.post('/api/generate-thumbnail', async (req, res) => {
+  try {
+    const { filename, width = 200, height = 200 } = req.body;
+    
+    if (!filename) {
+      return res.status(400).json({ error: 'No se proporcionó el nombre del archivo' });
+    }
+    
+    const originalPath = path.join(__dirname, 'public', 'lovable-uploads', filename);
+    
+    // Verificar que el archivo existe
+    if (!fs.existsSync(originalPath)) {
+      return res.status(404).json({ error: 'Archivo no encontrado' });
+    }
+    
+    // Generar nombre para el thumbnail
+    const ext = path.extname(filename);
+    const basename = path.basename(filename, ext);
+    const thumbnailFilename = `${basename}-thumb-${width}x${height}${ext}`;
+    const thumbnailPath = path.join(__dirname, 'public', 'lovable-uploads', 'thumbnails', thumbnailFilename);
+    
+    // Crear directorio de thumbnails si no existe
+    const thumbDir = path.join(__dirname, 'public', 'lovable-uploads', 'thumbnails');
+    if (!fs.existsSync(thumbDir)) {
+      fs.mkdirSync(thumbDir, { recursive: true });
+    }
+    
+    // Generar thumbnail
+    await sharp(originalPath)
+      .resize(width, height, {
+        fit: 'cover',
+        position: 'center'
+      })
+      .toFile(thumbnailPath);
+    
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    const thumbnailUrl = `${baseUrl}/lovable-uploads/thumbnails/${thumbnailFilename}`;
+    
+    res.json({
+      success: true,
+      thumbnail_url: thumbnailUrl,
+      message: 'Thumbnail generado exitosamente'
+    });
+  } catch (error) {
+    console.error('Error generating thumbnail:', error);
+    res.status(500).json({ error: 'Error al generar thumbnail' });
+  }
+});
+
+// Endpoint para analizar imagen (solo si se solicita explícitamente)
+app.post('/api/analyze-image', async (req, res) => {
+  try {
+    const { filename } = req.body;
+    
+    if (!filename) {
+      return res.status(400).json({ error: 'No se proporcionó el nombre del archivo' });
+    }
+    
+    const imagePath = path.join(__dirname, 'public', 'lovable-uploads', filename);
+    
+    // Verificar que el archivo existe
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).json({ error: 'Archivo no encontrado' });
+    }
+    
+    // Obtener metadata de la imagen sin modificarla
+    const metadata = await sharp(imagePath).metadata();
+    
+    // Análisis básico de la imagen
+    const analysis = {
+      format: metadata.format,
+      width: metadata.width,
+      height: metadata.height,
+      size: metadata.size,
+      density: metadata.density,
+      hasAlpha: metadata.hasAlpha,
+      channels: metadata.channels,
+      space: metadata.space,
+      isProgressive: metadata.isProgressive,
+      // Se pueden agregar más análisis aquí si el usuario lo solicita:
+      // - Detección de texto (OCR) con tesseract.js
+      // - Detección de objetos/etiquetas con API de visión
+      // - Análisis de colores dominantes
+      // - etc.
+    };
+    
+    res.json({
+      success: true,
+      analysis: analysis,
+      message: 'Imagen analizada exitosamente sin modificaciones'
+    });
+  } catch (error) {
+    console.error('Error analyzing image:', error);
+    res.status(500).json({ error: 'Error al analizar imagen' });
   }
 });
 
@@ -85,12 +192,15 @@ app.get('/api/images', (req, res) => {
     }
 
     const files = fs.readdirSync(uploadDir);
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    
     const images = files.filter(file => {
       const ext = path.extname(file).toLowerCase();
       return ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext);
     }).map(file => ({
       filename: file,
       path: `/lovable-uploads/${file}`,
+      original_url: `${baseUrl}/lovable-uploads/${file}`,
       size: fs.statSync(path.join(uploadDir, file)).size
     }));
 
@@ -123,10 +233,13 @@ app.get('/api/images/latest', (req, res) => {
     }
 
     const latest = files[0];
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    
     return res.json({
       image: {
         filename: latest.file,
         path: `/lovable-uploads/${latest.file}`,
+        original_url: `${baseUrl}/lovable-uploads/${latest.file}`,
         size: latest.size
       }
     });

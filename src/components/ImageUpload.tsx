@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Image, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface ImageUploadProps {
-  onImageUploaded?: (imagePath: string) => void;
+  onImageUploaded?: (imagePath: string, originalUrl?: string) => void;
   className?: string;
 }
 
@@ -15,6 +15,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadedImagePath, setUploadedImagePath] = useState<string>('');
+  const [uploadedOriginalUrl, setUploadedOriginalUrl] = useState<string>('');
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,13 +58,16 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
 
       if (response.ok) {
         const result = await response.json();
-        const imagePath = `/lovable-uploads/${result.filename}`;
+        const imagePath = result.path || `/lovable-uploads/${result.filename}`;
+        const originalUrl = result.original_url;
+        
         setUploadedImagePath(imagePath);
+        setUploadedOriginalUrl(originalUrl);
         setUploadStatus('success');
         
-        // Notificar al componente padre
+        // Notificar al componente padre con la URL original
         if (onImageUploaded) {
-          onImageUploaded(imagePath);
+          onImageUploaded(imagePath, originalUrl);
         }
         
         // Limpiar el formulario
@@ -126,7 +130,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
         {uploadStatus === 'success' && (
           <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
             <CheckCircle className="w-4 h-4" />
-            <span className="text-sm">¡Imagen subida exitosamente!</span>
+            <span className="text-sm">¡Imagen subida exitosamente sin modificaciones!</span>
           </div>
         )}
 
@@ -138,11 +142,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
         )}
 
         {uploadedImagePath && (
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700 mb-2">Ruta de la imagen:</p>
-            <code className="text-xs bg-blue-100 p-2 rounded block break-all">
-              {uploadedImagePath}
-            </code>
+          <div className="p-3 bg-blue-50 rounded-lg space-y-2">
+            <div>
+              <p className="text-sm text-blue-700 mb-1">Ruta de la imagen:</p>
+              <code className="text-xs bg-blue-100 p-2 rounded block break-all">
+                {uploadedImagePath}
+              </code>
+            </div>
+            {uploadedOriginalUrl && (
+              <div>
+                <p className="text-sm text-blue-700 mb-1">URL original:</p>
+                <code className="text-xs bg-blue-100 p-2 rounded block break-all">
+                  {uploadedOriginalUrl}
+                </code>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

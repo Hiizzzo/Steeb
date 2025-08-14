@@ -30,11 +30,13 @@ const ImagesPage: React.FC = () => {
 		fetchImages();
 	}, []);
 
-	const handleUploaded = (imagePath?: string) => {
+	const handleUploaded = (imagePath?: string, originalUrl?: string) => {
 		fetchImages();
 		if (imagePath) {
-			localStorage.setItem('stebe-top-left-image', imagePath);
-			window.dispatchEvent(new StorageEvent('storage', { key: 'stebe-top-left-image', newValue: imagePath } as any));
+			// Preferir original_url sobre imagePath
+			const imageToStore = originalUrl || imagePath;
+			localStorage.setItem('stebe-top-left-image', imageToStore);
+			window.dispatchEvent(new StorageEvent('storage', { key: 'stebe-top-left-image', newValue: imageToStore } as any));
 			toast({ title: 'Imagen subida', description: 'Se estableció como imagen superior automáticamente.' });
 		} else {
 			toast({ title: 'Imagen subida', description: 'La imagen fue subida correctamente.' });
