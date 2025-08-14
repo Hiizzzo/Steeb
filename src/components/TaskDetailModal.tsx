@@ -50,21 +50,25 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     });
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeLabel = (type: Task['type'] | 'personal' | 'work' | 'meditation') => {
     switch (type) {
-      case 'personal':
-        return 'bg-blue-100 text-blue-800';
-      case 'work':
-        return 'bg-green-100 text-green-800';
-      case 'meditation':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
+      case 'productividad':
+        return 'Productividad';
+      case 'creatividad':
+        return 'Creatividad';
+      case 'aprendizaje':
+        return 'Aprendizaje';
+      case 'organizacion':
+        return 'Organización';
+      case 'salud':
+        return 'Salud';
+      case 'social':
+        return 'Social';
+      case 'entretenimiento':
+        return 'Entretenimiento';
+      case 'extra':
+        return 'Extra';
+      // Compatibilidad con tipos antiguos
       case 'personal':
         return 'Personal';
       case 'work':
@@ -72,7 +76,30 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       case 'meditation':
         return 'Meditación';
       default:
-        return type;
+        return String(type);
+    }
+  };
+
+  const getTypeIcon = (type: Task['type']) => {
+    switch (type) {
+      case 'productividad':
+        return <div className="w-4 h-4 border border-black mr-1" />;
+      case 'creatividad':
+        return <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-4 h-4 mr-1" />;
+      case 'aprendizaje':
+        return <img src="/lovable-uploads/31c5d755-019b-4fe3-a86c-ab26dd8e6a84.png" alt="Aprendizaje" className="w-4 h-4 mr-1" />;
+      case 'organizacion':
+        return <img src="/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png" alt="Organización" className="w-4 h-4 mr-1" />;
+      case 'salud':
+        return <div className="w-4 h-4 border-black border-b-4 mr-1" />;
+      case 'social':
+        return <div className="w-4 h-4 border border-black rounded-full mr-1" />;
+      case 'entretenimiento':
+        return <img src="/lovable-uploads/entretenimiento-icon.svg" alt="Entretenimiento" className="w-4 h-4 mr-1" />;
+      case 'extra':
+        return <img src="/lovable-uploads/lightbulb-icon.svg" alt="Extra" className="w-4 h-4 mr-1" />;
+      default:
+        return null;
     }
   };
 
@@ -91,11 +118,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               </h2>
               <div className="flex items-center space-x-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black border border-gray-300 flex items-center`}>
-                  {task.type === 'extra' && (
-                    <>
-                      <img src="/lovable-uploads/lightbulb-icon.svg" alt="Extra" className="w-4 h-4 mr-1" />
-                    </>
-                  )}
+                  {getTypeIcon(task.type)}
                   {getTypeLabel(task.type)}
                 </span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -202,26 +225,23 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           )}
 
           {/* Acciones */}
-          <div className="flex space-x-3">
+          <div className="flex justify-end space-x-2">
             <Button
-              onClick={() => {
-                onToggle(task.id);
-                onClose();
-              }}
-              className={`flex-1 ${
-                task.completed 
-                  ? 'bg-gray-100 hover:bg-gray-200 text-black border-2 border-gray-300' 
-                  : 'bg-black hover:bg-gray-800 text-white border-2 border-black'
-              }`}
+              variant={task.completed ? 'default' : 'outline'}
+              onClick={() => onToggle(task.id)}
+              className={`flex items-center ${task.completed ? 'bg-black text-white' : ''}`}
             >
-              {task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="px-6 bg-white hover:bg-gray-100 text-black border-2 border-gray-300"
-            >
-              Cerrar
+              {task.completed ? (
+                <>
+                  <CheckCircle className="mr-2" size={18} />
+                  Marcar como pendiente
+                </>
+              ) : (
+                <>
+                  <Circle className="mr-2" size={18} />
+                  Marcar como completada
+                </>
+              )}
             </Button>
           </div>
         </div>
