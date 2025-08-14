@@ -11,7 +11,6 @@ import ChatPage from "./pages/ChatPage";
 import MisionesPage from "./pages/MisionesPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
-import VersionIndicator from "./components/VersionIndicator";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
 import ImagesPage from "./pages/ImagesPage";
 
@@ -38,7 +37,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <VersionIndicator version="0.11" />
+        {/* Removed global VersionIndicator; version now shown on LoadingScreen */}
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
