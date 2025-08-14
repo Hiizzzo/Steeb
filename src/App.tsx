@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
 import ImagesPage from "./pages/ImagesPage";
+import ThemeToggle from "./components/ThemeToggle";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => {
         <Sonner />
         {/* Removed global VersionIndicator; version now shown on LoadingScreen */}
         <BrowserRouter>
+          <ThemeToggle />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
