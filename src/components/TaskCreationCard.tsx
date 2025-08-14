@@ -136,7 +136,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
   const getTagIcon = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
-      case 'productividad': return null;
+      case 'productividad': return <img src="/icons/productividad-briefcase.svg" alt="Productividad" className="w-6 h-6" />;
       case 'creatividad': return null;
       case 'aprendizaje': return <img src="/lovable-uploads/31c5d755-019b-4fe3-a86c-ab26dd8e6a84.png" alt="Aprendizaje" className="w-6 h-6" />;
       case 'organizacion': return <img src="/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png" alt="Organización" className="w-6 h-6" />;
