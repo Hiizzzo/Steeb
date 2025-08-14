@@ -143,7 +143,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       case 'salud': return <div className="w-4 h-4 border-black border-b-4" />;
       case 'social': return <div className="w-4 h-4 border border-black rounded-full" />;
       case 'entretenimiento': return null;
-      case 'extra': return <img src="/lovable-uploads/new-lightbulb-icon.svg" alt="Extra" className="w-5 h-5" />;
+      case 'extra': return <img src="/lovable-uploads/new-lightbulb-icon.svg" alt="Extra" className="w-5 h-5 mr-1" />;
     }
   };
 
