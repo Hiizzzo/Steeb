@@ -30,9 +30,15 @@ const ImagesPage: React.FC = () => {
 		fetchImages();
 	}, []);
 
-	const handleUploaded = () => {
+	const handleUploaded = (imagePath?: string) => {
 		fetchImages();
-		toast({ title: 'Imagen subida', description: 'La imagen fue subida correctamente.' });
+		if (imagePath) {
+			localStorage.setItem('stebe-top-left-image', imagePath);
+			window.dispatchEvent(new StorageEvent('storage', { key: 'stebe-top-left-image', newValue: imagePath } as any));
+			toast({ title: 'Imagen subida', description: 'Se estableció como imagen superior automáticamente.' });
+		} else {
+			toast({ title: 'Imagen subida', description: 'La imagen fue subida correctamente.' });
+		}
 	};
 
 	const handleCopy = async (text: string, id: string) => {
@@ -60,6 +66,7 @@ const ImagesPage: React.FC = () => {
 
 	const setAsTopLeft = (path: string) => {
 		localStorage.setItem('stebe-top-left-image', path);
+		window.dispatchEvent(new StorageEvent('storage', { key: 'stebe-top-left-image', newValue: path } as any));
 		toast({ title: 'Actualizado', description: 'Imagen establecida como icono superior.' });
 	};
 

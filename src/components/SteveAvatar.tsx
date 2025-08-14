@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface SteveAvatarProps {
@@ -22,12 +22,26 @@ const SteveAvatar: React.FC<SteveAvatarProps> = ({
   };
   
   const animations = animate ? 'animate-bounce-light' : '';
+
+  const fallbackImage = '/lovable-uploads/steve-thumbs-up-icon.png';
+  const [avatarSrc, setAvatarSrc] = useState<string>(() => {
+    if (typeof window === 'undefined') return fallbackImage;
+    return localStorage.getItem('stebe-top-left-image') || fallbackImage;
+  });
+
+  useEffect(() => {
+    const handler = () => {
+      const stored = localStorage.getItem('stebe-top-left-image');
+      setAvatarSrc(stored || fallbackImage);
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
   
-  // Ahora usamos la nueva imagen de Steve
   return (
     <div className={cn('flex items-center justify-start', sizeClasses[size], animations, className)}>
       <img 
-        src="/lovable-uploads/steve-thumbs-up-icon.png" 
+        src={avatarSrc}
         alt="Steve Avatar" 
         className="w-full h-full rounded-full object-cover flex-shrink-0"
       />
