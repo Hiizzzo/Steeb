@@ -136,19 +136,14 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
   const getTagIcon = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
-      case 'productividad': return <img src="/lovable-uploads/trabajo-icon.svg" alt="Productividad" className="w-6 h-6" />;
-      case 'creatividad': return <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-6 h-6" />;
+      case 'productividad': return null;
+      case 'creatividad': return null;
       case 'aprendizaje': return <img src="/lovable-uploads/31c5d755-019b-4fe3-a86c-ab26dd8e6a84.png" alt="Aprendizaje" className="w-6 h-6" />;
       case 'organizacion': return <img src="/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png" alt="Organización" className="w-6 h-6" />;
       case 'salud': return <div className="w-4 h-4 border-black border-b-4" />;
       case 'social': return <div className="w-4 h-4 border border-black rounded-full" />;
-      case 'entretenimiento': return <img src="/lovable-uploads/entretenimiento-icon.svg" alt="Entretenimiento" className="w-6 h-6" />;
-      case 'extra': return (
-        <div className="flex items-center gap-1">
-          <img src="/lovable-uploads/new-lightbulb-icon.svg" alt="Lightbulb" className="w-5 h-5" />
-          <img src="/lovable-uploads/extra-icon.svg" alt="Extra" className="w-6 h-6" />
-        </div>
-      );
+      case 'entretenimiento': return null;
+      case 'extra': return null;
     }
   };
 
