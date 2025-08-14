@@ -375,13 +375,13 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
               }
               ${calendarDay.isToday 
                 ? (isDark 
-                  ? 'bg-blue-600 text-white shadow-lg' 
+                  ? 'bg-gray-700 text-white shadow-lg' 
                   : 'bg-blue-500 text-white shadow-lg'
                   ) 
                 : (isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50')
               }
               ${calendarDay.isSelected 
-                ? (isDark ? 'ring-2 ring-blue-400' : 'ring-2 ring-blue-500') 
+                ? (isDark ? 'ring-2 ring-gray-400' : 'ring-2 ring-blue-500') 
                 : ''
               }
               ${hoveredDate?.toDateString() === calendarDay.date.toDateString() 
@@ -430,7 +430,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
                 <div className={`w-2 h-2 rounded-full ${
                   calendarDay.isToday 
                     ? 'bg-white' 
-                    : (isDark ? 'bg-blue-400' : 'bg-blue-500')
+                    : (isDark ? 'bg-gray-300' : 'bg-blue-500')
                 }`} />
               </div>
             )}
@@ -580,6 +580,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
                 {selectedDay.completedTasks} de {selectedDay.totalTasks} tareas completadas
               </p>
             )}
+            <div className={`${isDark ? 'border-white/20' : 'border-black/10'} border-t mt-3`}></div>
           </div>
           
           <Button
