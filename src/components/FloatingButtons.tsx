@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, MessageCircle, BarChart2, Menu } from 'lucide-react';
+import { Plus, Calendar, MessageCircle, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 
@@ -313,23 +313,14 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Chat con Stebe</span>
                 </button>
 
-                {/* Izquierda - Más */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    // Por ahora solo cerramos; en el futuro puede abrir más opciones
-                  }}
-                  className="absolute -left-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <Menu size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Más</span>
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                 {/* Izquierda - Más */}
+                 
+                 
+               </div>
+             </motion.div>
+           </motion.div>
+         )}
+       </AnimatePresence>
     </>
   );
 };
