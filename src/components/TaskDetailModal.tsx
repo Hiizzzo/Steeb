@@ -83,21 +83,21 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const getTypeIcon = (type: Task['type']) => {
     switch (type) {
       case 'productividad':
-        return <div className="w-4 h-4 border border-black mr-1" />;
+        return <img src="/lovable-uploads/ed87121c-fa95-442d-8f28-4374f90b4cdb.png" alt="Productividad" className="w-4 h-4 mr-1" />;
       case 'creatividad':
-        return <img src="/lovable-uploads/creatividad-icon.svg" alt="Creatividad" className="w-4 h-4 mr-1" />;
+        return <img src="/lovable-uploads/960a5bce-1ea1-46b3-9a15-9bbb2c33d476.png" alt="Creatividad" className="w-4 h-4 mr-1" />;
       case 'aprendizaje':
-        return <img src="/lovable-uploads/31c5d755-019b-4fe3-a86c-ab26dd8e6a84.png" alt="Aprendizaje" className="w-4 h-4 mr-1" />;
+        return <img src="/lovable-uploads/5867110b-7acc-4a17-b021-60d80362cb31.png" alt="Aprendizaje" className="w-4 h-4 mr-1" />;
       case 'organizacion':
         return <img src="/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png" alt="Organización" className="w-4 h-4 mr-1" />;
       case 'salud':
-        return <div className="w-4 h-4 border-black border-b-4 mr-1" />;
+        return <img src="/lovable-uploads/e6d7c376-16cd-4c37-94bf-5fb5aeffcc6b.png" alt="Salud" className="w-4 h-4 mr-1" />;
       case 'social':
-        return <div className="w-4 h-4 border border-black rounded-full mr-1" />;
+        return <img src="/lovable-uploads/9a30aed8-3111-4f08-8513-1b1b5a47f5f1.png" alt="Social" className="w-4 h-4 mr-1" />;
       case 'entretenimiento':
-        return <img src="/lovable-uploads/entretenimiento-icon.svg" alt="Entretenimiento" className="w-4 h-4 mr-1" />;
+        return <img src="/lovable-uploads/a2ff8acd-d80d-49f7-9e88-0962d6e54bd6.png" alt="Entretenimiento" className="w-4 h-4 mr-1" />;
       case 'extra':
-        return <img src="/lovable-uploads/lightbulb-icon.svg" alt="Extra" className="w-4 h-4 mr-1" />;
+        return <img src="/lovable-uploads/db7fad8b-8361-464e-a371-b6cf8c2d4257.png" alt="Extra" className="w-4 h-4 mr-1" />;
       default:
         return null;
     }
