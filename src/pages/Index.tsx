@@ -7,7 +7,6 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import { notificationService } from '@/services/notificationService';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
-import StebeHeader from '@/components/StebeHeader';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -383,8 +382,15 @@ const Index = () => {
       
       {/* Contenido principal */}
       <div className="relative z-10">
-      {/* Header */}
-      <StebeHeader />
+      {/* Título debajo de la imagen de Steve */}
+      <div className="pt-20 mb-2">
+        <div className="flex items-center justify-center py-2 border-b border-gray-200 dark:border-gray-800">
+          <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>
+          <h1 className="text-black dark:text-white text-xl font-light tracking-wide" style={{
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}>TAREAS</h1>
+        </div>
+      </div>
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
