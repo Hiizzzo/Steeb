@@ -394,7 +394,7 @@ const Index = () => {
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
-          <div className="pt-1 max-w-sm mx-auto px-3">
+          <div className="pt-1 max-w-sm mx-auto px-3 bg-black">
             {pendingTodaysTasks.length > 0 ? (
               <>
                 {pendingTodayExact.map(task => (
