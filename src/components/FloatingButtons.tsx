@@ -175,7 +175,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
             onTouchEnd={handleTouchEnd}
             onTouchCancel={handleTouchCancel}
             onContextMenu={handleContextMenu}
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 bg-black dark:bg-white pointer-events-auto touch-button no-select"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 bg-black dark:!bg-white pointer-events-auto touch-button no-select"
             style={{ 
               touchAction: 'none',
               userSelect: 'none',
@@ -198,7 +198,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                   className="relative"
                 >
-                  <Calendar size={28} className="text-white dark:text-black sm:w-8 sm:h-8" strokeWidth={3} />
+                  <Calendar size={28} className="text-white dark:!text-black sm:w-8 sm:h-8" strokeWidth={3} />
                   {/* Indicador de "mantener presionado" */}
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
@@ -215,9 +215,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   transition={{ duration: 0.1 }}
                   className="flex items-center justify-center gap-1"
                 >
-                  <div className="w-1.5 h-1.5 bg-white dark:bg-black rounded-full animate-bounce" style={{ animationDuration: '0.3s', animationDelay: '0s' }}></div>
-                  <div className="w-1.5 h-1.5 bg-white dark:bg-black rounded-full animate-bounce" style={{ animationDuration: '0.3s', animationDelay: '0.1s' }}></div>
-                  <div className="w-1.5 h-1.5 bg-white dark:bg-black rounded-full animate-bounce" style={{ animationDuration: '0.3s', animationDelay: '0.2s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white dark:!bg-black rounded-full animate-bounce" style={{ animationDuration: '0.3s', animationDelay: '0s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white dark:!bg-black rounded-full animate-bounce" style={{ animationDuration: '0.3s', animationDelay: '0.1s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white dark:!bg-black rounded-full animate-bounce" style={{ animationDuration: '0.3s', animationDelay: '0.2s' }}></div>
                 </motion.div>
               ) : (
                 <motion.div
@@ -227,7 +227,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   exit={{ scale: 0, rotate: -180 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
-                  <Plus size={28} className="text-white dark:text-black sm:w-8 sm:h-8" strokeWidth={3} />
+                  <Plus size={28} className="text-white dark:!text-black sm:w-8 sm:h-8" strokeWidth={3} />
                 </motion.div>
               )}
             </AnimatePresence>
