@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, MessageCircle, BarChart2 } from 'lucide-react';
+import { Plus, Calendar, MessageCircle, BarChart2, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 
@@ -245,83 +245,86 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
         )}
       </AnimatePresence>
 
-      {/* Menú de Acciones (long press) */}
+      {/* Menú Radial (long press) */}
       <AnimatePresence>
         {showCalendarMenu && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center"
+            className="fixed inset-0 z-50"
             onClick={() => setShowCalendarMenu(false)}
           >
+            {/* Overlay oscurecido */}
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 mx-4 shadow-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.55 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black"
+            />
+
+            {/* Contenedor central para los 4 botones en cruz */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', duration: 0.4 }}
+              className="absolute inset-0 flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-                  Acciones rápidas
-                </h3>
+              {/* Círculo invisible para posicionamiento */}
+              <div className="relative w-[0px] h-[0px]">
+                {/* Arriba - Calendario */}
                 <button
-                  onClick={() => setShowCalendarMenu(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
-                >
-                  ×
-                </button>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
-                Mantén presionado el botón + para abrir este menú
-              </p>
-              <div className="space-y-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     setShowCalendarMenu(false);
                     navigate('/monthly-calendar');
                   }}
-                  className="w-full flex items-center gap-3 p-4 bg-black dark:bg-white text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
+                  className="absolute -top-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
+                  style={{ color: '#FFFFFF' }}
                 >
-                  <Calendar size={24} />
-                  <div className="text-left">
-                    <div className="font-semibold">Calendario</div>
-                    <div className="text-sm opacity-90">Ver tus tareas en el calendario mensual</div>
-                  </div>
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
+                  <Calendar size={28} color="#FFFFFF" />
+                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Calendario</span>
+                </button>
+
+                {/* Derecha - Estadísticas */}
+                <button
                   onClick={() => {
                     setShowCalendarMenu(false);
                     navigate('/productivity-stats');
                   }}
-                  className="w-full flex items-center gap-3 p-4 bg-gray-900 dark:bg-gray-100 text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
+                  className="absolute -right-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
+                  style={{ color: '#FFFFFF' }}
                 >
-                  <BarChart2 size={24} />
-                  <div className="text-left">
-                    <div className="font-semibold">Estadísticas</div>
-                    <div className="text-sm opacity-90">Ver tus estadísticas de productividad</div>
-                  </div>
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
+                  <BarChart2 size={28} color="#FFFFFF" />
+                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Estadísticas</span>
+                </button>
+
+                {/* Abajo - Chat con Stebe */}
+                <button
                   onClick={() => {
                     setShowCalendarMenu(false);
                     navigate('/chat');
                   }}
-                  className="w-full flex items-center gap-3 p-4 bg-gray-900 dark:bg-gray-100 text-white dark:text-black rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 transition-all cursor-pointer active:scale-95"
+                  className="absolute -bottom-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
+                  style={{ color: '#FFFFFF' }}
                 >
-                  <MessageCircle size={24} />
-                  <div className="text-left">
-                    <div className="font-semibold">Chat con Stebe</div>
-                    <div className="text-sm opacity-90">Habla con tu asistente inteligente</div>
-                  </div>
-                </motion.button>
+                  <MessageCircle size={28} color="#FFFFFF" />
+                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Chat con Stebe</span>
+                </button>
+
+                {/* Izquierda - Más */}
+                <button
+                  onClick={() => {
+                    setShowCalendarMenu(false);
+                    // Por ahora solo cerramos; en el futuro puede abrir más opciones
+                  }}
+                  className="absolute -left-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
+                  style={{ color: '#FFFFFF' }}
+                >
+                  <Menu size={28} color="#FFFFFF" />
+                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Más</span>
+                </button>
               </div>
             </motion.div>
           </motion.div>
