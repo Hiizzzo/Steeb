@@ -37,7 +37,7 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const today = useMemo(() => new Date(), []);
+  const today = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
@@ -89,7 +89,7 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
     let tempStreak = 0;
     
     // Calculate current streak (from today backwards)
-    const checkDate = new Date(today);
+    let checkDate = new Date(today);
     while (true) {
       const dateStr = checkDate.toISOString().split('T')[0];
       if (completedTasksByDate[dateStr]) {

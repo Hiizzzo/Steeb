@@ -111,7 +111,7 @@ const Index = () => {
       updateTasks(cleanedTasks);
       console.log(`🧹 Eliminadas ${tasksWithEmptyTitles.length} tareas con títulos vacíos`);
     }
-  }, [tasks, updateTasks]); // Ejecutar cuando cambien las tareas o el actualizador
+  }, [tasks.length]); // Solo ejecutar cuando cambie el número de tareas
 
   // Verificar si hay una fecha seleccionada del calendario
   useEffect(() => {
