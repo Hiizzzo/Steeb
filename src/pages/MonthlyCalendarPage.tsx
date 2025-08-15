@@ -298,7 +298,7 @@ const MonthlyCalendarPage: React.FC = () => {
     let best = 0;
 
     // Recorrer hacia atrás desde hoy mientras existan días consecutivos completados
-    let probe = new Date(today);
+    const probe = new Date(today);
     while (completedSet.has(key(probe))) {
       current += 1;
       probe.setDate(probe.getDate() - 1);

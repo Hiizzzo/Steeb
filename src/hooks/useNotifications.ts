@@ -132,7 +132,7 @@ export const useNotifications = () => {
       console.error('Error showing notification:', error);
       return false;
     }
-  }, [settings.enabled, settings.vibration, settings.sound, permission.granted, requestPermission]);
+  }, [settings.enabled, settings.sound, permission.granted, requestPermission]);
 
   // Schedule a notification for later
   const scheduleNotification = useCallback((

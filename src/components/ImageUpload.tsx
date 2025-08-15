@@ -39,7 +39,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className })
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [selectedFile]);
+  }, [selectedFile, previewUrl]);
 
   const handleUpload = async () => {
     if (!selectedFile && !imageUrl && !dataUrl) return;
