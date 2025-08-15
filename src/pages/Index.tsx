@@ -544,8 +544,11 @@ const Index = () => {
         {showDetailModal && selectedTask && (
           <TaskDetailModal
             task={selectedTask}
+            isOpen={showDetailModal}
             onClose={() => setShowDetailModal(false)}
-            onEdit={() => {
+            onToggle={handleToggleTask}
+            onToggleSubtask={handleToggleSubtask}
+            onEdit={(task) => {
               setShowDetailModal(false);
               setShowModal(true);
             }}
