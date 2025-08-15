@@ -393,7 +393,7 @@ const Index = () => {
       </div>
       {/* Título debajo de la imagen de Steve */}
       <div className="pt-6 mb-2">
-        <div className="flex items-center justify-center py-2 bg-black text-white dark:bg-white dark:text-black">
+        <div className="flex items-center justify-center py-2 bg-black text-white dark:!bg-white dark:text-black">
           <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>
           <h1 className="text-white dark:!text-black text-xl font-light tracking-wide" style={{
             fontFamily: 'system-ui, -apple-system, sans-serif'
