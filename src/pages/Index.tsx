@@ -392,7 +392,7 @@ const Index = () => {
         }}>{dayName}</h1>
       </div>
       {/* Título debajo de la imagen de Steve */}
-      <div className="pt-20 mb-2">
+      <div className="pt-6 mb-2">
         <div className="flex items-center justify-center py-2 bg-black text-white">
           <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>
           <h1 className="text-white text-xl font-light tracking-wide" style={{
