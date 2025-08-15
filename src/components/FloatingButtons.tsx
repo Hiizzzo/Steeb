@@ -272,60 +272,44 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               className="absolute inset-0 flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Círculo invisible para posicionamiento */}
-              <div className="relative w-[0px] h-[0px]">
-                {/* Arriba - Calendario */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/monthly-calendar');
-                  }}
-                  className="absolute -top-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <Calendar size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Calendario</span>
-                </button>
+                {/* Círculo invisible para posicionamiento */}
+                <div className="relative w-[0px] h-[0px]">
+                  {/* Arriba - Calendario */}
+                  <button
+                    onClick={() => {
+                      setShowCalendarMenu(false);
+                      navigate('/monthly-calendar');
+                    }}
+                    className="absolute -top-[120px] -left-[48px] w-24 h-24 rounded-full border-2 flex items-center justify-center bg-white border-black dark:bg-black dark:border-white"
+                    aria-label="Calendario"
+                  >
+                    <Calendar size={28} className="text-black dark:text-white" />
+                  </button>
 
-                {/* Derecha - Estadísticas */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/productivity-stats');
-                  }}
-                  className="absolute -right-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <BarChart2 size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Estadísticas</span>
-                </button>
+                  {/* Derecha - Estadísticas */}
+                  <button
+                    onClick={() => {
+                      setShowCalendarMenu(false);
+                      navigate('/productivity-stats');
+                    }}
+                    className="absolute -right-[120px] -top-[48px] w-24 h-24 rounded-full border-2 flex items-center justify-center bg-white border-black dark:bg-black dark:border-white"
+                    aria-label="Estadísticas"
+                  >
+                    <BarChart2 size={28} className="text-black dark:text-white" />
+                  </button>
 
-                {/* Abajo - Chat con Stebe */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/chat');
-                  }}
-                  className="absolute -bottom-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <MessageCircle size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Chat con Stebe</span>
-                </button>
-
-                {/* Izquierda - Más */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    // Por ahora solo cerramos; en el futuro puede abrir más opciones
-                  }}
-                  className="absolute -left-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <Menu size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Más</span>
-                </button>
-              </div>
+                  {/* Abajo - Chat con Stebe */}
+                  <button
+                    onClick={() => {
+                      setShowCalendarMenu(false);
+                      navigate('/chat');
+                    }}
+                    className="absolute -bottom-[120px] -left-[48px] w-24 h-24 rounded-full border-2 flex items-center justify-center bg-white border-black dark:bg-black dark:border-white"
+                    aria-label="Chat con Stebe"
+                  >
+                    <MessageCircle size={28} className="text-black dark:text-white" />
+                  </button>
+                </div>
             </motion.div>
           </motion.div>
         )}
