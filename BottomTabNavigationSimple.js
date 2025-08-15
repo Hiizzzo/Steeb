@@ -32,7 +32,7 @@ const ChartIcon = () => (
   </View>
 );
 
-const BottomTabNavigationSimple = ({ onTasksPress, onAddPress, onProgressPress }) => {
+const BottomTabNavigationSimple = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress }) => {
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
@@ -49,6 +49,8 @@ const BottomTabNavigationSimple = ({ onTasksPress, onAddPress, onProgressPress }
         <TouchableOpacity
           style={[styles.tabButton, styles.centerButton]}
           onPress={onAddPress}
+          onLongPress={onAddLongPress}
+          delayLongPress={300}
           activeOpacity={0.7}
         >
           <PlusIcon />

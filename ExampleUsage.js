@@ -7,26 +7,51 @@ import {
   StatusBar,
 } from 'react-native';
 import BottomTabNavigation from './BottomTabNavigation';
+import RadialMenu from './RadialMenu';
 
 const ExampleUsage = () => {
   const [activeTab, setActiveTab] = useState('tasks');
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [theme, setTheme] = useState('dark');
 
   const handleTasksPress = () => {
     setActiveTab('tasks');
     console.log('Navegando a TAREAS');
-    // Aquí puedes navegar a la pantalla de tareas
   };
 
   const handleAddPress = () => {
     setActiveTab('add');
     console.log('Navegando a AGREGAR');
-    // Aquí puedes abrir modal de agregar o navegar a pantalla de agregar
+  };
+
+  const handleAddLongPress = () => {
+    setMenuVisible(true);
   };
 
   const handleProgressPress = () => {
     setActiveTab('progress');
     console.log('Navegando a PROGRESO');
-    // Aquí puedes navegar a la pantalla de progreso
+  };
+
+  const handleMenuSelect = (option) => {
+    console.log('Seleccionado:', option);
+    switch (option) {
+      case 'calendar':
+        // navegación a calendario
+        break;
+      case 'stats':
+        setActiveTab('progress');
+        break;
+      case 'chat':
+        // abrir chat con Stebe
+        break;
+      case 'more':
+        // ejemplo: alternar tema
+        setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+        break;
+      default:
+        break;
+    }
   };
 
   const renderContent = () => {
@@ -58,13 +83,13 @@ const ExampleUsage = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.container, theme === 'dark' ? styles.darkBg : styles.lightBg]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme === 'dark' ? '#000000' : '#FFFFFF'} />
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>IDEAS</Text>
-        <Text style={styles.headerSubtitle}>Julio 2025</Text>
+        <Text style={[styles.headerTitle, theme === 'dark' ? styles.textLight : styles.textDark]}>IDEAS</Text>
+        <Text style={[styles.headerSubtitle, theme === 'dark' ? styles.textMutedLight : styles.textMutedDark]}>Julio 2025</Text>
       </View>
 
       {/* Content */}
@@ -77,9 +102,18 @@ const ExampleUsage = () => {
         <BottomTabNavigation
           onTasksPress={handleTasksPress}
           onAddPress={handleAddPress}
+          onAddLongPress={handleAddLongPress}
           onProgressPress={handleProgressPress}
         />
       )}
+
+      {/* Radial Menu Overlay */}
+      <RadialMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSelect={handleMenuSelect}
+        theme={theme}
+      />
     </SafeAreaView>
   );
 };
@@ -87,6 +121,11 @@ const ExampleUsage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  darkBg: {
+    backgroundColor: '#000000',
+  },
+  lightBg: {
     backgroundColor: '#FFFFFF',
   },
   header: {
@@ -98,13 +137,23 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#000000',
     letterSpacing: 2,
   },
   headerSubtitle: {
     fontSize: 18,
-    color: '#666666',
     marginTop: 5,
+  },
+  textLight: {
+    color: '#FFFFFF',
+  },
+  textDark: {
+    color: '#000000',
+  },
+  textMutedLight: {
+    color: '#CCCCCC',
+  },
+  textMutedDark: {
+    color: '#666666',
   },
   content: {
     flex: 1,
