@@ -119,12 +119,6 @@ const RadialMenu = ({ visible, onClose, onSelect = () => {}, theme = 'dark' }) =
             <IconChat />
           </Button>
         </View>
-
-        <View style={[styles.itemContainer, { top: height / 2 - CIRCLE_SIZE / 2, left: width / 2 - RADIUS - CIRCLE_SIZE / 2 }]}> 
-          <Button label="Más" onPress={() => onSelect('more')}>
-            <IconMenu />
-          </Button>
-        </View>
       </Animated.View>
     </View>
   );
