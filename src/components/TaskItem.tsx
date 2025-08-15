@@ -222,7 +222,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
       <Card 
         ref={cardRef}
         className={cn(
-          'relative overflow-hidden p-0 transition-all border-2 hover:shadow-lg transform hover:scale-[1.02]', 
+          'relative overflow-hidden p-0 transition-all border-2 hover:shadow-lg transform hover:scale-[1.02] dark:!border-white', 
           task.completed ? 'opacity-70 border-gray-300' : 'border-gray-200 hover:border-gray-300'
         )}
         style={{
