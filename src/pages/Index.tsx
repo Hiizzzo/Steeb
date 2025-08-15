@@ -385,6 +385,8 @@ const Index = () => {
       <div className="relative z-10">
       {/* Header */}
       <StebeHeader />
+      {/* Extiende la franja negra debajo del header para cubrir el vacío visible */}
+      <div className="w-full h-8 bg-black dark:bg-[#ffffff]"></div>
       
       {viewMode === 'tasks' ? (
         <>
