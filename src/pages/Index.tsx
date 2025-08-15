@@ -367,6 +367,9 @@ const Index = () => {
     }
   }, []);
 
+  // Día de la semana para el encabezado superior (p.ej., "Viernes")
+  const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
+
   return (
           <div className="min-h-screen pb-6 relative bg-steve-gray-light dark:bg-steve-black font-varela">
       
@@ -382,11 +385,17 @@ const Index = () => {
       
       {/* Contenido principal */}
       <div className="relative z-10">
+      {/* Encabezado con día de la semana */}
+      <div className="pt-12 mb-1">
+        <h1 className="text-black dark:text-white text-4xl font-light text-center" style={{
+          fontFamily: 'system-ui, -apple-system, sans-serif'
+        }}>{dayName}</h1>
+      </div>
       {/* Título debajo de la imagen de Steve */}
       <div className="pt-20 mb-2">
-        <div className="flex items-center justify-center py-2 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-center py-2 bg-black text-white">
           <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>
-          <h1 className="text-black dark:text-white text-xl font-light tracking-wide" style={{
+          <h1 className="text-white text-xl font-light tracking-wide" style={{
             fontFamily: 'system-ui, -apple-system, sans-serif'
           }}>TAREAS</h1>
         </div>
@@ -394,7 +403,7 @@ const Index = () => {
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
-          <div className="pt-1 max-w-sm mx-auto px-3 bg-black">
+          <div className="pt-1 max-w-sm mx-auto px-3">
             {pendingTodaysTasks.length > 0 ? (
               <>
                 {pendingTodayExact.map(task => (
@@ -443,7 +452,7 @@ const Index = () => {
                   {getRandomNoTasksPhrase()}
                 </p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Press the + button to add your first task!
+                  ¡Presiona el botón + para agregar tu primera tarea!
                 </p>
               </div>
             )}
@@ -489,8 +498,8 @@ const Index = () => {
                         onToggleSubtask={handleToggleSubtask}
                         onDelete={handleDeleteTask}
                         onShowDetail={handleShowDetail}
-                      />
-                    ))}
+                      />)
+                    )}
                   </div>
                 )}
               </div>
@@ -531,14 +540,18 @@ const Index = () => {
       />
 
       {/* Modal de Detalles de Tarea */}
-      <TaskDetailModal
-        task={selectedTask}
-        isOpen={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-        onToggle={handleToggleTask}
-        onToggleSubtask={handleToggleSubtask}
-        onEdit={handleEditTask}
-      />
+      <AnimatePresence>
+        {showDetailModal && selectedTask && (
+          <TaskDetailModal
+            task={selectedTask}
+            onClose={() => setShowDetailModal(false)}
+            onEdit={() => {
+              setShowDetailModal(false);
+              setShowModal(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* App Update Notification */}
       <AppUpdateNotification
