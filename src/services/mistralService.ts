@@ -390,7 +390,7 @@ class MistralService {
 
       // Simular generación de respuesta inteligente basada en el contexto
       const userMessage = messages[messages.length - 1]?.content || '';
-      const response = await this.generateIntelligentResponse(userMessage);
+      let response = await this.generateIntelligentResponse(userMessage);
 
       // Simular streaming de tokens
       const tokens = response.split(' ');

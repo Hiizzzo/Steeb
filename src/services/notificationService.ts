@@ -40,7 +40,7 @@ export class NotificationService {
     if (!scheduledDate) return;
 
     const now = new Date();
-    const reminderTime = new Date(scheduledDate);
+    let reminderTime = new Date(scheduledDate);
 
     // Si hay hora específica, agregarla
     if (scheduledTime) {

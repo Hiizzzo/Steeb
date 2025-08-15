@@ -114,8 +114,8 @@ const CentralStatsChart: React.FC<{
 const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = () => {
   const tasks = useTaskStore((s) => s.tasks);
   const [period, setPeriod] = useState<Period>('day');
-  const today = useMemo(() => new Date(), []);
-  const todayISO = useMemo(() => formatISODate(today), [today]);
+  const today = new Date();
+  const todayISO = formatISODate(today);
   const [selectedISO, setSelectedISO] = useState<string>(todayISO);
 
   // Objetivo del mes (persistido en localStorage)
@@ -222,7 +222,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       monthData,
       dayData: hours,
     };
-  }, [tasks, period, selectedISO, today, todayISO]);
+  }, [tasks, period, selectedISO]);
 
   const handleSelectDay = (iso: string) => {
     setSelectedISO(iso);

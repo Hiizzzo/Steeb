@@ -208,7 +208,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
     
     // Calcular racha actual
     let currentStreak = 0;
-    const checkDate = new Date(today);
+    let checkDate = new Date(today);
     
     while (true) {
       const dateStr = checkDate.toISOString().split('T')[0];
