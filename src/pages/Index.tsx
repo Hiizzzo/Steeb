@@ -369,7 +369,7 @@ const Index = () => {
   }, []);
 
   return (
-          <div className="min-h-screen pb-6 relative bg-steve-gray-light dark:bg-steve-gray-dark font-varela">
+          <div className="min-h-screen pb-6 relative bg-steve-gray-light dark:bg-steve-black font-varela">
       
       {/* Imagen de Steve Jobs en la esquina superior izquierda */}
       <div className="absolute top-3 left-3 z-20">
