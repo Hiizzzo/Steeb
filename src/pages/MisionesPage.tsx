@@ -43,7 +43,7 @@ const MisionesPage: React.FC = () => {
     const principales = all.filter(isPrimary);
     const secundarias = all.filter(t => !isPrimary(t));
     return { principales, secundarias };
-  }, [tasks, filterToday]);
+  }, [tasks, filterToday, today]);
 
   const togglePrincipal = (id: string) => {
     const t = tasks.find(x => x.id === id);

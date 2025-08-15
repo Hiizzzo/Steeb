@@ -538,7 +538,7 @@ export const useTaskStore = create<TaskStore>()(
             .sort();
           
           // Calculate current streak (from today backwards)
-          let checkDate = new Date(now);
+          const checkDate = new Date(now);
           while (true) {
             const dateStr = checkDate.toISOString().split('T')[0];
             if (completedDates.includes(dateStr)) {

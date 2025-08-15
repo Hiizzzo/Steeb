@@ -208,7 +208,7 @@ export const useAnalytics = (tasks: Task[] = []) => {
       let tempStreak = 0;
 
       // Current streak
-      let checkDate = new Date();
+      const checkDate = new Date();
       while (true) {
         const dateStr = checkDate.toISOString().split('T')[0];
         if (completedDates.includes(dateStr)) {

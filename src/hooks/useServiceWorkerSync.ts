@@ -52,7 +52,7 @@ export const useServiceWorkerSync = () => {
 
       registerSW();
     }
-  }, []);
+  }, [triggerBackup]);
 
   // Function to send backup request to service worker
   const triggerBackup = useCallback((): Promise<ServiceWorkerMessage> => {

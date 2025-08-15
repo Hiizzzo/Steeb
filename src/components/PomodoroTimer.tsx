@@ -61,7 +61,7 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose }) => {
         setMessage('¡Los últimos minutos son cruciales! ¡No te rindas!');
       }
     }
-  }, [totalSeconds, isBreak, cycle]);
+  }, [totalSeconds, isBreak, cycle, WORK_TIME]);
 
   // Timer principal
   useEffect(() => {
