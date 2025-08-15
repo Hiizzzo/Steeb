@@ -249,8 +249,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   completed 
                     ? 'line-through text-gray-400' 
                     : 'text-black'
-                }`}
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                } font-varela`}
               >
                 {title.trim() || 'Tarea sin título'}
               </span>
@@ -260,8 +259,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 <div className="flex items-center mt-1 space-x-1">
                   <Clock size={14} className={`${completed ? 'text-gray-400' : 'text-gray-500'}`} />
                   <span 
-                    className={`text-sm ${completed ? 'text-gray-400' : 'text-gray-500'}`}
-                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                    className={`text-sm ${completed ? 'text-gray-400' : 'text-gray-500'} font-varela`}
                   >
                     {scheduledTime}
                   </span>
@@ -311,8 +309,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                       subtask.completed 
                         ? 'line-through text-gray-400' 
                         : 'text-black'
-                    }`}
-                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                    } font-varela`}
                   >
                     {subtask.title}
                   </span>
