@@ -9,37 +9,44 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-const BottomTabNavigation = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress }) => {
+const BottomTabNavigation = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress, theme = 'dark' }) => {
+  const normalizedTheme = theme === 'white' ? 'light' : theme;
+  const isLight = normalizedTheme === 'light';
+  const colors = {
+    buttonBg: isLight ? '#FFFFFF' : '#000000',
+    icon: isLight ? '#000000' : '#FFFFFF',
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
         {/* Botón TAREAS (Check) */}
         <TouchableOpacity
-          style={styles.tabButton}
+          style={[styles.tabButton, { backgroundColor: colors.buttonBg }]}
           onPress={onTasksPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+          <Ionicons name="checkmark" size={24} color={colors.icon} />
         </TouchableOpacity>
 
         {/* Botón AGREGAR (Plus) - Más grande y centrado */}
         <TouchableOpacity
-          style={[styles.tabButton, styles.centerButton]}
+          style={[styles.tabButton, styles.centerButton, { backgroundColor: colors.buttonBg }]}
           onPress={onAddPress}
           onLongPress={onAddLongPress}
           delayLongPress={300}
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={28} color="#FFFFFF" />
+          <Ionicons name="add" size={28} color={colors.icon} />
         </TouchableOpacity>
 
         {/* Botón PROGRESO (Chart/Stats) */}
         <TouchableOpacity
-          style={styles.tabButton}
+          style={[styles.tabButton, { backgroundColor: colors.buttonBg }]}
           onPress={onProgressPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="stats-chart" size={24} color="#FFFFFF" />
+          <Ionicons name="stats-chart" size={24} color={colors.icon} />
         </TouchableOpacity>
       </View>
     </View>

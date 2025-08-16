@@ -10,59 +10,66 @@ import {
 const { width } = Dimensions.get('window');
 
 // Iconos personalizados con componentes simples
-const CheckIcon = () => (
+const CheckIcon = ({ color = '#FFFFFF' }) => (
   <View style={iconStyles.checkContainer}>
-    <Text style={iconStyles.checkText}>✓</Text>
+    <Text style={[iconStyles.checkText, { color }]}>✓</Text>
   </View>
 );
 
-const PlusIcon = () => (
+const PlusIcon = ({ color = '#FFFFFF' }) => (
   <View style={iconStyles.plusContainer}>
-    <View style={iconStyles.plusHorizontal} />
-    <View style={iconStyles.plusVertical} />
+    <View style={[iconStyles.plusHorizontal, { backgroundColor: color }]} />
+    <View style={[iconStyles.plusVertical, { backgroundColor: color }]} />
   </View>
 );
 
-const ChartIcon = () => (
+const ChartIcon = ({ color = '#FFFFFF' }) => (
   <View style={iconStyles.chartContainer}>
-    <View style={[iconStyles.chartBar, { height: 12 }]} />
-    <View style={[iconStyles.chartBar, { height: 18 }]} />
-    <View style={[iconStyles.chartBar, { height: 15 }]} />
-    <View style={[iconStyles.chartBar, { height: 20 }]} />
+    <View style={[iconStyles.chartBar, { height: 12, backgroundColor: color }]} />
+    <View style={[iconStyles.chartBar, { height: 18, backgroundColor: color }]} />
+    <View style={[iconStyles.chartBar, { height: 15, backgroundColor: color }]} />
+    <View style={[iconStyles.chartBar, { height: 20, backgroundColor: color }]} />
   </View>
 );
 
-const BottomTabNavigationSimple = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress }) => {
+const BottomTabNavigationSimple = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress, theme = 'dark' }) => {
+  const normalizedTheme = theme === 'white' ? 'light' : theme;
+  const isLight = normalizedTheme === 'light';
+  const colors = {
+    buttonBg: isLight ? '#FFFFFF' : '#000000',
+    icon: isLight ? '#000000' : '#FFFFFF',
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
         {/* Botón TAREAS (Check) */}
         <TouchableOpacity
-          style={styles.tabButton}
+          style={[styles.tabButton, { backgroundColor: colors.buttonBg }]}
           onPress={onTasksPress}
           activeOpacity={0.7}
         >
-          <CheckIcon />
+          <CheckIcon color={colors.icon} />
         </TouchableOpacity>
 
         {/* Botón AGREGAR (Plus) - Más grande y centrado */}
         <TouchableOpacity
-          style={[styles.tabButton, styles.centerButton]}
+          style={[styles.tabButton, styles.centerButton, { backgroundColor: colors.buttonBg }]}
           onPress={onAddPress}
           onLongPress={onAddLongPress}
           delayLongPress={300}
           activeOpacity={0.7}
         >
-          <PlusIcon />
+          <PlusIcon color={colors.icon} />
         </TouchableOpacity>
 
         {/* Botón PROGRESO (Chart/Stats) */}
         <TouchableOpacity
-          style={styles.tabButton}
+          style={[styles.tabButton, { backgroundColor: colors.buttonBg }]}
           onPress={onProgressPress}
           activeOpacity={0.7}
         >
-          <ChartIcon />
+          <ChartIcon color={colors.icon} />
         </TouchableOpacity>
       </View>
     </View>

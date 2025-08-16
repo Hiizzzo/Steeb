@@ -104,6 +104,7 @@ const ExampleUsage = () => {
           onAddPress={handleAddPress}
           onAddLongPress={handleAddLongPress}
           onProgressPress={handleProgressPress}
+          theme={theme}
         />
       )}
 

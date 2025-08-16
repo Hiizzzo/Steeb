@@ -43,7 +43,8 @@ const RadialMenu = ({ visible, onClose, onSelect = () => {}, theme = 'dark' }) =
 
   if (!visible) return null;
 
-  const colors = THEME_COLORS[theme] || THEME_COLORS.dark;
+  const normalizedTheme = theme === 'white' ? 'light' : theme;
+  const colors = THEME_COLORS[normalizedTheme] || THEME_COLORS.dark;
 
   const Button = ({ label, onPress, children }) => (
     <TouchableOpacity
