@@ -357,11 +357,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
 
   // Obtener color dinámico según porcentaje de completación
   const getCompletionColor = useCallback((percentage: number) => {
-    if (percentage === 0) return isDark ? 'bg-gray-600' : 'bg-gray-300';
-    if (percentage <= 25) return 'bg-gradient-to-r from-red-400 to-red-500';
-    if (percentage <= 50) return 'bg-gradient-to-r from-yellow-400 to-orange-500';
-    if (percentage <= 75) return 'bg-gradient-to-r from-blue-400 to-blue-500';
-    return 'bg-gradient-to-r from-green-400 to-green-500';
+    return isDark ? 'bg-white' : 'bg-black';
   }, [isDark]);
 
   // Variantes de animación para el deslizamiento de meses
