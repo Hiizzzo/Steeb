@@ -588,7 +588,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       {day.isCurrentMonth && progress > 0 && (
                         <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full overflow-hidden mt-0.5 sm:mt-1">
                           <motion.div 
-                            className={`h-full ${progressColor} dark:bg-white`}
+                            className={`h-full bg-black dark:bg-white`}
                             initial={{ width: 0 }}
                             animate={{ width: `${progress * 100}%` }}
                             transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}

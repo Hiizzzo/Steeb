@@ -283,11 +283,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
 
   // Obtener color según porcentaje de completación
   const getCompletionColor = useCallback((percentage: number) => {
-    if (percentage === 0) return isDark ? 'bg-gray-700' : 'bg-gray-200';
-    if (percentage <= 25) return 'bg-red-500';
-    if (percentage <= 50) return 'bg-yellow-500';
-    if (percentage <= 75) return 'bg-blue-500';
-    return 'bg-green-500';
+    return isDark ? 'bg-white' : 'bg-black';
   }, [isDark]);
 
   // Renderizar vista mensual
