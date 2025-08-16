@@ -414,7 +414,7 @@ const MonthlyCalendarPage: React.FC = () => {
         <div className="flex justify-start mb-2">
           <motion.button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200 dark:bg-transparent dark:text-white dark:border-white"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
