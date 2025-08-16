@@ -300,20 +300,19 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Estadísticas</span>
                 </button>
 
-                {/* Abajo - Chat con Stebe */}
+                {/* Izquierda - Chat con Stebe */}
                 <button
                   onClick={() => {
                     setShowCalendarMenu(false);
                     navigate('/chat');
                   }}
-                  className="absolute -bottom-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
+                  className="absolute -left-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
                   style={{ color: '#FFFFFF' }}
                 >
                   <MessageCircle size={28} color="#FFFFFF" />
                   <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Chat con Stebe</span>
                 </button>
 
-                 {/* Izquierda - Más */}
                  
                  
                </div>
