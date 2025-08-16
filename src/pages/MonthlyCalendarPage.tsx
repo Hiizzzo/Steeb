@@ -386,8 +386,7 @@ const MonthlyCalendarPage: React.FC = () => {
               initial={{ width: 0 }}
               animate={{ width }}
               transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
-              className={`h-full rounded-full ${day.totalTasks > 0 ? 'bg-black dark:bg-white' : 'bg-neutral-300 dark:bg-white/30'}`}
-            
+              className={`h-full rounded-full ${day.totalTasks > 0 ? 'bg-black dark:!bg-white' : 'bg-neutral-300 dark:bg-white/30'}`}
             />
           );
         })()}
