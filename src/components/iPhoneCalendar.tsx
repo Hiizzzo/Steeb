@@ -410,7 +410,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
             {calendarDay.totalTasks > 0 && (
               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
                 <div className={`w-6 h-1 rounded-full ${
-                  getCompletionColor(calendarDay.completionPercentage)
+                  isDark ? 'bg-white' : 'bg-black'
                 }`} />
                 <div className="text-xs mt-1 text-center">
                   <span className={`${
