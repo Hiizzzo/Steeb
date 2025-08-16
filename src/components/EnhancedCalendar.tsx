@@ -865,7 +865,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
           >
             {/* Barra de progreso con gradiente */}
             <motion.div 
-              className={`h-1.5 rounded-full mb-1 ${getCompletionColor(calendarDay.completionPercentage)}`}
+              className={`h-1.5 rounded-full mb-1 ${getCompletionColor(calendarDay.completionPercentage)} dark:bg-white`}
               style={{ width: '24px' }}
               initial={{ width: 0 }}
               animate={{ width: '24px' }}
