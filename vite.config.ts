@@ -12,17 +12,21 @@ export default defineConfig(({ mode }) => ({
       "/api": {
         target: "http://localhost:3001",
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, res) => {
+            try {
+              res.writeHead(502, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'backend unavailable' }));
+            } catch {}
+          });
+        },
       },
-      "/lovable-uploads": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-      },
+      // Eliminado: proxy de /lovable-uploads para servir desde /public en desarrollo
     },
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {

@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import cors from 'cors';
-import sharp from 'sharp';
+// import sharp from 'sharp'; // Removed: load lazily to avoid startup crash if not installed
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import 'dotenv/config';
@@ -13,6 +13,21 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = 3001;
+
+// Helper: lazy-load sharp only when needed
+let _sharp = null;
+async function loadSharp() {
+  if (_sharp) return _sharp;
+  try {
+    const mod = await import('sharp');
+    _sharp = mod.default || mod;
+    console.log('✅ sharp cargado correctamente');
+  } catch (e) {
+    console.warn('⚠️ sharp no está disponible. Endpoints de thumbnail/analyze responderán 501.');
+    _sharp = null;
+  }
+  return _sharp;
+}
 
 // Configurar CORS
 app.use(cors());
@@ -306,6 +321,11 @@ app.post('/api/github/upload-image', upload.single('image'), async (req, res) =>
 // Endpoint para generar thumbnail (solo si se solicita explícitamente)
 app.post('/api/generate-thumbnail', async (req, res) => {
   try {
+    const sharp = await loadSharp();
+    if (!sharp) {
+      return res.status(501).json({ error: 'Funcionalidad no disponible: sharp no instalado' });
+    }
+
     const { filename, width = 200, height = 200 } = req.body;
     
     if (!filename) {
@@ -356,6 +376,11 @@ app.post('/api/generate-thumbnail', async (req, res) => {
 // Endpoint para analizar imagen (solo si se solicita explícitamente)
 app.post('/api/analyze-image', async (req, res) => {
   try {
+    const sharp = await loadSharp();
+    if (!sharp) {
+      return res.status(501).json({ error: 'Funcionalidad no disponible: sharp no instalado' });
+    }
+
     const { filename } = req.body;
     
     if (!filename) {

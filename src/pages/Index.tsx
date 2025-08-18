@@ -356,14 +356,22 @@ const Index = () => {
     // Si no hay imagen configurada, intentar usar la última subida desde el servidor
     const stored = localStorage.getItem('stebe-top-left-image');
     if (!stored) {
-      fetch('/api/images/latest').then(r => r.json()).then(data => {
-        if (data?.image) {
-          // Preferir original_url sobre path
-          const imageUrl = data.image.original_url || data.image.path;
-          localStorage.setItem('stebe-top-left-image', imageUrl);
-          setTopLeftImage(imageUrl);
-        }
-      }).catch(() => {});
+      fetch('/api/images/latest')
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(data => {
+          if (data?.image) {
+            const imageUrl = data.image.original_url || data.image.path;
+            localStorage.setItem('stebe-top-left-image', imageUrl);
+            setTopLeftImage(imageUrl);
+          } else {
+            // Fallback a recurso estático en /public si existe
+            setTopLeftImage('/lovable-uploads/te obesrvo.png');
+          }
+        })
+        .catch(() => {
+          // Silenciar error si backend no está disponible
+          setTopLeftImage('/lovable-uploads/te obesrvo.png');
+        });
     }
   }, []);
 
