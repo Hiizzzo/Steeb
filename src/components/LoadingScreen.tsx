@@ -11,7 +11,7 @@ const LoadingScreen: React.FC = () => {
         >
           STEBE
         </h1>
-        <div className="mt-2 text-sm text-black/70">v0.12</div>
+        <div className="mt-2 text-sm text-black/70">v0.13</div>
         
         {/* Puntos animados debajo del texto */}
         <div className="flex justify-center items-center space-x-1 mt-6">

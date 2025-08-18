@@ -16,25 +16,28 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showCalendarMenu, setShowCalendarMenu] = useState(false);
+  const [menuVariant, setMenuVariant] = useState<'dark' | 'light'>('light');
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const loadingTimer = useRef<NodeJS.Timeout | null>(null);
   const hasLongPressTriggered = useRef(false);
+  const menuRootRef = useRef<HTMLDivElement | null>(null);
 
   // Handler para iniciar el long press
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Preparar interacción de long-press
+    // Variantes por tema: dark -> círculo único negro; light -> 3 círculos blancos
+    const isDark = document.documentElement.classList.contains('dark');
+    setMenuVariant(isDark ? 'dark' : 'light');
+
     hasLongPressTriggered.current = false;
     setShowCalendar(false);
     setIsLongPressed(true);
 
-    // Evitar selección durante la pulsación
     document.body.style.userSelect = 'none';
     document.body.style.webkitUserSelect = 'none';
 
-    // Temporizador para abrir Acciones rápidas si se mantiene presionado
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
     }
@@ -45,11 +48,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     }, 600);
   };
 
-  // Handler para eventos touch (fallback para mejor compatibilidad móvil)
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Simular el comportamiento de pointerdown para touch events
     const syntheticEvent = {
       preventDefault: () => e.preventDefault(),
       stopPropagation: () => e.stopPropagation()
@@ -57,11 +58,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     handlePointerDown(syntheticEvent);
   };
 
-  // Handler para soltar el botón
   const handlePointerUp = (e: React.PointerEvent) => {
-    e.preventDefault(); // Prevenir comportamientos por defecto
-    e.stopPropagation(); // Prevenir propagación del evento
-    
+    e.preventDefault();
+    e.stopPropagation();
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
@@ -70,23 +69,15 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
       clearTimeout(loadingTimer.current);
       loadingTimer.current = null;
     }
-    
-    // Restaurar selección de texto
     document.body.style.userSelect = '';
     document.body.style.webkitUserSelect = '';
-    
-    // Si no alcanzó el umbral de long press, abrir modal de tarea
     if (!hasLongPressTriggered.current) {
       setShowTaskModal(true);
     }
-    
-    // Solo cerrar el estado de long press, pero mantener el menú abierto si ya se mostró
     setIsLongPressed(false);
     setShowCalendar(false);
-    // NO cerramos showCalendarMenu aquí - se mantiene abierto hasta que el usuario haga clic
   };
 
-  // Handler para touch end
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -97,8 +88,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     handlePointerUp(syntheticEvent);
   };
 
-  // Handler para cancelar si el usuario sale del área
-  const handlePointerLeave = (e: React.PointerEvent) => {
+  const handlePointerLeave = (_e: React.PointerEvent) => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
@@ -107,21 +97,16 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
       clearTimeout(loadingTimer.current);
       loadingTimer.current = null;
     }
-    
-    // Restaurar selección de texto
     document.body.style.userSelect = '';
     document.body.style.webkitUserSelect = '';
-    
     setIsLongPressed(false);
     setShowCalendar(false);
     hasLongPressTriggered.current = false;
-    // Solo cerrar el menú si no se ha abierto completamente
     if (!showCalendarMenu) {
       setShowCalendarMenu(false);
     }
   };
 
-  // Handler para touch cancel/leave
   const handleTouchCancel = (e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -132,14 +117,12 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     handlePointerLeave(syntheticEvent);
   };
 
-  // Handler para prevenir menú contextual que puede interferir
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     return false;
   };
 
-  // Limpiar estilos al desmontar el componente
   useEffect(() => {
     return () => {
       document.body.style.userSelect = '';
@@ -147,17 +130,41 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     };
   }, []);
 
-  // Handler para crear tarea desde el modal
+  // Cerrar con Esc
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowCalendarMenu(false);
+    };
+    if (showCalendarMenu) window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showCalendarMenu]);
+
+  // Cerrar con clic de mouse fuera, a prueba de z-index/conflictos
+  useEffect(() => {
+    if (!showCalendarMenu) return;
+    const handleDocumentDown = (e: Event) => {
+      const root = menuRootRef.current;
+      if (root && !root.contains(e.target as Node)) {
+        setShowCalendarMenu(false);
+      }
+    };
+    document.addEventListener('pointerdown', handleDocumentDown, { capture: true });
+    document.addEventListener('mousedown', handleDocumentDown, { capture: true });
+    document.addEventListener('click', handleDocumentDown, { capture: true });
+    document.addEventListener('touchstart', handleDocumentDown, { capture: true });
+    return () => {
+      document.removeEventListener('pointerdown', handleDocumentDown, { capture: true } as any);
+      document.removeEventListener('mousedown', handleDocumentDown, { capture: true } as any);
+      document.removeEventListener('click', handleDocumentDown, { capture: true } as any);
+      document.removeEventListener('touchstart', handleDocumentDown, { capture: true } as any);
+    };
+  }, [showCalendarMenu]);
+
   const handleCreateTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
     setShowTaskModal(false);
-    
-    // Si tenemos la función onCreateTask, la usamos para crear la tarea directamente
     if (onCreateTask) {
-      console.log('🎯 Creando tarea desde FloatingButtons:', { title, type, scheduledDate, notes, isPrimary });
       onCreateTask(title, type, subtasks, scheduledDate, scheduledTime, notes, isPrimary);
     } else {
-      // Fallback: abrir el modal principal
-      console.log('⚠️ No se encontró onCreateTask, abriendo modal principal');
       onAddTask();
     }
   };
@@ -166,7 +173,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     <>
       <div className="fixed bottom-8 left-0 right-0 z-50 pointer-events-none no-select">
         <div className="flex items-center justify-center px-8 pointer-events-none no-select">
-          {/* Botón Principal */}
           <motion.button
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
@@ -199,7 +205,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   className="relative"
                 >
                   <Calendar size={28} className="text-white dark:!text-black sm:w-8 sm:h-8" strokeWidth={3} />
-                  {/* Indicador de "mantener presionado" */}
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 1, repeat: Infinity }}
@@ -235,7 +240,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
         </div>
       </div>
 
-      {/* Modal de Creación de Tarea */}
       <AnimatePresence>
         {showTaskModal && (
           <TaskCreationCard
@@ -245,81 +249,138 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
         )}
       </AnimatePresence>
 
-      {/* Menú Radial (long press) */}
+      {/* Menú Acciones Rápidas */}
       <AnimatePresence>
         {showCalendarMenu && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50"
+            className="fixed inset-0 z-[9999] pointer-events-auto"
             onClick={() => setShowCalendarMenu(false)}
+            onPointerDown={() => setShowCalendarMenu(false)}
+            onMouseDown={() => setShowCalendarMenu(false)}
+            onTouchStart={() => setShowCalendarMenu(false)}
+            role="button"
+            tabIndex={-1}
           >
-            {/* Overlay oscurecido */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.55 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black"
+              onClick={() => setShowCalendarMenu(false)}
+              onPointerDown={() => setShowCalendarMenu(false)}
+              onMouseDown={() => setShowCalendarMenu(false)}
+              onTouchStart={() => setShowCalendarMenu(false)}
             />
 
-            {/* Contenedor central para los 4 botones en cruz */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', duration: 0.4 }}
-              className="absolute inset-0 flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              ref={menuRootRef}
             >
-              {/* Círculo invisible para posicionamiento */}
               <div className="relative w-[0px] h-[0px]">
-                {/* Arriba - Calendario */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/monthly-calendar');
-                  }}
-                  className="absolute -top-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <Calendar size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Calendario</span>
-                </button>
+                {menuVariant === 'dark' ? (
+                  // Círculo único negro con 3 opciones internas (móvil), sin textos
+                  <div
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-white bg-black text-white flex items-center justify-center shadow-xl pointer-events-auto"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                  >
+                    {/* Líneas divisorias en Y */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-white" style={{ height: '36%', top: '0' }} />
+                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-white" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(60deg)', transformOrigin: 'top' }} />
+                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-white" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(-60deg)', transformOrigin: 'top' }} />
+                    </div>
 
-                {/* Derecha - Estadísticas */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/productivity-stats');
-                  }}
-                  className="absolute -right-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <BarChart2 size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Estadísticas</span>
-                </button>
+                    {/* Botón arriba - Calendario (más cerca del centro) */}
+                    <button
+                      aria-label="Calendario"
+                      onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
+                      className="absolute pointer-events-auto"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                    >
+                      <Calendar size={36} color="#FFFFFF" />
+                    </button>
 
-                {/* Izquierda - Chat con Stebe */}
-                <button
-                  onClick={() => {
-                    setShowCalendarMenu(false);
-                    navigate('/chat');
-                  }}
-                  className="absolute -left-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-black flex flex-col items-center justify-center"
-                  style={{ color: '#FFFFFF' }}
-                >
-                  <MessageCircle size={28} color="#FFFFFF" />
-                  <span className="mt-1 text-xs font-semibold" style={{ color: '#FFFFFF' }}>Chat con Stebe</span>
-                </button>
+                    {/* Botón abajo-izquierda - Chat (separar levemente) */}
+                    <button
+                      aria-label="Chat con Stebe"
+                      onClick={() => { setShowCalendarMenu(false); navigate('/chat'); }}
+                      className="absolute pointer-events-auto"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      style={{ top: '70%', left: '29%', transform: 'translate(-50%, -50%)' }}
+                    >
+                      <MessageCircle size={34} color="#FFFFFF" />
+                    </button>
 
-                 
-                 
-               </div>
-             </motion.div>
-           </motion.div>
-         )}
-       </AnimatePresence>
+                    {/* Botón abajo-derecha - Estadísticas (separar levemente) */}
+                    <button
+                      aria-label="Estadísticas"
+                      onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
+                      className="absolute pointer-events-auto"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      style={{ top: '70%', left: '71%', transform: 'translate(-50%, -50%)' }}
+                    >
+                      <BarChart2 size={34} color="#FFFFFF" />
+                    </button>
+                  </div>
+                ) : (
+                  // Variante blanca: 3 círculos separados
+                  <>
+                    <button
+                      onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
+                      className="absolute -top-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-white flex flex-col items-center justify-center z-10 pointer-events-auto"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      style={{ color: '#000000', backgroundColor: '#FFFFFF' }}
+                    >
+                      <Calendar size={28} color="#000000" className="z-10" />
+                      <span className="mt-1 text-xs font-semibold" style={{ color: '#000000' }}>Calendario</span>
+                    </button>
+                    <button
+                      onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
+                      className="absolute -right-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-white flex flex-col items-center justify-center z-10 pointer-events-auto"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      style={{ color: '#000000', backgroundColor: '#FFFFFF' }}
+                    >
+                      <BarChart2 size={28} color="#000000" className="z-10" />
+                      <span className="mt-1 text-xs font-semibold" style={{ color: '#000000' }}>Estadísticas</span>
+                    </button>
+                    <button
+                      onClick={() => { setShowCalendarMenu(false); navigate('/chat'); }}
+                      className="absolute -left-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-white flex flex-col items-center justify-center z-10 pointer-events-auto"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      style={{ color: '#000000', backgroundColor: '#FFFFFF' }}
+                    >
+                      <MessageCircle size={28} color="#000000" className="z-10" />
+                      <span className="mt-1 text-xs font-semibold" style={{ color: '#000000' }}>Chat con Stebe</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

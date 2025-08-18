@@ -35,6 +35,56 @@ const ANIMATION_CONFIG = {
   }
 };
 
+// Helpers de fecha local (evitar desfase UTC)
+function toLocalDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+function tryParseDate(input: string): Date | null {
+  if (!input) return null;
+  // ISO o parseable por Date
+  const d1 = new Date(input);
+  if (!isNaN(d1.getTime())) return d1;
+  // YYYY/MM/DD
+  const ymdSlash = input.match(/^(\d{4})[\/](\d{1,2})[\/](\d{1,2})$/);
+  if (ymdSlash) {
+    const [, y, m, d] = ymdSlash;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
+  // DD/MM/YYYY
+  const dmy = input.match(/^(\d{1,2})[\/](\d{1,2})[\/](\d{4})$/);
+  if (dmy) {
+    const [, d, m, y] = dmy;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
+  // YYYY-MM-DD (ya manejado por Date en la mayoría, pero por si falla en algunos entornos)
+  const ymdDash = input.match(/^(\d{4})[-](\d{1,2})[-](\d{1,2})$/);
+  if (ymdDash) {
+    const [, y, m, d] = ymdDash;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
+  return null;
+}
+function normalizeDateString(input?: string): string | null {
+  if (!input) return null;
+  const d = tryParseDate(input);
+  return d ? toLocalDateString(d) : null;
+}
+function parseLocalDate(dateStr: string): Date {
+  // Parsear YYYY-MM-DD como local para evitar el salto de día por UTC
+  const ymdDash = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (ymdDash) {
+    const [, y, m, d] = ymdDash;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
+  const parsed = tryParseDate(dateStr);
+  if (parsed) return parsed;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+
 // Types imported from '@/types'
 
 interface CalendarDay {
@@ -63,7 +113,7 @@ const MonthlyCalendarPage: React.FC = () => {
   } = useTaskStore();
 
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(toLocalDateString(new Date()));
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -87,10 +137,16 @@ const MonthlyCalendarPage: React.FC = () => {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       
-      const dateString = date.toISOString().split('T')[0];
-      const dayTasks = tasks.filter(task =>
-        task.scheduledDate === dateString || task.completedDate?.split('T')[0] === dateString
-      );
+      const dateString = toLocalDateString(date);
+      const isTodayCell = dateString === toLocalDateString(new Date());
+      const dayTasks = tasks.filter(task => {
+        const scheduledStr = normalizeDateString(task.scheduledDate);
+        const completedStr = normalizeDateString(task.completedDate || '');
+        const noDateAsToday = !scheduledStr && isTodayCell; // tareas sin fecha caen en HOY
+        const scheduledMatch = scheduledStr ? scheduledStr === dateString : noDateAsToday;
+        const completedMatch = completedStr ? completedStr === dateString : false;
+        return scheduledMatch || completedMatch;
+      });
       const completedTasks = dayTasks.filter(task => task.completed).length;
       const totalTasks = dayTasks.length;
       const completionPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -100,7 +156,7 @@ const MonthlyCalendarPage: React.FC = () => {
         date,
         dateString,
         isCurrentMonth: date.getMonth() === month,
-        isToday: date.toDateString() === today.toDateString(),
+        isToday: toLocalDateString(date) === toLocalDateString(today),
         isSelected: selectedDate === dateString,
         tasks: dayTasks,
         completedTasks,
@@ -251,7 +307,6 @@ const MonthlyCalendarPage: React.FC = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
-
   // Estadísticas del mes actual (tareas completadas y programadas)
   const monthStats = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -372,19 +427,48 @@ const MonthlyCalendarPage: React.FC = () => {
         {day.day}
       </div>
 
-      {/* Contador de tareas completadas del día (eliminado) */}
-      {/* Se removió la visualización del número de tareas completadas para no mostrarlo en cada día */}
-
       {/* Barra de progreso diaria (siempre visible) */}
       <div className={`absolute left-2 right-2 bottom-1 h-1 rounded-full overflow-hidden 
         ${day.isCurrentMonth ? 'bg-neutral-200 dark:bg-white/20' : 'bg-neutral-100 dark:bg-white/10'}`}
       >
         {(() => {
-          const width = day.totalTasks === 0 ? '0%' : (day.completedTasks === day.totalTasks ? '100%' : '50%');
+          if (day.totalTasks === 0) {
+            return (
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '0%' }}
+                transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
+                className={`h-full rounded-full bg-neutral-300 dark:bg-white/30`}
+              />
+            );
+          }
+
+          const ratio = day.completedTasks / day.totalTasks; // 0..1
+
+          // Reglas de cuantización (8 estados): 0, 1/8, 2/8, 4/8, 5/8, 6/8, 7/8, 1
+          let width = 0;
+          if (ratio >= 1) {
+            width = 100;
+          } else if (ratio >= 7 / 8) {
+            width = (7 / 8) * 100;
+          } else if (ratio >= 6 / 8) {
+            width = (6 / 8) * 100;
+          } else if (ratio >= 5 / 8) {
+            width = (5 / 8) * 100;
+          } else if (ratio >= 4 / 8) {
+            width = (4 / 8) * 100;
+          } else if (ratio >= 2 / 8) {
+            width = (2 / 8) * 100;
+          } else if (ratio >= 1 / 8) {
+            width = (1 / 8) * 100;
+          } else {
+            width = 0;
+          }
+
           return (
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width }}
+              animate={{ width: `${width}%` }}
               transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
               className={`h-full rounded-full ${day.totalTasks > 0 ? 'bg-black dark:!bg-white' : 'bg-neutral-300 dark:bg-white/30'}`}
             />
@@ -473,7 +557,7 @@ const MonthlyCalendarPage: React.FC = () => {
         </div>
 
         {/* Controles del calendario */}
-                 <Card className="p-3 mb-2 bg-white dark:bg-neutral-900 dark:border-white/10 border">
+        <Card className="p-3 mb-2 bg-white dark:bg-neutral-900 dark:border-white/10 border">
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
@@ -490,7 +574,7 @@ const MonthlyCalendarPage: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                                 className="text-2xl font-bold text-black dark:text-white"
+                className="text-2xl font-bold text-black dark:text-white"
               >
                 {capitalize(currentDate.toLocaleDateString('es-ES', { 
                   month: 'long', 
@@ -520,7 +604,7 @@ const MonthlyCalendarPage: React.FC = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                                 className="text-center text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 py-1"
+                className="text-center text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 py-1"
               >
                 {day}
               </motion.div>
@@ -551,13 +635,13 @@ const MonthlyCalendarPage: React.FC = () => {
               </div>
               <span>Más</span>
             </div>
-                         <p className="mt-2 text-center text-sm text-gray-800 dark:text-gray-200">
-              {new Date(selectedDate || new Date().toISOString().split('T')[0]).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+            <p className="mt-2 text-center text-sm text-gray-800 dark:text-gray-200">
+              {parseLocalDate(selectedDate || toLocalDateString(new Date())).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
             </p>
             {/* Resumen de tareas del día seleccionado */}
-                         <p className="mt-1 text-center text-xs text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-center text-xs text-gray-600 dark:text-gray-400">
               {(() => {
-                const day = calendarDays.find(d => d.dateString === (selectedDate || new Date().toISOString().split('T')[0]));
+                const day = calendarDays.find(d => d.dateString === (selectedDate || toLocalDateString(new Date())));
                 const completed = day?.completedTasks ?? 0;
                 const total = day?.totalTasks ?? 0;
                 return `${completed} ${completed === 1 ? 'tarea hecha' : 'tareas hechas'}${total > 0 ? ` · ${total} en total` : ''}`;
@@ -577,7 +661,7 @@ const MonthlyCalendarPage: React.FC = () => {
               className="bg-white dark:bg-neutral-900 dark:border-white/10 border rounded-2xl p-4 shadow-sm"
             >
               <h3 className="text-lg font-semibold mb-3 text-black text-center">
-                Tareas del {new Date(selectedDate).toLocaleDateString('es-ES', { 
+                Tareas del {parseLocalDate(selectedDate).toLocaleDateString('es-ES', { 
                   weekday: 'long', 
                   year: 'numeric', 
                   month: 'long', 
