@@ -17,6 +17,7 @@ import AppUpdateNotification from '@/components/AppUpdateNotification';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 import TaskCreationCard from '@/components/TaskCreationCard';
+import MonthlyCalendar from '@/components/MonthlyCalendar';
 
 interface SubTask {
   id: string;
@@ -515,8 +516,12 @@ const Index = () => {
           </div>
         </>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-lg text-gray-600">Vista de calendario no implementada</p>
+        <div className="pt-1 max-w-md mx-auto px-3">
+          <MonthlyCalendar
+            tasks={tasks}
+            onToggleTask={handleToggleTask}
+            onToggleSubtask={handleToggleSubtask}
+          />
         </div>
       )}
 

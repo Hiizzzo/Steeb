@@ -55,21 +55,37 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const getTypeIcon = () => {
     switch (type) {
       case 'productividad':
-        return <img src="/lovable-uploads/ed87121c-fa95-442d-8f28-4374f90b4cdb.png" alt="Productividad" className="w-5 h-5" />;
+        return (
+          <img
+            src="/lovable-uploads/taskproductividad.svg"
+            alt="Productividad"
+            className="w-8 h-8 object-contain"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = 'png';
+                target.src = '/lovable-uploads/taskproductividad.png';
+              } else {
+                target.onerror = null;
+                target.src = '/lovable-uploads/ed87121c-fa95-442d-8f28-4374f90b4cdb.png';
+              }
+            }}
+          />
+        );
       case 'creatividad':
-        return <img src="/lovable-uploads/960a5bce-1ea1-46b3-9a15-9bbb2c33d476.png" alt="Creatividad" className="w-5 h-5" />;
+        return <img src="/lovable-uploads/taskcreatividad.svg" alt="Creatividad" className="w-8 h-8 object-contain" onError={(e)=>{const t=e.currentTarget as HTMLImageElement;if(!t.dataset.fallback){t.dataset.fallback='png';t.src='/lovable-uploads/taskcreatividad.png';}else{t.onerror=null;t.src='/lovable-uploads/960a5bce-1ea1-46b3-9a15-9bbb2c33d476.png';}}} />;
       case 'aprendizaje':
-        return <img src="/lovable-uploads/5867110b-7acc-4a17-b021-60d80362cb31.png" alt="Aprendizaje" className="w-5 h-5" />;
+        return <img src="/lovable-uploads/taskaprendizaje.svg" alt="Aprendizaje" className="w-8 h-8 object-contain" onError={(e)=>{const t=e.currentTarget as HTMLImageElement;if(!t.dataset.fallback){t.dataset.fallback='png';t.src='/lovable-uploads/taskaprendizaje.png';}else{t.onerror=null;t.src='/lovable-uploads/5867110b-7acc-4a17-b021-60d80362cb31.png';}}} />;
       case 'organizacion':
-        return <div className="w-5 h-5 border-black border-l-4" />;
+        return <img src="/lovable-uploads/taskorganizacion.svg" alt="Organización" className="w-8 h-8 object-contain" onError={(e)=>{const t=e.currentTarget as HTMLImageElement;if(!t.dataset.fallback){t.dataset.fallback='png';t.src='/lovable-uploads/taskorganizacion.png';}else{t.onerror=null;t.src='/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png';}}} />;
       case 'salud':
-        return <img src="/lovable-uploads/e6d7c376-16cd-4c37-94bf-5fb5aeffcc6b.png" alt="Salud" className="w-5 h-5" />;
+        return <img src="/lovable-uploads/tasksalud.svg" alt="Salud" className="w-8 h-8 object-contain" onError={(e)=>{const t=e.currentTarget as HTMLImageElement;if(!t.dataset.fallback){t.dataset.fallback='png';t.src='/lovable-uploads/tasksalud.png';}else{t.onerror=null;t.src='/lovable-uploads/e6d7c376-16cd-4c37-94bf-5fb5aeffcc6b.png';}}} />;
       case 'social':
-        return <img src="/lovable-uploads/9a30aed8-3111-4f08-8513-1b1b5a47f5f1.png" alt="Social" className="w-5 h-5" />;
+        return <img src="/lovable-uploads/tasksocial.svg" alt="Social" className="w-8 h-8 object-contain" onError={(e)=>{const t=e.currentTarget as HTMLImageElement;if(!t.dataset.fallback){t.dataset.fallback='png';t.src='/lovable-uploads/tasksocial.png';}else{t.onerror=null;t.src='/lovable-uploads/9a30aed8-3111-4f08-8513-1b1b5a47f5f1.png';}}} />;
       case 'entretenimiento':
-        return <img src="/lovable-uploads/a2ff8acd-d80d-49f7-9e88-0962d6e54bd6.png" alt="Entretenimiento" className="w-5 h-5" />;
+        return <img src="/lovable-uploads/taskentretenimiento.svg" alt="Entretenimiento" className="w-8 h-8 object-contain" onError={(e)=>{const t=e.currentTarget as HTMLImageElement;t.onerror=null;t.src='/lovable-uploads/a2ff8acd-d80d-49f7-9e88-0962d6e54bd6.png';}} />;
       case 'extra':
-        return <img src="/lovable-uploads/db7fad8b-8361-464e-a371-b6cf8c2d4257.png" alt="Extra" className="w-5 h-5" />;
+        return <img src="/lovable-uploads/taskextra.svg" alt="Extra" className="w-8 h-8 object-contain" onError={(e)=>{const t=e.currentTarget as HTMLImageElement;if(!t.dataset.fallback){t.dataset.fallback='png';t.src='/lovable-uploads/taskextra.png';}else{t.onerror=null;t.src='/lovable-uploads/db7fad8b-8361-464e-a371-b6cf8c2d4257.png';}}} />;
       default:
         return <div className="w-5 h-5 border border-black" />;
     }
@@ -239,13 +255,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </div>
             
             {/* Texto de la tarea y hora */}
-            <div className="flex-1">
+            <div className="flex-1 mr-4 ml-6">
               <span 
-                className={`text-lg font-medium transition-all duration-300 ${
+                className={`text-lg font-normal transition-all duration-300 ${
                   completed 
                     ? 'line-through text-gray-400' 
                     : 'text-black dark:text-black'
-                } font-varela`}
+                }`} style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui, -apple-system, sans-serif' }}
               >
                 {title.trim() || 'Tarea sin título'}
               </span>

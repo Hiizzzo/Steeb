@@ -40,7 +40,24 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
   const [viewMode, setViewMode] = useState<'month' | 'day'>('month');
   const [isAnimating, setIsAnimating] = useState(false);
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
+  const [backAnimating, setBackAnimating] = useState(false);
   const navigate = useNavigate();
+
+  // Helpers para fechas locales (evitar desfase por UTC)
+  const toLocalDateString = (date: Date): string => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const normalizeDateString = (input?: string): string | null => {
+    if (!input) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input; // ya está normalizado
+    const d = new Date(input);
+    if (!isNaN(d.getTime())) return toLocalDateString(d);
+    return null;
+  };
 
   // Funciones para navegación del calendario
   const goToPreviousMonth = () => {
@@ -141,11 +158,16 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
   // Obtener tareas para una fecha específica
   const getTasksForDate = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = toLocalDateString(date);
+    const isToday = dateString === toLocalDateString(new Date());
     return tasks.filter(task => {
-      if (task.scheduledDate === dateString) return true;
-      if (task.completedDate && task.completedDate.split('T')[0] === dateString) return true;
-      return false;
+      const scheduledStr = normalizeDateString(task.scheduledDate);
+      const completedStr = normalizeDateString(task.completedDate || undefined) || '';
+      // Sin fecha se consideran para HOY (como en la vista de tareas)
+      const noDateAsToday = !scheduledStr && isToday;
+      const scheduledMatch = scheduledStr ? scheduledStr === dateString : noDateAsToday;
+      const completedMatch = completedStr ? completedStr === dateString : false;
+      return scheduledMatch || completedMatch;
     });
   };
 
@@ -262,14 +284,28 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <motion.button
-                onClick={handleBackToMonth}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
-              </motion.button>
+              <div className="relative rounded-full overflow-hidden">
+                <motion.button
+                  onClick={() => {
+                    setBackAnimating(true);
+                    setTimeout(() => {
+                      handleBackToMonth();
+                      setBackAnimating(false);
+                    }, 220);
+                  }}
+                  className="relative z-20 p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <ArrowLeft className={`w-4 h-4 sm:w-5 sm:h-5 ${backAnimating ? 'text-white' : 'text-gray-700'}`} />
+                </motion.button>
+                <motion.span
+                  className="absolute inset-0 z-10 bg-black pointer-events-none"
+                  initial={{ x: '100%' }}
+                  animate={{ x: backAnimating ? 0 : '100%' }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                />
+              </div>
               
               <div className="flex space-x-1 sm:space-x-2">
                 <motion.button

@@ -136,14 +136,137 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
   const getTagIcon = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
-      case 'productividad': return null;
-      case 'creatividad': return null;
-      case 'aprendizaje': return <img src="/lovable-uploads/31c5d755-019b-4fe3-a86c-ab26dd8e6a84.png" alt="Aprendizaje" className="w-6 h-6" />;
-      case 'organizacion': return <img src="/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png" alt="Organización" className="w-6 h-6" />;
-      case 'salud': return <div className="w-4 h-4 border-black border-b-4" />;
-      case 'social': return <div className="w-4 h-4 border border-black rounded-full" />;
-      case 'entretenimiento': return <img src="/lovable-uploads/entretenimiento-icon.svg" alt="Entretenimiento" className="w-6 h-6" />;
-      case 'extra': return <img src="/lovable-uploads/lightbulb-icon.svg" alt="Extra" className="w-5 h-5" />;
+      case 'productividad': return (
+        <img
+          src="/lovable-uploads/taskproductividad.svg"
+          alt="Productividad"
+          className="w-8 h-8 mr-2"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'png';
+              target.src = '/lovable-uploads/taskproductividad.png';
+            } else {
+              target.onerror = null;
+              target.src = '/lovable-uploads/ed87121c-fa95-442d-8f28-4374f90b4cdb.png';
+            }
+          }}
+        />
+      );
+      case 'creatividad': return (
+        <img
+          src="/lovable-uploads/taskcreatividad.svg"
+          alt="Creatividad"
+          className="w-8 h-auto mr-2 object-contain"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'png';
+              target.src = '/lovable-uploads/taskcreatividad.png';
+            } else {
+              target.onerror = null;
+              target.src = '/lovable-uploads/960a5bce-1ea1-46b3-9a15-9bbb2c33d476.png';
+            }
+          }}
+        />
+      );
+      case 'aprendizaje': return (
+        <img
+          src="/lovable-uploads/taskaprendizaje.svg"
+          alt="Aprendizaje"
+          className="w-8 h-8 mr-2"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'png';
+              target.src = '/lovable-uploads/taskaprendizaje.png';
+            } else {
+              target.onerror = null;
+              target.src = '/lovable-uploads/31c5d755-019b-4fe3-a86c-ab26dd8e6a84.png';
+            }
+          }}
+        />
+      );
+      case 'organizacion': return (
+        <img
+          src="/lovable-uploads/taskorganizacion.svg"
+          alt="Organización"
+          className="w-8 h-8 mr-2"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'png';
+              target.src = '/lovable-uploads/taskorganizacion.png';
+            } else {
+              target.onerror = null;
+              target.src = '/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png';
+            }
+          }}
+        />
+      );
+      case 'salud': return (
+        <img
+          src="/lovable-uploads/tasksalud.svg"
+          alt="Salud"
+          className="w-8 h-8 mr-2"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'png';
+              target.src = '/lovable-uploads/tasksalud.png';
+            } else {
+              target.onerror = null;
+              target.src = '/lovable-uploads/e6d7c376-16cd-4c37-94bf-5fb5aeffcc6b.png';
+            }
+          }}
+        />
+      );
+      case 'social': return (
+        <img
+          src="/lovable-uploads/tasksocial.svg"
+          alt="Social"
+          className="w-8 h-8 mr-2"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'png';
+              target.src = '/lovable-uploads/tasksocial.png';
+            } else {
+              target.onerror = null;
+              target.src = '/lovable-uploads/9a30aed8-3111-4f08-8513-1b1b5a47f5f1.png';
+            }
+          }}
+        />
+      );
+      case 'entretenimiento': return (
+        <img
+          src="/lovable-uploads/taskentretenimiento.svg"
+          alt="Entretenimiento"
+          className="w-8 h-8 mr-2"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            target.onerror = null;
+            target.src = '/lovable-uploads/a2ff8acd-d80d-49f7-9e88-0962d6e54bd6.png';
+          }}
+        />
+      );
+      case 'extra': return (
+        <img
+          src="/lovable-uploads/taskextra.svg"
+          alt="Extra"
+          className="w-8 h-8 mr-2"
+          onError={(e) => {
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = 'png';
+              target.src = '/lovable-uploads/taskextra.png';
+            } else {
+              target.onerror = null;
+              target.src = '/lovable-uploads/lightbulb-icon.svg';
+            }
+          }}
+        />
+      );
     }
   };
 
@@ -193,7 +316,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Nombre de la tarea"
-              className="w-full text-lg text-black placeholder-gray-400 border-none outline-none bg-transparent"
+              className="w-full text-lg text-black placeholder-gray-400 border-none outline-none bg-transparent pr-6"
               autoFocus
             />
           </div>
@@ -256,7 +379,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
           >
             {getTagIcon(selectedTag)}
-            <span className="font-medium">{getTagLabel(selectedTag)}</span>
+            <span className="font-semibold mr-4">{getTagLabel(selectedTag)}</span>
           </button>
         </div>
 
@@ -301,10 +424,10 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                     setSelectedTag(tag);
                     setShowTagPicker(false);
                   }}
-                  className="flex items-center gap-3 px-3 py-3 hover:bg-gray-50 transition-colors rounded-lg border border-gray-200"
+                  className="flex items-center gap-4 px-3 py-3 min-h-[64px] hover:bg-gray-50 transition-colors rounded-lg border border-gray-300 hover:border-gray-400"
                 >
                   {getTagIcon(tag)}
-                  <span className="text-black font-medium text-sm">{getTagLabel(tag)}</span>
+                  <span className="text-black font-semibold text-base mr-4">{getTagLabel(tag)}</span>
                   {selectedTag === tag && (
                     <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
                   )}

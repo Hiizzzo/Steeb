@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import CalendarStatsHeader from '@/components/CalendarStatsHeader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy } from 'lucide-react';
@@ -494,8 +495,8 @@ const MonthlyCalendarPage: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-black p-2 pt-1">
       {/* Header con navegación */}
       <div className="max-w-[430px] mx-auto">
-        {/* Botón Volver */}
-        <div className="flex justify-start mb-2">
+        {/* Barra superior: solo Volver */}
+        <div className="flex items-center justify-start mb-2">
           <motion.button
             onClick={() => navigate('/')}
             className="flex items-center gap-2 px-4 py-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200 dark:bg-transparent dark:text-white dark:border-white"
@@ -507,57 +508,24 @@ const MonthlyCalendarPage: React.FC = () => {
           </motion.button>
         </div>
 
-        {/* Botón Ver más detalles */}
-        <div className="flex justify-center mb-2">
-          <motion.button
-            onClick={() => navigate('/productivity-stats')}
-            className="px-4 py-1.5 rounded-full border bg-white hover:bg-black hover:text-white transition-colors text-sm shadow-sm"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-          >
-            Ver más detalles
-          </motion.button>
-        </div>
-
         {/* Título centrado */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-3 hidden sm:block"
+          className="text-center mb-2 hidden sm:block"
         >
           <h1 className="text-xl sm:text-2xl font-bold text-black">
             Hoy es un gran día para tachar pendientes
           </h1>
         </motion.div>
 
-        {/* Tarjetas de métricas */}
-        <div className="mb-2 -mx-1 px-1 hidden sm:block">
-          <div className="grid grid-cols-4 gap-2">
-            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <Flame className="w-4 h-4" />
-              <div className="text-lg font-bold">{currentStreak}</div>
-              <div className="text-[11px] text-gray-600 leading-none mt-0.5">días de racha</div>
-            </div>
-            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <CheckCircle className="w-4 h-4" />
-              <div className="text-lg font-bold">{totalCompleted}</div>
-              <div className="text-[11px] text-gray-600 leading-none mt-0.5">tareas completadas</div>
-            </div>
-            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <Calendar className="w-4 h-4" />
-              <div className="text-lg font-bold">{daysWithCompletedInMonth}</div>
-              <div className="text-[11px] text-gray-600 leading-none mt-0.5">Días activos</div>
-            </div>
-            <div className="rounded-xl border bg-white text-black p-2 flex flex-col items-center justify-center gap-1 shadow-sm">
-              <Trophy className="w-4 h-4" />
-              <div className="text-lg font-bold">{bestStreak}</div>
-              <div className="text-[11px] text-gray-600 leading-none mt-0.5">mejor racha</div>
-            </div>
-          </div>
+        {/* Tarjetas de métricas - siempre visibles */}
+        <div className="-mt-1">
+          <CalendarStatsHeader tasks={tasks} />
         </div>
 
         {/* Controles del calendario */}
-        <Card className="p-3 mb-2 bg-white dark:bg-neutral-900 dark:border-white/10 border">
+        <Card className="p-3 mb-2 bg-white dark:bg-neutral-900 dark:border-white/10 border relative">
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
@@ -648,6 +616,18 @@ const MonthlyCalendarPage: React.FC = () => {
               })()}
             </p>
             <div className="border-t mt-3 dark:border-white/10 border-black/10" />
+          </div>
+
+          {/* Botón Ver más detalles en esquina inferior derecha del calendario */}
+          <div className="absolute bottom-6 right-3">
+            <motion.button
+              onClick={() => navigate('/productivity-stats')}
+              className="px-4 py-1.5 rounded-full border bg-white hover:bg-black hover:text-white transition-colors text-sm shadow-sm"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+            >
+              + info
+            </motion.button>
           </div>
         </Card>
 
