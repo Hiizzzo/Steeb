@@ -24,9 +24,10 @@ const LoadingScreen: React.FC = () => {
         >
           STEBE
         </h1>
-        <div className={`mt-2 text-sm ${isDark ? 'text-white/70' : 'text-black/70'}`}>v0.14</div>
+        {/* Número de versión debajo del título */}
+        <div className={`mt-2 text-sm font-semibold tracking-wide ${isDark ? 'text-white/80' : 'text-black/80'}`}>0.2</div>
         
-        {/* Puntos animados debajo del texto */}
+        {/* Puntos animados */}
         <div className="flex justify-center items-center space-x-3 mt-6">
           <div className={`w-4 h-4 rounded-full animate-bounce [animation-delay:-0.3s] ${isDark ? 'bg-white border border-white/80' : 'bg-black border border-black/80'}`}></div>
           <div className={`w-4 h-4 rounded-full animate-bounce [animation-delay:-0.15s] ${isDark ? 'bg-white border border-white/80' : 'bg-black border border-black/80'}`}></div>

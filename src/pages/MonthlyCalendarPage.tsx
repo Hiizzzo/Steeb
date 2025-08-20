@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import CalendarStatsHeader from '@/components/CalendarStatsHeader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy } from 'lucide-react';
@@ -409,8 +408,7 @@ const MonthlyCalendarPage: React.FC = () => {
         ease: ANIMATION_CONFIG.easing as any
       }}
       className={`
-          relative h-12 sm:h-14 rounded-xl bg-white dark:bg-neutral-900 border
-          ${day.isCurrentMonth ? 'border-neutral-200 dark:border-white/10' : 'border-neutral-100 dark:border-white/5'}
+          relative h-14 sm:h-16 rounded-xl bg-white dark:bg-black
           ${day.isToday ? 'ring-2 ring-black dark:ring-white' : ''}
           ${day.isSelected ? 'outline outline-2 outline-black dark:outline-white' : ''}
           cursor-pointer transition-colors duration-150 hover:bg-neutral-50 dark:hover:bg-white/5
@@ -421,61 +419,49 @@ const MonthlyCalendarPage: React.FC = () => {
     >
       {/* Número del día */}
       <div
-        className={`absolute top-1 left-1/2 -translate-x-1/2 text-[13px] sm:text-[15px] tabular-nums
+        className={`absolute top-1 left-1/2 -translate-x-1/2 text-[18px] sm:text-[20px] tabular-nums
           ${day.isCurrentMonth ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 dark:text-white/60'}
           ${day.isToday ? 'font-bold' : 'font-semibold'}`}
       >
         {day.day}
       </div>
 
-      {/* Barra de progreso diaria (siempre visible) */}
-      <div className={`absolute left-2 right-2 bottom-1 h-1 rounded-full overflow-hidden 
-        ${day.isCurrentMonth ? 'bg-neutral-200 dark:bg-white/20' : 'bg-neutral-100 dark:bg-white/10'}`}
-      >
-        {(() => {
-          if (day.totalTasks === 0) {
+      {/* Barra de progreso: pegada al número y solo si hay tareas completadas */}
+      {day.completedTasks > 0 && (
+        <div className={`absolute left-2 right-2 top-8 sm:top-10 h-1 rounded-full overflow-hidden 
+          ${day.isCurrentMonth ? 'bg-neutral-200 dark:bg-white/20' : 'bg-neutral-100 dark:bg-white/10'}`}
+        >
+          {(() => {
+            const ratio = day.completedTasks / Math.max(1, day.totalTasks);
+            let width = 0;
+            if (ratio >= 1) {
+              width = 100;
+            } else if (ratio >= 7 / 8) {
+              width = (7 / 8) * 100;
+            } else if (ratio >= 6 / 8) {
+              width = (6 / 8) * 100;
+            } else if (ratio >= 5 / 8) {
+              width = (5 / 8) * 100;
+            } else if (ratio >= 4 / 8) {
+              width = (4 / 8) * 100;
+            } else if (ratio >= 2 / 8) {
+              width = (2 / 8) * 100;
+            } else if (ratio >= 1 / 8) {
+              width = (1 / 8) * 100;
+            } else {
+              width = 0;
+            }
             return (
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: '0%' }}
+                animate={{ width: `${width}%` }}
                 transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
-                className={`h-full rounded-full bg-neutral-300 dark:bg-white/30`}
+                className={`h-full rounded-full bg-black dark:!bg-white`}
               />
             );
-          }
-
-          const ratio = day.completedTasks / day.totalTasks; // 0..1
-
-          // Reglas de cuantización (8 estados): 0, 1/8, 2/8, 4/8, 5/8, 6/8, 7/8, 1
-          let width = 0;
-          if (ratio >= 1) {
-            width = 100;
-          } else if (ratio >= 7 / 8) {
-            width = (7 / 8) * 100;
-          } else if (ratio >= 6 / 8) {
-            width = (6 / 8) * 100;
-          } else if (ratio >= 5 / 8) {
-            width = (5 / 8) * 100;
-          } else if (ratio >= 4 / 8) {
-            width = (4 / 8) * 100;
-          } else if (ratio >= 2 / 8) {
-            width = (2 / 8) * 100;
-          } else if (ratio >= 1 / 8) {
-            width = (1 / 8) * 100;
-          } else {
-            width = 0;
-          }
-
-          return (
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${width}%` }}
-              transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
-              className={`h-full rounded-full ${day.totalTasks > 0 ? 'bg-black dark:!bg-white' : 'bg-neutral-300 dark:bg-white/30'}`}
-            />
-          );
-        })()}
-      </div>
+          })()}
+        </div>
+      )}
 
       {/* Hover sutil */}
       <AnimatePresence>
@@ -492,40 +478,32 @@ const MonthlyCalendarPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black p-2 pt-1">
+    <div className="min-h-screen bg-white dark:bg-black p-2 pt-1" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       {/* Header con navegación */}
       <div className="max-w-[430px] mx-auto">
-        {/* Barra superior: solo Volver */}
-        <div className="flex items-center justify-start mb-2">
+        {/* Barra superior: botón volver simplificado */}
+        <div className="flex items-center justify-start mb-2 -ml-2 sm:-ml-4">
           <motion.button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200 dark:bg-transparent dark:text-white dark:border-white"
+            className="flex items-center p-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200 dark:bg-transparent dark:text-white dark:border-white"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Volver</span>
           </motion.button>
         </div>
 
-        {/* Título centrado */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-2 hidden sm:block"
-        >
-          <h1 className="text-xl sm:text-2xl font-bold text-black">
-            Hoy es un gran día para tachar pendientes
-          </h1>
-        </motion.div>
-
-        {/* Tarjetas de métricas - siempre visibles */}
-        <div className="-mt-1">
-          <CalendarStatsHeader tasks={tasks} />
+        {/* Avatar de Stebe centrado */}
+        <div className="flex items-center justify-center my-2">
+          <img
+            src="/lovable-uploads/icono de la app.png"
+            alt="Stebe"
+            className="w-16 h-16 rounded-2xl"
+          />
         </div>
 
         {/* Controles del calendario */}
-        <Card className="p-3 mb-2 bg-white dark:bg-neutral-900 dark:border-white/10 border relative">
+        <Card className="p-3 mb-2 bg-white dark:bg-black relative border-0 shadow-none">
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
@@ -549,9 +527,7 @@ const MonthlyCalendarPage: React.FC = () => {
                   year: 'numeric' 
                 }))}
               </motion.h2>
-              <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                {currentDate.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace('de ', '')}
-              </div>
+              {/* Abreviatura removida para evitar duplicado */}
             </div>
 
             <motion.button
@@ -590,45 +566,7 @@ const MonthlyCalendarPage: React.FC = () => {
             {calendarDays.map((day, index) => renderCalendarDay(day, index))}
           </motion.div>
 
-          {/* Leyenda y fecha seleccionada */}
-          <div className="mt-2">
-            <div className="flex items-center justify-center gap-3 text-xs text-gray-700 dark:text-gray-300">
-              <span>Menos</span>
-              <div className="flex gap-1">
-                <span className="h-2 w-4 rounded-sm bg-black/10" />
-                <span className="h-2 w-4 rounded-sm bg-black/30" />
-                <span className="h-2 w-4 rounded-sm bg-black/50" />
-                <span className="h-2 w-4 rounded-sm bg-black/70" />
-                <span className="h-2 w-4 rounded-sm bg-black" />
-              </div>
-              <span>Más</span>
-            </div>
-            <p className="mt-2 text-center text-sm text-gray-800 dark:text-gray-200">
-              {parseLocalDate(selectedDate || toLocalDateString(new Date())).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
-            </p>
-            {/* Resumen de tareas del día seleccionado */}
-            <p className="mt-1 text-center text-xs text-gray-600 dark:text-gray-400">
-              {(() => {
-                const day = calendarDays.find(d => d.dateString === (selectedDate || toLocalDateString(new Date())));
-                const completed = day?.completedTasks ?? 0;
-                const total = day?.totalTasks ?? 0;
-                return `${completed} ${completed === 1 ? 'tarea hecha' : 'tareas hechas'}${total > 0 ? ` · ${total} en total` : ''}`;
-              })()}
-            </p>
-            <div className="border-t mt-3 dark:border-white/10 border-black/10" />
-          </div>
-
-          {/* Botón Ver más detalles en esquina inferior derecha del calendario */}
-          <div className="absolute bottom-6 right-3">
-            <motion.button
-              onClick={() => navigate('/productivity-stats')}
-              className="px-4 py-1.5 rounded-full border bg-white hover:bg-black hover:text-white transition-colors text-sm shadow-sm"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-            >
-              + info
-            </motion.button>
-          </div>
+          {/* Se removió la leyenda, resumen y botón +info para un diseño más limpio */}
         </Card>
 
         {/* Tareas del día seleccionado */}
@@ -638,16 +576,40 @@ const MonthlyCalendarPage: React.FC = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
-              className="bg-white dark:bg-neutral-900 dark:border-white/10 border rounded-2xl p-4 shadow-sm"
+              className="bg-white dark:bg-black rounded-2xl p-4 shadow-sm"
             >
-              <h3 className="text-lg font-semibold mb-3 text-black text-center">
-                Tareas del {parseLocalDate(selectedDate).toLocaleDateString('es-ES', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </h3>
+              <div className="mb-3 text-center">
+                <h3 className="text-lg font-semibold text-black">
+                  {(() => {
+                    const s = parseLocalDate(selectedDate).toLocaleDateString('es-ES', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                    });
+                    return s.charAt(0).toUpperCase() + s.slice(1);
+                  })()}
+                </h3>
+                
+                {(() => {
+                  const d = calendarDays.find(dd => dd.dateString === selectedDate);
+                  const completed = d?.completedTasks ?? 0;
+                  const total = d?.totalTasks ?? 0;
+                  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                  return (
+                    <div className="mx-auto mt-2 mb-2 w-full max-w-md">
+                      <div className="w-full h-1 bg-neutral-200 dark:bg-white/15 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.6 }}
+                          className="h-full bg-black dark:!bg-white"
+                        />
+                      </div>
+                      <div className="mt-1 text-xs text-gray-600 dark:text-gray-300">{completed} de {total} tareas</div>
+                    </div>
+                  );
+                })()}
+              </div>
 
               {calendarDays.find(d => d.dateString === selectedDate)?.tasks.length === 0 ? (
                 <div className="text-center py-6 text-gray-700">
@@ -662,37 +624,29 @@ const MonthlyCalendarPage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-4">
                   {calendarDays.find(d => d.dateString === selectedDate)?.tasks.map((task) => (
                     <motion.div
                       key={task.id}
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 p-2.5 rounded-xl border hover:bg-black/5 transition-colors"
+                      className="flex items-center gap-3 px-1.5 py-2 transition-colors"
                     >
-                      <button
-                        onClick={() => handleToggleTask(task.id)}
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          task.completed 
-                            ? 'bg-black border-black text-white' 
-                            : 'border-black/40'
-                        }`}
-                      >
-                        {task.completed && <CheckCircle className="w-3 h-3" />}
-                      </button>
                       
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[15px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>
+                        <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>
                           {task.title}
                         </p>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-sm text-gray-600">
                           {task.type} • {task.scheduledTime || 'Sin hora'}
                         </p>
                       </div>
-                      
-                      <Button onClick={() => handleShowTaskDetail(task.id)} variant="ghost" size="sm" className="h-8 px-2">
-                        Ver
-                      </Button>
+                      {/* Selector estilo radio a la derecha */}
+                      <button
+                        onClick={() => handleToggleTask(task.id)}
+                        aria-label="Seleccionar tarea"
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                      />
                     </motion.div>
                   ))}
                 </div>

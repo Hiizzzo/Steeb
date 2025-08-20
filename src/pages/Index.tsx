@@ -18,6 +18,7 @@ import AppUpdateNotification from '@/components/AppUpdateNotification';
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 import TaskCreationCard from '@/components/TaskCreationCard';
 import MonthlyCalendar from '@/components/MonthlyCalendar';
+import ShapeIcon from '@/components/ShapeIcon';
 
 interface SubTask {
   id: string;
@@ -320,6 +321,21 @@ const Index = () => {
     setShowModal(true);
   };
 
+  // Helper: formas por tipo
+  const renderShapeForType = (type: Task['type']) => {
+    switch (type) {
+      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Trabajo" />;
+      case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Creatividad" />;
+      case 'aprendizaje':     return <ShapeIcon variant="circle" className="w-6 h-6 mr-1 text-black" title="Aprendizaje" />;
+      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Organización" />;
+      case 'salud':           return <ShapeIcon variant="hexagon" className="w-6 h-6 mr-1 text-black" title="Salud" />;
+      case 'social':          return <ShapeIcon variant="circle" className="w-6 h-6 mr-1 text-black" title="Social" />;
+      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Entretenimiento" />;
+      case 'extra':           return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Extra" />;
+      default: return <div className="w-6 h-6 mr-1 border border-black" />;
+    }
+  };
+
   // Filter tasks for today and overdue
   const today = new Date().toISOString().split('T')[0];
   const todaysTasks = tasks.filter(task => {
@@ -380,7 +396,7 @@ const Index = () => {
   const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
 
   return (
-          <div className="min-h-screen pb-6 relative bg-steve-gray-light dark:bg-steve-black font-varela">
+          <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       
       {/* Imagen de Steve Jobs en la esquina superior izquierda */}
       <div className="absolute top-3 left-3 z-20">
@@ -396,17 +412,13 @@ const Index = () => {
       <div className="relative z-10">
       {/* Encabezado con día de la semana */}
       <div className="pt-12 mb-1">
-        <h1 className="text-black dark:text-white text-4xl font-light text-center" style={{
-          fontFamily: 'system-ui, -apple-system, sans-serif'
-        }}>{dayName}</h1>
+        <h1 className="text-black dark:text-white text-4xl font-light text-center font-varela">{dayName}</h1>
       </div>
       {/* Título debajo de la imagen de Steve */}
       <div className="pt-6 mb-2">
         <div className="flex items-center justify-center py-2 bg-black text-white dark:!bg-white dark:text-black">
           <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>
-          <h1 className="text-white dark:!text-black text-xl font-light tracking-wide" style={{
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-          }}>TAREAS</h1>
+          <h1 className="text-white dark:!text-black text-xl font-light tracking-wide" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>TAREAS</h1>
         </div>
       </div>
       {viewMode === 'tasks' ? (
@@ -416,21 +428,19 @@ const Index = () => {
             {pendingTodaysTasks.length > 0 ? (
               <>
                 {pendingTodayExact.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    id={task.id}
-                    title={task.title}
-                    type={task.type}
-                    completed={task.completed}
-                    subtasks={task.subtasks}
-                    scheduledDate={task.scheduledDate}
-                    scheduledTime={task.scheduledTime}
-                    notes={task.notes}
-                    onToggle={handleToggleTask}
-                    onToggleSubtask={handleToggleSubtask}
-                    onDelete={handleDeleteTask}
-                    onShowDetail={handleShowDetail}
-                  />
+                  <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
+                    {/* Icono a la izquierda según tipo */}
+                    {renderShapeForType(task.type)}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+                      <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+                    </div>
+                    <button
+                      onClick={() => handleToggleTask(task.id)}
+                      aria-label="Seleccionar tarea"
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                    />
+                  </div>
                 ))}
 
                 {pendingTodayExact.length > 0 && pendingOverdue.length > 0 && (
@@ -438,21 +448,18 @@ const Index = () => {
                 )}
 
                 {pendingOverdue.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    id={task.id}
-                    title={task.title}
-                    type={task.type}
-                    completed={task.completed}
-                    subtasks={task.subtasks}
-                    scheduledDate={task.scheduledDate}
-                    scheduledTime={task.scheduledTime}
-                    notes={task.notes}
-                    onToggle={handleToggleTask}
-                    onToggleSubtask={handleToggleSubtask}
-                    onDelete={handleDeleteTask}
-                    onShowDetail={handleShowDetail}
-                  />
+                  <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
+                    {renderShapeForType(task.type)}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+                      <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+                    </div>
+                    <button
+                      onClick={() => handleToggleTask(task.id)}
+                      aria-label="Seleccionar tarea"
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                    />
+                  </div>
                 ))}
               </>
             ) : (
@@ -488,27 +495,46 @@ const Index = () => {
                   </button>
                 </div>
 
+                {/* Barra de progreso horizontal bajo el encabezado */}
+                {(() => {
+                  const total = pendingTodaysTasks.length + completedToday.length;
+                  const done = completedToday.length;
+                  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                  return (
+                    <div className="mb-3">
+                      <div className="w-full h-[4px] bg-neutral-200 dark:bg-white/15 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.6 }}
+                          className="h-full bg-black dark:!bg-white"
+                        />
+                      </div>
+                      <div className="mt-1 text-xs text-gray-600 dark:text-gray-300 text-center">
+                        {done} de {total}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Completadas de hoy (toggle) */}
                 {completedToday.length > 0 && showCompletedToday && (
                   <div className="mt-3">
                     <p className="text-xs text-gray-500 mb-2">Hoy</p>
                     {completedToday.map(task => (
-                      <TaskCard
-                        key={task.id}
-                        id={task.id}
-                        title={task.title}
-                        type={task.type}
-                        completed={task.completed}
-                        subtasks={task.subtasks}
-                        scheduledDate={task.scheduledDate}
-                        scheduledTime={task.scheduledTime}
-                        notes={task.notes}
-                        onToggle={handleToggleTask}
-                        onToggleSubtask={handleToggleSubtask}
-                        onDelete={handleDeleteTask}
-                        onShowDetail={handleShowDetail}
-                      />)
-                    )}
+                      <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
+                        {renderShapeForType(task.type)}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+                          <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+                        </div>
+                        <button
+                          onClick={() => handleToggleTask(task.id)}
+                          aria-label="Seleccionar tarea"
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

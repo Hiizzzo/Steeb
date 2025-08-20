@@ -483,29 +483,15 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
   // Vista mensual (código existente pero mejorado)
   return (
-    <div className="min-h-screen bg-white p-2 sm:p-4">
+    <div className="min-h-screen bg-white dark:bg-black p-2 sm:p-4" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       <div className="max-w-md mx-auto space-y-4 sm:space-y-8">
         
-        {/* Frase motivacional */}
-        <motion.div 
-          className="text-center pt-8 sm:pt-16 px-2"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          <h1 className="text-xl sm:text-2xl font-bold text-black leading-tight">
-            Hoy es un gran día para tachar pendientes
-          </h1>
-        </motion.div>
-
-        {/* Tarjetas de estadísticas */}
-        <div className="text-center text-sm text-gray-500">
-          {stats.completedTasks} tareas completadas • {stats.activeDays} días activos
-        </div>
+        {/* Espacio reservado en blanco para contenido futuro */}
+        <div className="h-20" />
 
         {/* Calendario mensual */}
         <motion.div 
-          className="bg-white rounded-xl shadow-sm p-3 sm:p-6 mx-2 overflow-x-auto min-w-0"
+          className="bg-white dark:bg-black rounded-xl p-3 sm:p-6 mx-2 overflow-x-auto min-w-0 border-0 shadow-none"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
@@ -532,9 +518,8 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="text-lg sm:text-xl font-bold text-black">{monthName} {year}</div>
-              <div className="text-xs sm:text-sm text-gray-500 lowercase">
-                {monthName.slice(0, 3)} {year}
+              <div className="text-xl sm:text-2xl font-semibold text-black" style={{ fontFamily: 'Varela Round, Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
+                {monthName} {year}
               </div>
             </motion.div>
             
@@ -599,7 +584,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     <div className="h-full flex flex-col items-center justify-center">
                       <motion.div 
                         className={`
-                          text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 relative
+                          text-base sm:text-lg font-semibold mb-0.5 sm:mb-1 relative
                           ${day.isCurrentMonth ? (isToday ? 'text-white' : 'text-black') : 'text-gray-400'}
                         `}
                       >
@@ -620,9 +605,9 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                         </div>
                       )}
                       
-                      {/* Barra de progreso */}
+                      {/* Barra de progreso pegada al número y solo si hay progreso */}
                       {day.isCurrentMonth && progress > 0 && (
-                        <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full overflow-hidden mt-0.5 sm:mt-1">
+                        <div className="w-full h-0.5 sm:h-1 bg-gray-200 rounded-full overflow-hidden mt-1">
                           <motion.div 
                             className={`h-full bg-black dark:!bg-white`}
                             initial={{ width: 0 }}
@@ -636,7 +621,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     {/* Vista previa de tareas mejorada */}
                     {day.isCurrentMonth && hoveredDate && hoveredDate.toDateString() === day.fullDate.toDateString() && tasksForDay.length > 0 && (
                       <motion.div 
-                        className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-white rounded-xl shadow-lg border border-gray-200 p-3 z-50 min-w-64 max-w-80"
+                        className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-white rounded-xl shadow-lg p-3 z-50 min-w-64 max-w-80"
                         initial={{ opacity: 0, y: 5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
@@ -667,7 +652,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                           Toca para ver más detalles
                         </div>
                         <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-8 border-transparent border-t-white"></div>
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-px border-7 border-transparent border-t-gray-200"></div>
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-px border-7 border-transparent"></div>
                       </motion.div>
                     )}
 
@@ -691,58 +676,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
           </AnimatePresence>
         </motion.div>
 
-        {/* Leyenda de intensidad */}
-        <motion.div 
-          className="text-center space-y-1 sm:space-y-2 px-2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
-        >
-          <motion.div 
-            className="flex justify-center items-center space-x-0.5 sm:space-x-1"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.8 }}
-          >
-            {['bg-gray-200', 'bg-red-300', 'bg-yellow-400', 'bg-blue-400', 'bg-green-500'].map((color, index) => (
-              <motion.div
-                key={color}
-                className={`w-2 h-2 sm:w-3 sm:h-3 ${color} rounded-sm`}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.9 + index * 0.1 }}
-              />
-            ))}
-          </motion.div>
-          <div className="flex justify-between text-xs text-gray-500 px-2 sm:px-4">
-            <span>Menos</span>
-            <span>Más</span>
-          </div>
-        </motion.div>
-
-        {/* Fecha seleccionada */}
-        {selectedDate && (
-          <motion.div 
-            className="text-center pb-4 sm:pb-8 px-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1, ease: "easeOut" }}
-          >
-            <motion.div 
-              className="text-sm text-gray-600"
-              key={selectedDate.toDateString()}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {selectedDate.toLocaleDateString('es-ES', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'short'
-              })}
-            </motion.div>
-          </motion.div>
-        )}
+        {/* Se removió leyenda y fecha seleccionada para un diseño más limpio */}
       </div>
     </div>
   );

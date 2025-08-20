@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Clock, Pointer } from 'lucide-react';
+import ShapeIcon from "./ShapeIcon";
 
 // Íconos simples para los tipos de tarea
 const PersonalIcon = () => <div className="w-4 h-4 bg-black rounded-full"></div>;
@@ -98,14 +99,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       onCreate(
         title.trim(), 
         selectedTag, 
-        undefined, // subtasks - not implemented in this simple version
+        undefined,
         scheduledDate,
         selectedTime || undefined,
         notes.trim() || undefined,
         isPrimary
       );
       
-      // Cerrar el modal después de crear la tarea
       onCancel();
       
       toast({
@@ -123,7 +123,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
   const getTagLabel = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
-      case 'productividad': return 'Productividad';
+      case 'productividad': return 'Trabajo';
       case 'creatividad': return 'Creatividad';
       case 'aprendizaje': return 'Aprendizaje';
       case 'organizacion': return 'Organización';
@@ -134,142 +134,19 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     }
   };
 
+  // Formas geométricas por tag (círculos reemplazados por triángulos)
   const getTagIcon = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
     switch (tag) {
-      case 'productividad': return (
-        <img
-          src="/lovable-uploads/taskproductividad.svg"
-          alt="Productividad"
-          className="w-8 h-8 mr-2"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = 'png';
-              target.src = '/lovable-uploads/taskproductividad.png';
-            } else {
-              target.onerror = null;
-              target.src = '/lovable-uploads/ed87121c-fa95-442d-8f28-4374f90b4cdb.png';
-            }
-          }}
-        />
-      );
-      case 'creatividad': return (
-        <img
-          src="/lovable-uploads/taskcreatividad.svg"
-          alt="Creatividad"
-          className="w-8 h-auto mr-2 object-contain"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = 'png';
-              target.src = '/lovable-uploads/taskcreatividad.png';
-            } else {
-              target.onerror = null;
-              target.src = '/lovable-uploads/960a5bce-1ea1-46b3-9a15-9bbb2c33d476.png';
-            }
-          }}
-        />
-      );
-      case 'aprendizaje': return (
-        <img
-          src="/lovable-uploads/taskaprendizaje.svg"
-          alt="Aprendizaje"
-          className="w-8 h-8 mr-2"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = 'png';
-              target.src = '/lovable-uploads/taskaprendizaje.png';
-            } else {
-              target.onerror = null;
-              target.src = '/lovable-uploads/31c5d755-019b-4fe3-a86c-ab26dd8e6a84.png';
-            }
-          }}
-        />
-      );
-      case 'organizacion': return (
-        <img
-          src="/lovable-uploads/taskorganizacion.svg"
-          alt="Organización"
-          className="w-8 h-8 mr-2"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = 'png';
-              target.src = '/lovable-uploads/taskorganizacion.png';
-            } else {
-              target.onerror = null;
-              target.src = '/lovable-uploads/a5d219fa-19b0-4b52-bffa-48e7b87ab59a.png';
-            }
-          }}
-        />
-      );
-      case 'salud': return (
-        <img
-          src="/lovable-uploads/tasksalud.svg"
-          alt="Salud"
-          className="w-8 h-8 mr-2"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = 'png';
-              target.src = '/lovable-uploads/tasksalud.png';
-            } else {
-              target.onerror = null;
-              target.src = '/lovable-uploads/e6d7c376-16cd-4c37-94bf-5fb5aeffcc6b.png';
-            }
-          }}
-        />
-      );
-      case 'social': return (
-        <img
-          src="/lovable-uploads/tasksocial.svg"
-          alt="Social"
-          className="w-8 h-8 mr-2"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = 'png';
-              target.src = '/lovable-uploads/tasksocial.png';
-            } else {
-              target.onerror = null;
-              target.src = '/lovable-uploads/9a30aed8-3111-4f08-8513-1b1b5a47f5f1.png';
-            }
-          }}
-        />
-      );
-      case 'entretenimiento': return (
-        <img
-          src="/lovable-uploads/taskentretenimiento.svg"
-          alt="Entretenimiento"
-          className="w-8 h-8 mr-2"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            target.onerror = null;
-            target.src = '/lovable-uploads/a2ff8acd-d80d-49f7-9e88-0962d6e54bd6.png';
-          }}
-        />
-      );
-      case 'extra': return (
-        <img
-          src="/lovable-uploads/taskextra.svg"
-          alt="Extra"
-          className="w-8 h-8 mr-2"
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            if (!target.dataset.fallback) {
-              target.dataset.fallback = 'png';
-              target.src = '/lovable-uploads/taskextra.png';
-            } else {
-              target.onerror = null;
-              target.src = '/lovable-uploads/lightbulb-icon.svg';
-            }
-          }}
-        />
-      );
+      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-2 text-black" title="Trabajo" />;
+      case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Creatividad" />;
+      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Aprendizaje" />;
+      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-2 text-black" title="Organización" />;
+      case 'salud':           return <ShapeIcon variant="hexagon" className="w-6 h-6 mr-2 text-black" title="Salud" />;
+      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Social" />;
+      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Entretenimiento" />;
+      case 'extra':           return <ShapeIcon variant="square" className="w-6 h-6 mr-2 text-black" title="Extra" />;
     }
   };
-
 
   return (
     <motion.div
@@ -379,13 +256,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
           >
             {getTagIcon(selectedTag)}
-            <span className="font-semibold mr-4">{getTagLabel(selectedTag)}</span>
+            <span className="mr-4">{getTagLabel(selectedTag)}</span>
           </button>
         </div>
 
         {/* Date Picker */}
         {showDatePicker && (
-          <div className="border-t border-gray-100 p-4 bg-white">
+          <div className="border-t border-gray-100 p-4 bg:white">
             <input
               type="date"
               value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
@@ -400,7 +277,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Time Picker */}
         {showTimePicker && (
-          <div className="border-t border-gray-100 p-4 bg-white">
+          <div className="border-t border-gray-100 p-4 bg:white">
             <input
               type="time"
               value={selectedTime}
@@ -416,18 +293,18 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         {/* Tag Picker */}
         {showTagPicker && (
           <div className="border-t border-gray-100 bg-white z-50">
-            <div className="grid grid-cols-2 gap-2 p-4">
-              {(['productividad', 'creatividad', 'aprendizaje', 'organizacion', 'salud', 'social', 'entretenimiento', 'extra'] as const).map((tag) => (
+            <div className="grid grid-cols-3 gap-2 p-3">
+              {(['social', 'productividad', 'salud'] as const).map((tag) => (
                 <button
                   key={tag}
                   onClick={() => {
                     setSelectedTag(tag);
                     setShowTagPicker(false);
                   }}
-                  className="flex items-center gap-4 px-3 py-3 min-h-[64px] hover:bg-gray-50 transition-colors rounded-lg border border-gray-300 hover:border-gray-400"
+                  className="flex items-center gap-2 px-2 py-2 min-h-[56px] hover:bg-gray-50 transition-colors rounded-lg border border-gray-300 hover:border-gray-400"
                 >
                   {getTagIcon(tag)}
-                  <span className="text-black font-semibold text-base mr-4">{getTagLabel(tag)}</span>
+                  <span className="text-black text-base mr-2">{getTagLabel(tag)}</span>
                   {selectedTag === tag && (
                     <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
                   )}

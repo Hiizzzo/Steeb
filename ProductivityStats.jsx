@@ -1,5 +1,6 @@
 import React from 'react';
 import './ProductivityStats.css';
+import ShapeIcon from '@/components/ShapeIcon';
 
 // Stebe Character Component
 const StebeCharacter = () => (
@@ -144,7 +145,9 @@ const ProductivityStats = () => {
       <header className="header">
         <StebeCharacter />
         <div className="motivation-text">Trabajo</div>
-        <img src="/lovable-uploads/trabajo-icon.svg" alt="Trabajo" className="title-icon" />
+        <div className="title-icon" style={{ display: 'flex', alignItems: 'center' }}>
+          <ShapeIcon variant="square" className="w-8 h-8 text-black" title="Trabajo" />
+        </div>
       </header>
 
       {/* KPI Cards */}

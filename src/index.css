@@ -93,7 +93,8 @@
   }
 
   body {
-    @apply bg-steve-white text-steve-black font-varela;
+    @apply bg-steve-white text-steve-black;
+    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
   .dark body {
