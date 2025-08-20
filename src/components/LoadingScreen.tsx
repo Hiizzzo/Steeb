@@ -25,7 +25,7 @@ const LoadingScreen: React.FC = () => {
           STEBE
         </h1>
         {/* Número de versión debajo del título */}
-        <div className={`mt-2 text-sm font-semibold tracking-wide ${isDark ? 'text-white/80' : 'text-black/80'}`}>0.2</div>
+        <div className={`mt-2 text-sm font-semibold tracking-wide ${isDark ? 'text-white/80' : 'text-black/80'}`}>0.22</div>
         
         {/* Puntos animados */}
         <div className="flex justify-center items-center space-x-3 mt-6">

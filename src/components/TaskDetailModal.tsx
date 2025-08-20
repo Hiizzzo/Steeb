@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { X, Calendar, Clock, CheckCircle, Circle, Settings } from 'lucide-react';
+import { X, Calendar, Clock, CheckCircle, Heart, Settings } from 'lucide-react';
 import ShapeIcon from "./ShapeIcon";
 
 interface SubTask {
@@ -61,7 +61,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       case 'social': return 'Social';
       case 'entretenimiento': return 'Entretenimiento';
       case 'extra': return 'Extra';
-      // Compatibilidad con tipos antiguos
       case 'personal': return 'Personal';
       case 'work': return 'Trabajo';
       case 'meditation': return 'Meditación';
@@ -71,14 +70,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   const getTypeIcon = (type: Task['type']) => {
     switch (type) {
-      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Productividad" />;
+      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Cuadrado" />;
       case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Creatividad" />;
-      case 'aprendizaje':     return <ShapeIcon variant="circle" className="w-6 h-6 mr-1 text-black" title="Aprendizaje" />;
-      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Organización" />;
-      case 'salud':           return <ShapeIcon variant="hexagon" className="w-6 h-6 mr-1 text-black" title="Salud" />;
-      case 'social':          return <ShapeIcon variant="circle" className="w-6 h-6 mr-1 text-black" title="Social" />;
+      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-1 text-black" title="Salud" />;
+      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Diamante" />;
+      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Social" />;
+      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Aprendizaje" />;
       case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Entretenimiento" />;
-      case 'extra':           return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Extra" />;
+      case 'extra':           return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Diamante" />;
       default:                return null;
     }
   };
@@ -112,22 +111,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             </div>
             <div className="flex items-center space-x-2">
               {onEdit && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(task)}
-                  className="p-2 hover:bg-gray-100 rounded-full text-black"
-                  title="Editar tarea"
-                >
+                <Button variant="ghost" size="sm" onClick={() => onEdit(task)} className="p-2 hover:bg-gray-100 rounded-full text-black" title="Editar tarea">
                   <Settings size={18} />
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full text-black"
-              >
+              <Button variant="ghost" size="sm" onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-black">
                 <X size={20} />
               </Button>
             </div>
@@ -185,11 +173,9 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     onClick={() => onToggleSubtask?.(task.id, subtask.id)}
                   >
                     {subtask.completed ? (
-                      <div className="w-5 h-5 bg-black border-2 border-black rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
+                      <Heart size={18} className="text-black" fill="currentColor" />
                     ) : (
-                      <Circle size={20} className="text-gray-400" />
+                      <Heart size={18} className="text-gray-400" />
                     )}
                     <span className={`flex-1 ${
                       subtask.completed 
@@ -206,11 +192,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
           {/* Acciones */}
           <div className="flex justify-end space-x-2">
-            <Button
-              variant={task.completed ? 'default' : 'outline'}
-              onClick={() => onToggle(task.id)}
-              className={`flex items-center ${task.completed ? 'bg-black text-white' : ''}`}
-            >
+            <Button variant={task.completed ? 'default' : 'outline'} onClick={() => onToggle(task.id)} className={`flex items-center ${task.completed ? 'bg-black text-white' : ''}`}>
               {task.completed ? (
                 <>
                   <CheckCircle className="mr-2" size={18} />
@@ -218,7 +200,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 </>
               ) : (
                 <>
-                  <Circle className="mr-2" size={18} />
+                  <Heart className="mr-2" size={18} />
                   Marcar como completada
                 </>
               )}

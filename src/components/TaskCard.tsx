@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle, Trash2, Clock, FileText } from 'lucide-react';
+import { Pencil, Calendar, ShoppingCart, CheckCircle, Heart, Trash2, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TaskType } from '@/types';
 import ShapeIcon from './ShapeIcon';
@@ -56,21 +56,21 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const getTypeIcon = () => {
     switch (type) {
       case 'productividad':
-        return <ShapeIcon variant="square" className="w-8 h-8 text-black" title="Productividad" />;
+        return <ShapeIcon variant="square" className="w-8 h-8 text-black" title="Trabajo" />;
       case 'creatividad':
         return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Creatividad" />;
-      case 'aprendizaje':
-        return <ShapeIcon variant="circle" className="w-8 h-8 text-black" title="Aprendizaje" />;
+      case 'salud':
+        return <ShapeIcon variant="heart" className="w-8 h-8 text-black" title="Salud" />;
       case 'organizacion':
         return <ShapeIcon variant="diamond" className="w-8 h-8 text-black" title="Organización" />;
-      case 'salud':
-        return <ShapeIcon variant="hexagon" className="w-8 h-8 text-black" title="Salud" />;
       case 'social':
-        return <ShapeIcon variant="circle" className="w-8 h-8 text-black" title="Social" />;
+        return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Social" />;
+      case 'aprendizaje':
+        return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Aprendizaje" />;
       case 'entretenimiento':
         return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Entretenimiento" />;
       case 'extra':
-        return <ShapeIcon variant="square" className="w-8 h-8 text-black" title="Extra" />;
+        return <ShapeIcon variant="diamond" className="w-8 h-8 text-black" title="Extra" />;
       default:
         return <div className="w-5 h-5 border border-black" />;
     }

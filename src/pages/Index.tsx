@@ -60,6 +60,11 @@ const Index = () => {
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
+  const [isPremium, setIsPremium] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('stebe-premium') === '1';
+  });
+  const [showFreeBadge, setShowFreeBadge] = useState<boolean>(true);
   
   // Usar el store de tareas
   const { 
@@ -101,6 +106,18 @@ const Index = () => {
         console.log('🔔 Servicio de notificaciones STEBE listo');
       }
     });
+  }, []);
+
+  // Escuchar cambios de Premium y reflejar en UI
+  useEffect(() => {
+    const onStorage = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
+    const onPremiumUpdated = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('premium-updated', onPremiumUpdated as any);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('premium-updated', onPremiumUpdated as any);
+    };
   }, []);
 
   // El hook useTaskPersistence maneja automáticamente la carga y guardado
@@ -326,12 +343,12 @@ const Index = () => {
     switch (type) {
       case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Trabajo" />;
       case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Creatividad" />;
-      case 'aprendizaje':     return <ShapeIcon variant="circle" className="w-6 h-6 mr-1 text-black" title="Aprendizaje" />;
+      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-1 text-black" title="Salud" />;
       case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Organización" />;
-      case 'salud':           return <ShapeIcon variant="hexagon" className="w-6 h-6 mr-1 text-black" title="Salud" />;
-      case 'social':          return <ShapeIcon variant="circle" className="w-6 h-6 mr-1 text-black" title="Social" />;
+      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Social" />;
+      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Aprendizaje" />;
       case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Entretenimiento" />;
-      case 'extra':           return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Extra" />;
+      case 'extra':           return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Extra" />;
       default: return <div className="w-6 h-6 mr-1 border border-black" />;
     }
   };
@@ -556,6 +573,29 @@ const Index = () => {
         onAddTask={() => setShowModal(true)}
         onCreateTask={handleAddTask}
       />
+
+      {/* Banner sutil de plan (FREE/PREMIUM) */}
+      {showFreeBadge && (
+        <div className="fixed left-0 bottom-0 z-20 relative" style={{ transform: 'translateY(6px)' }}>
+          <button
+            onClick={() => {
+              if (isPremium) {
+                localStorage.removeItem('stebe-premium');
+                setIsPremium(false);
+              } else {
+                localStorage.setItem('stebe-premium','1');
+                setIsPremium(true);
+              }
+              window.dispatchEvent(new Event('premium-updated'));
+            }}
+            className={`min-w-[64px] text-center px-3 py-1 rounded-full text-xs border ${isPremium ? 'bg-black text-white border-black' : 'bg-white text-black border-black'}`}
+            aria-label={isPremium ? 'Premium' : 'Free'}
+          >
+            {isPremium ? 'Premium' : 'Free'}
+          </button>
+          {/* Close button removed as requested */}
+        </div>
+      )}
 
       {/* Modal para Agregar/Editar Tarea */}
       <AnimatePresence>

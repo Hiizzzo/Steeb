@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, MessageCircle, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
+import { useTheme } from 'next-themes';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -12,6 +13,7 @@ interface FloatingButtonsProps {
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTask }) => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [isLongPressed, setIsLongPressed] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -27,8 +29,8 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     e.preventDefault();
     e.stopPropagation();
 
-    // Variantes por tema: dark -> círculo único negro; light -> 3 círculos blancos
-    const isDark = document.documentElement.classList.contains('dark');
+    // Usar tema real para elegir variante
+    const isDark = theme === 'dark' || document.documentElement.classList.contains('dark');
     setMenuVariant(isDark ? 'dark' : 'light');
 
     hasLongPressTriggered.current = false;
@@ -36,7 +38,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     setIsLongPressed(true);
 
     document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
+    (document.body as any).style.webkitUserSelect = 'none';
 
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
@@ -268,7 +270,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.55 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black"
+              className={`${menuVariant === 'dark' ? 'bg-black' : 'bg-white'} absolute inset-0`}
               onClick={() => setShowCalendarMenu(false)}
               onPointerDown={() => setShowCalendarMenu(false)}
               onMouseDown={() => setShowCalendarMenu(false)}
@@ -339,42 +341,59 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     </button>
                   </div>
                 ) : (
-                  // Variante blanca: 3 círculos separados
-                  <>
+                  // Variante blanca: círculo único blanco con borde negro e iconos negros (igual al dark pero invertido)
+                  <div
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-black bg-white text-black flex items-center justify-center shadow-xl pointer-events-auto"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                  >
+                    {/* Líneas divisorias en Y */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-black" style={{ height: '36%', top: '0' }} />
+                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-black" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(60deg)', transformOrigin: 'top' }} />
+                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-black" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(-60deg)', transformOrigin: 'top' }} />
+                    </div>
+
+                    {/* Botón arriba - Calendario */}
                     <button
+                      aria-label="Calendario"
                       onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
-                      className="absolute -top-[120px] -left-[48px] w-24 h-24 rounded-full border-2 border-white bg-white flex flex-col items-center justify-center z-10 pointer-events-auto"
+                      className="absolute pointer-events-auto"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ color: '#000000', backgroundColor: '#FFFFFF' }}
+                      style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }}
                     >
-                      <Calendar size={28} color="#000000" className="z-10" />
-                      <span className="mt-1 text-xs font-semibold" style={{ color: '#000000' }}>Calendario</span>
+                      <Calendar size={36} color="#000000" />
                     </button>
+
+                    {/* Botón abajo-izquierda - Chat */}
                     <button
-                      onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
-                      className="absolute -right-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-white flex flex-col items-center justify-center z-10 pointer-events-auto"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      style={{ color: '#000000', backgroundColor: '#FFFFFF' }}
-                    >
-                      <BarChart2 size={28} color="#000000" className="z-10" />
-                      <span className="mt-1 text-xs font-semibold" style={{ color: '#000000' }}>Estadísticas</span>
-                    </button>
-                    <button
+                      aria-label="Chat con Stebe"
                       onClick={() => { setShowCalendarMenu(false); navigate('/chat'); }}
-                      className="absolute -left-[120px] -top-[48px] w-24 h-24 rounded-full border-2 border-white bg-white flex flex-col items-center justify-center z-10 pointer-events-auto"
+                      className="absolute pointer-events-auto"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ color: '#000000', backgroundColor: '#FFFFFF' }}
+                      style={{ top: '70%', left: '29%', transform: 'translate(-50%, -50%)' }}
                     >
-                      <MessageCircle size={28} color="#000000" className="z-10" />
-                      <span className="mt-1 text-xs font-semibold" style={{ color: '#000000' }}>Chat con Stebe</span>
+                      <MessageCircle size={34} color="#000000" />
                     </button>
-                  </>
+
+                    {/* Botón abajo-derecha - Estadísticas */}
+                    <button
+                      aria-label="Estadísticas"
+                      onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
+                      className="absolute pointer-events-auto"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      style={{ top: '70%', left: '71%', transform: 'translate(-50%, -50%)' }}
+                    >
+                      <BarChart2 size={34} color="#000000" />
+                    </button>
+                  </div>
                 )}
               </div>
             </motion.div>

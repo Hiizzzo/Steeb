@@ -46,21 +46,29 @@ const ProductivityStatsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-md mx-auto px-6 pt-6">
-        <div className="flex justify-start">
+      {/* Header más alto y botón sin texto */}
+      <div className="max-w-md mx-auto px-6 pt-4">
+        <div className="flex items-center justify-start">
           <motion.button
+            aria-label="Volver"
             onClick={handleBack}
-            className="flex items-center gap-2 px-4 py-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200 dark:bg-transparent dark:text-white dark:border-white"
+            className="flex items-center justify-center w-9 h-9 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Volver</span>
+            <ArrowLeft className="w-4 h-4" />
           </motion.button>
         </div>
       </div>
 
       <ProductivityStatsConnected onAddTask={() => setShowModal(true)} />
+
+      {/* Steve al final, más chico y centrado */}
+      <div className="max-w-md mx-auto px-6">
+        <div className="mt-8 mb-6 flex justify-center">
+          <img src="/icon.png" alt="Steve" className="w-16 h-16 rounded-2xl" />
+        </div>
+      </div>
 
       <AnimatePresence>
         {showModal && (

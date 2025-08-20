@@ -12,9 +12,9 @@ import {
   Bar,
   Tooltip,
 } from 'recharts';
-import { Pin } from 'lucide-react';
+import { Pin, CheckCircle } from 'lucide-react';
 
-type Period = 'day' | 'week' | 'month';
+type Period = 'week' | 'month';
 
 interface DayBar {
   label: string;
@@ -28,7 +28,8 @@ interface ProductivityStatsConnectedProps {
   onAddTask?: () => void;
 }
 
-const weekDayLabels = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+// Iniciales en español comenzando en Domingo
+const weekDayLabels = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 function startOfWeek(date: Date) {
   const d = new Date(date);
@@ -53,33 +54,19 @@ function getWeekOfMonth(date: Date) {
 
 const CentralStatsChart: React.FC<{
   period: Period;
-  dayData: { hour: number; label: string; value: number }[];
   weekData: { label: string; value: number; iso: string; isCurrent?: boolean; isSelected?: boolean }[];
   monthData: { label: string; value: number }[];
   onSelectDay?: (iso: string) => void;
-}> = ({ period, dayData, weekData, monthData, onSelectDay }) => {
-  const axisStyle = { fontSize: 12, fill: '#111' } as const;
-  const gridStroke = '#e5e7eb';
+  isDark?: boolean;
+}> = ({ period, weekData, monthData, onSelectDay, isDark = false }) => {
+  const axisStyle = { fontSize: 12, fill: isDark ? '#ffffff' : '#111111' } as const;
+  const gridStroke = isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb';
   const commonChartProps = { margin: { top: 10, right: 8, bottom: 0, left: 0 } } as const;
 
   return (
     <div className="w-full h-56">
       <ResponsiveContainer width="100%" height="100%">
-        {period === 'day' ? (
-          <LineChart data={dayData} {...commonChartProps}>
-            <CartesianGrid stroke={gridStroke} vertical={false} />
-            <XAxis
-              dataKey="label"
-              tick={axisStyle}
-              axisLine={false}
-              tickLine={false}
-              interval={3}
-            />
-            <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
-            <Tooltip cursor={{ stroke: '#d1d5db' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
-            <Line type="monotone" dataKey="value" stroke="#000" strokeWidth={2} dot={false} isAnimationActive animationDuration={200} />
-          </LineChart>
-        ) : period === 'week' ? (
+        {period === 'week' ? (
           <BarChart data={weekData} {...commonChartProps}>
             <CartesianGrid stroke={gridStroke} vertical={false} />
             <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
@@ -87,7 +74,7 @@ const CentralStatsChart: React.FC<{
             <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
             <Bar
               dataKey="value"
-              fill="#000"
+              fill={isDark ? '#ffffff' : '#000000'}
               radius={[2, 2, 0, 0]}
               onClick={(data) => {
                 const payload = (data as any)?.payload;
@@ -103,7 +90,7 @@ const CentralStatsChart: React.FC<{
             <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
-            <Bar dataKey="value" fill="#000" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} />
+            <Bar dataKey="value" fill={isDark ? '#ffffff' : '#000000'} radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} />
           </BarChart>
         )}
       </ResponsiveContainer>
@@ -113,7 +100,7 @@ const CentralStatsChart: React.FC<{
 
 const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = () => {
   const tasks = useTaskStore((s) => s.tasks);
-  const [period, setPeriod] = useState<Period>('day');
+  const [period, setPeriod] = useState<Period>('week');
   const today = new Date();
   const todayISO = formatISODate(today);
   const [selectedISO, setSelectedISO] = useState<string>(todayISO);
@@ -138,7 +125,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
     el.style.height = Math.min(el.scrollHeight, maxHeightPx) + 'px';
   }, [monthlyGoal]);
 
-  const { mainNumber, secondaryText, weekData, monthData, dayData } = useMemo(() => {
+  const { mainNumber, secondaryText, weekData, monthData } = useMemo(() => {
     const getCompletedOnDate = (isoDate: string) =>
       tasks.filter(t => t.completed && t.completedDate?.split('T')[0] === isoDate).length;
 
@@ -150,26 +137,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       const d = new Date(weekStart);
       d.setDate(weekStart.getDate() + i);
       const iso = formatISODate(d);
-      return {
-        label: weekDayLabels[i],
-        value: getCompletedOnDate(iso),
-        isCurrent: iso === todayISO,
-        iso,
-        isSelected: iso === selectedISO,
-      };
-    });
-
-    // Día seleccionado por horas
-    const targetISO = selectedISO || todayISO;
-    const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, label: `${h}`, value: 0 }));
-    tasks.forEach(t => {
-      if (!t.completed || !t.completedDate) return;
-      const d = new Date(t.completedDate);
-      const iso = d.toISOString().split('T')[0];
-      if (iso === targetISO) {
-        const h = d.getHours();
-        hours[h].value += 1;
-      }
+      return { label: weekDayLabels[i], value: getCompletedOnDate(iso), isCurrent: iso === todayISO, iso, isSelected: iso === selectedISO };
     });
 
     // Mes actual por semana (S1..S5)
@@ -186,18 +154,6 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
     });
     const monthData = monthBuckets.map((v, i) => ({ label: `S${i + 1}`, value: v }));
 
-    if (period === 'day') {
-      const completedForSelected = getCompletedOnDate(targetISO);
-      const isToday = targetISO === todayISO;
-      return {
-        mainNumber: completedForSelected,
-        secondaryText: isToday ? 'tareas completadas hoy' : `tareas completadas el ${new Date(targetISO + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })}`,
-        weekData,
-        monthData,
-        dayData: hours,
-      };
-    }
-
     if (period === 'week') {
       const totalWeek = tasks.filter(t => {
         if (!t.completed || !t.completedDate) return false;
@@ -209,7 +165,6 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
         secondaryText: 'tareas completadas esta semana',
         weekData,
         monthData,
-        dayData: hours,
       };
     }
 
@@ -220,26 +175,32 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       secondaryText: 'tareas completadas este mes',
       weekData,
       monthData,
-      dayData: hours,
     };
   }, [tasks, period, selectedISO]);
 
   const handleSelectDay = (iso: string) => {
     setSelectedISO(iso);
-    if (period !== 'day') setPeriod('day');
   };
 
-  return (
-    <div className="max-w-md mx-auto min-h-screen bg-white text-black px-6 pt-12 pb-20">
-      <h1 className="text-center text-4xl sm:text-5xl font-extrabold tracking-wider uppercase">ESTADÍSTICAS</h1>
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.classList.contains('dark'));
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
 
-      {/* Objetivo del mes */}
-      <div className="mt-6">
-        <div className="w-full border border-black rounded-2xl p-4 bg-white">
+  return (
+    <div className="max-w-md mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20">
+      <h1 className="mt-0 text-center text-4xl sm:text-5xl font-extrabold tracking-wider uppercase">ESTADÍSTICAS</h1>
+
+      {/* Objetivo del mes (solo input y checkbox, sin etiquetas adicionales) */}
+      <div className="mt-4">
+        <div className="w-full border border-black dark:border-white rounded-xl p-3 bg-white dark:bg-black">
           <div className="flex items-start gap-3">
             <Pin className="w-5 h-5 mt-1" />
-            <div className="flex-1 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 items-center">
-              <div className="col-span-2 text-base sm:text-lg font-semibold">Objetivo del mes</div>
+            <div className="flex-1 grid grid-cols-[1fr_auto] gap-x-3 items-start">
               <textarea
                 ref={goalInputRef}
                 rows={1}
@@ -255,91 +216,60 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                   el.style.height = Math.min(el.scrollHeight, maxHeightPx) + 'px';
                 }}
                 placeholder="Escribe tu objetivo..."
-                className="col-start-1 bg-transparent outline-none resize-none overflow-hidden text-lg sm:text-xl font-medium text-black placeholder-gray-400 leading-snug"
+                className="col-start-1 bg-transparent outline-none resize-none overflow-hidden text-base sm:text-lg font-medium text-black dark:text-white placeholder-gray-400 leading-snug"
               />
-              <label className="col-start-2 row-start-2 flex items-center justify-end gap-2">
-                <span className="text-sm font-medium">{monthlyGoalDone ? 'Cumplido' : 'Pendiente'}</span>
-                <input
-                  type="checkbox"
-                  aria-label="Marcar objetivo mensual como cumplido"
-                  checked={monthlyGoalDone}
-                  onChange={(e) => {
-                    const done = e.target.checked;
-                    setMonthlyGoalDone(done);
-                    localStorage.setItem('stebe-monthly-goal-done', String(done));
-                  }}
-                  className="w-5 h-5 accent-black"
-                />
-              </label>
+              <button
+                onClick={() => {
+                  const done = !monthlyGoalDone;
+                  setMonthlyGoalDone(done);
+                  localStorage.setItem('stebe-monthly-goal-done', String(done));
+                }}
+                aria-label="Marcar objetivo mensual como cumplido"
+                className={`justify-self-end w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                  monthlyGoalDone ? 'bg-black border-black text-white' : 'border-black'
+                }`}
+              >
+                {monthlyGoalDone && <CheckCircle className="w-3.5 h-3.5" />}
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-12 flex flex-col items-center justify-center select-none">
+      <div className="mt-10 flex flex-col items-center justify-center select-none">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={`num-${period}-${mainNumber}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="leading-none"
-          >
+          <motion.div key={`num-${period}-${mainNumber}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="leading-none">
             <div className="text-[100px] sm:text-[120px] font-black tabular-nums">{mainNumber}</div>
           </motion.div>
         </AnimatePresence>
         <AnimatePresence mode="wait">
-          <motion.div
-            key={`sub-${period}-${selectedISO}`}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
-            className="text-xl sm:text-2xl text-center"
-          >
+          <motion.div key={`sub-${period}-${selectedISO}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }} className="text-xl sm:text-2xl text-center">
             {secondaryText}
           </motion.div>
         </AnimatePresence>
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div
-          key={`chart-${period}-${selectedISO}`}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="mt-10"
-        >
-          <CentralStatsChart
-            period={period}
-            dayData={dayData}
-            weekData={weekData}
-            monthData={monthData}
-            onSelectDay={handleSelectDay}
-          />
+        <motion.div key={`chart-${period}-${selectedISO}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="mt-10">
+          <CentralStatsChart period={period} weekData={weekData} monthData={monthData} onSelectDay={handleSelectDay} isDark={isDark} />
         </motion.div>
       </AnimatePresence>
 
       <div className="mt-10 flex items-center justify-center">
-        <div className="flex w-full max-w-sm border border-black rounded-full overflow-hidden">
+        <div className="flex w-full max-w-sm border border-black dark:border-white rounded-full overflow-hidden">
           {([
-            { key: 'day', label: 'Día' },
             { key: 'week', label: 'Semana' },
             { key: 'month', label: 'Mes' },
           ] as { key: Period; label: string }[]).map((it) => (
             <button
               key={it.key}
-              onClick={() => {
-                setPeriod(it.key);
-                if (it.key === 'day') {
-                  setSelectedISO(prev => prev || todayISO);
-                }
-              }}
+              onClick={() => setPeriod(it.key)}
               className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-                period === it.key ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'
+                period === it.key
+                  ? 'bg-black text-white dark:bg-white dark:text-black'
+                  : 'bg-white text-black dark:bg-black dark:text-white'
               }`}
+              aria-pressed={period === it.key}
             >
               {it.label}
             </button>
