@@ -41,6 +41,18 @@ interface Task {
   updatedAt?: string;
 }
 
+// Orden fijo para mantener categorías contiguas
+const TYPE_ORDER: Array<Task['type']> = [
+  'productividad',
+  'organizacion',
+  'aprendizaje',
+  'creatividad',
+  'salud',
+  'social',
+  'entretenimiento',
+  'extra'
+];
+
 const Index = () => {
   // Random phrases for when there are no tasks
   const getRandomNoTasksPhrase = () => {
@@ -374,8 +386,34 @@ const Index = () => {
   );
 
   // Pendientes: separar exactamente hoy (o sin fecha) vs. vencidas
-  const pendingTodayExact = pendingTodaysTasks.filter(t => !t.scheduledDate || t.scheduledDate === today);
-  const pendingOverdue = pendingTodaysTasks.filter(t => t.scheduledDate && t.scheduledDate < today);
+  const pendingTodayExactRaw = pendingTodaysTasks.filter(t => !t.scheduledDate || t.scheduledDate === today);
+  const pendingOverdueRaw = pendingTodaysTasks.filter(t => t.scheduledDate && t.scheduledDate < today);
+
+  // Agrupar contiguamente por subgrupo (o tipo) sin encabezados
+  const getGroupKey = (task: Task): Task['type'] => (task.subgroup ?? task.type);
+  const timeToSortable = (t?: string) => {
+    if (!t) return '99:99';
+    const parts = t.split(':');
+    if (parts.length >= 2) {
+      const hh = parts[0].padStart(2, '0');
+      const mm = parts[1].padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+    return '99:99';
+  };
+  const sortByCategoryThenTime = (a: Task, b: Task) => {
+    const ka = getGroupKey(a);
+    const kb = getGroupKey(b);
+    const ia = TYPE_ORDER.indexOf(ka);
+    const ib = TYPE_ORDER.indexOf(kb);
+    const ca = ia === -1 ? 999 : ia;
+    const cb = ib === -1 ? 999 : ib;
+    if (ca !== cb) return ca - cb;
+    return timeToSortable(a.scheduledTime).localeCompare(timeToSortable(b.scheduledTime));
+  };
+
+  const pendingTodayExact = [...pendingTodayExactRaw].sort(sortByCategoryThenTime);
+  const pendingOverdue = [...pendingOverdueRaw].sort(sortByCategoryThenTime);
 
   // Imagen superior configurable desde localStorage
   const [topLeftImage, setTopLeftImage] = useState<string>(() => {
@@ -446,8 +484,8 @@ const Index = () => {
               <>
                 {pendingTodayExact.map(task => (
                   <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
-                    {/* Icono a la izquierda según tipo */}
-                    {renderShapeForType(task.type)}
+                    {/* Icono a la izquierda según categoría o subgrupo */}
+                    {renderShapeForType(getGroupKey(task))}
                     <div className="flex-1 min-w-0">
                       <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
                       <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
@@ -455,7 +493,7 @@ const Index = () => {
                     <button
                       onClick={() => handleToggleTask(task.id)}
                       aria-label="Seleccionar tarea"
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
                     />
                   </div>
                 ))}
@@ -466,7 +504,7 @@ const Index = () => {
 
                 {pendingOverdue.map(task => (
                   <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
-                    {renderShapeForType(task.type)}
+                    {renderShapeForType(getGroupKey(task))}
                     <div className="flex-1 min-w-0">
                       <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
                       <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
@@ -474,7 +512,7 @@ const Index = () => {
                     <button
                       onClick={() => handleToggleTask(task.id)}
                       aria-label="Seleccionar tarea"
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
                     />
                   </div>
                 ))}
@@ -538,9 +576,12 @@ const Index = () => {
                 {completedToday.length > 0 && showCompletedToday && (
                   <div className="mt-3">
                     <p className="text-xs text-gray-500 mb-2">Hoy</p>
-                    {completedToday.map(task => (
+                    {completedToday
+                      .slice()
+                      .sort(sortByCategoryThenTime)
+                      .map(task => (
                       <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
-                        {renderShapeForType(task.type)}
+                        {renderShapeForType(getGroupKey(task))}
                         <div className="flex-1 min-w-0">
                           <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
                           <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
@@ -548,7 +589,7 @@ const Index = () => {
                         <button
                           onClick={() => handleToggleTask(task.id)}
                           aria-label="Seleccionar tarea"
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
                         />
                       </div>
                     ))}

@@ -645,7 +645,7 @@ const MonthlyCalendarPage: React.FC = () => {
                       <button
                         onClick={() => handleToggleTask(task.id)}
                         aria-label="Seleccionar tarea"
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black' : 'border-black'}`}
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
                       />
                     </motion.div>
                   ))}

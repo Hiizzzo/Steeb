@@ -275,11 +275,11 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
     });
 
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-black">
         <div className="max-w-md mx-auto">
           {/* Header de vista día */}
           <motion.div 
-            className="sticky top-0 bg-white z-20 px-2 sm:px-4 py-4 sm:py-6 border-b border-gray-100"
+            className="sticky top-0 bg-white dark:bg-black z-20 px-2 sm:px-4 py-4 sm:py-6 border-b border-gray-100 dark:border-white/10"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -370,30 +370,15 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
+                    className="bg-white dark:bg-black rounded-xl shadow-sm border border-gray-100 dark:border-white/20 p-4 hover:shadow-md transition-shadow text-black dark:text-white"
                   >
                     <div className="flex items-start space-x-3">
-                      <motion.button
-                        onClick={() => onToggleTask && onToggleTask(task.id)}
-                        className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          task.completed 
-                            ? 'bg-green-500 border-green-500' 
-                            : 'border-gray-300 hover:border-green-400'
-                        }`}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {task.completed && (
-                          <CheckCircle className="w-3 h-3 text-white" />
-                        )}
-                      </motion.button>
-                      
                       <div className="flex-1">
-                        <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
                           {task.title}
                         </h3>
                         
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-300">
                           <div className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
                             {task.type}
                           </div>
@@ -407,7 +392,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                         </div>
                         
                         {task.notes && (
-                          <p className="text-sm text-gray-600 mt-2">{task.notes}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{task.notes}</p>
                         )}
                         
                         {/* Subtareas */}
@@ -417,19 +402,15 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                               <div key={subtask.id} className="flex items-center space-x-2">
                                 <motion.button
                                   onClick={() => onToggleSubtask && onToggleSubtask(task.id, subtask.id)}
-                                  className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
                                     subtask.completed 
-                                      ? 'bg-gray-400 border-gray-400' 
-                                      : 'border-gray-300 hover:border-gray-400'
+                                      ? 'bg-black border-black dark:!bg-white dark:!border-white' 
+                                      : 'border-black dark:border-white'
                                   }`}
                                   whileHover={{ scale: 1.1 }}
                                   whileTap={{ scale: 0.95 }}
-                                >
-                                  {subtask.completed && (
-                                    <CheckCircle className="w-2.5 h-2.5 text-white" />
-                                  )}
-                                </motion.button>
-                                <span className={`text-sm ${subtask.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                                />
+                                <span className={`text-sm ${subtask.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-white'}`}>
                                   {subtask.title}
                                 </span>
                               </div>
@@ -437,6 +418,18 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                           </div>
                         )}
                       </div>
+
+                      {/* Check a la derecha */}
+                      <motion.button
+                        onClick={() => onToggleTask && onToggleTask(task.id)}
+                        className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                          task.completed 
+                            ? 'bg-black border-black dark:!bg-white dark:!border-white' 
+                            : 'border-black dark:border-white'
+                        }`}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      />
                     </div>
                   </motion.div>
                 ))
@@ -573,7 +566,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     className={`
                       aspect-square p-0.5 sm:p-1 cursor-pointer relative group rounded-lg transition-all duration-200
                       ${day.isCurrentMonth ? 'hover:bg-gray-50 hover:shadow-md' : 'opacity-50'}
-                      ${day.isSelected ? 'ring-2 ring-black' : ''}
+                      ${day.isSelected ? 'ring-2 ring-black dark:ring-white' : ''}
                       ${isToday ? 'bg-black text-white font-bold' : ''}
                     `}
                     whileHover={{ scale: day.isCurrentMonth ? 1.05 : 1 }}
@@ -595,10 +588,10 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       {day.isCurrentMonth && tasksForDay.length > 0 && (
                         <div className="flex space-x-0.5 sm:space-x-1 mt-0.5 sm:mt-1">
                           {tasksForDay.slice(0, 3).map((_, idx) => (
-                            <div key={idx} className={`w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full ${isToday ? 'bg-white' : 'bg-gray-400'}`} />
+                            <div key={idx} className={`w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full ${isToday ? 'bg-white' : 'bg-gray-400 dark:bg-white'}`} />
                           ))}
                           {tasksForDay.length > 3 && (
-                            <div className={`text-xs ${isToday ? 'text-white' : 'text-gray-500'}`}>
+                            <div className={`text-xs ${isToday ? 'text-white' : 'text-gray-500 dark:text-white'}`}>
                               +{tasksForDay.length - 3}
                             </div>
                           )}
