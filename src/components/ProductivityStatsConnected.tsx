@@ -260,20 +260,22 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
           {([
             { key: 'week', label: 'Semana' },
             { key: 'month', label: 'Mes' },
-          ] as { key: Period; label: string }[]).map((it) => (
-            <button
-              key={it.key}
-              onClick={() => setPeriod(it.key)}
-              className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-                period === it.key
-                  ? 'bg-black text-white dark:bg-white dark:text-black'
-                  : 'bg-white text-black dark:bg-black dark:text-white'
-              }`}
-              aria-pressed={period === it.key}
-            >
-              {it.label}
-            </button>
-          ))}
+          ] as { key: Period; label: string }[]).map((it) => {
+            const selected = period === it.key;
+            const bg = isDark ? (selected ? '#ffffff' : '#000000') : (selected ? '#000000' : '#ffffff');
+            const fg = isDark ? (selected ? '#000000' : '#ffffff') : (selected ? '#ffffff' : '#000000');
+            return (
+              <button
+                key={it.key}
+                onClick={() => setPeriod(it.key)}
+                className={`flex-1 py-3 text-sm font-semibold transition-colors`}
+                style={{ backgroundColor: bg, color: fg }}
+                aria-pressed={period === it.key}
+              >
+                {it.label}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

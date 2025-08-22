@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -9,7 +9,7 @@ import { notificationService } from '@/services/notificationService';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
-import { Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, Trash2 } from 'lucide-react';
 
 import TaskDetailModal from '@/components/TaskDetailModal';
 
@@ -72,6 +72,105 @@ const Index = () => {
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
+
+  // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
+  const SWIPE_THRESHOLD = 80;
+  const MAX_SWIPE = 160;
+  const [rowOffsetById, setRowOffsetById] = useState<Record<string, number>>({});
+  const activeIdRef = useRef<string | null>(null);
+  const startXRef = useRef(0);
+  const LONG_PRESS_MS = 600;
+  const MOVE_CANCEL_PX = 8;
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressTriggeredRef = useRef(false);
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const onRowPointerDown = (id: string) => (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    activeIdRef.current = id;
+    startXRef.current = e.clientX;
+    document.body.style.userSelect = 'none';
+    longPressTriggeredRef.current = false;
+    cancelLongPress();
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      const t = tasks.find(t => t.id === id) || null;
+      if (t) {
+        setSelectedTask(t);
+        setShowModal(true);
+      }
+    }, LONG_PRESS_MS) as unknown as number;
+  };
+
+  const onRowPointerMove = (id: string) => (e: React.PointerEvent) => {
+    if (activeIdRef.current !== id) return;
+    const deltaX = startXRef.current - e.clientX;
+    if (Math.abs(deltaX) > MOVE_CANCEL_PX) cancelLongPress();
+    if (deltaX > 0) {
+      e.preventDefault();
+      const next = Math.min(deltaX, MAX_SWIPE);
+      setRowOffsetById(prev => ({ ...prev, [id]: next }));
+    }
+  };
+
+  const finishRowSwipe = (id: string) => {
+    const offset = rowOffsetById[id] || 0;
+    if (offset > SWIPE_THRESHOLD) handleDeleteTask(id);
+    setRowOffsetById(prev => ({ ...prev, [id]: 0 }));
+    activeIdRef.current = null;
+    document.body.style.userSelect = '';
+  };
+
+  const onRowPointerUp = (id: string) => (e: React.PointerEvent) => {
+    e.stopPropagation();
+    cancelLongPress();
+    finishRowSwipe(id);
+  };
+
+  const renderSwipeRow = (task: Task) => (
+    <div key={task.id} className="relative">
+      {/* Fondo con tacho visible durante swipe */}
+      <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-4 transition-opacity duration-150 ${ (rowOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
+        <Trash2 className="w-5 h-5" />
+      </div>
+
+      <div
+        className="flex items-center gap-3 px-1.5 py-2"
+        style={{
+          transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
+          transition: 'transform 150ms ease-out',
+          touchAction: 'pan-y',
+          userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
+          willChange: 'transform',
+        }}
+        onPointerDown={onRowPointerDown(task.id)}
+        onPointerMove={onRowPointerMove(task.id)}
+        onPointerUp={onRowPointerUp(task.id)}
+        onPointerCancel={onRowPointerUp(task.id)}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        {renderShapeForType(getGroupKey(task))}
+        <div className="flex-1 min-w-0">
+          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+          <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+        </div>
+        <div className="w-6 shrink-0 flex justify-end">
+          <button
+            onClick={() => handleToggleTask(task.id)}
+            aria-label="Seleccionar tarea"
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   const [isPremium, setIsPremium] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('stebe-premium') === '1';
@@ -482,40 +581,13 @@ const Index = () => {
           <div className="pt-1 max-w-sm mx-auto px-3">
             {pendingTodaysTasks.length > 0 ? (
               <>
-                {pendingTodayExact.map(task => (
-                  <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
-                    {/* Icono a la izquierda según categoría o subgrupo */}
-                    {renderShapeForType(getGroupKey(task))}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
-                      <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
-                    </div>
-                    <button
-                      onClick={() => handleToggleTask(task.id)}
-                      aria-label="Seleccionar tarea"
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
-                    />
-                  </div>
-                ))}
+                {pendingTodayExact.map(renderSwipeRow)}
 
                 {pendingTodayExact.length > 0 && pendingOverdue.length > 0 && (
                   <div className="my-2 border-t dark:border-white/70 border-transparent" />
                 )}
 
-                {pendingOverdue.map(task => (
-                  <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
-                    {renderShapeForType(getGroupKey(task))}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
-                      <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
-                    </div>
-                    <button
-                      onClick={() => handleToggleTask(task.id)}
-                      aria-label="Seleccionar tarea"
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
-                    />
-                  </div>
-                ))}
+                {pendingOverdue.map(renderSwipeRow)}
               </>
             ) : (
               <div className="text-center py-12 px-4">
@@ -579,20 +651,7 @@ const Index = () => {
                     {completedToday
                       .slice()
                       .sort(sortByCategoryThenTime)
-                      .map(task => (
-                      <div key={task.id} className="flex items-center gap-3 px-1.5 py-2 transition-colors">
-                        {renderShapeForType(getGroupKey(task))}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
-                          <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
-                        </div>
-                        <button
-                          onClick={() => handleToggleTask(task.id)}
-                          aria-label="Seleccionar tarea"
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
-                        />
-                      </div>
-                    ))}
+                      .map(renderSwipeRow)}
                   </div>
                 )}
               </div>

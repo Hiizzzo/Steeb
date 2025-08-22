@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import ShinyGreetingModal from "./ShinyGreetingModal";
 
 const ThemeToggle = () => {
 	const { theme, setTheme } = useTheme();
@@ -9,6 +10,7 @@ const ThemeToggle = () => {
 	const [isPremium, setIsPremium] = useState<boolean>(() => {
 		return typeof window !== 'undefined' && localStorage.getItem("stebe-premium") === "1";
 	});
+	const [showGreeting, setShowGreeting] = useState(false);
 
 	useEffect(() => {
 		setMounted(true);
@@ -33,12 +35,22 @@ const ThemeToggle = () => {
 				checked={isDark}
 				onCheckedChange={(checked) => {
 					if (!isPremium && checked) {
-						toast("Premium requerido", { description: "El modo oscuro es parte de Premium.", duration: 2000 });
+						setShowGreeting(true);
 						return;
 					}
 					setTheme(checked ? "dark" : "light");
 				}}
 				aria-label="Toggle theme"
+			/>
+			<ShinyGreetingModal
+				open={showGreeting}
+				onOpenChange={setShowGreeting}
+				onWin={() => {
+					localStorage.setItem("stebe-premium", "1");
+					window.dispatchEvent(new Event('premium-updated'));
+					toast.success("¡Desbloqueaste la versión Shiny!");
+					setTheme("dark");
+				}}
 			/>
 		</div>
 	);

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import TaskCreationCard from '@/components/TaskCreationCard';
 import { Task, SubTask } from '@/types';
+import ShapeIcon from '@/components/ShapeIcon';
 
 // Configuración de animaciones para Stebe
 const ANIMATION_CONFIG = {
@@ -297,6 +298,20 @@ const MonthlyCalendarPage: React.FC = () => {
   const handleShowTaskDetail = (taskId: string) => {
     localStorage.setItem('stebe-selected-task', taskId);
     navigate('/');
+  };
+
+  const renderShapeForType = (type: Task['type']) => {
+    switch (type) {
+      case 'productividad':   return <ShapeIcon variant="square" className="w-4 h-4 mr-2 text-black" title="Trabajo" />;
+      case 'salud':           return <ShapeIcon variant="heart" className="w-4 h-4 mr-2 text-black" title="Salud" />;
+      case 'social':          return <ShapeIcon variant="triangle" className="w-4 h-4 mr-2 text-black" title="Social" />;
+      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-4 h-4 mr-2 text-black" title="Organización" />;
+      case 'aprendizaje':
+      case 'creatividad':
+      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-4 h-4 mr-2 text-black" title={type} />;
+      case 'extra':           return <ShapeIcon variant="diamond" className="w-4 h-4 mr-2 text-black" title="Extra" />;
+      default: return <div className="w-4 h-4 mr-2 border border-black" />;
+    }
   };
 
   const nextMonth = () => {
@@ -632,20 +647,20 @@ const MonthlyCalendarPage: React.FC = () => {
                       animate={{ opacity: 1, x: 0 }}
                       className="flex items-center gap-3 px-1.5 py-2 transition-colors"
                     >
-                      
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>
-                          {task.title}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {task.type} • {task.scheduledTime || 'Sin hora'}
-                        </p>
+                        <div className="flex items-center">
+                          {renderShapeForType(task.type)}
+                          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+                        </div>
+                        {task.scheduledTime && (
+                          <p className="text-sm text-gray-600">{task.scheduledTime}</p>
+                        )}
                       </div>
                       {/* Selector estilo radio a la derecha */}
                       <button
                         onClick={() => handleToggleTask(task.id)}
                         aria-label="Seleccionar tarea"
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
                       />
                     </motion.div>
                   ))}

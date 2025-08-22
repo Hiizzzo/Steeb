@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Flame, CheckCircle, Calendar, Trophy, Plus, ArrowLeft, Clock, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flame, CheckCircle, Calendar, Trophy, Plus, ArrowLeft, Clock, MapPin, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTaskStore } from '@/store/useTaskStore';
+import ShapeIcon from './ShapeIcon';
+import TaskCreationCard from './TaskCreationCard';
 // import CompactStats from './CompactStats';  // Component not found
 
 interface SubTask {
@@ -42,6 +45,111 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const [backAnimating, setBackAnimating] = useState(false);
   const navigate = useNavigate();
+
+  // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
+  const { deleteTask, updateTask } = useTaskStore();
+  const SWIPE_THRESHOLD = 80;
+  const MAX_SWIPE = 160;
+  const [disableDayDrag, setDisableDayDrag] = useState(false);
+  const [swipeOffsetById, setSwipeOffsetById] = useState<Record<string, number>>({});
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const activeIdRef = useRef<string | null>(null);
+  const startXRef = useRef(0);
+  const LONG_PRESS_MS = 600;
+  const MOVE_CANCEL_PX = 8;
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressTriggeredRef = useRef(false);
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const onPointerDownSwipe = (id: string) => (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    activeIdRef.current = id;
+    startXRef.current = e.clientX;
+    document.body.style.userSelect = 'none';
+    longPressTriggeredRef.current = false;
+    setDisableDayDrag(true);
+    cancelLongPress();
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      const t = tasks.find(t => t.id === id) || null;
+      if (t) {
+        setEditingTask(t);
+        setShowEditModal(true);
+      }
+    }, LONG_PRESS_MS) as unknown as number;
+  };
+
+  const onPointerMoveSwipe = (id: string) => (e: React.PointerEvent) => {
+    if (activeIdRef.current !== id) return;
+    const deltaX = startXRef.current - e.clientX;
+    if (Math.abs(deltaX) > MOVE_CANCEL_PX) cancelLongPress();
+    if (deltaX > 0) {
+      e.preventDefault();
+      const next = Math.min(deltaX, MAX_SWIPE);
+      setSwipeOffsetById(prev => ({ ...prev, [id]: next }));
+    }
+  };
+
+  const finishRowSwipe = (id: string) => {
+    const offset = swipeOffsetById[id] || 0;
+    if (offset > SWIPE_THRESHOLD) deleteTask(id).catch(console.error);
+    setSwipeOffsetById(prev => ({ ...prev, [id]: 0 }));
+    activeIdRef.current = null;
+    setDisableDayDrag(false);
+    document.body.style.userSelect = '';
+  };
+
+  const onPointerUpSwipe = (id: string) => (e: React.PointerEvent) => {
+    e.stopPropagation();
+    cancelLongPress();
+    finishRowSwipe(id);
+  };
+
+  const handleEditTask = (title: string, type: Task['type'], subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+    if (editingTask) {
+      const updatedTask = {
+        ...editingTask,
+        title,
+        type,
+        subtasks,
+        scheduledDate,
+        scheduledTime,
+        notes
+      };
+      // Actualizar la tarea en el store
+      updateTask(editingTask.id, updatedTask);
+      setShowEditModal(false);
+      setEditingTask(null);
+    }
+  };
+
+  const renderTypeShape = (type: Task['type']) => {
+    switch (type) {
+      case 'productividad':
+        return <ShapeIcon variant="square" className="w-4 h-4 mr-1 text-black" title="Trabajo" />;
+      case 'salud':
+        return <ShapeIcon variant="heart" className="w-4 h-4 mr-1 text-black" title="Salud" />;
+      case 'social':
+        return <ShapeIcon variant="triangle" className="w-4 h-4 mr-1 text-black" title="Social" />;
+      case 'organizacion':
+        return <ShapeIcon variant="diamond" className="w-4 h-4 mr-1 text-black" title="Organización" />;
+      case 'aprendizaje':
+      case 'creatividad':
+      case 'entretenimiento':
+        return <ShapeIcon variant="triangle" className="w-4 h-4 mr-1 text-black" title={type} />;
+      case 'extra':
+        return <ShapeIcon variant="diamond" className="w-4 h-4 mr-1 text-black" title="Extra" />;
+      default:
+        return <div className="w-4 h-4 mr-1 border border-black" />;
+    }
+  };
 
   // Helpers para fechas locales (evitar desfase por UTC)
   const toLocalDateString = (date: Date): string => {
@@ -274,9 +382,9 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
       year: 'numeric'
     });
 
-    return (
-      <div className="min-h-screen bg-white dark:bg-black">
-        <div className="max-w-md mx-auto">
+      return (
+         <div className="min-h-screen bg-white dark:bg-black">
+      <div className="max-w-md mx-auto">
           {/* Header de vista día */}
           <motion.div 
             className="sticky top-0 bg-white dark:bg-black z-20 px-2 sm:px-4 py-4 sm:py-6 border-b border-gray-100 dark:border-white/10"
@@ -351,7 +459,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
           {/* Lista de tareas del día */}
           <motion.div 
             className="px-2 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4"
-            drag="x"
+            drag={disableDayDrag ? false : 'x'}
             dragConstraints={{ left: 0, right: 0 }}
             onDragEnd={(_, info) => {
               if (info.offset.x > 100) {
@@ -370,13 +478,34 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white dark:bg-black rounded-xl shadow-sm border border-gray-100 dark:border-white/20 p-4 hover:shadow-md transition-shadow text-black dark:text-white"
+                                         className="relative bg-white dark:bg-black rounded-xl shadow-sm border border-gray-100 dark:border-white/20 p-4 hover:shadow-md transition-shadow text-black dark:text-white"
+                    onPointerDown={onPointerDownSwipe(task.id)}
+                    onPointerMove={onPointerMoveSwipe(task.id)}
+                    onPointerUp={onPointerUpSwipe(task.id)}
+                    onPointerCancel={onPointerUpSwipe(task.id)}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                                         style={{
+                       transform: `translate3d(-${swipeOffsetById[task.id] || 0}px,0,0)`,
+                       transition: 'transform 150ms ease-out',
+                       touchAction: 'pan-y',
+                       userSelect: (swipeOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
+                       willChange: 'transform',
+                     }}
                   >
-                    <div className="flex items-start space-x-3">
+                    {/* Fondo de eliminación con tacho visible durante el swipe */}
+                    <div className={`absolute inset-0 rounded-xl flex items-center justify-end pr-4 transition-opacity duration-150 ${ (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
+                      <Trash2 className="w-5 h-5 text-black dark:text-white" />
+                    </div>
+
+                    <div className="flex items-center space-x-3">
                       <div className="flex-1">
-                        <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                          {task.title}
-                        </h3>
+                        <div className="flex items-center">
+                          {renderTypeShape(task.type)}
+                          <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                            {task.title}
+                          </h3>
+                        </div>
                         
                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-300">
                           <div className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
@@ -419,17 +548,19 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                         )}
                       </div>
 
-                      {/* Check a la derecha */}
-                      <motion.button
-                        onClick={() => onToggleTask && onToggleTask(task.id)}
-                        className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          task.completed 
-                            ? 'bg-black border-black dark:!bg-white dark:!border-white' 
-                            : 'border-black dark:border-white'
-                        }`}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                      />
+                      {/* Check fijo a la derecha */}
+                      <div className="w-6 shrink-0 flex justify-end">
+                        <motion.button
+                          onClick={() => onToggleTask && onToggleTask(task.id)}
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                            task.completed 
+                              ? 'bg-black border-black dark:!bg-white dark:!border-white' 
+                              : 'border-black dark:border-white'
+                          }`}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 ))
@@ -469,6 +600,34 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
               <Plus className="w-6 h-6" />
             </motion.button>
           )}
+
+          {/* Modal de edición de tareas */}
+          <AnimatePresence>
+            {showEditModal && editingTask && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={{ type: "spring", duration: 0.5 }}
+                >
+                  <TaskCreationCard
+                    onCancel={() => {
+                      setShowEditModal(false);
+                      setEditingTask(null);
+                    }}
+                    onCreate={handleEditTask}
+                    editingTask={editingTask}
+                  />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     );
@@ -625,7 +784,14 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                         </div>
                         <div className="space-y-2 max-h-40 overflow-y-auto">
                           {tasksForDay.slice(0, 5).map((task) => (
-                            <div key={task.id} className="flex items-center space-x-2">
+                            <div 
+                              key={task.id} 
+                              className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                              onClick={() => {
+                                setEditingTask(task);
+                                setShowEditModal(true);
+                              }}
+                            >
                               <div className={`w-2 h-2 rounded-full ${task.completed ? 'bg-green-500' : 'bg-gray-300'}`} />
                               <span className={`text-xs ${task.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
                                 {task.title}
@@ -670,6 +836,34 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
         </motion.div>
 
         {/* Se removió leyenda y fecha seleccionada para un diseño más limpio */}
+
+        {/* Modal de edición de tareas (vista mensual) */}
+        <AnimatePresence>
+          {showEditModal && editingTask && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: "spring", duration: 0.5 }}
+              >
+                <TaskCreationCard
+                  onCancel={() => {
+                    setShowEditModal(false);
+                    setEditingTask(null);
+                  }}
+                  onCreate={handleEditTask}
+                  editingTask={editingTask}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
