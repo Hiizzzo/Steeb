@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, MessageCircle, BarChart2 } from 'lucide-react';
+import { Plus, Calendar, Settings, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 import { useTheme } from 'next-themes';
@@ -314,17 +314,17 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       <Calendar size={36} color="#FFFFFF" />
                     </button>
 
-                    {/* Botón abajo-izquierda - Chat (separar levemente) */}
+                    {/* Botón abajo-izquierda - Configuración (separar levemente) */}
                     <button
-                      aria-label="Chat con Stebe"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/chat'); }}
+                      aria-label="Configuración"
+                      onClick={() => { setShowCalendarMenu(false); navigate('/settings'); }}
                       className="absolute pointer-events-auto"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '70%', left: '29%', transform: 'translate(-50%, -50%)' }}
                     >
-                      <MessageCircle size={34} color="#FFFFFF" />
+                      <Settings size={34} color="#FFFFFF" />
                     </button>
 
                     {/* Botón abajo-derecha - Estadísticas (separar levemente) */}
@@ -368,17 +368,17 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       <Calendar size={36} color="#000000" />
                     </button>
 
-                    {/* Botón abajo-izquierda - Chat */}
+                    {/* Botón abajo-izquierda - Configuración */}
                     <button
-                      aria-label="Chat con Stebe"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/chat'); }}
+                      aria-label="Configuración"
+                      onClick={() => { setShowCalendarMenu(false); navigate('/settings'); }}
                       className="absolute pointer-events-auto"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '70%', left: '29%', transform: 'translate(-50%, -50%)' }}
                     >
-                      <MessageCircle size={34} color="#000000" />
+                      <Settings size={34} color="#000000" />
                     </button>
 
                     {/* Botón abajo-derecha - Estadísticas */}

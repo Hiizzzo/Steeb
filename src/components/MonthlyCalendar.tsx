@@ -46,6 +46,8 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
   const [backAnimating, setBackAnimating] = useState(false);
   const navigate = useNavigate();
 
+
+
   // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
   const { deleteTask, updateTask } = useTaskStore();
   const SWIPE_THRESHOLD = 80;
@@ -529,15 +531,10 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                           <div className="mt-3 space-y-2">
                             {task.subtasks.map(subtask => (
                               <div key={subtask.id} className="flex items-center space-x-2">
-                                <motion.button
+                                <button
                                   onClick={() => onToggleSubtask && onToggleSubtask(task.id, subtask.id)}
-                                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                                    subtask.completed 
-                                      ? 'bg-black border-black dark:!bg-white dark:!border-white' 
-                                      : 'border-black dark:border-white'
-                                  }`}
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.95 }}
+                                  className={`task-checkbox-button w-4 h-4 rounded-full border-2 cursor-pointer ${subtask.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+                                  style={{ minWidth: '16px', minHeight: '16px', zIndex: 100 }}
                                 />
                                 <span className={`text-sm ${subtask.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-white'}`}>
                                   {subtask.title}
@@ -550,15 +547,10 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
                       {/* Check fijo a la derecha */}
                       <div className="w-6 shrink-0 flex justify-end">
-                        <motion.button
+                        <button
                           onClick={() => onToggleTask && onToggleTask(task.id)}
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                            task.completed 
-                              ? 'bg-black border-black dark:!bg-white dark:!border-white' 
-                              : 'border-black dark:border-white'
-                          }`}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
+                          className={`task-checkbox-button w-5 h-5 rounded-full border-2 cursor-pointer ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+                          style={{ minWidth: '20px', minHeight: '20px', zIndex: 100 }}
                         />
                       </div>
                     </div>

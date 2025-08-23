@@ -63,12 +63,7 @@ const ProductivityStatsPage: React.FC = () => {
 
       <ProductivityStatsConnected onAddTask={() => setShowModal(true)} />
 
-      {/* Steve al final, más chico y centrado */}
-      <div className="max-w-md mx-auto px-6">
-        <div className="mt-8 mb-6 flex justify-center">
-          <img src="/icon.png" alt="Steve" className="w-16 h-16 rounded-2xl" />
-        </div>
-      </div>
+
 
       <AnimatePresence>
         {showModal && (

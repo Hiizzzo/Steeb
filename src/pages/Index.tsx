@@ -140,33 +140,39 @@ const Index = () => {
         <Trash2 className="w-5 h-5" />
       </div>
 
-      <div
-        className="flex items-center gap-3 px-1.5 py-2"
-        style={{
-          transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
-          transition: 'transform 150ms ease-out',
-          touchAction: 'pan-y',
-          userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
-          willChange: 'transform',
-        }}
-        onPointerDown={onRowPointerDown(task.id)}
-        onPointerMove={onRowPointerMove(task.id)}
-        onPointerUp={onRowPointerUp(task.id)}
-        onPointerCancel={onRowPointerUp(task.id)}
-        onContextMenu={(e) => e.preventDefault()}
-      >
-        {renderShapeForType(getGroupKey(task))}
-        <div className="flex-1 min-w-0">
-          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
-          <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+      <div className="flex items-center gap-3 px-1.5 py-2">
+        <div
+          className="flex items-center gap-3 flex-1"
+          style={{
+            transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
+            transition: 'transform 150ms ease-out',
+            touchAction: 'pan-y',
+            userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
+            willChange: 'transform',
+          }}
+          onPointerDown={onRowPointerDown(task.id)}
+          onPointerMove={onRowPointerMove(task.id)}
+          onPointerUp={onRowPointerUp(task.id)}
+          onPointerCancel={onRowPointerUp(task.id)}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          {renderShapeForType(getGroupKey(task))}
+          <div className="flex-1 min-w-0">
+            <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+            <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+          </div>
         </div>
-        <div className="w-6 shrink-0 flex justify-end">
-          <button
-            onClick={() => handleToggleTask(task.id)}
-            aria-label="Seleccionar tarea"
-            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
-          />
-        </div>
+        
+        {/* Checkbox FUERA del área de swipe */}
+        <button
+          onClick={() => {
+            console.log('CHECKBOX CLICKED!', task.id);
+            handleToggleTask(task.id);
+          }}
+          className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+          style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
+        >
+        </button>
       </div>
     </div>
   );
@@ -273,12 +279,15 @@ const Index = () => {
   }, [tasks.length, isServiceWorkerReady, triggerBackup]);
 
   const handleToggleTask = (id: string) => {
+    console.log('🎯 handleToggleTask called with ID:', id);
     const task = tasks.find(t => t.id === id);
+    console.log('🎯 Found task:', task);
     
     // Si la tarea tiene subtareas y no están todas completadas, no permitir completar la tarea principal
     if (task && task.subtasks && task.subtasks.length > 0 && !task.completed) {
       const allSubtasksCompleted = task.subtasks.every(subtask => subtask.completed);
       if (!allSubtasksCompleted) {
+        console.log('🛑 Blocked: subtasks not completed');
         toast({
           title: "Complete subtasks first",
           description: "You need to complete all subtasks before completing the main task.",
@@ -514,37 +523,7 @@ const Index = () => {
   const pendingTodayExact = [...pendingTodayExactRaw].sort(sortByCategoryThenTime);
   const pendingOverdue = [...pendingOverdueRaw].sort(sortByCategoryThenTime);
 
-  // Imagen superior configurable desde localStorage
-  const [topLeftImage, setTopLeftImage] = useState<string>(() => {
-    return localStorage.getItem('stebe-top-left-image') || '/lovable-uploads/te obesrvo.png';
-  });
-  useEffect(() => {
-    const handler = () => setTopLeftImage(localStorage.getItem('stebe-top-left-image') || '/lovable-uploads/te obesrvo.png');
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
-  }, []);
-  useEffect(() => {
-    // Si no hay imagen configurada, intentar usar la última subida desde el servidor
-    const stored = localStorage.getItem('stebe-top-left-image');
-    if (!stored) {
-      fetch('/api/images/latest')
-        .then(r => r.ok ? r.json() : Promise.reject())
-        .then(data => {
-          if (data?.image) {
-            const imageUrl = data.image.original_url || data.image.path;
-            localStorage.setItem('stebe-top-left-image', imageUrl);
-            setTopLeftImage(imageUrl);
-          } else {
-            // Fallback a recurso estático en /public si existe
-            setTopLeftImage('/lovable-uploads/te obesrvo.png');
-          }
-        })
-        .catch(() => {
-          // Silenciar error si backend no está disponible
-          setTopLeftImage('/lovable-uploads/te obesrvo.png');
-        });
-    }
-  }, []);
+
 
   // Día de la semana para el encabezado superior (p.ej., "Viernes")
   const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
@@ -552,15 +531,7 @@ const Index = () => {
   return (
           <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       
-      {/* Imagen de Steve Jobs en la esquina superior izquierda */}
-      <div className="absolute top-3 left-3 z-20">
-        <img 
-          src={topLeftImage}
-          alt="Steve Jobs" 
-          className="w-20 h-20"
-        />
 
-      </div>
       
       {/* Contenido principal */}
       <div className="relative z-10">
@@ -568,7 +539,7 @@ const Index = () => {
       <div className="pt-12 mb-1">
         <h1 className="text-black dark:text-white text-4xl font-light text-center font-varela">{dayName}</h1>
       </div>
-      {/* Título debajo de la imagen de Steve */}
+      {/* Título principal */}
       <div className="pt-6 mb-2">
         <div className="flex items-center justify-center py-2 bg-black text-white dark:!bg-white dark:text-black">
           <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>

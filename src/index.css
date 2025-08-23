@@ -1,4 +1,9 @@
 
+/* Importar protección para tema shiny */
+@import './styles/shiny-protection.css';
+
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -183,7 +188,7 @@
   }
 
   /* Dark mode overrides for common utility classes without changing component code */
-  .dark .bg-white { @apply bg-black; }
+  .dark .bg-white:not(.task-checkbox-button) { @apply bg-black; }
   .dark .text-black { @apply text-white; }
   .dark .border-gray-200 { @apply border-gray-700; }
   .dark .text-gray-900 { @apply text-gray-100; }
@@ -194,4 +199,354 @@
   .dark .bg-gray-50 { @apply bg-gray-900; }
   .dark .hover\:bg-gray-50:hover { @apply bg-gray-800; }
   .dark .hover\:bg-black\/5:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
+
+  /* Tema Shiny - Colores Elegantes y Modernos */
+  .shiny {
+    --shiny-bg: #0f0f23;
+    --shiny-card-bg: #1a1a2e;
+    --shiny-text: #e8e8f0;
+    --shiny-primary: #ff6b9d;
+    --shiny-secondary: #9c88ff;
+    --shiny-accent: #4ecdc4;
+    --shiny-success: #45b7d1;
+    --shiny-warning: #f9ca24;
+    --shiny-error: #ff6b6b;
+    --shiny-purple: #6c5ce7;
+    --shiny-blue: #74b9ff;
+    --shiny-teal: #00cec9;
+    --shiny-pink: #fd79a8;
+  }
+
+  .shiny body {
+    background: var(--shiny-bg) !important;
+    color: var(--shiny-text) !important;
+  }
+
+  /* Fondo principal shiny */
+  .shiny .bg-white {
+    background: var(--shiny-card-bg) !important;
+  }
+
+  .shiny .bg-black {
+    background: var(--shiny-bg) !important;
+  }
+
+  .shiny .text-black {
+    color: var(--shiny-text) !important;
+  }
+
+  .shiny .text-white {
+    color: var(--shiny-text) !important;
+  }
+
+  /* Bordes neón animados - Solo elementos específicos */
+  .shiny .border:not(.task-border):not(.floating-border) {
+    border-color: transparent !important;
+    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-blue), var(--shiny-teal), var(--shiny-pink)) !important;
+    background-size: 400% 400% !important;
+    animation: shiny-border 4s ease-in-out infinite !important;
+  }
+
+  @keyframes shiny-border {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Botones neón - Solo botones específicos */
+  .shiny button:not(.floating-button):not(.task-checkbox):not(.swipe-button) {
+    background: linear-gradient(135deg, var(--shiny-pink), var(--shiny-purple)) !important;
+    border: 1px solid transparent !important;
+    background-clip: padding-box !important;
+    position: relative !important;
+    overflow: hidden !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.2) !important;
+  }
+
+  .shiny button::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent) !important;
+    animation: shiny-shine 2s infinite !important;
+  }
+
+  @keyframes shiny-shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* Tarjetas neón */
+  .shiny .bg-gray-50,
+  .shiny .bg-gray-100,
+  .shiny .bg-gray-900 {
+    background: linear-gradient(135deg, var(--shiny-card-bg), #1e1e3f) !important;
+    border: 1px solid transparent !important;
+    background-clip: padding-box !important;
+    position: relative !important;
+    backdrop-filter: blur(10px) !important;
+  }
+
+  .shiny .bg-gray-50::before,
+  .shiny .bg-gray-100::before,
+  .shiny .bg-gray-900::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    padding: 1px !important;
+    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-blue), var(--shiny-teal)) !important;
+    background-size: 300% 300% !important;
+    animation: shiny-card 5s ease-in-out infinite !important;
+    border-radius: inherit !important;
+    z-index: -1 !important;
+    opacity: 0.6 !important;
+  }
+
+  @keyframes shiny-card {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Iconos neón */
+  .shiny svg {
+    filter: drop-shadow(0 0 6px var(--shiny-pink)) !important;
+    animation: icon-glow 3s ease-in-out infinite alternate !important;
+  }
+
+  @keyframes icon-glow {
+    from { filter: drop-shadow(0 0 6px var(--shiny-pink)); }
+    to { filter: drop-shadow(0 0 10px var(--shiny-purple)); }
+  }
+
+  /* Texto neón */
+  .shiny h1,
+  .shiny h2,
+  .shiny h3 {
+    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-blue)) !important;
+    background-size: 200% 200% !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    animation: text-shine 4s ease-in-out infinite !important;
+  }
+
+  @keyframes text-shine {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Hover effects neón */
+  .shiny button:hover,
+  .shiny .bg-gray-50:hover,
+  .shiny .bg-gray-100:hover,
+  .shiny .bg-gray-900:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 30px rgba(255, 107, 157, 0.25), 0 5px 15px rgba(156, 136, 255, 0.15) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  /* Elementos específicos de la app en modo shiny - Excluir componentes críticos */
+  .shiny .border-black:not(.task-border):not(.floating-border),
+  .shiny .border-white:not(.task-border):not(.floating-border),
+  .shiny .border-gray-200:not(.task-border):not(.floating-border),
+  .shiny .border-gray-700:not(.task-border):not(.floating-border) {
+    border-color: transparent !important;
+    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-teal)) !important;
+    background-size: 300% 300% !important;
+    animation: shiny-border 4s ease-in-out infinite !important;
+  }
+
+  /* Inputs y textareas shiny */
+  .shiny input,
+  .shiny textarea {
+    background: var(--shiny-card-bg) !important;
+    border: 1px solid var(--shiny-purple) !important;
+    color: var(--shiny-text) !important;
+    position: relative !important;
+    box-shadow: 0 2px 10px rgba(108, 92, 231, 0.1) !important;
+  }
+
+  .shiny input::before,
+  .shiny textarea::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: -2px !important;
+    background: linear-gradient(45deg, var(--shiny-primary), var(--shiny-secondary), var(--shiny-accent)) !important;
+    background-size: 300% 300% !important;
+    animation: shiny-border 3s ease-in-out infinite !important;
+    border-radius: inherit !important;
+    z-index: -1 !important;
+  }
+
+  /* Gráficos y estadísticas shiny */
+  .shiny .recharts-cartesian-grid-horizontal line,
+  .shiny .recharts-cartesian-grid-vertical line {
+    stroke: var(--shiny-teal) !important;
+    opacity: 0.2 !important;
+  }
+
+  .shiny .recharts-bar-rectangle {
+    fill: url(#shiny-gradient) !important;
+  }
+
+  .shiny .recharts-line-curve {
+    stroke: var(--shiny-pink) !important;
+    stroke-width: 3px !important;
+    filter: drop-shadow(0 0 8px var(--shiny-pink)) !important;
+  }
+
+  /* Scrollbar shiny */
+  .shiny ::-webkit-scrollbar {
+    width: 8px !important;
+  }
+
+  .shiny ::-webkit-scrollbar-track {
+    background: var(--shiny-bg) !important;
+  }
+
+  .shiny ::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple)) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 0 10px rgba(255, 107, 157, 0.3) !important;
+  }
+
+  /* Protección de componentes críticos en modo shiny */
+  .shiny .floating-buttons-container,
+  .shiny [class*="floating"],
+  .shiny [class*="FloatingButtons"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  .shiny .floating-buttons-container button,
+  .shiny [class*="floating"] button,
+  .shiny [class*="FloatingButtons"] button {
+    background: inherit !important;
+    border: inherit !important;
+    box-shadow: inherit !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Proteger específicamente el menú circular principal */
+  .shiny .absolute.-top-\[140px\],
+  .shiny .absolute.-top-\[140px\] * {
+    background: inherit !important;
+    border: inherit !important;
+    box-shadow: inherit !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .shiny .task-card {
+    background: var(--shiny-bg) !important;
+    border: 1px solid var(--shiny-primary) !important;
+    box-shadow: 0 0 10px rgba(255, 0, 128, 0.2) !important;
+  }
+
+  .shiny .task-checkbox {
+    background: var(--shiny-bg) !important;
+    border: 2px solid var(--shiny-primary) !important;
+    color: var(--shiny-primary) !important;
+  }
+
+  .shiny .task-checkbox:checked {
+    background: var(--shiny-primary) !important;
+    border-color: var(--shiny-primary) !important;
+    color: var(--shiny-bg) !important;
+  }
+
+  /* Texto Grande para Accesibilidad */
+  .large-text {
+    font-size: 120% !important;
+  }
+  
+  .large-text h1 {
+    font-size: 130% !important;
+  }
+  
+  .large-text h2 {
+    font-size: 125% !important;
+  }
+  
+  .large-text h3 {
+    font-size: 120% !important;
+  }
+  
+  .large-text p,
+  .large-text span,
+  .large-text div,
+  .large-text button,
+  .large-text input,
+  .large-text textarea,
+  .large-text label {
+    font-size: 120% !important;
+    line-height: 1.4 !important;
+  }
+  
+  .large-text .text-xs {
+    font-size: 0.9rem !important;
+  }
+  
+  .large-text .text-sm {
+    font-size: 1rem !important;
+  }
+  
+  .large-text .text-base {
+    font-size: 1.2rem !important;
+  }
+  
+  .large-text .text-lg {
+    font-size: 1.3rem !important;
+  }
+  
+  .large-text .text-xl {
+    font-size: 1.4rem !important;
+  }
+  
+  .large-text .text-2xl {
+    font-size: 1.6rem !important;
+  }
+  
+  .large-text .text-3xl {
+    font-size: 2rem !important;
+  }
+  
+  .large-text .text-4xl {
+    font-size: 2.4rem !important;
+  }
+  
+  .large-text .text-5xl {
+    font-size: 3rem !important;
+  }
+
+  /* Texto Grande + Shiny */
+  .shiny.large-text h1,
+  .shiny.large-text h2,
+  .shiny.large-text h3 {
+    font-size: 130% !important;
+    background: linear-gradient(45deg, var(--shiny-primary), var(--shiny-secondary), var(--shiny-accent)) !important;
+    background-size: 200% 200% !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    animation: text-shine 3s ease-in-out infinite !important;
+  }
+
+  .shiny.large-text p,
+  .shiny.large-text span,
+  .shiny.large-text div,
+  .shiny.large-text button,
+  .shiny.large-text input,
+  .shiny.large-text textarea,
+  .shiny.large-text label {
+    font-size: 120% !important;
+    line-height: 1.4 !important;
+    color: var(--shiny-text) !important;
+  }
 }

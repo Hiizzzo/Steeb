@@ -116,8 +116,28 @@ const MonthlyCalendarPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(toLocalDateString(new Date()));
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
+  const [completedGoals, setCompletedGoals] = useState<Array<{text: string, completedDate: string, month: string}>>([]);
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  // Cargar objetivos completados del localStorage
+  useEffect(() => {
+    const storedCompletedGoals = localStorage.getItem('stebe-completed-goals');
+    if (storedCompletedGoals !== null) {
+      try {
+        setCompletedGoals(JSON.parse(storedCompletedGoals));
+      } catch (e) {
+        setCompletedGoals([]);
+      }
+    }
+  }, []);
+
+  // Obtener objetivo completado del mes actual
+  const getCurrentMonthGoal = useMemo(() => {
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const currentMonthName = monthNames[currentDate.getMonth()];
+    return completedGoals.find(goal => goal.month === currentMonthName);
+  }, [completedGoals, currentDate]);
 
   // Generar días del calendario (inicio en lunes)
   const calendarDays = useMemo(() => {
@@ -542,7 +562,23 @@ const MonthlyCalendarPage: React.FC = () => {
                   year: 'numeric' 
                 }))}
               </motion.h2>
-              {/* Abreviatura removida para evitar duplicado */}
+              
+              {/* Objetivo completado del mes */}
+              {getCurrentMonthGoal && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                  className="mt-2 px-3 py-1.5 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg max-w-xs"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Trophy className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                    <p className="text-xs text-black dark:text-white font-medium truncate">
+                      {getCurrentMonthGoal.text}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             <motion.button

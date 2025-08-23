@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Pencil, Calendar, ShoppingCart, CheckCircle, Heart, Trash2, Clock, FileText } from 'lucide-react';
+import { Pencil, Calendar, ShoppingCart, CheckCircle, Heart, Trash2, Clock, FileText, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TaskType } from '@/types';
 import ShapeIcon from './ShapeIcon';
@@ -101,14 +101,16 @@ const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
-  const handleCheckboxToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isDragging && swipeOffset === 0) {
-      onToggle(id);
-    }
+  const handleCheckboxToggle = () => {
+    onToggle(id);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // No iniciar drag si se hace touch en el checkbox
+    if ((e.target as HTMLElement).closest('.task-checkbox-button')) {
+      return;
+    }
+    
     startX.current = e.touches[0].clientX;
     currentX.current = e.touches[0].clientX;
     setIsDragging(false);
@@ -157,6 +159,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleMouseStart = (e: React.MouseEvent) => {
+    // No iniciar drag si se hace click en el checkbox
+    if ((e.target as HTMLElement).closest('.task-checkbox-button')) {
+      return;
+    }
+    
     startX.current = e.clientX;
     currentX.current = e.clientX;
     setIsDragging(false);
@@ -267,13 +274,16 @@ const TaskCard: React.FC<TaskCardProps> = ({
           
           {/* Checkbox - solo mostrar si no hay subtareas */}
           {(!subtasks || subtasks.length === 0) && (
-            <div className="ml-3" onClick={handleCheckboxToggle}>
+            <div 
+              className="ml-3 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              onClick={handleCheckboxToggle}
+            >
               {completed ? (
-                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center cursor-pointer">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                <div className="w-6 h-6 bg-black dark:bg-white border-2 border-black dark:border-white rounded-full cursor-pointer transition-all duration-200">
                 </div>
               ) : (
-                <Circle size={24} className="text-gray-300 hover:text-black transition-colors cursor-pointer" />
+                <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full cursor-pointer hover:border-black dark:hover:border-white transition-all duration-200">
+                </div>
               )}
             </div>
           )}

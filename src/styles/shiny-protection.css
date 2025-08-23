@@ -1,0 +1,200 @@
+/* Protección de Componentes Críticos - Tema Shiny */
+
+/* Proteger completamente el menú flotante */
+.shiny .floating-buttons-container,
+.shiny [class*="floating"],
+.shiny [class*="FloatingButtons"],
+.shiny .absolute.-top-\[140px\],
+.shiny .absolute.-top-\[140px\] *,
+.shiny .w-40.h-40,
+.shiny .sm\\:w-56.sm\\:h-56 {
+  background: inherit !important;
+  border: inherit !important;
+  box-shadow: inherit !important;
+  animation: none !important;
+  transform: none !important;
+  position: relative !important;
+  z-index: auto !important;
+}
+
+/* Proteger botones del menú flotante */
+.shiny .floating-buttons-container button,
+.shiny [class*="floating"] button,
+.shiny [class*="FloatingButtons"] button,
+.shiny .absolute.-top-\[140px\] button {
+  background: inherit !important;
+  border: inherit !important;
+  box-shadow: inherit !important;
+  animation: none !important;
+  transform: none !important;
+  color: inherit !important;
+  filter: none !important;
+}
+
+/* Proteger iconos del menú flotante */
+.shiny .floating-buttons-container svg,
+.shiny [class*="floating"] svg,
+.shiny [class*="FloatingButtons"] svg,
+.shiny .absolute.-top-\[140px\] svg {
+  filter: none !important;
+  animation: none !important;
+  color: inherit !important;
+}
+
+/* Proteger las líneas divisorias del menú */
+.shiny .absolute.-top-\[140px\] .bg-black {
+  background: inherit !important;
+  border: inherit !important;
+  animation: none !important;
+}
+
+/* Proteger el menú expandido */
+.shiny .showCalendarMenu,
+.shiny .showCalendarMenu * {
+  background: inherit !important;
+  border: inherit !important;
+  box-shadow: inherit !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Proteger el botón principal + */
+.shiny .bg-black.rounded-full,
+.shiny .bg-white.rounded-full {
+  background: inherit !important;
+  border: inherit !important;
+  box-shadow: inherit !important;
+  animation: none !important;
+}
+
+/* Proteger el modal de creación de tareas */
+.shiny .modal-add-task,
+.shiny .modal-add-task * {
+  background: var(--shiny-card-bg) !important;
+  border: 1px solid var(--shiny-purple) !important;
+  color: var(--shiny-text) !important;
+}
+
+/* Proteger inputs y textareas */
+.shiny input,
+.shiny textarea {
+  background: var(--shiny-card-bg) !important;
+  border: 1px solid var(--shiny-purple) !important;
+  color: var(--shiny-text) !important;
+}
+
+/* Proteger las tarjetas de tareas */
+.shiny .task-card,
+.shiny .bg-white.border.border-gray-200.rounded-lg {
+  background: var(--shiny-card-bg) !important;
+  border: 1px solid var(--shiny-pink) !important;
+  color: var(--shiny-text) !important;
+  box-shadow: 0 4px 20px rgba(255, 107, 157, 0.15) !important;
+}
+
+/* Proteger los checkboxes de tareas */
+.shiny .task-checkbox,
+.shiny .w-6.h-6.rounded-full.border-2,
+.shiny button .w-6.h-6.rounded-full.border-2 {
+  background: var(--shiny-card-bg) !important;
+  border: 2px solid var(--shiny-pink) !important;
+  color: var(--shiny-pink) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.shiny .task-checkbox:checked,
+.shiny .w-6.h-6.rounded-full.border-2.bg-black,
+.shiny button .w-6.h-6.rounded-full.border-2.bg-black {
+  background: var(--shiny-pink) !important;
+  border-color: var(--shiny-pink) !important;
+  color: white !important;
+}
+
+/* Proteger el icono del checkbox completado */
+.shiny .w-4.h-4.text-white,
+.shiny .w-4.h-4.dark\\:text-black {
+  color: white !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+/* Proteger el hover del checkbox */
+.shiny button:hover .w-6.h-6.rounded-full.border-2 {
+  border-color: var(--shiny-accent) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Proteger específicamente el botón del checkbox */
+.shiny .task-checkbox-button {
+  /* NO SOBRESCRIBIR background y border para que funcionen los estilos de completado */
+  box-shadow: none !important;
+  animation: none !important;
+  transform: none !important;
+  z-index: 10 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+}
+
+.shiny .task-checkbox-button:hover {
+  background: rgba(255, 107, 157, 0.1) !important;
+  transform: none !important;
+}
+
+.shiny .task-checkbox-button:focus {
+  outline: 2px solid var(--shiny-purple) !important;
+  outline-offset: 2px !important;
+}
+
+/* Asegurar que el checkbox siempre sea clickeable */
+.task-checkbox-button {
+  z-index: 10 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+}
+
+/* Proteger el header y navegación */
+.shiny .bg-white,
+.shiny .bg-black {
+  background: var(--shiny-bg) !important;
+  color: var(--shiny-text) !important;
+}
+
+/* Proteger textos principales */
+.shiny h1,
+.shiny h2,
+.shiny h3,
+.shiny .text-black,
+.shiny .text-white {
+  color: var(--shiny-text) !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  animation: none !important;
+}
+
+/* Proteger el contenido principal */
+.shiny .min-h-screen {
+  background: var(--shiny-bg) !important;
+  color: var(--shiny-text) !important;
+}
+
+/* Proteger el botón de configuración */
+.shiny .bg-gray-50,
+.shiny .bg-gray-100,
+.shiny .bg-gray-900 {
+  background: linear-gradient(135deg, var(--shiny-card-bg), #1e1e3f) !important;
+  border: 1px solid var(--shiny-purple) !important;
+  color: var(--shiny-text) !important;
+}
+
+/* Proteger los toggles de configuración */
+.shiny .w-12.h-6.rounded-full {
+  background: var(--shiny-card-bg) !important;
+  border: 1px solid var(--shiny-purple) !important;
+}
+
+.shiny .w-4.h-4.rounded-full {
+  background: var(--shiny-pink) !important;
+  border: none !important;
+}
