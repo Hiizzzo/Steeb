@@ -531,10 +531,18 @@ const Index = () => {
   return (
           <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       
-
+      {/* Imagen de Stebe en la esquina superior izquierda */}
+      <div className="absolute top-4 left-4 z-20">
+        <img 
+          src="/lovable-uploads/STEBETRISTE.png"
+          alt="Stebe" 
+          className="w-16 h-16 rounded-2xl"
+        />
+      </div>
       
       {/* Contenido principal */}
       <div className="relative z-10">
+      
       {/* Encabezado con día de la semana */}
       <div className="pt-12 mb-1">
         <h1 className="text-black dark:text-white text-4xl font-light text-center font-varela">{dayName}</h1>
