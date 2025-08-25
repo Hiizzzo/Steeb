@@ -5,14 +5,33 @@ const LoadingScreen: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    // Inicializar como modo oscuro por defecto para que las pelotitas sean blancas
+    setIsDark(true);
+    
     const check = () => {
       const hasDarkClass = document.documentElement.classList.contains('dark');
-      setIsDark(hasDarkClass || mql.matches);
+      const savedTheme = localStorage.getItem('theme');
+      
+      console.log('LoadingScreen - hasDarkClass:', hasDarkClass);
+      console.log('LoadingScreen - savedTheme:', savedTheme);
+      
+      // Si no hay tema guardado o clase dark, asumir modo oscuro para pelotitas blancas
+      const isDarkMode = hasDarkClass || savedTheme === 'dark' || !savedTheme;
+      console.log('LoadingScreen - isDarkMode:', isDarkMode);
+      setIsDark(isDarkMode);
     };
-    check();
-    mql.addEventListener('change', check);
-    return () => mql.removeEventListener('change', check);
+    
+    // Pequeño delay para asegurar que el DOM esté listo
+    setTimeout(check, 100);
+    
+    // Observar cambios en las clases del documento
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -22,16 +41,49 @@ const LoadingScreen: React.FC = () => {
           className={`text-6xl font-bold animate-pulse ${isDark ? 'text-white' : 'text-black'}`}
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          STEBE
+          STEEB
         </h1>
         {/* Número de versión debajo del título */}
-        <div className={`mt-2 text-sm font-semibold tracking-wide ${isDark ? 'text-white/80' : 'text-black/80'}`}>v0.4</div>
+        <div className={`mt-2 text-sm font-semibold tracking-wide ${isDark ? 'text-white/80' : 'text-black/80'}`}>v0.6</div>
         
         {/* Puntos animados */}
         <div className="flex justify-center items-center space-x-3 mt-6">
-          <div className={`w-4 h-4 rounded-full animate-bounce [animation-delay:-0.3s] ${isDark ? 'bg-white border border-white/80' : 'bg-black border border-black/80'}`}></div>
-          <div className={`w-4 h-4 rounded-full animate-bounce [animation-delay:-0.15s] ${isDark ? 'bg-white border border-white/80' : 'bg-black border border-black/80'}`}></div>
-          <div className={`w-4 h-4 rounded-full animate-bounce ${isDark ? 'bg-white border border-white/80' : 'bg-black border border-black/80'}`}></div>
+          <div 
+            className="animate-bounce [animation-delay:-0.3s]"
+            style={{ 
+              width: '16px', 
+              height: '16px', 
+              borderRadius: '50%',
+              backgroundColor: isDark ? '#ffffff' : '#000000',
+              border: `2px solid ${isDark ? '#ffffff' : '#000000'}`,
+              zIndex: 9999,
+              position: 'relative'
+            }}
+          ></div>
+          <div 
+            className="animate-bounce [animation-delay:-0.15s]"
+            style={{ 
+              width: '16px', 
+              height: '16px', 
+              borderRadius: '50%',
+              backgroundColor: isDark ? '#ffffff' : '#000000',
+              border: `2px solid ${isDark ? '#ffffff' : '#000000'}`,
+              zIndex: 9999,
+              position: 'relative'
+            }}
+          ></div>
+          <div 
+            className="animate-bounce"
+            style={{ 
+              width: '16px', 
+              height: '16px', 
+              borderRadius: '50%',
+              backgroundColor: isDark ? '#ffffff' : '#000000',
+              border: `2px solid ${isDark ? '#ffffff' : '#000000'}`,
+              zIndex: 9999,
+              position: 'relative'
+            }}
+          ></div>
         </div>
       </div>
     </div>

@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import TaskCreationCard from '@/components/TaskCreationCard';
-import { Task, SubTask } from '@/types';
+import { Task, SubTask, RecurrenceRule } from '@/types';
 import ShapeIcon from '@/components/ShapeIcon';
 
 // Configuración de animaciones para Stebe
@@ -273,7 +273,16 @@ const MonthlyCalendarPage: React.FC = () => {
     localStorage.removeItem('stebe-selected-date');
   };
 
-  const handleCreateTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
+  const handleCreateTask = (
+   title: string,
+   type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra',
+   subtasks?: SubTask[],
+   scheduledDate?: string,
+   scheduledTime?: string,
+   notes?: string,
+   isPrimary?: boolean,
+   recurrence?: RecurrenceRule
+ ) => {
     try {
       const newTask: Task = {
         id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -287,7 +296,8 @@ const MonthlyCalendarPage: React.FC = () => {
         notes,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        tags: isPrimary ? ['principal'] : []
+        tags: isPrimary ? ['principal'] : [],
+        recurrence
       };
 
       const updatedTasks = [...tasks, newTask];

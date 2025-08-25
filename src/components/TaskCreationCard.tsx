@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useToast } from '@/components/ui/use-toast';
-import { Calendar, Clock, Pointer } from 'lucide-react';
+import { Calendar, Clock, Pointer, Repeat } from 'lucide-react';
 import ShapeIcon from "./ShapeIcon";
+import type { RecurrenceRule, RecurrenceFrequency } from '@/types';
 
 // Íconos simples para los tipos de tarea
 const PersonalIcon = () => <div className="w-4 h-4 bg-black rounded-full"></div>;
@@ -26,6 +27,7 @@ interface Task {
   scheduledTime?: string;
   notes?: string;
   tags?: string[];
+  recurrence?: RecurrenceRule;
 }
 
 interface TaskCreationCardProps {
@@ -37,7 +39,8 @@ interface TaskCreationCardProps {
     scheduledDate?: string,
     scheduledTime?: string,
     notes?: string,
-    isPrimary?: boolean
+    isPrimary?: boolean,
+    recurrence?: RecurrenceRule
   ) => void;
   editingTask?: Task | null;
 }
@@ -50,8 +53,14 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [selectedTag, setSelectedTag] = useState<'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra'>('productividad');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showRepeatPicker, setShowRepeatPicker] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [isPrimary, setIsPrimary] = useState(false);
+  // Recurrence state
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<RecurrenceFrequency>('none');
+  const [recurrenceInterval, setRecurrenceInterval] = useState<number>(1);
+  const [recurrenceDaysOfWeek, setRecurrenceDaysOfWeek] = useState<number[]>([]);
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string>('');
   const { playButtonClickSound } = useSoundEffects();
   const { toast } = useToast();
 
@@ -68,6 +77,18 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         setSelectedTime(editingTask.scheduledTime);
       }
       setIsPrimary(!!editingTask.tags?.includes('principal'));
+      // Prefill recurrence
+      if (editingTask.recurrence) {
+        setRecurrenceFrequency(editingTask.recurrence.frequency);
+        setRecurrenceInterval(editingTask.recurrence.interval || 1);
+        setRecurrenceDaysOfWeek(editingTask.recurrence.daysOfWeek || []);
+        setRecurrenceEndDate(editingTask.recurrence.endDate || '');
+      } else {
+        setRecurrenceFrequency('none');
+        setRecurrenceInterval(1);
+        setRecurrenceDaysOfWeek([]);
+        setRecurrenceEndDate('');
+      }
     } else {
       // Resetear campos cuando se está creando una nueva tarea
       setTitle('');
@@ -76,6 +97,10 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       setSelectedDate(undefined);
       setSelectedTime('');
       setIsPrimary(false);
+      setRecurrenceFrequency('none');
+      setRecurrenceInterval(1);
+      setRecurrenceDaysOfWeek([]);
+      setRecurrenceEndDate('');
     }
   }, [editingTask]);
 
@@ -96,6 +121,16 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       const scheduledDate = selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
       
       console.log('📝 TaskCreationCard: Llamando a onCreate...');
+      const recurrence: RecurrenceRule | undefined =
+        recurrenceFrequency === 'none'
+          ? undefined
+          : {
+              frequency: recurrenceFrequency,
+              interval: recurrenceInterval || 1,
+              daysOfWeek: recurrenceFrequency === 'weekly' ? recurrenceDaysOfWeek : undefined,
+              endDate: recurrenceEndDate || undefined,
+            };
+
       onCreate(
         title.trim(), 
         selectedTag, 
@@ -103,7 +138,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         scheduledDate,
         selectedTime || undefined,
         notes.trim() || undefined,
-        isPrimary
+        isPrimary,
+        recurrence
       );
       
       onCancel();
@@ -141,7 +177,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Creatividad" />;
       case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Aprendizaje" />;
       case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-2 text-black" title="Organización" />;
-      case 'salud':           return <ShapeIcon variant="hexagon" className="w-6 h-6 mr-2 text-black" title="Salud" />;
+      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-2 text-black" title="Salud" />;
       case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Social" />;
       case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Entretenimiento" />;
       case 'extra':           return <ShapeIcon variant="square" className="w-6 h-6 mr-2 text-black" title="Extra" />;
@@ -193,76 +229,72 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Nombre de la tarea"
-              className="w-full text-lg text-black placeholder-gray-400 border-none outline-none bg-transparent pr-6"
+              className="w-full text-xl text-black placeholder-gray-400 border-none outline-none bg-transparent pr-6"
               autoFocus
             />
           </div>
 
           {/* Notes Input */}
-          <div className="mb-4">
+          <div className="mb-2">
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas"
-              className="w-full text-sm text-gray-500 placeholder-gray-400 border-none outline-none bg-transparent resize-none min-h-[40px]"
+              className="w-full text-base text-gray-600 placeholder-gray-400 border-none outline-none bg-transparent resize-none min-h-[44px]"
             />
           </div>
 
-          {/* Mission Type */}
-          <div className="mb-4 flex items-center gap-2">
-            <input
-              id="isPrimary"
-              type="checkbox"
-              checked={isPrimary}
-              onChange={(e) => setIsPrimary(e.target.checked)}
-              className="w-4 h-4 accent-black"
-            />
-            <label htmlFor="isPrimary" className="text-sm text-black">
-              Marcar como misión principal
-            </label>
-          </div>
+          {/* Mission Type removed by request */}
         </div>
 
         {/* Footer */}
-        <div className="flex border-t border-gray-100">
+        <div className="flex">
           {/* Date Section */}
           <button 
             onClick={() => setShowDatePicker(!showDatePicker)}
-            className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            aria-label="Fecha"
+            title={selectedDate ? selectedDate.toLocaleDateString() : 'Seleccionar fecha'}
+            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
           >
-            <Calendar size={20} className="text-black" />
-            <span className="font-medium">
-              {selectedDate ? selectedDate.toLocaleDateString() : "Fecha ..."}
-            </span>
+            <Calendar size={24} className="text-black dark:text-white" />
           </button>
           
+          {/* Repeat Section */}
+          <button 
+            onClick={() => setShowRepeatPicker(!showRepeatPicker)}
+            aria-label="Repetir"
+            title={recurrenceDaysOfWeek.length === 0 ? 'Configurar repetición' : ['D','L','M','M','J','V','S'].filter((_, idx) => recurrenceDaysOfWeek.includes(idx)).join(' ')}
+            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
+          >
+            <Repeat size={24} className="text-black dark:text-white" />
+          </button>
+
           {/* Time Section */}
           <button 
             onClick={() => setShowTimePicker(!showTimePicker)}
-            className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            aria-label="Hora"
+            title={selectedTime || 'Seleccionar hora'}
+            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
           >
-            <Clock size={20} className="text-black" />
-            <span className="font-medium">
-              {selectedTime || "Hora ..."}
-            </span>
+            <Clock size={24} className="text-black dark:text-white" />
           </button>
           
-          {/* Divider */}
-          <div className="w-px bg-gray-100"></div>
+          {/* Divider removed to make buttons seamless */}
           
           {/* Tag Section */}
           <button 
             onClick={() => setShowTagPicker(!showTagPicker)}
-            className="flex-1 flex items-center justify-center gap-2 py-4 text-black hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            aria-label="Categoría"
+            title={getTagLabel(selectedTag)}
+            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
           >
             {getTagIcon(selectedTag)}
-            <span className="mr-4">{getTagLabel(selectedTag)}</span>
           </button>
         </div>
 
         {/* Date Picker */}
         {showDatePicker && (
-          <div className="border-t border-gray-100 p-4 bg:white">
+          <div className="p-2 bg:white">
             <input
               type="date"
               value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
@@ -277,7 +309,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Time Picker */}
         {showTimePicker && (
-          <div className="border-t border-gray-100 p-4 bg:white">
+          <div className="p-2 bg:white">
             <input
               type="time"
               value={selectedTime}
@@ -287,6 +319,40 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               }}
               className="w-full p-2 border border-gray-300 rounded"
             />
+          </div>
+        )}
+
+        {/* Repeat Picker */}
+        {showRepeatPicker && (
+          <div className="p-2 bg:white">
+            <div>
+              <p className="text-base text-black mb-2 text-center">Seleccioná los días que se repite</p>
+              <div className="grid grid-cols-7 gap-1">
+                {['D','L','M','M','J','V','S'].map((label, idx) => {
+                  const toggled = recurrenceDaysOfWeek.includes(idx);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setRecurrenceDaysOfWeek(prev => {
+                          const next = prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx];
+                          // auto-set frequency based on selection
+                          setRecurrenceFrequency(next.length > 0 ? 'weekly' : 'none');
+                          return next;
+                        });
+                      }}
+                      className={`py-1 text-xs rounded border transition-colors
+                        ${toggled 
+                          ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                          : 'bg-white text-black border-gray-300 dark:bg-transparent dark:text-white dark:border-gray-500'}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 

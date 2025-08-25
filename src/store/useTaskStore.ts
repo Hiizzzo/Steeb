@@ -109,6 +109,80 @@ const initialStats: TaskStats = {
   mostProductiveDay: 'Monday',
 };
 
+// ========== RECURRENCE HELPERS ==========
+const toDateOnly = (d: Date) => d.toISOString().split('T')[0];
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function addMonths(date: Date, months: number): Date {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  // Ajustar si el mes resultante no tiene el mismo día
+  if (d.getDate() < day) {
+    d.setDate(0); // último día del mes anterior
+  }
+  return d;
+}
+
+function computeNextOccurrenceDate(currentDateStr: string | undefined, rule: import('@/types').RecurrenceRule | undefined): string | null {
+  if (!rule || rule.frequency === 'none') return null;
+  const interval = Math.max(1, rule.interval || 1);
+  const base = currentDateStr ? new Date(currentDateStr) : new Date();
+
+  let next: Date | null = null;
+
+  if (rule.frequency === 'daily') {
+    next = addDays(base, interval);
+  } else if (rule.frequency === 'weekly') {
+    const days = (rule.daysOfWeek && rule.daysOfWeek.length > 0) ? rule.daysOfWeek.slice().sort() : undefined;
+    const baseDow = base.getDay(); // 0-6 (Sun-Sat)
+    if (!days) {
+      // Sin días específicos: saltar semanas completas
+      next = addDays(base, 7 * interval);
+    } else {
+      // Encontrar el siguiente día de la semana definido
+      let delta = 1;
+      while (delta <= 7 * interval + 7) { // límite de búsqueda razonable
+        const candidate = addDays(base, delta);
+        const dow = candidate.getDay();
+        const weeksDiff = Math.floor(delta / 7);
+        if (days.includes(dow)) {
+          // Asegurar intervalo por semanas: si estamos en la misma semana, weeksDiff puede ser 0; ajustamos a intervalo
+          if (weeksDiff === 0 && baseDow < dow) {
+            // mismo ciclo, día siguiente dentro de la semana actual
+            next = candidate;
+            break;
+          }
+          if (weeksDiff % interval === 0) {
+            next = candidate;
+            break;
+          }
+        }
+        delta++;
+      }
+      // Si no encontramos con la regla exacta, como fallback sumar (interval) semanas al primer día seleccionado
+      if (!next) {
+        const first = days[0];
+        const candidate = addDays(base, (7 * interval) + ((first - baseDow + 7) % 7 || 7));
+        next = candidate;
+      }
+    }
+  } else if (rule.frequency === 'monthly') {
+    next = addMonths(base, interval);
+  }
+
+  if (!next) return null;
+
+  const nextStr = toDateOnly(next);
+  if (rule.endDate && nextStr > rule.endDate) return null;
+  return nextStr;
+}
+
 export const useTaskStore = create<TaskStore>()(
   devtools(
     persist(
@@ -134,7 +208,7 @@ export const useTaskStore = create<TaskStore>()(
         addTask: async (taskData) => {
           // Validar que el título no esté vacío
           if (!taskData.title || !taskData.title.trim()) {
-            console.warn('🚫 Intento de crear tarea con título vacío bloqueado en el store');
+            console.warn(' Intento de crear tarea con título vacío bloqueado en el store');
             set({ error: 'El título de la tarea no puede estar vacío' });
             return;
           }
@@ -150,7 +224,7 @@ export const useTaskStore = create<TaskStore>()(
               updatedAt: new Date().toISOString(),
             };
             
-            console.log('✅ Creando nueva tarea:', newTask.title);
+            console.log(' Creando nueva tarea:', newTask.title);
             
             set(state => ({
               tasks: [...state.tasks, newTask],
@@ -158,9 +232,9 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             get().calculateStats();
-            console.log('✅ Tarea añadida exitosamente al store');
+            console.log(' Tarea añadida exitosamente al store');
           } catch (error) {
-            console.error('❌ Error al crear tarea:', error);
+            console.error(' Error al crear tarea:', error);
             set({ 
               error: error instanceof Error ? error.message : 'Failed to create task'
             });
@@ -174,7 +248,7 @@ export const useTaskStore = create<TaskStore>()(
               throw new Error('Task not found');
             }
             
-            console.log('✅ Actualizando tarea:', id);
+            console.log(' Actualizando tarea:', id);
             
             set(state => ({
               tasks: state.tasks.map(task =>
@@ -184,9 +258,9 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             get().calculateStats();
-            console.log('✅ Tarea actualizada exitosamente');
+            console.log(' Tarea actualizada exitosamente');
           } catch (error) {
-            console.error('❌ Error al actualizar tarea:', error);
+            console.error(' Error al actualizar tarea:', error);
             set({ 
               error: error instanceof Error ? error.message : 'Failed to update task'
             });
@@ -200,7 +274,7 @@ export const useTaskStore = create<TaskStore>()(
               throw new Error('Task not found');
             }
             
-            console.log('✅ Eliminando tarea:', taskToDelete.title);
+            console.log(' Eliminando tarea:', taskToDelete.title);
             
             set(state => ({
               tasks: state.tasks.filter(task => task.id !== id),
@@ -209,9 +283,9 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             get().calculateStats();
-            console.log('✅ Tarea eliminada exitosamente');
+            console.log(' Tarea eliminada exitosamente');
           } catch (error) {
-            console.error('❌ Error al eliminar tarea:', error);
+            console.error(' Error al eliminar tarea:', error);
             set({ 
               error: error instanceof Error ? error.message : 'Failed to delete task'
             });
@@ -307,19 +381,61 @@ export const useTaskStore = create<TaskStore>()(
           const task = get().tasks.find(t => t.id === id);
           if (!task) return;
           
-          get().updateTask(id, {
-            completed: !task.completed,
-            status: !task.completed ? 'completed' : 'pending',
-            completedDate: !task.completed ? new Date().toISOString() : undefined,
+          const willComplete = !task.completed;
+          await get().updateTask(id, {
+            completed: willComplete,
+            status: willComplete ? 'completed' : 'pending',
+            completedDate: willComplete ? new Date().toISOString() : undefined,
           });
+          // Auto-crear siguiente ocurrencia si corresponde
+          if (willComplete && task.recurrence) {
+            const nextDate = computeNextOccurrenceDate(task.scheduledDate, task.recurrence);
+            if (nextDate) {
+              const resetSubtasks = task.subtasks?.map(st => ({ ...st, completed: false })) || undefined;
+              await get().addTask({
+                title: task.title,
+                type: task.type,
+                subgroup: task.subgroup,
+                status: 'pending',
+                completed: false,
+                scheduledDate: nextDate,
+                scheduledTime: task.scheduledTime,
+                notes: task.notes,
+                tags: task.tags,
+                subtasks: resetSubtasks,
+                recurrence: task.recurrence,
+              } as any);
+            }
+          }
         },
 
         completeTask: async (id) => {
-          get().updateTask(id, {
+          const task = get().tasks.find(t => t.id === id);
+          if (!task) return;
+          await get().updateTask(id, {
             completed: true,
             status: 'completed',
             completedDate: new Date().toISOString(),
           });
+          if (task.recurrence) {
+            const nextDate = computeNextOccurrenceDate(task.scheduledDate, task.recurrence);
+            if (nextDate) {
+              const resetSubtasks = task.subtasks?.map(st => ({ ...st, completed: false })) || undefined;
+              await get().addTask({
+                title: task.title,
+                type: task.type,
+                subgroup: task.subgroup,
+                status: 'pending',
+                completed: false,
+                scheduledDate: nextDate,
+                scheduledTime: task.scheduledTime,
+                notes: task.notes,
+                tags: task.tags,
+                subtasks: resetSubtasks,
+                recurrence: task.recurrence,
+              } as any);
+            }
+          }
         },
 
         // ========== SUBTASK OPERATIONS ==========

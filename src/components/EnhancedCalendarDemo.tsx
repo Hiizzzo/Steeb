@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
 import EnhancedCalendar from './EnhancedCalendar';
 import TaskCreationCard from './TaskCreationCard';
+import { RecurrenceRule } from '@/types';
 
 // Datos de ejemplo para demostrar el calendario
 const mockTasks = [
@@ -128,7 +129,16 @@ const EnhancedCalendarDemo: React.FC = () => {
     localStorage.removeItem('stebe-selected-date');
   };
 
-  const handleCreateTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
+  const handleCreateTask = (
+    title: string,
+    type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra',
+    subtasks?: any[],
+    scheduledDate?: string,
+    scheduledTime?: string,
+    notes?: string,
+    isPrimary?: boolean,
+    recurrence?: RecurrenceRule
+  ) => {
     const newTask = {
       id: Date.now().toString(),
       title,
@@ -138,7 +148,8 @@ const EnhancedCalendarDemo: React.FC = () => {
       scheduledTime,
       notes,
       subtasks,
-      tags: isPrimary ? ['principal'] : []
+      tags: isPrimary ? ['principal'] : [],
+      recurrence
     };
     setTasks(prev => [...prev, newTask]);
     setShowTaskCreation(false);

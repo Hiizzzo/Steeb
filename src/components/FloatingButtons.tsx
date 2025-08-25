@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Settings, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
+import type { RecurrenceRule } from '@/types';
 import { useTheme } from 'next-themes';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
-  onCreateTask?: (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => void;
+  onCreateTask?: (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, recurrence?: RecurrenceRule) => void;
 }
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTask }) => {
@@ -162,10 +163,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     };
   }, [showCalendarMenu]);
 
-  const handleCreateTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean) => {
+  const handleCreateTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: any[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, recurrence?: RecurrenceRule) => {
     setShowTaskModal(false);
     if (onCreateTask) {
-      onCreateTask(title, type, subtasks, scheduledDate, scheduledTime, notes, isPrimary);
+      onCreateTask(title, type, subtasks, scheduledDate, scheduledTime, notes, isPrimary, recurrence);
     } else {
       onAddTask();
     }

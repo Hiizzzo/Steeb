@@ -1,17 +1,112 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings, Bell, Moon, Sun, Palette, Volume2, VolumeX, Smartphone, Monitor, Database, Trash2, Info, Shield, HelpCircle, Type } from 'lucide-react';
+import { ArrowLeft, Settings, Bell, Moon, Sun, Palette, Volume2, VolumeX, Smartphone, Monitor, Database, Trash2, Info, Shield, HelpCircle, Type, Globe } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import { useSettings } from '@/hooks/useSettings';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { currentTheme, toggleTheme, isDark, isShiny, isLight } = useTheme();
+  const { settings, updateGeneralSettings } = useSettings();
   const [notifications, setNotifications] = useState(true);
   const [soundEffects, setSoundEffects] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
   const [compactMode, setCompactMode] = useState(false);
   const [largeText, setLargeText] = useState(false);
+
+  // Translation system
+  const t = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      es: {
+        // Header
+        'settings': 'Configuración',
+        
+        // Appearance Section
+        'appearance': 'Apariencia',
+        'app_name': 'STEEB',
+        'app_theme': 'Tema de la Aplicación',
+        'light': 'Claro',
+        'dark': 'Oscuro',
+        'shiny': 'Shiny ✨',
+        'app_language': 'Idioma de la Aplicación',
+        'text_size': 'Tamaño de Texto',
+        'text_size_desc': 'Grande (mejor legibilidad)',
+        'text_size_normal': 'Normal',
+        'compact_mode': 'Modo Compacto',
+        
+        // Notifications Section
+        'notifications_sounds': 'Notificaciones y Sonidos',
+        'push_notifications': 'Notificaciones Push',
+        'sound_effects': 'Efectos de Sonido',
+        
+        // Data Section
+        'data_backup': 'Datos y Respaldo',
+        'backup_description': 'Respalda tus datos de STEEB en la nube',
+        'auto_backup': 'Respaldo Automático',
+        'export_data': 'Exportar Datos',
+        'export_data_desc': 'Descargar copia de seguridad de todas tus tareas y configuraciones',
+        'import_data': 'Importar Datos',
+        'restore_description': 'Restaura tus datos de STEEB desde la nube',
+        
+        // Information Section
+        'information': 'Información',
+        'about_stebe': 'Acerca de STEBE',
+        'app_description': 'Tu asistente de productividad STEEB',
+        'help_support': 'Ayuda y Soporte',
+        'help_desc': 'Guías de uso y solución de problemas',
+        
+        // Delete Section
+        'delete_all_data': 'Eliminar Todos los Datos',
+        'delete_warning': '⚠️ Esta acción no se puede deshacer',
+        'delete_confirm': '¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.',
+      },
+      en: {
+        // Header
+        'settings': 'Settings',
+        
+        // Appearance Section
+        'appearance': 'Appearance',
+        'app_name': 'STEEB',
+        'app_theme': 'App Theme',
+        'light': 'Light',
+        'dark': 'Dark',
+        'shiny': 'Shiny ✨',
+        'app_language': 'App Language',
+        'text_size': 'Text Size',
+        'text_size_desc': 'Large (better readability)',
+        'text_size_normal': 'Normal',
+        'compact_mode': 'Compact Mode',
+        
+        // Notifications Section
+        'notifications_sounds': 'Notifications & Sounds',
+        'push_notifications': 'Push Notifications',
+        'sound_effects': 'Sound Effects',
+        
+        // Data Section
+        'data_backup': 'Data & Backup',
+        'auto_backup': 'Auto Backup',
+        'export_data': 'Export Data',
+        'export_data_desc': 'Download backup of all your tasks and settings',
+        'import_data': 'Import Data',
+        'restore_description': 'Restore your STEEB data from the cloud',
+        
+        // Information Section
+        'information': 'Information',
+        'about_stebe': 'About STEBE',
+        'app_description': 'Your STEEB productivity assistant',
+        'help_support': 'Help & Support',
+        'help_desc': 'Usage guides and troubleshooting',
+        
+        // Delete Section
+        'delete_all_data': 'Delete All Data',
+        'delete_warning': '⚠️ This action cannot be undone',
+        'delete_confirm': 'Are you sure you want to delete all data? This action cannot be undone.',
+      }
+    };
+    
+    return translations[settings.language]?.[key] || translations['es'][key] || key;
+  };
 
   // El hook useTheme ya maneja la detección automática del tema
 
@@ -56,7 +151,7 @@ const SettingsPage = () => {
   };
 
   const clearAllData = () => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.')) {
+    if (window.confirm(t('delete_confirm'))) {
       localStorage.clear();
       window.location.reload();
     }
@@ -125,7 +220,7 @@ const SettingsPage = () => {
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-2xl font-bold">Configuración</h1>
+        <h1 className="text-2xl font-bold">{t('settings')}</h1>
         <Settings className="w-6 h-6" />
       </div>
 
@@ -138,7 +233,7 @@ const SettingsPage = () => {
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Palette className="w-5 h-5" />
-          Apariencia
+          {t('appearance')}
         </h2>
         
         <div className="space-y-4">
@@ -146,7 +241,7 @@ const SettingsPage = () => {
           <div className="p-4 bg-gray-50 dark:bg-black rounded-lg">
             <div className="flex items-center gap-3 mb-3">
               <Palette className="w-5 h-5" />
-              <span className="font-medium">Tema de la Aplicación</span>
+              <span className="font-medium">{t('app_theme')}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <button
@@ -159,7 +254,7 @@ const SettingsPage = () => {
               >
                 <div className="text-center">
                   <div className="w-6 h-6 mx-auto mb-1 bg-yellow-400 rounded-full"></div>
-                  <span className="text-xs font-medium">Claro</span>
+                  <span className="text-xs font-medium">{t('light')}</span>
                 </div>
               </button>
               
@@ -173,7 +268,7 @@ const SettingsPage = () => {
               >
                 <div className="text-center">
                   <div className="w-6 h-6 mx-auto mb-1 bg-gray-600 rounded-full"></div>
-                  <span className="text-xs font-medium">Oscuro</span>
+                  <span className="text-xs font-medium">{t('dark')}</span>
                 </div>
               </button>
               
@@ -187,7 +282,42 @@ const SettingsPage = () => {
               >
                 <div className="text-center">
                   <div className="w-6 h-6 mx-auto mb-1 bg-gradient-to-r from-pink-300 via-purple-300 to-teal-300 rounded-full animate-pulse shadow-lg"></div>
-                  <span className="text-xs font-medium">Shiny ✨</span>
+                  <span className="text-xs font-medium">{t('shiny')}</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Idioma */}
+          <div className="p-4 bg-gray-50 dark:bg-black rounded-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <Globe className="w-5 h-5" />
+              <span className="font-medium">{t('app_language')}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => updateGeneralSettings({ language: 'es' })}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  settings.language === 'es'
+                    ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                    : 'border-gray-300 dark:border-white bg-white dark:bg-black text-gray-700 dark:text-white'
+                }`}
+              >
+                <div className="text-center">
+                  <span className="text-sm font-medium">🇪🇸 Español</span>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => updateGeneralSettings({ language: 'en' })}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  settings.language === 'en'
+                    ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                    : 'border-gray-300 dark:border-white bg-white dark:bg-black text-gray-700 dark:text-white'
+                }`}
+              >
+                <div className="text-center">
+                  <span className="text-sm font-medium">🇺🇸 English</span>
                 </div>
               </button>
             </div>
@@ -198,9 +328,9 @@ const SettingsPage = () => {
             <div className="flex items-center gap-3">
               <Type className="w-5 h-5" />
               <div>
-                <span className="font-medium block">Tamaño de Texto</span>
+                <span className="font-medium block">{t('text_size')}</span>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {largeText ? 'Grande (mejor legibilidad)' : 'Normal'}
+                  {largeText ? t('text_size_desc') : t('text_size_normal')}
                 </span>
               </div>
             </div>
@@ -220,7 +350,7 @@ const SettingsPage = () => {
           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg">
             <div className="flex items-center gap-3">
               <Monitor className="w-5 h-5" />
-              <span className="font-medium">Modo Compacto</span>
+              <span className="font-medium">{t('compact_mode')}</span>
             </div>
             <button
               onClick={() => {
@@ -249,7 +379,7 @@ const SettingsPage = () => {
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Bell className="w-5 h-5" />
-          Notificaciones y Sonidos
+          {t('notifications_sounds')}
         </h2>
         
         <div className="space-y-4">
@@ -257,7 +387,7 @@ const SettingsPage = () => {
           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5" />
-              <span className="font-medium">Notificaciones Push</span>
+              <span className="font-medium">{t('push_notifications')}</span>
             </div>
             <button
               onClick={() => {
@@ -279,7 +409,7 @@ const SettingsPage = () => {
           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg">
             <div className="flex items-center gap-3">
               {soundEffects ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-              <span className="font-medium">Efectos de Sonido</span>
+              <span className="font-medium">{t('sound_effects')}</span>
             </div>
             <button
               onClick={() => {
@@ -308,7 +438,7 @@ const SettingsPage = () => {
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Database className="w-5 h-5" />
-          Datos y Respaldo
+          {t('data_backup')}
         </h2>
         
         <div className="space-y-4">
@@ -316,7 +446,7 @@ const SettingsPage = () => {
           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg">
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5" />
-              <span className="font-medium">Respaldo Automático</span>
+              <span className="font-medium">{t('auto_backup')}</span>
             </div>
             <button
               onClick={() => {
@@ -341,10 +471,10 @@ const SettingsPage = () => {
           >
             <div className="flex items-center gap-3">
               <Database className="w-5 h-5" />
-              <span className="font-medium">Exportar Datos</span>
+              <span className="font-medium">{t('export_data')}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Descargar copia de seguridad de todas tus tareas y configuraciones
+              {t('export_data_desc')}
             </p>
           </button>
 
@@ -355,10 +485,10 @@ const SettingsPage = () => {
           >
             <div className="flex items-center gap-3">
               <Database className="w-5 h-5" />
-              <span className="font-medium">Importar Datos</span>
+              <span className="font-medium">{t('import_data')}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Restaurar desde un archivo de respaldo
+              {t('import_data_desc')}
             </p>
           </button>
         </div>
@@ -373,7 +503,7 @@ const SettingsPage = () => {
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Info className="w-5 h-5" />
-          Información
+          {t('information')}
         </h2>
         
         <div className="space-y-4">
@@ -381,11 +511,10 @@ const SettingsPage = () => {
           <div className="p-4 bg-gray-50 dark:bg-black rounded-lg">
             <div className="flex items-center gap-3 mb-2">
               <Smartphone className="w-5 h-5" />
-              <span className="font-medium">Acerca de STEBE</span>
+              <span className="font-medium">{t('about_stebe')}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Aplicación de productividad personal diseñada para ayudarte a organizar tareas, 
-              establecer objetivos y mejorar tu eficiencia diaria.
+              {t('about_desc')}
             </p>
           </div>
 
@@ -393,10 +522,10 @@ const SettingsPage = () => {
           <button className="w-full p-4 bg-gray-50 dark:bg-black rounded-lg text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center gap-3">
               <HelpCircle className="w-5 h-5" />
-              <span className="font-medium">Ayuda y Soporte</span>
+              <span className="font-medium">{t('help_support')}</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Guías de uso y solución de problemas
+              {t('help_desc')}
             </p>
           </button>
         </div>
@@ -415,10 +544,10 @@ const SettingsPage = () => {
         >
           <div className="flex items-center gap-3">
             <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-            <span className="font-medium text-red-600 dark:text-red-400">Eliminar Todos los Datos</span>
+            <span className="font-medium text-red-600 dark:text-red-400">{t('delete_all_data')}</span>
           </div>
           <p className="text-sm text-red-500 dark:text-red-400 mt-1">
-            ⚠️ Esta acción no se puede deshacer
+            {t('delete_warning')}
           </p>
         </button>
       </motion.div>

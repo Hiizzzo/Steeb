@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Flame, CheckCircle, Calendar, Trophy, Plus, ArrowLeft, Clock, MapPin, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flame, CheckCircle, Calendar, Trophy, Plus, ArrowLeft, Clock, MapPin, Trash2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '@/store/useTaskStore';
 import ShapeIcon from './ShapeIcon';
 import TaskCreationCard from './TaskCreationCard';
 // import CompactStats from './CompactStats';  // Component not found
+import type { RecurrenceRule } from '@/types';
 
 interface SubTask {
   id: string;
@@ -23,6 +24,7 @@ interface Task {
   scheduledTime?: string;
   completedDate?: string;
   notes?: string;
+  recurrence?: RecurrenceRule;
 }
 
 interface MonthlyCalendarProps {
@@ -45,8 +47,6 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const [backAnimating, setBackAnimating] = useState(false);
   const navigate = useNavigate();
-
-
 
   // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
   const { deleteTask, updateTask } = useTaskStore();
@@ -114,7 +114,16 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
     finishRowSwipe(id);
   };
 
-  const handleEditTask = (title: string, type: Task['type'], subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => {
+  const handleEditTask = (
+    title: string,
+    type: Task['type'],
+    subtasks?: SubTask[],
+    scheduledDate?: string,
+    scheduledTime?: string,
+    notes?: string,
+    _isPrimary?: boolean,
+    recurrence?: RecurrenceRule
+  ) => {
     if (editingTask) {
       const updatedTask = {
         ...editingTask,
@@ -123,7 +132,8 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
         subtasks,
         scheduledDate,
         scheduledTime,
-        notes
+        notes,
+        recurrence
       };
       // Actualizar la tarea en el store
       updateTask(editingTask.id, updatedTask);
@@ -328,7 +338,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
   const handleAddTaskOnDate = () => {
     if (selectedDate) {
       const dateString = selectedDate.toISOString().split('T')[0];
-      localStorage.setItem('stebe-selected-date', dateString);
+      localStorage.setItem('steeb-selected-date', dateString);
       navigate('/');
     }
   };
@@ -533,9 +543,17 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                               <div key={subtask.id} className="flex items-center space-x-2">
                                 <button
                                   onClick={() => onToggleSubtask && onToggleSubtask(task.id, subtask.id)}
-                                  className={`task-checkbox-button w-4 h-4 rounded-full border-2 cursor-pointer ${subtask.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+                                  className={`task-checkbox-button w-4 h-4 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200 ${subtask.completed ? 'bg-green-500 border-green-500 shadow-lg scale-110' : 'border-black dark:border-white hover:border-green-400'}`}
                                   style={{ minWidth: '16px', minHeight: '16px', zIndex: 100 }}
-                                />
+                                >
+                                  {subtask.completed && (
+                                    <Check 
+                                      size={10} 
+                                      style={{ color: '#ffffff' }}
+                                      strokeWidth={4}
+                                    />
+                                  )}
+                                </button>
                                 <span className={`text-sm ${subtask.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-white'}`}>
                                   {subtask.title}
                                 </span>
@@ -549,9 +567,17 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       <div className="w-6 shrink-0 flex justify-end">
                         <button
                           onClick={() => onToggleTask && onToggleTask(task.id)}
-                          className={`task-checkbox-button w-5 h-5 rounded-full border-2 cursor-pointer ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+                          className={`task-checkbox-button w-5 h-5 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200 ${task.completed ? 'bg-green-500 border-green-500 shadow-lg scale-110' : 'border-black dark:border-white hover:border-green-400'}`}
                           style={{ minWidth: '20px', minHeight: '20px', zIndex: 100 }}
-                        />
+                        >
+                          {task.completed && (
+                            <Check 
+                              size={12} 
+                              style={{ color: '#ffffff' }}
+                              strokeWidth={4}
+                            />
+                          )}
+                        </button>
                       </div>
                     </div>
                   </motion.div>

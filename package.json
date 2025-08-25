@@ -1,7 +1,7 @@
 {
-  "name": "stebe_ai_gemini_ollama",
+  "name": "steeb_ai_gemini_ollama",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

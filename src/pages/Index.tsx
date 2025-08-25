@@ -9,7 +9,7 @@ import { notificationService } from '@/services/notificationService';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
-import { Eye, EyeOff, CheckCircle, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, Trash2, Check } from 'lucide-react';
 
 import TaskDetailModal from '@/components/TaskDetailModal';
 
@@ -19,6 +19,7 @@ import DailyTasksConfig from '@/components/DailyTasksConfig';
 import TaskCreationCard from '@/components/TaskCreationCard';
 import MonthlyCalendar from '@/components/MonthlyCalendar';
 import ShapeIcon from '@/components/ShapeIcon';
+import type { RecurrenceRule } from '@/types';
 
 interface SubTask {
   id: string;
@@ -38,6 +39,7 @@ interface Task {
   completedDate?: string;
   notes?: string; // Notas adicionales de la tarea
   tags?: string[];
+  recurrence?: RecurrenceRule;
   updatedAt?: string;
 }
 
@@ -59,7 +61,7 @@ const Index = () => {
     const phrases = [
       "¿Un día libre? Te envidio…",
       "Ni una tarea. O estás a punto de procrastinar, o estás en paz.",
-      "Stebe dice: eso no suena a productividad, eh…"
+      "Steeb dice: eso no suena a productividad, eh…"
     ];
     return phrases[Math.floor(Math.random() * phrases.length)];
   };
@@ -169,9 +171,16 @@ const Index = () => {
             console.log('CHECKBOX CLICKED!', task.id);
             handleToggleTask(task.id);
           }}
-          className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+          className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
           style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
         >
+          {task.completed && (
+            <Check 
+              size={14} 
+              className="text-white dark:!text-black" 
+              strokeWidth={3}
+            />
+          )}
         </button>
       </div>
     </div>
@@ -179,7 +188,7 @@ const Index = () => {
 
   const [isPremium, setIsPremium] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem('stebe-premium') === '1';
+    return localStorage.getItem('steeb-premium') === '1';
   });
   const [showFreeBadge, setShowFreeBadge] = useState<boolean>(true);
   
@@ -208,11 +217,11 @@ const Index = () => {
 
   // Cargar preferencia de vista desde localStorage
   useEffect(() => {
-    const savedViewMode = localStorage.getItem('stebe-view-mode');
+    const savedViewMode = localStorage.getItem('steeb-view-mode');
     if (savedViewMode === 'calendar' || savedViewMode === 'tasks') {
       setViewMode(savedViewMode);
       // Limpiar la preferencia después de usarla
-      localStorage.removeItem('stebe-view-mode');
+      localStorage.removeItem('steeb-view-mode');
     }
   }, []);
 
@@ -220,15 +229,15 @@ const Index = () => {
   useEffect(() => {
     notificationService.initialize().then((initialized) => {
       if (initialized) {
-        console.log('🔔 Servicio de notificaciones STEBE listo');
+        console.log('🔔 Servicio de notificaciones STEEB listo');
       }
     });
   }, []);
 
   // Escuchar cambios de Premium y reflejar en UI
   useEffect(() => {
-    const onStorage = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
-    const onPremiumUpdated = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
+    const onStorage = () => setIsPremium(localStorage.getItem('steeb-premium') === '1');
+    const onPremiumUpdated = () => setIsPremium(localStorage.getItem('steeb-premium') === '1');
     window.addEventListener('storage', onStorage);
     window.addEventListener('premium-updated', onPremiumUpdated as any);
     return () => {
@@ -251,13 +260,13 @@ const Index = () => {
 
   // Verificar si hay una fecha seleccionada del calendario
   useEffect(() => {
-    const selectedDate = localStorage.getItem('stebe-selected-date');
-    const shouldOpenModal = localStorage.getItem('stebe-open-add-modal');
+    const selectedDate = localStorage.getItem('steeb-selected-date');
+    const shouldOpenModal = localStorage.getItem('steeb-open-add-modal');
     
     if (selectedDate || shouldOpenModal) {
       // Limpiar los flags
-      localStorage.removeItem('stebe-selected-date');
-      localStorage.removeItem('stebe-open-add-modal');
+      localStorage.removeItem('steeb-selected-date');
+      localStorage.removeItem('steeb-open-add-modal');
       
       // Abrir el modal de agregar tarea con la fecha pre-seleccionada
       setShowModal(true);
@@ -367,7 +376,7 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
+  const handleAddTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, recurrence?: RecurrenceRule, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
     console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes, isPrimary });
     
     // Validar que el título no esté vacío
@@ -395,6 +404,7 @@ const Index = () => {
          scheduledTime,
          notes: notes?.trim(),
          tags: nextTags,
+         recurrence: recurrence,
          updatedAt: new Date().toISOString()
        };
       
@@ -419,7 +429,8 @@ const Index = () => {
          scheduledDate: scheduledDate, // No establecer fecha automáticamente
          scheduledTime,
          notes: notes?.trim(),
-         tags: isPrimary ? ['principal'] : []
+         tags: isPrimary ? ['principal'] : [],
+         recurrence: recurrence
        };
       
       console.log('🆕 Index.tsx: Creando nueva tarea con datos:', newTaskData);
@@ -532,11 +543,11 @@ const Index = () => {
           <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       
       {/* Imagen de Stebe en la esquina superior izquierda */}
-      <div className="absolute top-4 left-4 z-20">
+      <div className="absolute top-4 left-4 z-20 mr-6">
         <img 
-          src="/lovable-uploads/STEBETRISTE.png"
-          alt="Stebe" 
-          className="w-16 h-16 rounded-2xl"
+          src="/lovable-uploads/te obesrvo.png"
+          alt="Steeb" 
+          className="w-20 h-20 rounded-2xl"
         />
       </div>
       
@@ -550,7 +561,6 @@ const Index = () => {
       {/* Título principal */}
       <div className="pt-6 mb-2">
         <div className="flex items-center justify-center py-2 bg-black text-white dark:!bg-white dark:text-black">
-          <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>
           <h1 className="text-white dark:!text-black text-xl font-light tracking-wide" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>TAREAS</h1>
         </div>
       </div>
@@ -659,10 +669,10 @@ const Index = () => {
           <button
             onClick={() => {
               if (isPremium) {
-                localStorage.removeItem('stebe-premium');
+                localStorage.removeItem('steeb-premium');
                 setIsPremium(false);
               } else {
-                localStorage.setItem('stebe-premium','1');
+                localStorage.setItem('steeb-premium','1');
                 setIsPremium(true);
               }
               window.dispatchEvent(new Event('premium-updated'));

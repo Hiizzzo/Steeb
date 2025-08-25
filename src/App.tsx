@@ -8,11 +8,9 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import MonthlyCalendarPage from "./pages/MonthlyCalendarPage";
 import SettingsPage from "./pages/SettingsPage";
-import MisionesPage from "./pages/MisionesPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
-import ImagesPage from "./pages/ImagesPage";
 import ThemeToggle from "./components/ThemeToggle";
 import { useTextSize } from "./hooks/useTextSize";
 
@@ -50,8 +48,6 @@ const App = () => {
             <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
             <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/misiones" element={<MisionesPage />} />
-            <Route path="/images" element={<ImagesPage />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

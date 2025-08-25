@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import ProductivityStatsConnected from '@/components/ProductivityStatsConnected';
 import TaskCreationCard from '@/components/TaskCreationCard';
 import { useTaskStore } from '@/store/useTaskStore';
+import { RecurrenceRule } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
@@ -27,19 +28,20 @@ const ProductivityStatsPage: React.FC = () => {
     scheduledTime?: string,
     notes?: string,
     isPrimary?: boolean,
-    subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra'
+    recurrence?: RecurrenceRule
   ) => {
     await addTask({
       title,
       type,
-      subgroup,
+      subgroup: type,
       status: 'pending',
       completed: false,
       subtasks,
       scheduledDate,
       scheduledTime,
       notes,
-      tags: isPrimary ? ['principal'] : []
+      tags: isPrimary ? ['principal'] : [],
+      recurrence
     });
     setShowModal(false);
   };
@@ -61,7 +63,7 @@ const ProductivityStatsPage: React.FC = () => {
            
            {/* Versión de la app */}
            <div className="text-sm text-gray-500 font-mono">
-             v0.4
+             v0.5
            </div>
          </div>
        </div>

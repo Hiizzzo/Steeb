@@ -49,6 +49,7 @@ export interface Task {
   sharedWith?: string[]; // Para funcionalidad de compartir
   attachments?: TaskAttachment[];
   reminders?: TaskReminder[];
+  recurrence?: RecurrenceRule;
 }
 
 export interface TaskAttachment {
@@ -66,6 +67,19 @@ export interface TaskReminder {
   triggerTime: string;
   message?: string;
   sent: boolean;
+}
+
+// ============================================================
+// RECURRENCE TYPES
+// ============================================================
+
+export type RecurrenceFrequency = 'none' | 'daily' | 'weekly' | 'monthly';
+
+export interface RecurrenceRule {
+  frequency: RecurrenceFrequency; // none means not recurring
+  interval?: number;
+  daysOfWeek?: number[];
+  endDate?: string;
 }
 
 export interface DailyTask {
