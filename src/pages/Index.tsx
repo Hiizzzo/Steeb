@@ -310,13 +310,27 @@ const Index = () => {
       }
     }
     
-    const updatedTasks = tasks.map(task => 
-      task.id === id ? { 
-        ...task, 
-        completed: !task.completed,
-        completedDate: !task.completed ? new Date().toISOString() : undefined
-      } : task
-    );
+    const updatedTasks = tasks.map(task => {
+      if (task.id !== id) return task;
+      const willComplete = !task.completed;
+      let nextCompletedDate: string | undefined = undefined;
+      if (willComplete) {
+        // Si la tarea está vencida (programada antes de hoy), marcarla con su fecha programada
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (task.scheduledDate && task.scheduledDate < todayStr) {
+          // Usar mediodía local para evitar desbordes por zona horaria al convertir a ISO
+          const iso = new Date(`${task.scheduledDate}T12:00:00`).toISOString();
+          nextCompletedDate = iso;
+        } else {
+          nextCompletedDate = new Date().toISOString();
+        }
+      }
+      return {
+        ...task,
+        completed: willComplete,
+        completedDate: nextCompletedDate
+      };
+    });
     updateTasks(updatedTasks);
     // Persistencia automática manejada por useTaskPersistence
     
