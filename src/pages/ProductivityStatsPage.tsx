@@ -49,24 +49,20 @@ const ProductivityStatsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
              {/* Header más alto y botón sin texto */}
-       <div className="max-w-md mx-auto px-6 pt-4">
-         <div className="flex items-center justify-between">
-           <motion.button
-             aria-label="Volver"
-             onClick={handleBack}
-             className="flex items-center justify-center w-9 h-9 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200"
-             whileHover={{ scale: 1.05 }}
-             whileTap={{ scale: 0.95 }}
-           >
-             <ArrowLeft className="w-4 h-4" />
-           </motion.button>
-           
-           {/* Versión de la app */}
-           <div className="text-sm text-gray-500 font-mono">
-             v0.5
-           </div>
-         </div>
-       </div>
+      <div className="max-w-md mx-auto px-6 pt-4">
+        <div className="flex items-center justify-between">
+          <motion.button
+            aria-label="Volver"
+            onClick={handleBack}
+            className="flex items-center justify-center w-9 h-9 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </motion.button>
+          {/* Versión de la app removida de esta vista */}
+        </div>
+      </div>
 
       <ProductivityStatsConnected onAddTask={() => setShowModal(true)} />
 

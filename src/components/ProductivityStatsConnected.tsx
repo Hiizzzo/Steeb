@@ -11,8 +11,11 @@ import {
   BarChart,
   Bar,
   Tooltip,
+  LabelList,
+  Cell,
 } from 'recharts';
 import { Pin, CheckCircle } from 'lucide-react';
+import TaskFrequencyChart from './TaskFrequencyChart';
 
 type Period = 'week' | 'month' | 'year';
 
@@ -56,7 +59,7 @@ const CentralStatsChart: React.FC<{
   period: Period;
   weekData: { label: string; value: number; iso: string; isCurrent?: boolean; isSelected?: boolean }[];
   monthData: { label: string; value: number }[];
-  yearData: { label: string; value: number }[];
+  yearData: { label: string; value: number; isCurrent?: boolean }[];
   onSelectDay?: (iso: string) => void;
   isDark?: boolean;
 }> = ({ period, weekData, monthData, yearData, onSelectDay, isDark = false }) => {
@@ -65,10 +68,10 @@ const CentralStatsChart: React.FC<{
   const commonChartProps = { margin: { top: 10, right: 8, bottom: 0, left: 0 } } as const;
 
   return (
-         <div className={`w-full ${period === 'year' ? 'h-56 -mx-8' : 'h-56'}`}>
+         <div className={`w-full ${period === 'year' ? 'h-72 -mx-4' : 'h-56'}`}>
       <ResponsiveContainer width="100%" height="100%">
         {period === 'week' ? (
-          <BarChart data={weekData} {...commonChartProps}>
+          <BarChart data={weekData} {...commonChartProps} barCategoryGap="30%" barGap={4}>
             <CartesianGrid stroke={gridStroke} vertical={false} />
             <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -77,6 +80,7 @@ const CentralStatsChart: React.FC<{
               dataKey="value"
               fill={isDark ? '#ffffff' : '#000000'}
               radius={[2, 2, 0, 0]}
+              barSize={24}
               onClick={(data) => {
                 const payload = (data as any)?.payload;
                 if (payload?.iso && onSelectDay) onSelectDay(payload.iso);
@@ -86,17 +90,21 @@ const CentralStatsChart: React.FC<{
             />
           </BarChart>
         ) : period === 'month' ? (
-          <BarChart data={monthData} {...commonChartProps}>
+          <BarChart data={monthData} {...commonChartProps} barCategoryGap="30%" barGap={6}>
             <CartesianGrid stroke={gridStroke} vertical={false} />
             <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
-            <Bar dataKey="value" fill={isDark ? '#ffffff' : '#000000'} radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} />
+            <Bar dataKey="value" fill={isDark ? '#ffffff' : '#000000'} radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} barSize={28}>
+              <LabelList dataKey="value" position="top" formatter={(v: number) => (v > 0 ? v : '')} style={{ fill: axisStyle.fill, fontSize: 11 }} />
+            </Bar>
           </BarChart>
                  ) : (
            <BarChart 
              data={yearData} 
-             margin={{ top: 10, right: 20, bottom: 30, left: 20 }}
+             margin={{ top: 10, right: 12, bottom: 40, left: 8 }}
+             barCategoryGap="35%"
+             barGap={8}
            >
              <CartesianGrid stroke={gridStroke} vertical={false} />
              <XAxis 
@@ -105,11 +113,22 @@ const CentralStatsChart: React.FC<{
                axisLine={false} 
                tickLine={false}
                interval={0} // Mostrar todas las etiquetas
-               tickMargin={10} // Espacio para las etiquetas
+               tickMargin={12} // Espacio para las etiquetas
+               angle={-30}
+               textAnchor="end"
+               height={50}
              />
              <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
              <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
-             <Bar dataKey="value" fill={isDark ? '#ffffff' : '#000000'} radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} />
+             <Bar dataKey="value" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} barSize={20}>
+               <LabelList dataKey="value" position="top" formatter={(v: number) => (v > 0 ? v : '')} style={{ fill: axisStyle.fill, fontSize: 11 }} />
+               {yearData.map((entry, index) => (
+                 <Cell
+                   key={`cell-${index}`}
+                   fill={entry.isCurrent ? (isDark ? '#ffffff' : '#000000') : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)')}
+                 />
+               ))}
+             </Bar>
            </BarChart>
         )}
       </ResponsiveContainer>
@@ -155,7 +174,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
     el.style.height = Math.min(el.scrollHeight, maxHeightPx) + 'px';
   }, [monthlyGoal]);
 
-  const { mainNumber, secondaryText, weekData, monthData, yearData } = useMemo(() => {
+  const { mainNumber, secondaryText, weekData, monthData, yearData, taskTypeData } = useMemo(() => {
     const getCompletedOnDate = (isoDate: string) =>
       tasks.filter(t => t.completed && t.completedDate?.split('T')[0] === isoDate).length;
 
@@ -198,7 +217,48 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
         yearBuckets[month] += 1;
       }
     });
-    const yearData = yearBuckets.map((v, i) => ({ label: monthNames[i], value: v }));
+    const yearData = yearBuckets.map((v, i) => ({ label: monthNames[i], value: v, isCurrent: i === today.getMonth() }));
+
+    // Calcular estadísticas por tipo de tarea según el período
+    const taskTypes = ['productividad', 'creatividad', 'aprendizaje', 'organizacion', 'salud', 'social', 'entretenimiento', 'extra'] as const;
+    const taskTypeLabels = {
+      'productividad': 'Productividad',
+      'creatividad': 'Creatividad', 
+      'aprendizaje': 'Aprendizaje',
+      'organizacion': 'Organización',
+      'salud': 'Salud',
+      'social': 'Social',
+      'entretenimiento': 'Entretenimiento',
+      'extra': 'Extra'
+    };
+
+    let filteredTasks = tasks.filter(t => t.completed && t.completedDate);
+    
+    if (period === 'week') {
+      filteredTasks = filteredTasks.filter(t => {
+        const d = new Date(t.completedDate!);
+        return d >= weekStart && d <= weekEnd;
+      });
+    } else if (period === 'month') {
+      filteredTasks = filteredTasks.filter(t => {
+        const d = new Date(t.completedDate!);
+        return d >= monthStart && d < nextMonthStart;
+      });
+    } else if (period === 'year') {
+      filteredTasks = filteredTasks.filter(t => {
+        const d = new Date(t.completedDate!);
+        return d >= yearStart && d < nextYearStart;
+      });
+    }
+
+    const taskTypeData = taskTypes.map(type => {
+      const count = filteredTasks.filter(t => t.type === type).length;
+      return {
+        label: taskTypeLabels[type],
+        value: count,
+        type: type
+      };
+    }).filter(item => item.value > 0); // Solo mostrar tipos con tareas completadas
 
     if (period === 'week') {
       const totalWeek = tasks.filter(t => {
@@ -212,6 +272,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
         weekData,
         monthData,
         yearData,
+        taskTypeData,
       };
     }
 
@@ -224,6 +285,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
         weekData,
         monthData,
         yearData,
+        taskTypeData,
       };
     }
 
@@ -235,6 +297,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       weekData,
       monthData,
       yearData,
+      taskTypeData,
     };
   }, [tasks, period, selectedISO]);
 
@@ -292,7 +355,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
 
   return (
          <div className={`${period === 'year' ? 'max-w-2xl' : 'max-w-md'} mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20`}>
-      <h1 className="mt-0 text-center text-4xl sm:text-5xl font-extrabold tracking-wider uppercase">ESTADÍSTICAS</h1>
+      <h1 className="mt-0 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase">ESTADÍSTICAS</h1>
 
       {/* Objetivo del mes (solo input y checkbox, sin etiquetas adicionales) */}
       <div className="mt-4">
@@ -398,11 +461,11 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       <div className="mt-10 flex flex-col items-center justify-center select-none">
         <AnimatePresence mode="wait">
           <motion.div key={`num-${period}-${mainNumber}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="leading-none">
-            <div className="text-[100px] sm:text-[120px] font-black tabular-nums">{mainNumber}</div>
+            <div className="text-[56px] sm:text-[100px] font-black tabular-nums">{mainNumber}</div>
           </motion.div>
         </AnimatePresence>
         <AnimatePresence mode="wait">
-          <motion.div key={`sub-${period}-${selectedISO}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }} className="text-xl sm:text-2xl text-center">
+          <motion.div key={`sub-${period}-${selectedISO}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }} className="text-base sm:text-xl text-center">
             {secondaryText}
           </motion.div>
         </AnimatePresence>
@@ -437,6 +500,16 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
             );
           })}
         </div>
+      </div>
+
+
+      {/* Gráfico de frecuencia de tareas */}
+      <div className="mt-8">
+        <TaskFrequencyChart 
+          tasks={tasks} 
+          period={period} 
+          isDark={isDark} 
+        />
       </div>
     </div>
   );

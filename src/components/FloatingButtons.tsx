@@ -48,7 +48,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
       setShowCalendar(true);
       setShowCalendarMenu(true);
       hasLongPressTriggered.current = true;
-    }, 600);
+    }, 300);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {

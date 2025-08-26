@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy } from 'lucide-react';
@@ -442,6 +442,64 @@ const MonthlyCalendarPage: React.FC = () => {
     };
   }, [tasks, currentDate]);
 
+  // Mensaje de consejo mensual para el globo de STEBE
+  const adviceText = useMemo(() => {
+    const { completed, scheduled } = monthStats;
+    const rate = scheduled > 0 ? Math.round((completed / Math.max(1, scheduled)) * 100) : 0;
+
+    // Casos especiales
+    if (scheduled === 0 && totalCompleted === 0) {
+      return 'Aún no hay tareas este mes. Planifica 1-3 objetivos clave para empezar con foco.';
+    }
+    if (scheduled === 0 && totalCompleted > 0) {
+      return `Buen impulso: completaste ${totalCompleted} tareas. Programa metas para enfocar tu energía.`;
+    }
+
+    // Consejos según rendimiento
+    if (rate >= 85) {
+      return `¡Gran mes! Completaste ${completed} de ${scheduled} (${rate}%). Mantén la racha de ${currentStreak} día(s).`;
+    }
+    if (rate >= 60) {
+      return `Vas bien: ${completed}/${scheduled} (${rate}%). Intenta sumar 1-2 días más activos (hoy llevas ${daysWithCompletedInMonth}).`;
+    }
+    if (rate > 0) {
+      return `Progreso en marcha: ${completed}/${scheduled} (${rate}%). Elige 1 tarea pequeña diaria para ganar ritmo.`;
+    }
+
+    return 'Empieza con una tarea sencilla hoy para construir momentum. ¡Yo te acompaño!';
+  }, [monthStats, currentStreak, daysWithCompletedInMonth, totalCompleted]);
+
+  // Swipe para volver al inicio (gesto izquierda)
+  const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
+  const [mouseStartX, setMouseStartX] = useState<number | null>(null);
+  const [mouseLastX, setMouseLastX] = useState<number | null>(null);
+  const wheelCooldownRef = useRef<number>(0);
+  const wheelAccumRef = useRef<number>(0);
+  const wheelTimerRef = useRef<number | null>(null);
+  const lastTapRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (mouseStartX === null) return;
+    const handleWindowMouseUp = (e: MouseEvent) => {
+      const endX = e.clientX;
+      const dx = endX - (mouseStartX ?? endX);
+      if (dx < -100) {
+        navigate('/');
+      }
+      setMouseStartX(null);
+      setMouseLastX(null);
+    };
+    const handleWindowMouseMove = (e: MouseEvent) => {
+      setMouseLastX(e.clientX);
+    };
+    window.addEventListener('mouseup', handleWindowMouseUp);
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    return () => {
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+      window.removeEventListener('mousemove', handleWindowMouseMove);
+    };
+  }, [mouseStartX, navigate]);
+
   const renderCalendarDay = (day: CalendarDay, index: number) => (
     <motion.div
       key={day.dateString}
@@ -523,28 +581,92 @@ const MonthlyCalendarPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black p-2 pt-1" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
-      {/* Header con navegación */}
-      <div className="max-w-[430px] mx-auto">
-        {/* Barra superior: botón volver simplificado */}
-        <div className="flex items-center justify-start mb-2 -ml-2 sm:-ml-4">
-          <motion.button
-            onClick={() => navigate('/')}
-            className="flex items-center p-2 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200 dark:bg-transparent dark:text-white dark:border-white"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </motion.button>
-        </div>
+    <div
+      className="min-h-screen bg-white dark:bg-black p-2 pt-1"
+      style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}
+      onWheelCapture={(e) => {
+        const now = performance.now();
+        if (now - (wheelCooldownRef.current || 0) < 700) return;
+        // Acumular pequeños desplazamientos horizontales
+        wheelAccumRef.current += e.deltaX;
+        // Reiniciar acumulador después de una pausa corta
+        if (wheelTimerRef.current) window.clearTimeout(wheelTimerRef.current);
+        wheelTimerRef.current = window.setTimeout(() => {
+          wheelAccumRef.current = 0;
+          wheelTimerRef.current = null;
+        }, 220) as unknown as number;
 
-        {/* Avatar de Stebe centrado */}
-        <div className="flex items-center justify-center my-2">
-          <img
-            src="/lovable-uploads/icono de la app.png"
-            alt="Stebe"
-            className="w-16 h-16 rounded-2xl"
-          />
+        // Si hay gesto marcado a la izquierda o derecha (según configuración del dispositivo)
+        if (Math.abs(wheelAccumRef.current) > 60) {
+          wheelCooldownRef.current = now;
+          wheelAccumRef.current = 0;
+          if (wheelTimerRef.current) {
+            window.clearTimeout(wheelTimerRef.current);
+            wheelTimerRef.current = null;
+          }
+          navigate('/');
+        }
+      }}
+      onTouchStart={(e) => setSwipeStartX(e.touches[0]?.clientX ?? null)}
+      onTouchEnd={(e) => {
+        const endX = e.changedTouches[0]?.clientX ?? null;
+        const now = performance.now();
+        // Doble tap en el borde izquierdo
+        if (e.changedTouches[0] && e.changedTouches[0].clientX < 96) {
+          if (now - (lastTapRef.current || 0) < 300) {
+            navigate('/');
+            lastTapRef.current = 0;
+            return;
+          }
+          lastTapRef.current = now;
+        }
+        if (swipeStartX !== null && endX !== null && endX - swipeStartX < -60) {
+          navigate('/');
+        }
+        setSwipeStartX(null);
+      }}
+      onDoubleClickCapture={(e) => {
+        // Doble clic en el borde izquierdo
+        if (e.clientX < 96) {
+          navigate('/');
+        }
+      }}
+      onMouseDown={(e) => {
+        // Solo botón izquierdo
+        if (e.button === 0) setMouseStartX(e.clientX);
+      }}
+      onMouseMove={(e) => {
+        if (mouseStartX !== null) setMouseLastX(e.clientX);
+      }}
+      onMouseUp={(e) => {
+        if (mouseStartX !== null) {
+          const dx = (mouseLastX ?? e.clientX) - mouseStartX;
+          if (dx < -80) navigate('/');
+        }
+        setMouseStartX(null);
+        setMouseLastX(null);
+      }}
+    >
+      {/* Header con navegación */}
+      <div className="max-w-[430px] mx-auto relative">
+        {/* Header: Avatar a la izquierda y globo de consejo a la derecha */}
+        <div className="flex items-start justify-between my-2 gap-3">
+          <div className="shrink-0">
+            <img
+              src="/lovable-uploads/icono de la app.png"
+              alt="Stebe"
+              className="w-24 h-24 rounded-2xl"
+            />
+          </div>
+          <motion.div 
+            className="relative max-w-[65%] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2 pr-5 sm:pr-7 mr-14 sm:mr-16 md:mr-20 text-sm leading-snug text-black dark:text-white shadow-sm"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="font-semibold mb-0.5">STEEB</div>
+            <div className="opacity-90">{adviceText}</div>
+          </motion.div>
         </div>
 
         {/* Controles del calendario */}

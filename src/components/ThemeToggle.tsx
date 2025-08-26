@@ -7,13 +7,14 @@ import ShinyGreetingModal from "./ShinyGreetingModal";
 const ThemeToggle = () => {
 	const { theme, setTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
-	const [isPremium, setIsPremium] = useState<boolean>(() => {
-		return typeof window !== 'undefined' && localStorage.getItem("stebe-premium") === "1";
-	});
+	const [isPremium, setIsPremium] = useState<boolean>(false);
 	const [showGreeting, setShowGreeting] = useState(false);
 
 	useEffect(() => {
 		setMounted(true);
+		// Verificar estado premium al montar
+		setIsPremium(localStorage.getItem("stebe-premium") === "1");
+		
 		const onStorage = () => setIsPremium(localStorage.getItem("stebe-premium") === "1");
 		const onPremiumUpdated = () => setIsPremium(localStorage.getItem("stebe-premium") === "1");
 		window.addEventListener('storage', onStorage);
@@ -34,11 +35,21 @@ const ThemeToggle = () => {
 				className="scale-125 origin-top-right"
 				checked={isDark}
 				onCheckedChange={(checked) => {
-					if (!isPremium && checked) {
-						setShowGreeting(true);
-						return;
+					// Verificar estado premium en tiempo real
+					const currentPremiumStatus = localStorage.getItem("stebe-premium") === "1";
+					
+					if (currentPremiumStatus) {
+						// Si está en premium, puede cambiar tema libremente
+						setTheme(checked ? "dark" : "light");
+					} else {
+						// Si está en free y quiere modo oscuro, mostrar modal
+						if (checked) {
+							setShowGreeting(true);
+							return;
+						}
+						// Si quiere modo claro, permitir el cambio
+						setTheme("light");
 					}
-					setTheme(checked ? "dark" : "light");
 				}}
 				aria-label="Toggle theme"
 			/>

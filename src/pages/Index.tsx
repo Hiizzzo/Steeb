@@ -1,12 +1,13 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
-import { notificationService } from '@/services/notificationService';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
+import { useDailyTaskReminder } from '@/hooks/useDailyTaskReminder';
+import { notificationService } from '@/services/notificationService';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import { Eye, EyeOff, CheckCircle, Trash2, Check } from 'lucide-react';
@@ -17,6 +18,7 @@ import AppUpdateNotification from '@/components/AppUpdateNotification';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 import TaskCreationCard from '@/components/TaskCreationCard';
+import DailyTaskReminderModal from '@/components/DailyTaskReminderModal';
 import MonthlyCalendar from '@/components/MonthlyCalendar';
 import ShapeIcon from '@/components/ShapeIcon';
 import type { RecurrenceRule } from '@/types';
@@ -188,7 +190,7 @@ const Index = () => {
 
   const [isPremium, setIsPremium] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem('steeb-premium') === '1';
+    return localStorage.getItem('stebe-premium') === '1';
   });
   const [showFreeBadge, setShowFreeBadge] = useState<boolean>(true);
   
@@ -215,6 +217,9 @@ const Index = () => {
   // Hook para notificaciones de tareas
   const { scheduleTaskNotification, cancelTaskNotification } = useTaskNotifications(tasks);
 
+  // Hook para recordatorio diario de tareas
+  const { showReminder, yesterdayDate, skipReminder, markReminderShown } = useDailyTaskReminder(tasks);
+
   // Cargar preferencia de vista desde localStorage
   useEffect(() => {
     const savedViewMode = localStorage.getItem('steeb-view-mode');
@@ -236,8 +241,8 @@ const Index = () => {
 
   // Escuchar cambios de Premium y reflejar en UI
   useEffect(() => {
-    const onStorage = () => setIsPremium(localStorage.getItem('steeb-premium') === '1');
-    const onPremiumUpdated = () => setIsPremium(localStorage.getItem('steeb-premium') === '1');
+    const onStorage = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
+    const onPremiumUpdated = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
     window.addEventListener('storage', onStorage);
     window.addEventListener('premium-updated', onPremiumUpdated as any);
     return () => {
@@ -536,28 +541,45 @@ const Index = () => {
 
 
 
-  // Día de la semana para el encabezado superior (p.ej., "Viernes")
+  // Día de la semana (p.ej., "Viernes") y saludo de STEEB
   const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
+  const steebGreeting = useMemo(() => {
+    const phrases = [
+      `${dayName}. Día perfecto para arrancar algo corto y ganar momentum.`,
+      `${dayName}. Hagamos una cosita rápida y marcamos check.`,
+      `${dayName}. Elegí algo simple, 5-10 min, y avanzamos juntos.`,
+      `${dayName}. Empezá pequeño: una mini-tarea y después vemos la siguiente.`,
+    ];
+    return `${phrases[Math.floor(Math.random() * phrases.length)]} —mi panita STEEB`;
+  }, [dayName]);
 
   return (
           <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       
-      {/* Imagen de Stebe en la esquina superior izquierda */}
-      <div className="absolute top-4 left-4 z-20 mr-6">
+      {/* STEEB en esquina superior izquierda + burbuja de diálogo */}
+      <div className="absolute top-4 left-4 z-20 mr-6 flex items-start gap-2 max-w-[80%]">
         <img 
           src="/lovable-uploads/te obesrvo.png"
-          alt="Steeb" 
-          className="w-20 h-20 rounded-2xl"
+          alt="STEEB" 
+          className="w-20 h-20 rounded-2xl shadow-sm"
         />
+        <div className="relative">
+          <div className="rounded-xl border border-black/15 dark:border-white/20 bg-white dark:bg-black shadow-sm px-3 py-2 max-w-[280px]">
+            <div className="text-xs font-bold text-gray-700 dark:text-gray-200 mb-0.5">
+              STEEB
+            </div>
+            <p className="text-sm text-gray-900 dark:text-gray-100 leading-snug">
+              {steebGreeting}
+            </p>
+          </div>
+        </div>
       </div>
       
       {/* Contenido principal */}
       <div className="relative z-10">
       
-      {/* Encabezado con día de la semana */}
-      <div className="pt-12 mb-1">
-        <h1 className="text-black dark:text-white text-4xl font-light text-center font-varela">{dayName}</h1>
-      </div>
+      {/* Espaciado superior para no tapar la lista con el avatar + burbuja */}
+      <div className="pt-24 mb-1" />
       {/* Título principal */}
       <div className="pt-6 mb-2">
         <div className="flex items-center justify-center py-2 bg-black text-white dark:!bg-white dark:text-black">
@@ -567,7 +589,7 @@ const Index = () => {
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
-          <div className="pt-1 max-w-sm mx-auto px-3">
+          <div className="pt-1 mx-auto w-full max-w-xl sm:max-w-2xl px-6 sm:px-8 md:px-10">
             {pendingTodaysTasks.length > 0 ? (
               <>
                 {pendingTodayExact.map(renderSwipeRow)}
@@ -578,28 +600,17 @@ const Index = () => {
 
                 {pendingOverdue.map(renderSwipeRow)}
               </>
-            ) : (
-              <div className="text-center py-12 px-4">
-                <p className="text-lg text-gray-600 font-medium">
-                  {getRandomNoTasksPhrase()}
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  ¡Presiona el botón + para agregar tu primera tarea!
-                </p>
-              </div>
-            )}
+            ) : null}
 
             {/* Sección de tareas completadas */}
             {(completedToday.length > 0) && (
               <div className="mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle size={16} className="text-gray-700" />
-                    <h3 className="text-sm font-semibold text-gray-700 font-varela">
-                      Tareas completadas
-                    </h3>
-                    <span className="text-xs text-gray-500">({completedToday.length})</span>
-                  </div>
+                <div className="flex items-center justify-center gap-3 mb-3 text-center">
+                  <CheckCircle size={16} className="text-gray-700" />
+                  <h3 className="text-sm font-semibold text-gray-700 font-varela">
+                    Tareas completadas
+                  </h3>
+                  <span className="text-xs text-gray-500">({completedToday.length})</span>
                   {/* Toggle mostrar/ocultar las de hoy */}
                   <button
                     className="flex items-center space-x-1 text-gray-600 hover:text-black text-sm"
@@ -669,11 +680,13 @@ const Index = () => {
           <button
             onClick={() => {
               if (isPremium) {
-                localStorage.removeItem('steeb-premium');
+                localStorage.removeItem('stebe-premium');
                 setIsPremium(false);
+                toast({ title: "Cambiaste a versión Free" });
               } else {
-                localStorage.setItem('steeb-premium','1');
+                localStorage.setItem('stebe-premium','1');
                 setIsPremium(true);
+                toast({ title: "Cambiaste a versión Premium" });
               }
               window.dispatchEvent(new Event('premium-updated'));
             }}
@@ -732,6 +745,24 @@ const Index = () => {
             // Función placeholder para exportar tareas
             console.log('Exportar tareas');
           }}
+      />
+
+      {/* Modal de recordatorio diario */}
+      <DailyTaskReminderModal
+        open={showReminder}
+        onOpenChange={skipReminder}
+        tasks={tasks}
+        yesterdayDate={yesterdayDate}
+        onMarkCompleted={(taskIds, date) => {
+          taskIds.forEach(taskId => {
+            updateTask(taskId, { 
+              completed: true, 
+              completedDate: date 
+            });
+          });
+          markReminderShown();
+          toast({ title: `Marcaste ${taskIds.length} tareas como completadas ayer` });
+        }}
       />
       </div>
     </div>

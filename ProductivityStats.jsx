@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ProductivityStats.css';
 import ShapeIcon from '@/components/ShapeIcon';
 
@@ -139,12 +140,39 @@ const ConsistencyStreak = () => {
 
 // Main Component
 const ProductivityStats = () => {
+  const navigate = useNavigate();
+  const lastTapRef = useRef(0);
+
   return (
-    <div className="productivity-stats">
+    <div
+      className="productivity-stats"
+      onDoubleClickCapture={(e) => {
+        // Doble clic en el borde izquierdo
+        if (e.clientX < 96) navigate('/');
+      }}
+      onTouchEnd={(e) => {
+        const t = e.changedTouches && e.changedTouches[0];
+        if (!t) return;
+        const now = performance.now();
+        // Doble tap en el borde izquierdo
+        if (t.clientX < 96) {
+          if (now - (lastTapRef.current || 0) < 300) {
+            navigate('/');
+            lastTapRef.current = 0;
+            return;
+          }
+          lastTapRef.current = now;
+        }
+      }}
+    >
       {/* Header */}
       <header className="header">
         <StebeCharacter />
-        <div className="motivation-text">Trabajo</div>
+        <div className="steeb-bubble" role="status" aria-live="polite">
+          <div className="steeb-bubble-text">
+            ¡Hola! Soy STEEB. Prioriza 1-3 tareas clave hoy y celebra cada avance. ¡Vamos!
+          </div>
+        </div>
         <div className="title-icon" style={{ display: 'flex', alignItems: 'center' }}>
           <ShapeIcon variant="square" className="w-8 h-8 text-black" title="Trabajo" />
         </div>

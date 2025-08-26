@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 type ShinyGreetingModalProps = {
@@ -12,6 +12,20 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
   const [guess, setGuess] = useState<string>('');
   const [attempted, setAttempted] = useState(false);
   const [message, setMessage] = useState<string>('');
+
+  const steebGreeting = useMemo(() => {
+    const now = new Date();
+    const weekday = now.toLocaleDateString('es-ES', { weekday: 'long' });
+    const cap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    const prompts = [
+      `${cap}. Día perfecto para arrancar una tarea corta y ganar momentum.`,
+      `${cap}. Hagamos una cosita rápida y marcamos check.`,
+      `${cap}. Elegí algo simple, 5-10 min, y avanzamos juntos.`,
+      `${cap}. Empezá pequeño: una mini-tarea y después vemos la siguiente.`,
+    ];
+    const pick = prompts[Math.floor(Math.random() * prompts.length)];
+    return `${pick} —mi panita STEEB`;
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -43,18 +57,24 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-6 rounded-3xl">
         <DialogHeader>
+          {/* Avatar + Burbuja estilo calendario */}
           <div className="flex items-start gap-3">
-            <img 
-              src="/lovable-uploads/STEBETRISTE.png" 
-              alt="Stebe Triste" 
-              className="w-24 h-24"
+            {/* Avatar STEEB */}
+            <img
+              src="/lovable-uploads/STEBETRISTE.png"
+              alt="STEEB"
+              className="w-16 h-16 rounded-lg"
             />
-            <div className="flex-1">
-              <DialogTitle className="text-2xl font-extrabold">¡GANÁ SHINY!</DialogTitle>
-              <DialogDescription className="text-base text-black/80 dark:text-white/80">
-                Hola, soy Stebe. Si adivinás el número que estoy pensando del 1 al 100,
-                desbloqueás la versión Shiny. Tenés 1 intento por partida.
-              </DialogDescription>
+            {/* Burbuja de diálogo */}
+            <div className="relative flex-1">
+              <div className="rounded-xl border border-black/15 dark:border-white/20 bg-white dark:bg-black shadow-sm px-3 py-2">
+                <div className="text-xs font-bold text-gray-700 dark:text-gray-200 mb-0.5">
+                  STEEB
+                </div>
+                <p className="text-sm text-gray-900 dark:text-gray-100 leading-snug">
+                  {steebGreeting}
+                </p>
+              </div>
             </div>
           </div>
         </DialogHeader>
