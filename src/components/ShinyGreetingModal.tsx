@@ -14,17 +14,8 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
   const [message, setMessage] = useState<string>('');
 
   const steebGreeting = useMemo(() => {
-    const now = new Date();
-    const weekday = now.toLocaleDateString('es-ES', { weekday: 'long' });
-    const cap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-    const prompts = [
-      `${cap}. Día perfecto para arrancar una tarea corta y ganar momentum.`,
-      `${cap}. Hagamos una cosita rápida y marcamos check.`,
-      `${cap}. Elegí algo simple, 5-10 min, y avanzamos juntos.`,
-      `${cap}. Empezá pequeño: una mini-tarea y después vemos la siguiente.`,
-    ];
-    const pick = prompts[Math.floor(Math.random() * prompts.length)];
-    return `${pick} —mi panita STEEB`;
+    // Modo "STEEB asustado": mensaje ansioso sobre adivinar el número
+    return 'Qué ansiedad me daría que adivines el número que estoy pensando del 1 al 100 para desbloquear la versión Shiny.';
   }, [open]);
 
   useEffect(() => {
@@ -55,7 +46,7 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-6 rounded-3xl">
+      <DialogContent className="rounded-3xl p-5 sm:p-6 pt-8 pr-8 sm:pt-8 sm:pr-8 w-[88vw] max-w-[340px] sm:max-w-md">
         <DialogHeader>
           {/* Avatar + Burbuja estilo calendario */}
           <div className="flex items-start gap-3">
@@ -63,22 +54,22 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
             <img
               src="/lovable-uploads/STEBETRISTE.png"
               alt="STEEB"
-              className="w-16 h-16 rounded-lg"
+              className="w-24 h-24 sm:w-16 sm:h-16 rounded-lg mt-1.5"
             />
             {/* Burbuja de diálogo */}
-            <div className="relative flex-1">
+            <div className="relative flex-1 mt-1">
               <div className="rounded-xl border border-black/15 dark:border-white/20 bg-white dark:bg-black shadow-sm px-3 py-2">
                 <div className="text-xs font-bold text-gray-700 dark:text-gray-200 mb-0.5">
                   STEEB
                 </div>
-                <p className="text-sm text-gray-900 dark:text-gray-100 leading-snug">
-                  {steebGreeting}
+                <p className="text-sm text-gray-900 dark:text-gray-100 leading-snug" aria-live="polite">
+                  {message ? message : steebGreeting}
                 </p>
               </div>
             </div>
           </div>
         </DialogHeader>
-        <div className="mt-4 space-y-3">
+        <div className="mt-3 space-y-2">
           <input
             type="number"
             min={1}
@@ -87,18 +78,16 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
             onChange={(e) => setGuess(e.target.value)}
             disabled={attempted}
             placeholder="Tu número (1-100)"
-            className="w-full h-12 rounded-2xl border border-black dark:border-white bg-white dark:bg-black text-center text-lg"
+            className="w-full h-11 rounded-2xl border border-black dark:border-white bg-white dark:bg-black text-center text-base"
             aria-label="Ingresar número para ganar Shiny"
           />
-          {message && (
-            <p className="text-center text-sm text-black/70 dark:text-white/70" aria-live="polite">{message}</p>
-          )}
+          {/* El mensaje de resultado ahora se muestra dentro de la burbuja de STEEB */}
         </div>
-        <DialogFooter className="mt-4 gap-3">
+        <DialogFooter className="mt-2 gap-2">
           {!attempted ? (
             <button
               onClick={handleTry}
-              className="w-full h-12 rounded-2xl bg-black text-white font-semibold"
+              className="w-full h-11 rounded-2xl bg-black text-white font-semibold text-base"
               aria-label="Probar suerte"
             >
               Probar suerte
@@ -106,7 +95,7 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
           ) : (
             <button
               onClick={() => onOpenChange(false)}
-              className="w-full h-12 rounded-xl border border-black dark:border-white font-semibold"
+              className="w-full h-11 rounded-xl border border-black dark:border-white font-semibold text-base"
               aria-label="Cerrar"
             >
               Cerrar

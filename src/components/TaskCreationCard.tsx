@@ -294,7 +294,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Date Picker */}
         {showDatePicker && (
-          <div className="p-2 bg:white">
+          <div className="p-3 bg-white">
             <input
               type="date"
               value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
@@ -302,14 +302,14 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                 setSelectedDate(e.target.value ? new Date(e.target.value) : undefined);
                 setShowDatePicker(false);
               }}
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full h-11 px-4 rounded-2xl border border-black/15 bg-white text-black focus:outline-none focus:ring-2 focus:ring-black/10"
             />
           </div>
         )}
 
         {/* Time Picker */}
         {showTimePicker && (
-          <div className="p-2 bg:white">
+          <div className="p-3 bg-white">
             <input
               type="time"
               value={selectedTime}
@@ -317,7 +317,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                 setSelectedTime(e.target.value);
                 setShowTimePicker(false);
               }}
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full h-11 px-4 rounded-2xl border border-black/15 bg-white text-black focus:outline-none focus:ring-2 focus:ring-black/10"
             />
           </div>
         )}

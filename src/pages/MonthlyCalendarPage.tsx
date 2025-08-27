@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Home } from 'lucide-react';
 
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -469,36 +469,7 @@ const MonthlyCalendarPage: React.FC = () => {
     return 'Empieza con una tarea sencilla hoy para construir momentum. ¡Yo te acompaño!';
   }, [monthStats, currentStreak, daysWithCompletedInMonth, totalCompleted]);
 
-  // Swipe para volver al inicio (gesto izquierda)
-  const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
-  const [mouseStartX, setMouseStartX] = useState<number | null>(null);
-  const [mouseLastX, setMouseLastX] = useState<number | null>(null);
-  const wheelCooldownRef = useRef<number>(0);
-  const wheelAccumRef = useRef<number>(0);
-  const wheelTimerRef = useRef<number | null>(null);
-  const lastTapRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (mouseStartX === null) return;
-    const handleWindowMouseUp = (e: MouseEvent) => {
-      const endX = e.clientX;
-      const dx = endX - (mouseStartX ?? endX);
-      if (dx < -100) {
-        navigate('/');
-      }
-      setMouseStartX(null);
-      setMouseLastX(null);
-    };
-    const handleWindowMouseMove = (e: MouseEvent) => {
-      setMouseLastX(e.clientX);
-    };
-    window.addEventListener('mouseup', handleWindowMouseUp);
-    window.addEventListener('mousemove', handleWindowMouseMove);
-    return () => {
-      window.removeEventListener('mouseup', handleWindowMouseUp);
-      window.removeEventListener('mousemove', handleWindowMouseMove);
-    };
-  }, [mouseStartX, navigate]);
+  // Se deshabilitan gestos de navegación hacia atrás. Solo el botón dedicado permite volver.
 
   const renderCalendarDay = (day: CalendarDay, index: number) => (
     <motion.div
@@ -584,68 +555,6 @@ const MonthlyCalendarPage: React.FC = () => {
     <div
       className="min-h-screen bg-white dark:bg-black p-2 pt-1"
       style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}
-      onWheelCapture={(e) => {
-        const now = performance.now();
-        if (now - (wheelCooldownRef.current || 0) < 700) return;
-        // Acumular pequeños desplazamientos horizontales
-        wheelAccumRef.current += e.deltaX;
-        // Reiniciar acumulador después de una pausa corta
-        if (wheelTimerRef.current) window.clearTimeout(wheelTimerRef.current);
-        wheelTimerRef.current = window.setTimeout(() => {
-          wheelAccumRef.current = 0;
-          wheelTimerRef.current = null;
-        }, 220) as unknown as number;
-
-        // Si hay gesto marcado a la izquierda o derecha (según configuración del dispositivo)
-        if (Math.abs(wheelAccumRef.current) > 60) {
-          wheelCooldownRef.current = now;
-          wheelAccumRef.current = 0;
-          if (wheelTimerRef.current) {
-            window.clearTimeout(wheelTimerRef.current);
-            wheelTimerRef.current = null;
-          }
-          navigate('/');
-        }
-      }}
-      onTouchStart={(e) => setSwipeStartX(e.touches[0]?.clientX ?? null)}
-      onTouchEnd={(e) => {
-        const endX = e.changedTouches[0]?.clientX ?? null;
-        const now = performance.now();
-        // Doble tap en el borde izquierdo
-        if (e.changedTouches[0] && e.changedTouches[0].clientX < 96) {
-          if (now - (lastTapRef.current || 0) < 300) {
-            navigate('/');
-            lastTapRef.current = 0;
-            return;
-          }
-          lastTapRef.current = now;
-        }
-        if (swipeStartX !== null && endX !== null && endX - swipeStartX < -60) {
-          navigate('/');
-        }
-        setSwipeStartX(null);
-      }}
-      onDoubleClickCapture={(e) => {
-        // Doble clic en el borde izquierdo
-        if (e.clientX < 96) {
-          navigate('/');
-        }
-      }}
-      onMouseDown={(e) => {
-        // Solo botón izquierdo
-        if (e.button === 0) setMouseStartX(e.clientX);
-      }}
-      onMouseMove={(e) => {
-        if (mouseStartX !== null) setMouseLastX(e.clientX);
-      }}
-      onMouseUp={(e) => {
-        if (mouseStartX !== null) {
-          const dx = (mouseLastX ?? e.clientX) - mouseStartX;
-          if (dx < -80) navigate('/');
-        }
-        setMouseStartX(null);
-        setMouseLastX(null);
-      }}
     >
       {/* Header con navegación */}
       <div className="max-w-[430px] mx-auto relative">
@@ -667,6 +576,22 @@ const MonthlyCalendarPage: React.FC = () => {
             <div className="font-semibold mb-0.5">STEEB</div>
             <div className="opacity-90">{adviceText}</div>
           </motion.div>
+        </div>
+
+        {/* 2 círculos bajo STEEB: izquierda (Home) + derecha (actual) */}
+        <div className="flex items-center justify-center gap-4 my-1">
+          {/* Casa: navega al inicio con mini animación */}
+          <motion.button
+            onClick={() => navigate('/')}
+            aria-label="Ir al inicio"
+            className="w-7 h-7 rounded-full flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+            whileTap={{ scale: 0.85 }}
+            whileHover={{ scale: 1.08 }}
+          >
+            <Home className="w-4 h-4" />
+          </motion.button>
+          {/* Indicador de página actual (calendario) */}
+          <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
         </div>
 
         {/* Controles del calendario */}
@@ -751,6 +676,8 @@ const MonthlyCalendarPage: React.FC = () => {
 
           {/* Se removió la leyenda, resumen y botón +info para un diseño más limpio */}
         </Card>
+
+        {/* (Se quitó el botón Volver; navegación solo con la pelotita de casa) */}
 
         {/* Tareas del día seleccionado */}
         {selectedDate && (

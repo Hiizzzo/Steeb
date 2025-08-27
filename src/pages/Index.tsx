@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import { useDailyTaskReminder } from '@/hooks/useDailyTaskReminder';
@@ -557,25 +558,82 @@ const Index = () => {
 
   // Día de la semana (p.ej., "Viernes") y saludo de STEEB
   const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
+  const isMobile = useIsMobile();
+
+  // Detectar primer mensaje del día (mostrar al menos una vez por sesión)
+  const [isFirstOfDay, setIsFirstOfDay] = useState(false);
+  useEffect(() => {
+    const todayKey = new Date().toISOString().split('T')[0];
+    const last = localStorage.getItem('stebe-last-greeting-date');
+    const sessionLast = sessionStorage.getItem('stebe-session-greet');
+
+    const isFirstThisCalendarDay = last !== todayKey;
+    const isFirstThisSession = sessionLast !== todayKey;
+
+    if (isFirstThisCalendarDay || isFirstThisSession) {
+      setIsFirstOfDay(true);
+      localStorage.setItem('stebe-last-greeting-date', todayKey);
+      sessionStorage.setItem('stebe-session-greet', todayKey);
+    } else {
+      setIsFirstOfDay(false);
+    }
+  }, []);
+
   const steebGreeting = useMemo(() => {
+    // Frase temática según el día (corta y divertida/seria)
+    const daySpecials: Record<string, string[]> = {
+      'Lunes': ['Lunes sin excusas', 'Lunes de arranque'],
+      'Martes': ['Martes de lasaña', 'Martes con ritmo'],
+      'Miércoles': ['Miércoles ninja', 'Miércoles a tope'],
+      'Jueves': ['Jueves de foco', 'Jueves productivo'],
+      'Viernes': ['Viernes con power', 'Viernes de cierre'],
+      'Sábado': ['Sábado tranqui', 'Sábado efectivo'],
+      'Domingo': ['Domingo zen', 'Domingo ligero'],
+    };
+    const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    if (isFirstOfDay) {
+      // Primer saludo del día
+      if (isMobile) {
+        // Muy corto (<=8 palabras) e incluye el día
+        const tag = pick(daySpecials[dayName] || [dayName]);
+        // Ej: "Martes de lasaña. A darle."
+        return `${tag}. A darle.`;
+      }
+      // Desktop: un poco más descriptivo
+      const tag = pick(daySpecials[dayName] || [dayName]);
+      return `${dayName}. ${tag}. Empecemos con algo corto y sumemos momentum.`;
+    }
+
+    if (isMobile) {
+      // Frases super cortas (<= 8 palabras) para burbuja en móviles
+      const shortPhrases = [
+        'Una cosa rápida. Marcamos check.',
+        'Algo simple hoy. Avanzá ya.',
+        'Empezá pequeño. Acción ahora.',
+        'Vamos con foco. Ahora.',
+      ];
+      const picked = shortPhrases[Math.floor(Math.random() * shortPhrases.length)];
+      return `${dayName}. ${picked}`;
+    }
     const phrases = [
       `${dayName}. Día perfecto para arrancar algo corto y ganar momentum.`,
       `${dayName}. Hagamos una cosita rápida y marcamos check.`,
       `${dayName}. Elegí algo simple, 5-10 min, y avanzamos juntos.`,
       `${dayName}. Empezá pequeño: una mini-tarea y después vemos la siguiente.`,
     ];
-    return `${phrases[Math.floor(Math.random() * phrases.length)]} —mi panita STEEB`;
-  }, [dayName]);
+    return `${phrases[Math.floor(Math.random() * phrases.length)]}`;
+  }, [dayName, isMobile, isFirstOfDay]);
 
   return (
           <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
       
       {/* STEEB en esquina superior izquierda + burbuja de diálogo */}
-      <div className="absolute top-4 left-4 z-20 mr-6 flex items-start gap-2 max-w-[80%]">
+      <div className="absolute top-4 left-4 z-20 mr-24 flex items-start gap-2 max-w-[70%] sm:max-w-[80%]">
         <img 
           src="/lovable-uploads/te obesrvo.png"
           alt="STEEB" 
-          className="w-20 h-20 rounded-2xl shadow-sm"
+          className="w-24 h-24 sm:w-20 sm:h-20 object-contain bg-transparent rounded-none shadow-none"
         />
         <div className="relative">
           <div className="rounded-xl border border-black/15 dark:border-white/20 bg-white dark:bg-black shadow-sm px-3 py-2 max-w-[280px]">

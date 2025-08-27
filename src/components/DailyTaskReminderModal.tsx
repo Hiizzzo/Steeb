@@ -93,7 +93,7 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
               {/* Burbuja */}
               <div className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm px-3 py-2">
                 <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="w-4 h-4 text-blue-500" />
+                  <Calendar className="w-4 h-4 text-black dark:text-white" />
                   <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wide">Recordatorio</span>
                 </div>
                 <p className="text-sm text-gray-800 dark:text-gray-200">
@@ -130,7 +130,7 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
                     key={task.id}
                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                       selectedTasks.includes(task.id)
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
+                        ? 'bg-white dark:bg-black border-black dark:border-white'
                         : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                     onClick={() => handleTaskToggle(task.id)}
@@ -139,11 +139,11 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
                   >
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       selectedTasks.includes(task.id)
-                        ? 'bg-blue-500 border-blue-500'
+                        ? 'bg-black border-black dark:bg-white dark:border-white'
                         : 'border-gray-300 dark:border-gray-600'
                     }`}>
                       {selectedTasks.includes(task.id) && (
-                        <CheckCircle className="w-3 h-3 text-white" />
+                        <CheckCircle className="w-3 h-3 text-white dark:text-black" />
                       )}
                     </div>
                     <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">

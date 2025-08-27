@@ -520,7 +520,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                         </div>
                         
                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-300">
-                          <div className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                          <div className="px-2 py-1 rounded-full text-xs bg-black text-white dark:bg-white dark:text-black">
                             {task.type}
                           </div>
                           
@@ -543,13 +543,13 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                               <div key={subtask.id} className="flex items-center space-x-2">
                                 <button
                                   onClick={() => onToggleSubtask && onToggleSubtask(task.id, subtask.id)}
-                                  className={`task-checkbox-button w-4 h-4 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200 ${subtask.completed ? 'bg-green-500 border-green-500 shadow-lg scale-110' : 'border-black dark:border-white hover:border-green-400'}`}
+                                  className={`task-checkbox-button w-4 h-4 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200 ${subtask.completed ? 'bg-green-500 border-green-500 dark:!bg-white dark:!border-white shadow-lg scale-110' : 'border-black dark:border-white hover:border-green-400'}`}
                                   style={{ minWidth: '16px', minHeight: '16px', zIndex: 100 }}
                                 >
                                   {subtask.completed && (
                                     <Check 
-                                      size={10} 
-                                      style={{ color: '#ffffff' }}
+                                      size={10}
+                                      className="text-white dark:text-black"
                                       strokeWidth={4}
                                     />
                                   )}
@@ -567,13 +567,13 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       <div className="w-6 shrink-0 flex justify-end">
                         <button
                           onClick={() => onToggleTask && onToggleTask(task.id)}
-                          className={`task-checkbox-button w-5 h-5 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200 ${task.completed ? 'bg-green-500 border-green-500 shadow-lg scale-110' : 'border-black dark:border-white hover:border-green-400'}`}
+                          className={`task-checkbox-button w-5 h-5 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200 ${task.completed ? 'bg-green-500 border-green-500 dark:!bg-white dark:!border-white shadow-lg scale-110' : 'border-black dark:border-white hover:border-green-400'}`}
                           style={{ minWidth: '20px', minHeight: '20px', zIndex: 100 }}
                         >
                           {task.completed && (
                             <Check 
-                              size={12} 
-                              style={{ color: '#ffffff' }}
+                              size={12}
+                              className="text-white dark:text-black"
                               strokeWidth={4}
                             />
                           )}

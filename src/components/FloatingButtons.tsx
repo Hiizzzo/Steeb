@@ -23,6 +23,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const loadingTimer = useRef<NodeJS.Timeout | null>(null);
   const hasLongPressTriggered = useRef(false);
+  const pressStartTime = useRef<number>(0);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
 
   // Handler para iniciar el long press
@@ -37,6 +38,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     hasLongPressTriggered.current = false;
     setShowCalendar(false);
     setIsLongPressed(true);
+    pressStartTime.current = Date.now();
 
     document.body.style.userSelect = 'none';
     (document.body as any).style.webkitUserSelect = 'none';
@@ -74,7 +76,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     }
     document.body.style.userSelect = '';
     document.body.style.webkitUserSelect = '';
-    if (!hasLongPressTriggered.current) {
+    const duration = Date.now() - pressStartTime.current;
+    const longPressed = hasLongPressTriggered.current || duration >= 300;
+    if (!longPressed && !showCalendarMenu) {
       setShowTaskModal(true);
     }
     setIsLongPressed(false);

@@ -444,10 +444,8 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
           <motion.h2 
-            className={`text-3xl font-bold bg-gradient-to-r ${
-              isDark 
-                ? 'from-gray-300 to-gray-500 text-transparent bg-clip-text' 
-                : 'from-blue-600 to-purple-600 text-transparent bg-clip-text'
+            className={`text-3xl font-bold ${
+              isDark ? 'text-white' : 'text-black'
             }`}
             layout
           >
@@ -492,8 +490,8 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 viewMode === mode
                   ? (isDark 
-                    ? 'bg-gray-600 text-white shadow-lg' 
-                    : 'bg-blue-500 text-white shadow-lg')
+                    ? 'bg-white text-black shadow-lg' 
+                    : 'bg-black text-white shadow-lg')
                   : (isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
               }`}
               whileHover={{ scale: 1.05 }}
@@ -562,7 +560,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
             }`}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles size={16} className="text-blue-500" />
+              <Sparkles size={16} className="text-black dark:text-white" />
               <p className="font-semibold">
                 {hoveredDate.toLocaleDateString('es-ES', { 
                   weekday: 'long',
@@ -659,7 +657,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
                   isToday
                     ? (isDark 
                       ? 'bg-gray-800/60 border-gray-500 shadow-lg shadow-gray-500/20' 
-                      : 'bg-blue-50 border-blue-500 shadow-lg shadow-blue-500/20')
+                      : 'bg-gray-100 border-black shadow-lg shadow-black/20')
                     : (isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200')
                 }`}
               >
@@ -685,13 +683,13 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
                       animate={{ opacity: 1, x: 0 }}
                       className={`p-2 rounded-lg text-xs ${
                         task.completed
-                          ? (isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700')
+                          ? (isDark ? 'bg-white/10 text-white' : 'bg-black/10 text-black')
                           : (isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700')
                       }`}
                     >
                       <div className="flex items-center gap-1">
                         {task.completed ? (
-                          <CheckCircle size={12} className="text-green-500" />
+                          <CheckCircle size={12} className="text-black dark:text-white" />
                         ) : (
                           <div className="w-3 h-3 rounded-full border border-current opacity-50" />
                         )}
@@ -734,7 +732,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
       <div className={`absolute inset-0 ${
         isDark 
           ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/20' 
-          : 'bg-gradient-to-br from-gray-50 via-white to-blue-50/30'
+          : 'bg-gradient-to-br from-gray-50 via-white to-gray-100/30'
       }`} />
       
       <div className="relative z-10">
