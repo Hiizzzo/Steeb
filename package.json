@@ -1,7 +1,7 @@
 {
   "name": "steeb_ai_gemini_ollama",
   "private": true,
-  "version": "0.5.0",
+  "version": "8.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -56,6 +56,7 @@
     "dotenv": "^16.4.5",
     "embla-carousel-react": "^8.3.0",
     "express": "^4.21.2",
+    "firebase": "^12.1.0",
     "framer-motion": "^12.23.6",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",

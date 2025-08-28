@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flam
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import TaskCreationCard from '@/components/TaskCreationCard';
@@ -105,7 +106,7 @@ const MonthlyCalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
-  
+  const { name, nickname } = useUserProfile();
   
   const { 
     tasks, 
@@ -446,27 +447,29 @@ const MonthlyCalendarPage: React.FC = () => {
   const adviceText = useMemo(() => {
     const { completed, scheduled } = monthStats;
     const rate = scheduled > 0 ? Math.round((completed / Math.max(1, scheduled)) * 100) : 0;
+    const userName = name || 'Usuario';
+    const userNickname = nickname || 'amigo';
 
     // Casos especiales
     if (scheduled === 0 && totalCompleted === 0) {
-      return 'Aún no hay tareas este mes. Planifica 1-3 objetivos clave para empezar con foco.';
+      return `${userName}, aún no hay tareas este mes. Planifica 1-3 objetivos clave para empezar con foco.`;
     }
     if (scheduled === 0 && totalCompleted > 0) {
-      return `Buen impulso: completaste ${totalCompleted} tareas. Programa metas para enfocar tu energía.`;
+      return `¡Buen impulso, ${userNickname}! Completaste ${totalCompleted} tareas. Programa metas para enfocar tu energía.`;
     }
 
-    // Consejos según rendimiento
+    // Consejos según rendimiento (usar apodo para felicitar, nombre para motivar)
     if (rate >= 85) {
-      return `¡Gran mes! Completaste ${completed} de ${scheduled} (${rate}%). Mantén la racha de ${currentStreak} día(s).`;
+      return `¡Increíble mes, ${userNickname}! Completaste ${completed} de ${scheduled} (${rate}%). Mantén la racha de ${currentStreak} día(s).`;
     }
     if (rate >= 60) {
-      return `Vas bien: ${completed}/${scheduled} (${rate}%). Intenta sumar 1-2 días más activos (hoy llevas ${daysWithCompletedInMonth}).`;
+      return `Vas muy bien, ${userNickname}: ${completed}/${scheduled} (${rate}%). Intenta sumar 1-2 días más activos.`;
     }
     if (rate > 0) {
-      return `Progreso en marcha: ${completed}/${scheduled} (${rate}%). Elige 1 tarea pequeña diaria para ganar ritmo.`;
+      return `${userName}, progreso en marcha: ${completed}/${scheduled} (${rate}%). Elige 1 tarea pequeña diaria para ganar ritmo.`;
     }
 
-    return 'Empieza con una tarea sencilla hoy para construir momentum. ¡Yo te acompaño!';
+    return `${userName}, empieza con una tarea sencilla hoy para construir momentum. ¡Yo te acompaño!`;
   }, [monthStats, currentStreak, daysWithCompletedInMonth, totalCompleted]);
 
   // Se deshabilitan gestos de navegación hacia atrás. Solo el botón dedicado permite volver.
@@ -559,7 +562,7 @@ const MonthlyCalendarPage: React.FC = () => {
       {/* Header con navegación */}
       <div className="max-w-[430px] mx-auto relative">
         {/* Header: Avatar a la izquierda y globo de consejo a la derecha */}
-        <div className="flex items-start justify-between my-2 gap-3">
+        <div className="flex items-start mt-6 mb-2 gap-3">
           <div className="shrink-0">
             <img
               src="/lovable-uploads/icono de la app.png"
@@ -568,7 +571,7 @@ const MonthlyCalendarPage: React.FC = () => {
             />
           </div>
           <motion.div 
-            className="relative max-w-[65%] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2 pr-5 sm:pr-7 mr-14 sm:mr-16 md:mr-20 text-sm leading-snug text-black dark:text-white shadow-sm"
+            className="relative flex-1 max-w-[calc(100%-110px)] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2 mr-4 mt-2 text-sm leading-snug text-black dark:text-white shadow-sm"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -735,7 +738,15 @@ const MonthlyCalendarPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {calendarDays.find(d => d.dateString === selectedDate)?.tasks.map((task) => (
+                  {calendarDays.find(d => d.dateString === selectedDate)?.tasks
+                    .sort((a, b) => {
+                      // Tareas completadas van al final
+                      if (a.completed && !b.completed) return 1;
+                      if (!a.completed && b.completed) return -1;
+                      // Si ambas tienen el mismo estado, mantener orden original
+                      return 0;
+                    })
+                    .map((task) => (
                     <motion.div
                       key={task.id}
                       initial={{ opacity: 0, x: -14 }}
@@ -745,7 +756,7 @@ const MonthlyCalendarPage: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center">
                           {renderShapeForType(task.type)}
-                          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+                          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500 dark:text-white' : 'text-black dark:text-white font-medium'}`}>{task.title}</p>
                         </div>
                         {task.scheduledTime && (
                           <p className="text-sm text-gray-600">{task.scheduledTime}</p>
@@ -756,7 +767,13 @@ const MonthlyCalendarPage: React.FC = () => {
                         onClick={() => handleToggleTask(task.id)}
                         aria-label="Seleccionar tarea"
                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
-                      />
+                      >
+                        {task.completed && (
+                          <svg className="w-3 h-3 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
                     </motion.div>
                   ))}
                 </div>

@@ -81,22 +81,26 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-md mx-4 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700"
+          className="relative w-full max-w-md mx-4 bg-white dark:bg-black rounded-lg shadow-xl border border-gray-200 dark:border-white"
         >
           {/* Header: Avatar a la izquierda + burbuja de diálogo a la derecha (sin mencionar STEEB) */}
-          <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-gray-700 gap-3">
+          <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-white gap-3">
             <div className="flex items-start gap-3 flex-1">
-              {/* Avatar */}
-              <div className="w-10 h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 flex items-center justify-center text-gray-900 dark:text-gray-100 shrink-0">
-                <span className="text-sm">S</span>
+              {/* Avatar de STEBE */}
+              <div className="w-20 h-20 rounded-lg shrink-0">
+                <img
+                  src="/lovable-uploads/icono de la app.png"
+                  alt="Stebe"
+                  className="w-20 h-20 rounded-lg"
+                />
               </div>
               {/* Burbuja */}
-              <div className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm px-3 py-2">
+              <div className="flex-1 rounded-xl border border-gray-200 dark:border-white bg-white dark:bg-black shadow-sm px-3 py-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Calendar className="w-4 h-4 text-black dark:text-white" />
-                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wide">Recordatorio</span>
+                  <span className="text-xs font-semibold text-black dark:text-white uppercase tracking-wide">Recordatorio</span>
                 </div>
-                <p className="text-sm text-gray-800 dark:text-gray-200">
+                <p className="text-sm text-black dark:text-white">
                   ¿Completaste tareas ayer? Elegí las que terminaste para mantener tus estadísticas precisas.
                 </p>
               </div>
@@ -111,17 +115,17 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
 
           {/* Content */}
           <div className="p-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-gray-600 dark:text-white mb-4">
               {formatDate(yesterdayDate)}
             </p>
-            <p className="text-gray-700 dark:text-gray-300 mb-6">
+            <p className="text-black dark:text-white mb-6">
               Seleccioná las tareas que completaste ayer:
             </p>
 
             {/* Task List */}
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {availableTasks.length === 0 ? (
-                <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                <p className="text-center text-gray-500 dark:text-white py-4">
                   No hay tareas pendientes para marcar
                 </p>
               ) : (
@@ -131,7 +135,7 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                       selectedTasks.includes(task.id)
                         ? 'bg-white dark:bg-black border-black dark:border-white'
-                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        : 'bg-gray-50 dark:bg-black border-gray-200 dark:border-white hover:bg-gray-100 dark:hover:bg-black'
                     }`}
                     onClick={() => handleTaskToggle(task.id)}
                     whileHover={{ scale: 1.02 }}
@@ -140,13 +144,13 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       selectedTasks.includes(task.id)
                         ? 'bg-black border-black dark:bg-white dark:border-white'
-                        : 'border-gray-300 dark:border-gray-600'
+                        : 'border-gray-300 dark:border-white'
                     }`}>
                       {selectedTasks.includes(task.id) && (
                         <CheckCircle className="w-3 h-3 text-white dark:text-black" />
                       )}
                     </div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                    <span className="text-sm text-black dark:text-white flex-1">
                       {task.title}
                     </span>
                   </motion.div>
@@ -156,7 +160,7 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-white">
             <Button
               variant="outline"
               onClick={handleSkip}

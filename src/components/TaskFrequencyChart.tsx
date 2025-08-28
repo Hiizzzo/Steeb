@@ -118,7 +118,27 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
               }
               if (type === 'salud') {
-                return `repeating-linear-gradient(-45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
+                // Patrón cuadriculado para salud
+                return `
+                  repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 8px,
+                    ${color} 8px,
+                    ${color} 9px,
+                    transparent 9px,
+                    transparent 17px
+                  ),
+                  repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 8px,
+                    ${color} 8px,
+                    ${color} 9px,
+                    transparent 9px,
+                    transparent 17px
+                  )
+                `;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
@@ -197,7 +217,29 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   return { backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };
                 }
                 if (type === 'salud') {
-                  return { backgroundImage: `repeating-linear-gradient(-45deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };
+                  // Patrón cuadriculado para salud en la leyenda
+                  return { 
+                    backgroundImage: `
+                      repeating-linear-gradient(
+                        0deg,
+                        transparent 0px,
+                        transparent 5px,
+                        ${color} 5px,
+                        ${color} 6px,
+                        transparent 6px,
+                        transparent 11px
+                      ),
+                      repeating-linear-gradient(
+                        90deg,
+                        transparent 0px,
+                        transparent 5px,
+                        ${color} 5px,
+                        ${color} 6px,
+                        transparent 6px,
+                        transparent 11px
+                      )
+                    `
+                  };
                 }
                 if (index === 1) {
                   return { backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };

@@ -20,7 +20,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
-  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
+  type: 'productividad' | 'social' | 'salud';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -34,7 +34,7 @@ interface TaskCreationCardProps {
   onCancel: () => void;
   onCreate: (
     title: string,
-    type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra',
+    type: 'productividad' | 'social' | 'salud',
     subtasks?: SubTask[],
     scheduledDate?: string,
     scheduledTime?: string,
@@ -50,7 +50,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedTag, setSelectedTag] = useState<'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra'>('productividad');
+  const [selectedTag, setSelectedTag] = useState<'productividad' | 'social' | 'salud'>('productividad');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);
@@ -157,30 +157,63 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     }
   };
 
-  const getTagLabel = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
+  const getTagLabel = (tag: 'productividad' | 'social' | 'salud') => {
     switch (tag) {
       case 'productividad': return 'Trabajo';
-      case 'creatividad': return 'Creatividad';
-      case 'aprendizaje': return 'Aprendizaje';
-      case 'organizacion': return 'Organización';
       case 'salud': return 'Salud';
       case 'social': return 'Social';
-      case 'entretenimiento': return 'Entretenimiento';
-      case 'extra': return 'Extra';
     }
   };
 
-  // Formas geométricas por tag (círculos reemplazados por triángulos)
-  const getTagIcon = (tag: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra') => {
+  // Formas geométricas por tag con tamaños fijos (evita variaciones por fuentes)
+  const getTagIcon = (tag: 'productividad' | 'social' | 'salud', isSelected = false) => {
+    const wrap = (node: React.ReactNode) => (
+      <span className="inline-grid place-items-center w-7 h-7 mr-1 shrink-0" style={{ width: 28, height: 28 }}>
+        {node}
+      </span>
+    );
+    
+    // Color logic: white when selected (dark background), black when not selected (light background)
+    const iconColor = isSelected ? 'white' : 'black';
+    const bgColor = isSelected ? 'white' : 'black';
+    const outlineColor = isSelected ? 'white' : 'black';
+    
     switch (tag) {
-      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-2 text-black" title="Trabajo" />;
-      case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Creatividad" />;
-      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Aprendizaje" />;
-      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-2 text-black" title="Organización" />;
-      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-2 text-black" title="Salud" />;
-      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Social" />;
-      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-2 text-black" title="Entretenimiento" />;
-      case 'extra':           return <ShapeIcon variant="square" className="w-6 h-6 mr-2 text-black" title="Extra" />;
+      case 'productividad':   return wrap(
+        <span
+          title="Trabajo"
+          aria-label="Trabajo"
+          className="block rounded-[3px] outline outline-2"
+          style={{ 
+            width: 20, 
+            height: 20, 
+            backgroundColor: bgColor,
+            outlineColor: outlineColor
+          }}
+        />
+      );
+      case 'salud':           return wrap(
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-label="Salud"
+          role="img"
+          style={{ width: 28, height: 28, color: iconColor }}
+        >
+          <path d="M12 21s-6.716-4.35-9.193-7.36C.953 10.545 2.097 6.5 5.293 5.364 7.162 4.688 9.21 5.29 10.5 6.7 11.79 5.29 13.838 4.688 15.707 5.364c3.196 1.136 4.34 5.181 2.486 8.276C18.716 16.65 12 21 12 21z"/>
+        </svg>
+      );
+      case 'social':          return wrap(
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-label="Social"
+          role="img"
+          style={{ width: 28, height: 28, color: iconColor }}
+        >
+          <path d="M12 3l9 18H3l9-18z"/>
+        </svg>
+      );
     }
   };
 
@@ -254,9 +287,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowDatePicker(!showDatePicker)}
             aria-label="Fecha"
             title={selectedDate ? selectedDate.toLocaleDateString() : 'Seleccionar fecha'}
-            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
+            className="flex-1 flex items-center justify-center h-16 text-black dark:text-white hover:text-black hover:bg-white transition-colors"
           >
-            <Calendar size={24} className="text-black dark:text-white" />
+            <Calendar size={28} className="text-black dark:text-white" />
           </button>
           
           {/* Repeat Section */}
@@ -264,9 +297,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowRepeatPicker(!showRepeatPicker)}
             aria-label="Repetir"
             title={recurrenceDaysOfWeek.length === 0 ? 'Configurar repetición' : ['D','L','M','M','J','V','S'].filter((_, idx) => recurrenceDaysOfWeek.includes(idx)).join(' ')}
-            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
+            className="flex-1 flex items-center justify-center h-16 text-black dark:text-white hover:text-black hover:bg-white transition-colors"
           >
-            <Repeat size={24} className="text-black dark:text-white" />
+            <Repeat size={28} className="text-black dark:text-white" />
           </button>
 
           {/* Time Section */}
@@ -274,9 +307,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowTimePicker(!showTimePicker)}
             aria-label="Hora"
             title={selectedTime || 'Seleccionar hora'}
-            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
+            className="flex-1 flex items-center justify-center h-16 text-black dark:text-white hover:text-black hover:bg-white transition-colors"
           >
-            <Clock size={24} className="text-black dark:text-white" />
+            <Clock size={28} className="text-black dark:text-white" />
           </button>
           
           {/* Divider removed to make buttons seamless */}
@@ -286,7 +319,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowTagPicker(!showTagPicker)}
             aria-label="Categoría"
             title={getTagLabel(selectedTag)}
-            className="flex-1 flex items-center justify-center py-4 text-black hover:text-black hover:bg-white transition-colors"
+            className="flex-1 flex items-center justify-center h-16 bg-white text-black rounded-none transition-colors"
           >
             {getTagIcon(selectedTag)}
           </button>
@@ -367,13 +400,14 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                     setSelectedTag(tag);
                     setShowTagPicker(false);
                   }}
-                  className="flex items-center gap-2 px-2 py-2 min-h-[56px] hover:bg-gray-50 transition-colors rounded-lg border border-gray-300 hover:border-gray-400"
+                  className={`flex items-center gap-1 px-1.5 py-3 min-h:[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible
+                    ${selectedTag === tag
+                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                      : 'bg-white text-black border-gray-300 hover:border-gray-400 dark:bg-transparent dark:text-white hover:bg-gray-50/80'}`}
                 >
-                  {getTagIcon(tag)}
-                  <span className="text-black text-base mr-2">{getTagLabel(tag)}</span>
-                  {selectedTag === tag && (
-                    <div className="ml-auto w-2 h-2 bg-black rounded-full"></div>
-                  )}
+                  {getTagIcon(tag, selectedTag === tag)}
+                  <span className="text-base font-medium">{getTagLabel(tag)}</span>
+                  {/* selected indicator dot removed because solid style is enough */}
                 </button>
               ))}
             </div>

@@ -255,25 +255,25 @@ const TaskItem: React.FC<TaskItemProps> = ({
               {/* Checkbox de completado */}
               <button 
                 onClick={() => !isDragging && swipeOffset === 0 && onComplete(task.id)}
-                className="mt-2 hover:scale-110 transition-transform"
+                className="mt-1 hover:scale-110 transition-transform"
               >
                 {task.completed ? (
-                  <CheckCircle size={20} className="text-green-500" />
+                  <CheckCircle size={28} className="text-green-500" />
                 ) : (
-                  <Circle size={20} className="text-gray-400 hover:text-gray-600" />
+                  <Circle size={28} className="text-gray-400 hover:text-gray-600" />
                 )}
               </button>
               
               <div className={cn('transition-all flex-1', task.completed ? 'opacity-60 line-through' : '')}>
-                <h3 className="font-bold text-gray-800 mb-1">{task.title}</h3>
+                <h3 className="font-semibold text-gray-800 mb-1 text-sm">{task.title}</h3>
                 {task.description && (
-                  <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+                  <p className="text-xs text-gray-600 mb-2">{task.description}</p>
                 )}
                 
                 {/* Badge de categoría */}
                 {task.category && (
                   <span className={cn(
-                    'inline-block px-2 py-1 rounded-full text-xs font-medium mb-2',
+                    'inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-2',
                     visuals.bgLight,
                     visuals.textColor
                   )}>

@@ -280,31 +280,65 @@ export const useNotifications = () => {
     });
   }, [settings.dailyReminder, showNotification]);
 
-  // Schedule daily reminder
+  // Schedule daily reminders (morning and afternoon)
   useEffect(() => {
     if (!settings.dailyReminder) return;
 
-    const scheduleDaily = () => {
+    const scheduleDailyReminders = () => {
       const now = new Date();
-      const reminderTime = new Date(now);
-      reminderTime.setHours(9, 0, 0, 0); // 9:00 AM
-
-      // If it's already past 9 AM today, schedule for tomorrow
+      
+      // Morning reminder (9:00 AM)
+      const morningTime = new Date(now);
+      morningTime.setHours(9, 0, 0, 0);
       if (now.getHours() >= 9) {
-        reminderTime.setDate(reminderTime.getDate() + 1);
+        morningTime.setDate(morningTime.getDate() + 1);
       }
 
-      const timeUntilReminder = reminderTime.getTime() - now.getTime();
+      // Afternoon reminder (6:00 PM)
+      const afternoonTime = new Date(now);
+      afternoonTime.setHours(18, 0, 0, 0);
+      if (now.getHours() >= 18) {
+        afternoonTime.setDate(afternoonTime.getDate() + 1);
+      }
 
+      // Schedule morning reminder
+      const timeUntilMorning = morningTime.getTime() - now.getTime();
+      if (timeUntilMorning > 0) {
+        setTimeout(() => {
+          showNotification('🌅 Buenos días', {
+            body: 'Es hora de revisar tus tareas matutinas',
+            tag: 'morning-reminder',
+            actions: [
+              { action: 'open-app', title: 'Ver tareas' },
+              { action: 'dismiss', title: 'Después' },
+            ],
+          });
+        }, timeUntilMorning);
+      }
+
+      // Schedule afternoon reminder
+      const timeUntilAfternoon = afternoonTime.getTime() - now.getTime();
+      if (timeUntilAfternoon > 0) {
+        setTimeout(() => {
+          showNotification('🌆 Buenas tardes', {
+            body: 'Momento perfecto para completar tus tareas pendientes',
+            tag: 'afternoon-reminder',
+            actions: [
+              { action: 'open-app', title: 'Ver tareas' },
+              { action: 'dismiss', title: 'Después' },
+            ],
+          });
+        }, timeUntilAfternoon);
+      }
+
+      // Schedule for next day
       setTimeout(() => {
-        notifyDailyReminder();
-        // Schedule the next day
-        scheduleDaily();
-      }, timeUntilReminder);
+        scheduleDailyReminders();
+      }, 24 * 60 * 60 * 1000); // 24 hours
     };
 
-    scheduleDaily();
-  }, [settings.dailyReminder, notifyDailyReminder]);
+    scheduleDailyReminders();
+  }, [settings.dailyReminder, showNotification]);
 
   // Batch notification helpers
   const scheduleTaskNotifications = useCallback((task: Task) => {

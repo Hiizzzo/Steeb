@@ -28,7 +28,10 @@ const ShapeIcon: React.FC<ShapeIconProps> = ({ variant, className, title }) => {
       xmlns="http://www.w3.org/2000/svg"
     >
       {variant === "triangle" && <path d="M12 3 L22 20 H2 Z" fill="currentColor" />}
-      {variant === "square" && <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" />}
+      {variant === "square" && (
+        // Use path instead of rect to avoid external CSS rules targeting <rect>
+        <path d="M4 4 H20 V20 H4 Z" fill="currentColor" />
+      )}
       {variant === "circle" && <circle cx="12" cy="12" r="9" fill="currentColor" />}
       {variant === "diamond" && <path d="M12 2 L20 12 L12 22 L4 12 Z" fill="currentColor" />}
       {variant === "hexagon" && <path d="M7 4 h10 l5 8 -5 8 H7 L2 12 Z" fill="currentColor" />}

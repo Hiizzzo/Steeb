@@ -219,6 +219,8 @@ export const useTaskStore = create<TaskStore>()(
               ...taskData,
               id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               title: taskData.title.trim(),
+              // Asegurar defaults consistentes en creación
+              completed: taskData.completed ?? false,
               status: taskData.status || 'pending',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
