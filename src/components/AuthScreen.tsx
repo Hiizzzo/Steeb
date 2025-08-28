@@ -60,11 +60,19 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
     }
   };
 
-  const handleOnboarding = (e: React.FormEvent) => {
+  const handleOnboarding = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.name.trim() && formData.nickname.trim()) {
-      updateProfile(formData.name.trim(), formData.nickname.trim());
-      onComplete();
+      setIsLoading(true);
+      setError('');
+      try {
+        await updateProfile(formData.name.trim(), formData.nickname.trim());
+        onComplete();
+      } catch (err: any) {
+        setError(err?.message || 'No se pudo guardar tu perfil');
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setError('Por favor completa todos los campos');
     }
@@ -121,14 +129,14 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
 
             <button
               onClick={() => setMode('login')}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-blue-700 transition-colors"
+              className="w-full bg-black text-white dark:bg-white dark:text-black py-3 px-4 rounded-xl font-medium hover:bg-gray-900 dark:hover:bg-gray-200 transition-colors"
             >
               Iniciar Sesión
             </button>
 
             <button
               onClick={() => setMode('register')}
-              className="w-full bg-transparent border-2 border-blue-600 text-blue-600 dark:text-blue-400 py-3 px-4 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+              className="w-full bg-transparent border-2 border-black text-black dark:border-white dark:text-white py-3 px-4 rounded-xl font-medium hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             >
               Crear Cuenta
             </button>

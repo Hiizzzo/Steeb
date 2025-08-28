@@ -1,4 +1,20 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { auth, db, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  User as FirebaseUser,
+} from 'firebase/auth';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 export interface User {
   id: string;
@@ -17,182 +33,114 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, name: string, nickname: string) => Promise<void>;
-  logout: () => void;
-  updateProfile: (name: string, nickname: string) => void;
+  logout: () => Promise<void>;
+  updateProfile: (name: string, nickname: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+const mapFirebaseUserToUser = async (fbUser: FirebaseUser): Promise<User> => {
+  const ref = doc(db, 'users', fbUser.uid);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() as any : {};
+  return {
+    id: fbUser.uid,
+    email: fbUser.email || '',
+    name: data.name || '',
+    nickname: data.nickname || '',
+    avatar: fbUser.photoURL || data.avatar,
+    provider: (fbUser.providerData?.[0]?.providerId?.includes('google') ? 'google' : 'manual'),
+    createdAt: (data.createdAt?.toDate?.() || new Date()).toISOString(),
+  };
 };
 
-export const useAuthProvider = () => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay una sesión guardada
-    const savedUser = localStorage.getItem('stebe-user');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('stebe-user');
-      }
+    if (!isFirebaseConfigured) {
+      // Sin configuración: no intentes suscribirte a Auth
+      setUser(null);
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
+    const unsub = onAuthStateChanged(auth, async (fbUser) => {
+      try {
+        if (fbUser) {
+          const mapped = await mapFirebaseUserToUser(fbUser);
+          setUser(mapped);
+        } else {
+          setUser(null);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    });
+    return () => unsub();
   }, []);
 
-  const saveUser = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('stebe-user', JSON.stringify(userData));
+  const ensureConfigured = () => {
+    if (!isFirebaseConfigured) {
+      throw new Error('Firebase no está configurado. Completa .env y reinicia el servidor.');
+    }
   };
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const usersDb = JSON.parse(localStorage.getItem('stebe-users-db') || '{}');
-      const user = Object.values(usersDb).find((u: any) => 
-        u.email === email && u.password === password && u.provider === 'manual'
-      );
-      
-      if (!user) {
-        throw new Error('Credenciales inválidas');
-      }
-
-      const { password: _, ...userWithoutPassword } = user as any;
-      saveUser(userWithoutPassword);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    ensureConfigured();
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const loginWithGoogle = async () => {
-    setIsLoading(true);
-    try {
-      // Simular Google OAuth - en producción usarías Google Identity Services
-      // Por ahora simulamos con un prompt para el email
-      const email = prompt('Ingresa tu email de Google:');
-      if (!email) {
-        throw new Error('Email requerido');
-      }
-
-      // Verificar si el usuario ya existe
-      const existingUsers = JSON.parse(localStorage.getItem('stebe-users-db') || '{}');
-      const existingUser = Object.values(existingUsers).find((u: any) => u.email === email && u.provider === 'google');
-      
-      if (existingUser) {
-        // Usuario existente
-        saveUser(existingUser as User);
-      } else {
-        // Nuevo usuario de Google
-        const newGoogleUser: User = {
-          id: 'google_' + Date.now(),
-          email,
-          name: '', // Vacío para forzar onboarding
-          nickname: '', // Vacío para forzar onboarding
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=4285f4&color=fff`,
-          provider: 'google',
-          createdAt: new Date().toISOString()
-        };
-        
-        // Guardar en la "base de datos"
-        existingUsers[newGoogleUser.id] = newGoogleUser;
-        localStorage.setItem('stebe-users-db', JSON.stringify(existingUsers));
-        
-        saveUser(newGoogleUser);
-      }
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
+    ensureConfigured();
+    const res = await signInWithPopup(auth, googleProvider);
+    // Ensure user doc exists
+    const ref = doc(db, 'users', res.user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        email: res.user.email,
+        name: '',
+        nickname: '',
+        avatar: res.user.photoURL,
+        provider: 'google',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
     }
   };
 
   const register = async (email: string, password: string, name: string, nickname: string) => {
-    setIsLoading(true);
-    try {
-      const usersDb = JSON.parse(localStorage.getItem('stebe-users-db') || '{}');
-      
-      // Verificar si el email ya existe
-      const existingUser = Object.values(usersDb).find((u: any) => u.email === email);
-      if (existingUser) {
-        throw new Error('Este email ya está registrado');
-      }
-
-      const newUser: User = {
-        id: 'manual_' + Date.now(),
-        email,
-        name,
-        nickname,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-        provider: 'manual',
-        createdAt: new Date().toISOString()
-      };
-
-      // Guardar usuario en la "base de datos"
-      usersDb[newUser.id] = { ...newUser, password };
-      localStorage.setItem('stebe-users-db', JSON.stringify(usersDb));
-
-      // Inicializar datos del usuario
-      localStorage.setItem(`stebe-tasks-${newUser.id}`, JSON.stringify([]));
-      localStorage.setItem(`stebe-settings-${newUser.id}`, JSON.stringify({
-        language: 'es',
-        notifications: true,
-        theme: 'light'
-      }));
-
-      saveUser(newUser);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    ensureConfigured();
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const ref = doc(db, 'users', cred.user.uid);
+    await setDoc(ref, {
+      email,
+      name,
+      nickname,
+      avatar: cred.user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+      provider: 'manual',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('stebe-user');
-    // Limpiar cualquier caché temporal
-    sessionStorage.clear();
+  const logout = async () => {
+    ensureConfigured();
+    await signOut(auth);
   };
 
-  const updateProfile = (name: string, nickname: string) => {
-    if (user) {
-      const updatedUser = { ...user, name, nickname };
-      
-      // Actualizar en la "base de datos"
-      const usersDb = JSON.parse(localStorage.getItem('stebe-users-db') || '{}');
-      if (usersDb[user.id]) {
-        usersDb[user.id] = { ...usersDb[user.id], name, nickname };
-        localStorage.setItem('stebe-users-db', JSON.stringify(usersDb));
-      }
-      
-      // Inicializar datos del usuario si es nuevo
-      if (!localStorage.getItem(`stebe-tasks-${user.id}`)) {
-        localStorage.setItem(`stebe-tasks-${user.id}`, JSON.stringify([]));
-      }
-      if (!localStorage.getItem(`stebe-settings-${user.id}`)) {
-        localStorage.setItem(`stebe-settings-${user.id}`, JSON.stringify({
-          language: 'es',
-          notifications: true,
-          theme: 'light'
-        }));
-      }
-      
-      saveUser(updatedUser);
-    }
+  const updateProfile = async (name: string, nickname: string) => {
+    ensureConfigured();
+    if (!auth.currentUser) return;
+    const ref = doc(db, 'users', auth.currentUser.uid);
+    await updateDoc(ref, { name, nickname, updatedAt: serverTimestamp() });
+    // Refresh local user state
+    const mapped = await mapFirebaseUserToUser(auth.currentUser);
+    setUser(mapped);
   };
 
-  return {
+  const value: AuthContextType = {
     user,
     isLoading,
     isAuthenticated: !!user,
@@ -200,8 +148,16 @@ export const useAuthProvider = () => {
     loginWithGoogle,
     register,
     logout,
-    updateProfile
+    updateProfile,
   };
+
+  return React.createElement(AuthContext.Provider, { value }, children as any);
+};
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
 };
 
 export { AuthContext };

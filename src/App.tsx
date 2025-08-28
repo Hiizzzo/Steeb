@@ -12,14 +12,16 @@ import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
 import ThemeToggle from "./components/ThemeToggle";
-import WelcomeSetup from "./components/WelcomeSetup";
-import { useUserProfile } from "./hooks/useUserProfile";
+import AuthScreen from "./components/AuthScreen";
+import { useAuth } from "./hooks/useAuth";
 import { useTextSize } from "./hooks/useTextSize";
+import { initializeRecurrenceManager } from "./utils/recurrenceManager";
+import { AuthProvider } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { profile, saveProfile, isSetup } = useUserProfile();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [isAppLoading, setIsAppLoading] = useState(true);
   
   // Cargar configuración de texto grande
@@ -31,15 +33,23 @@ const AppContent = () => {
       setIsAppLoading(false);
     }, 3000);
 
+    // Inicializar el gestor de tareas recurrentes
+    initializeRecurrenceManager();
+
     return () => clearTimeout(timer);
   }, []);
 
-  if (isAppLoading) {
+  if (isAppLoading || isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!isSetup) {
-    return <WelcomeSetup onComplete={saveProfile} />;
+  // Route guard: auth + onboarding
+  const profileComplete = Boolean(user?.name && user?.nickname);
+  if (!isAuthenticated) {
+    return <AuthScreen onComplete={() => { /* post-login handled by AuthScreen */ }} />;
+  }
+  if (!profileComplete) {
+    return <AuthScreen onComplete={() => { /* after onboarding, routes render */ }} />;
   }
 
   return (
@@ -59,11 +69,13 @@ const AppContent = () => {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AppContent />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
