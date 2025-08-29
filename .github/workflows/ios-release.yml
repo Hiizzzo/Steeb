@@ -34,6 +34,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Ensure @capacitor/ios is installed
+        run: |
+          npm ls @capacitor/ios || npm install @capacitor/ios@^6 --no-save
+
       - name: Build web assets
         run: npm run build
 
