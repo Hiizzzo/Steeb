@@ -5,6 +5,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -15,6 +17,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from 'firebase/firestore';
+import { Capacitor } from '@capacitor/core';
 
 export interface User {
   id: string;
@@ -80,6 +83,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsub();
   }, []);
 
+  // Manejar resultado de Google Sign-In por redirect (para móvil nativo)
+  useEffect(() => {
+    if (!isFirebaseConfigured) return;
+    // Solo intentamos resolver redirect una vez al inicio
+    (async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          // Asegurar documento de usuario en Firestore
+          const ref = doc(db, 'users', result.user.uid);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, {
+              email: result.user.email,
+              name: '',
+              nickname: '',
+              avatar: result.user.photoURL,
+              provider: 'google',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          }
+        }
+      } catch (e) {
+        // Silencioso: si no hay redirect pendiente, Firebase lanza null
+      }
+    })();
+  }, []);
+
   const ensureConfigured = () => {
     if (!isFirebaseConfigured) {
       throw new Error('Firebase no está configurado. Completa .env y reinicia el servidor.');
@@ -93,6 +125,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     ensureConfigured();
+    // En plataformas nativas (Capacitor Android/iOS), usar redirect
+    if (Capacitor.isNativePlatform()) {
+      await signInWithRedirect(auth, googleProvider);
+      return; // El flujo continúa tras el redirect y se maneja en useEffect
+    }
+    // En web, usar popup
     const res = await signInWithPopup(auth, googleProvider);
     // Ensure user doc exists
     const ref = doc(db, 'users', res.user.uid);

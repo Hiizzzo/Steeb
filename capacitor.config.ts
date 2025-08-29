@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.7126f1f20cb14568aedf02de29585a45',
+  appId: 'com.steeb.app',
   appName: 'steve-the-taskmaster',
   webDir: 'dist',
   server: {

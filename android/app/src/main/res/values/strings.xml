@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">steve-the-taskmaster</string>
+    <string name="title_activity_main">steve-the-taskmaster</string>
+    <string name="package_name">com.steeb.app</string>
+    <string name="custom_url_scheme">com.steeb.app</string>
+</resources>
