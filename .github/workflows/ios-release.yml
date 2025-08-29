@@ -46,7 +46,7 @@ jobs:
           npx cap sync ios
 
       - name: Restore GoogleService-Info.plist from secret
-        if: env.FIREBASE_PLIST_BASE64 != ''
+        if: ${{ secrets.FIREBASE_PLIST_BASE64 != '' }}
         env:
           FIREBASE_PLIST_BASE64: ${{ secrets.FIREBASE_PLIST_BASE64 }}
         run: |
@@ -54,7 +54,7 @@ jobs:
           echo "$FIREBASE_PLIST_BASE64" | base64 --decode > ios/App/App/GoogleService-Info.plist
 
       - name: Configure iOS URL Scheme from GoogleService-Info.plist (optional)
-        if: env.FIREBASE_PLIST_BASE64 != ''
+        if: ${{ secrets.FIREBASE_PLIST_BASE64 != '' }}
         run: |
           PLIST=ios/App/App/GoogleService-Info.plist
           INFO=ios/App/App/Info.plist
