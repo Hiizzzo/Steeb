@@ -1,10 +1,11 @@
-name: iOS starter workflow
+name: iOS starter workflow (disabled by default)
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # This starter workflow is kept for reference but disabled from auto-runs.
+  # Use our Capacitor workflows instead:
+  # - .github/workflows/ios-simulator-build.yml
+  # - .github/workflows/ios-release.yml
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,6 +15,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Early guard: ensure Xcode project/workspace exists
+        run: |
+          if [ -z "$(ls -A | grep -i \\.(xcworkspace|xcodeproj)$)" ]; then
+            echo "No Xcode project/workspace at repo root. This workflow is not compatible with Capacitor-generated projects." >&2
+            exit 1
+          fi
       - name: Set Default Scheme
         run: |
           scheme_list=$(xcodebuild -list -json | tr -d "\n")

@@ -49,6 +49,16 @@ jobs:
           npx cap add ios || true
           npx cap sync ios
 
+      - name: Verify iOS project exists
+        run: |
+          echo "Listing ios/" && ls -la ios || true
+          echo "Listing ios/App/" && ls -la ios/App || true
+          echo "Listing ios/App/App/" && ls -la ios/App/App || true
+          if [ ! -d "ios/App" ] || [ ! -e "ios/App/App.xcodeproj" ] && [ ! -e "ios/App/App.xcworkspace" ]; then
+            echo "Xcode project/workspace not found after cap sync. Failing early." >&2
+            exit 1
+          fi
+
       - name: Restore GoogleService-Info.plist from secret
         env:
           FIREBASE_PLIST_BASE64: ${{ secrets.FIREBASE_PLIST_BASE64 }}
