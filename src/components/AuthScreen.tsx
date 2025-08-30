@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 
@@ -16,7 +16,14 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, loginWithGoogle, register, updateProfile } = useAuth();
+  const { user, login, loginWithGoogle, register, updateProfile, hasPasswordProvider, linkEmailPassword } = useAuth();
+
+  // Si el usuario está autenticado pero sin perfil completo, abrir onboarding automáticamente
+  useEffect(() => {
+    if (user && (!user.name || !user.nickname)) {
+      setMode('onboarding');
+    }
+  }, [user]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -66,6 +73,20 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
       setIsLoading(true);
       setError('');
       try {
+        // Si el usuario viene de Google y aún no tiene proveedor password, permitir vincular contraseña opcionalmente
+        const pwd = (document.getElementById('onb-password') as HTMLInputElement | null)?.value || '';
+        const pwd2 = (document.getElementById('onb-password2') as HTMLInputElement | null)?.value || '';
+        if (pwd || pwd2) {
+          if (pwd.length < 6) {
+            throw new Error('La contraseña debe tener al menos 6 caracteres');
+          }
+          if (pwd !== pwd2) {
+            throw new Error('Las contraseñas no coinciden');
+          }
+          if (!hasPasswordProvider()) {
+            await linkEmailPassword(pwd);
+          }
+        }
         await updateProfile(formData.name.trim(), formData.nickname.trim());
         onComplete();
       } catch (err: any) {
@@ -199,6 +220,30 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
               />
             </div>
 
+            {user && user.provider === 'google' && (
+              <>
+                {!hasPasswordProvider() && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      (Opcional) Crea una contraseña para entrar sin Google
+                    </label>
+                    <input
+                      id="onb-password"
+                      type="password"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="Contraseña (mín. 6 caracteres)"
+                    />
+                    <input
+                      id="onb-password2"
+                      type="password"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="Repite la contraseña"
+                    />
+                  </div>
+                )}
+              </>
+            )}
+
             {error && (
               <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                 {error}
@@ -242,7 +287,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nombre completo
+                  Nombre
                 </label>
                 <input
                   type="text"
@@ -254,7 +299,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Apodo
+                  ¿Cuál es tu apodo?
                 </label>
                 <input
                   type="text"

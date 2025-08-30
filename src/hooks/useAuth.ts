@@ -8,6 +8,8 @@ import {
   signInWithRedirect,
   getRedirectResult,
   signOut,
+  linkWithCredential,
+  EmailAuthProvider,
   User as FirebaseUser,
 } from 'firebase/auth';
 import {
@@ -38,6 +40,8 @@ interface AuthContextType {
   register: (email: string, password: string, name: string, nickname: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (name: string, nickname: string) => Promise<void>;
+  hasPasswordProvider: () => boolean;
+  linkEmailPassword: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -178,6 +182,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(mapped);
   };
 
+  const hasPasswordProvider = () => {
+    const providers = auth.currentUser?.providerData || [];
+    return providers.some(p => p.providerId === 'password');
+  };
+
+  const linkEmailPassword = async (password: string) => {
+    ensureConfigured();
+    const current = auth.currentUser;
+    if (!current) throw new Error('No hay usuario autenticado');
+    const email = current.email;
+    if (!email) throw new Error('Tu cuenta de Google no tiene email disponible');
+    if (hasPasswordProvider()) return; // ya vinculado, no hacer nada
+    const cred = EmailAuthProvider.credential(email, password);
+    await linkWithCredential(current, cred);
+  };
+
   const value: AuthContextType = {
     user,
     isLoading,
@@ -187,6 +207,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     updateProfile,
+    hasPasswordProvider,
+    linkEmailPassword,
   };
 
   return React.createElement(AuthContext.Provider, { value }, children as any);
