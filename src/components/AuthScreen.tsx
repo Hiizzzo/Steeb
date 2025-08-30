@@ -23,6 +23,17 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const isNative = Capacitor.isNativePlatform();
+  // Detectar si existe un plugin nativo de Google disponible
+  const hasNativeGoogle = (() => {
+    try {
+      const anyWin: any = globalThis as any;
+      const Plugins = anyWin?.Capacitor?.Plugins;
+      const Google = Plugins?.GoogleAuth || Plugins?.Google;
+      return !!(isNative && Google && typeof Google.signIn === 'function');
+    } catch {
+      return false;
+    }
+  })();
 
   // Si el usuario está autenticado pero sin perfil completo, abrir onboarding automáticamente
   useEffect(() => {
@@ -165,7 +176,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
           </div>
 
           <div className="space-y-4">
-            {!isNative && (
+            {(!isNative || hasNativeGoogle) && (
               <>
                 <button
                   onClick={handleGoogleLogin}
@@ -189,9 +200,9 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
               </>
             )}
 
-            {isNative && (
+            {isNative && !hasNativeGoogle && (
               <div className="text-sm text-gray-600 dark:text-gray-300 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
-                En la app iOS usa Email/Contraseña. Google requiere configuración nativa y puede fallar aquí.
+                En la app iOS usa Email/Contraseña por ahora. Para Google en iOS, instala y configura el plugin nativo y reinicia la app.
               </div>
             )}
 

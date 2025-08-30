@@ -66,6 +66,8 @@ const AppContent = () => {
   );
 };
 
+const APP_VERSION = '0.93';
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -73,6 +75,10 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          {/* Version badge visible en toda la app */}
+          <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 px-3 py-1 rounded-full text-xs bg-black text-white dark:bg-white dark:text-black shadow-md border border-white/20 dark:border-black/20">
+            v{APP_VERSION}
+          </div>
           <AppContent />
         </TooltipProvider>
       </AuthProvider>
