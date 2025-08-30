@@ -443,27 +443,46 @@ const MonthlyCalendarPage: React.FC = () => {
     };
   }, [tasks, currentDate]);
 
+  // Helper: usar apodo solo ocasionalmente (máx. 1 vez por día) para mantener efecto psicológico
+  const allowNicknamePraiseOncePerDay = () => {
+    try {
+      const key = 'stebe-last-nickname-praise';
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const last = localStorage.getItem(key);
+      if (last !== todayStr) {
+        localStorage.setItem(key, todayStr);
+        return true;
+      }
+      return false;
+    } catch {
+      // Si localStorage no está disponible, permitir una vez (no persistente)
+      return true;
+    }
+  };
+
   // Mensaje de consejo mensual para el globo de STEBE
   const adviceText = useMemo(() => {
     const { completed, scheduled } = monthStats;
     const rate = scheduled > 0 ? Math.round((completed / Math.max(1, scheduled)) * 100) : 0;
     const userName = name || 'Usuario';
     const userNickname = nickname || 'amigo';
+    const nickAllowed = allowNicknamePraiseOncePerDay();
 
     // Casos especiales
     if (scheduled === 0 && totalCompleted === 0) {
       return `${userName}, aún no hay tareas este mes. Planifica 1-3 objetivos clave para empezar con foco.`;
     }
     if (scheduled === 0 && totalCompleted > 0) {
-      return `¡Buen impulso, ${userNickname}! Completaste ${totalCompleted} tareas. Programa metas para enfocar tu energía.`;
+      return `¡Buen impulso${nickAllowed ? `, ${userNickname}` : ''}! Completaste ${totalCompleted} tareas. Programa metas para enfocar tu energía.`;
     }
 
     // Consejos según rendimiento (usar apodo para felicitar, nombre para motivar)
     if (rate >= 85) {
-      return `¡Increíble mes, ${userNickname}! Completaste ${completed} de ${scheduled} (${rate}%). Mantén la racha de ${currentStreak} día(s).`;
+      return `¡Increíble mes${nickAllowed ? `, ${userNickname}` : ''}! Completaste ${completed} de ${scheduled} (${rate}%). Mantén la racha de ${currentStreak} día(s).`;
     }
     if (rate >= 60) {
-      return `Vas muy bien, ${userNickname}: ${completed}/${scheduled} (${rate}%). Intenta sumar 1-2 días más activos.`;
+      return `Vas muy bien${nickAllowed ? `, ${userNickname}` : ''}: ${completed}/${scheduled} (${rate}%). Intenta sumar 1-2 días más activos.`;
     }
     if (rate > 0) {
       return `${userName}, progreso en marcha: ${completed}/${scheduled} (${rate}%). Elige 1 tarea pequeña diaria para ganar ritmo.`;

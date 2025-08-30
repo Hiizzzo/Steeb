@@ -10,6 +10,9 @@ import {
   signOut,
   linkWithCredential,
   EmailAuthProvider,
+  signInWithCredential,
+  GoogleAuthProvider,
+  sendEmailVerification,
   User as FirebaseUser,
 } from 'firebase/auth';
 import {
@@ -29,6 +32,7 @@ export interface User {
   avatar?: string;
   provider: 'google' | 'manual';
   createdAt: string;
+  emailVerified: boolean;
 }
 
 interface AuthContextType {
@@ -42,6 +46,7 @@ interface AuthContextType {
   updateProfile: (name: string, nickname: string) => Promise<void>;
   hasPasswordProvider: () => boolean;
   linkEmailPassword: (password: string) => Promise<void>;
+  resendEmailVerification: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +63,7 @@ const mapFirebaseUserToUser = async (fbUser: FirebaseUser): Promise<User> => {
     avatar: fbUser.photoURL || data.avatar,
     provider: (fbUser.providerData?.[0]?.providerId?.includes('google') ? 'google' : 'manual'),
     createdAt: (data.createdAt?.toDate?.() || new Date()).toISOString(),
+    emailVerified: !!fbUser.emailVerified,
   };
 };
 
@@ -73,15 +79,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
-      try {
-        if (fbUser) {
-          const mapped = await mapFirebaseUserToUser(fbUser);
-          setUser(mapped);
-        } else {
-          setUser(null);
-        }
-      } finally {
+      if (!fbUser) {
+        setUser(null);
         setIsLoading(false);
+        return;
+      }
+      // Set estado rápido con datos mínimos para no bloquear el primer render
+      setUser({
+        id: fbUser.uid,
+        email: fbUser.email || '',
+        name: '',
+        nickname: '',
+        avatar: fbUser.photoURL || undefined,
+        provider: (fbUser.providerData?.[0]?.providerId?.includes('google') ? 'google' : 'manual'),
+        createdAt: new Date().toISOString(),
+        emailVerified: !!fbUser.emailVerified,
+      });
+      setIsLoading(false);
+      // Completar datos desde Firestore en segundo plano
+      try {
+        const mapped = await mapFirebaseUserToUser(fbUser);
+        setUser(mapped);
+      } catch {
+        // si falla Firestore, dejamos el estado rápido ya mostrado
       }
     });
     return () => unsub();
@@ -129,10 +149,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     ensureConfigured();
-    // En plataformas nativas (Capacitor Android/iOS), usar redirect
+    // En plataformas nativas (Capacitor Android/iOS), intentar flujo nativo
     if (Capacitor.isNativePlatform()) {
-      await signInWithRedirect(auth, googleProvider);
-      return; // El flujo continúa tras el redirect y se maneja en useEffect
+      try {
+        // Intentar usar el plugin nativo si está registrado en Capacitor
+        const Google: any = (globalThis as any)?.Capacitor?.Plugins?.GoogleAuth || (globalThis as any)?.Capacitor?.Plugins?.Google;
+        if (Google?.signIn) {
+          // Inicialización opcional (no falla si no es necesaria)
+          try {
+            await Google.initialize();
+          } catch {}
+          const gRes = await Google.signIn();
+          const idToken = gRes?.authentication?.idToken || gRes?.idToken;
+          if (!idToken) throw new Error('No se obtuvo idToken de Google');
+          const credential = GoogleAuthProvider.credential(idToken);
+          const resCred = await signInWithCredential(auth, credential);
+          // Ensure user doc exists
+          const ref = doc(db, 'users', resCred.user.uid);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, {
+              email: resCred.user.email,
+              name: '',
+              nickname: '',
+              avatar: resCred.user.photoURL,
+              provider: 'google',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          }
+          return;
+        }
+        // Si el plugin no está disponible, caemos a redirect (puede fallar en iOS WebView)
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      } catch (e) {
+        // Último recurso en nativo: intentar redirect
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
     }
     // En web, usar popup
     const res = await signInWithPopup(auth, googleProvider);
@@ -156,15 +211,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ensureConfigured();
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const ref = doc(db, 'users', cred.user.uid);
-    await setDoc(ref, {
-      email,
-      name,
-      nickname,
-      avatar: cred.user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-      provider: 'manual',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    try {
+      await setDoc(ref, {
+        email,
+        name,
+        nickname,
+        avatar: cred.user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+        provider: 'manual',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (e) {
+      // No bloquear el registro si falla Firestore (p.ej., reglas). El onboarding podrá completar el perfil.
+      console.warn('No se pudo crear el perfil en Firestore, pero el usuario fue creado en Auth.', e);
+    }
+    // Enviar correo de verificación al nuevo usuario
+    try {
+      await sendEmailVerification(cred.user);
+    } catch (e) {
+      console.warn('No se pudo enviar el email de verificación.', e);
+    }
   };
 
   const logout = async () => {
@@ -175,11 +241,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (name: string, nickname: string) => {
     ensureConfigured();
     if (!auth.currentUser) return;
-    const ref = doc(db, 'users', auth.currentUser.uid);
-    await updateDoc(ref, { name, nickname, updatedAt: serverTimestamp() });
-    // Refresh local user state
-    const mapped = await mapFirebaseUserToUser(auth.currentUser);
-    setUser(mapped);
+    const uid = auth.currentUser.uid;
+    // Optimistic update: reflejar cambios al instante
+    setUser(prev => prev ? { ...prev, name, nickname } : prev);
+    // Persistir en background sin bloquear
+    (async () => {
+      try {
+        const ref = doc(db, 'users', uid);
+        await updateDoc(ref, { name, nickname, updatedAt: serverTimestamp() });
+      } catch (e) {
+        // Si falla, mantén el estado local; se puede reintentar luego
+        console.warn('No se pudo guardar el perfil en Firestore ahora mismo.', e);
+      }
+    })();
   };
 
   const hasPasswordProvider = () => {
@@ -198,6 +272,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await linkWithCredential(current, cred);
   };
 
+  const resendEmailVerification = async () => {
+    ensureConfigured();
+    if (!auth.currentUser) throw new Error('No hay usuario autenticado');
+    await sendEmailVerification(auth.currentUser);
+  };
+
   const value: AuthContextType = {
     user,
     isLoading,
@@ -209,6 +289,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
     hasPasswordProvider,
     linkEmailPassword,
+    resendEmailVerification,
   };
 
   return React.createElement(AuthContext.Provider, { value }, children as any);

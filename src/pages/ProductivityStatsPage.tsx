@@ -47,14 +47,14 @@ const ProductivityStatsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-black">
              {/* Header más alto y botón sin texto */}
       <div className="max-w-md mx-auto px-6 pt-4">
         <div className="flex items-center justify-between">
           <motion.button
             aria-label="Volver"
             onClick={handleBack}
-            className="flex items-center justify-center w-9 h-9 bg-white border rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+            className="flex items-center justify-center w-9 h-9 rounded-full shadow-sm hover:shadow-md transition-all duration-200 bg-black text-white dark:bg-white dark:text-black"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
