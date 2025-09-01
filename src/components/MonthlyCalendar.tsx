@@ -621,8 +621,10 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       setShowEditModal(false);
                       setEditingTask(null);
                     }}
-                    onCreate={handleEditTask}
-                    editingTask={editingTask}
+                    onCreate={(title, type, subtasks, scheduledDate, scheduledTime, notes, _isPrimary, recurrence) =>
+                      handleEditTask(title, type as any, subtasks, scheduledDate, scheduledTime, notes, false, recurrence)
+                    }
+                    editingTask={editingTask as any}
                   />
                 </motion.div>
               </motion.div>
@@ -857,8 +859,10 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     setShowEditModal(false);
                     setEditingTask(null);
                   }}
-                  onCreate={handleEditTask}
-                  editingTask={editingTask}
+                  onCreate={(title, type, subtasks, scheduledDate, scheduledTime, notes, _isPrimary, recurrence) =>
+                    handleEditTask(title, type as any, subtasks, scheduledDate, scheduledTime, notes, false, recurrence)
+                  }
+                  editingTask={editingTask as any}
                 />
               </motion.div>
             </motion.div>

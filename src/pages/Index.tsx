@@ -815,8 +815,10 @@ const Index = () => {
               setShowModal(false);
               setSelectedTask(null);
             }}
-            onCreate={handleAddTask}
-            editingTask={selectedTask}
+            onCreate={(title, type, subtasks, scheduledDate, scheduledTime, notes, isPrimary, recurrence) =>
+              handleAddTask(title, type as any, subtasks, scheduledDate, scheduledTime, notes, isPrimary, recurrence)
+            }
+            editingTask={selectedTask as any}
           />
         )}
       </AnimatePresence>
