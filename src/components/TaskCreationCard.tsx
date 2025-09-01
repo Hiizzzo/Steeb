@@ -173,10 +173,10 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       </span>
     );
     
-    // Color logic: white when selected (dark background), black when not selected (light background)
-    const iconColor = isSelected ? 'white' : 'black';
-    const bgColor = isSelected ? 'white' : 'black';
-    const outlineColor = isSelected ? 'white' : 'black';
+    // Set all icons to white
+    const iconColor = 'white';
+    const bgColor = 'white';
+    const outlineColor = 'white';
     
     switch (tag) {
       case 'productividad':   return wrap(
@@ -200,7 +200,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           role="img"
           style={{ width: 28, height: 28, color: iconColor }}
         >
-          <path d="M12 21s-6.716-4.35-9.193-7.36C.953 10.545 2.097 6.5 5.293 5.364 7.162 4.688 9.21 5.29 10.5 6.7 11.79 5.29 13.838 4.688 15.707 5.364c3.196 1.136 4.34 5.181 2.486 8.276C18.716 16.65 12 21 12 21z"/>
+          <path fill="white" d="M12 21s-6.716-4.35-9.193-7.36C.953 10.545 2.097 6.5 5.293 5.364 7.162 4.688 9.21 5.29 10.5 6.7 11.79 5.29 13.838 4.688 15.707 5.364c3.196 1.136 4.34 5.181 2.486 8.276C18.716 16.65 12 21 12 21z"/>
         </svg>
       );
       case 'social':          return wrap(
@@ -211,7 +211,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           role="img"
           style={{ width: 28, height: 28, color: iconColor }}
         >
-          <path d="M12 3l9 18H3l9-18z"/>
+          <path fill="white" d="M12 3l9 18H3l9-18z"/>
         </svg>
       );
     }
@@ -237,9 +237,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           
           <button
             onClick={handleCreate}
-            className="flex items-center justify-center w-10 h-10 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+            className="flex items-center justify-center w-10 h-10 bg-white text-black border border-black rounded-full hover:bg-gray-100 transition-colors"
           >
-            <Pointer size={20} className="text-white" strokeWidth={2} />
+            <Pointer size={20} className="text-black" strokeWidth={2} />
           </button>
           
           <button
@@ -400,14 +400,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                     setSelectedTag(tag);
                     setShowTagPicker(false);
                   }}
-                  className={`flex items-center gap-1 px-1.5 py-3 min-h:[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible
+                  className={`flex items-center gap-1 px-1.5 py-3 min-h-[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible
                     ${selectedTag === tag
                       ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
-                      : 'bg-white text-black border-gray-300 hover:border-gray-400 dark:bg-transparent dark:text-white hover:bg-gray-50/80'}`}
+                      : 'bg-white text-black border-black hover:bg-gray-100 dark:bg-transparent dark:text-white dark:border-white/30 hover:dark:bg-white/10'}`}
                 >
                   {getTagIcon(tag, selectedTag === tag)}
                   <span className="text-base font-medium">{getTagLabel(tag)}</span>
-                  {/* selected indicator dot removed because solid style is enough */}
                 </button>
               ))}
             </div>

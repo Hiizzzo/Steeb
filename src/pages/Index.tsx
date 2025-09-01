@@ -223,6 +223,12 @@ const Index = () => {
     toggleSubtask
   } = useTaskStore();
 
+  // Debug: Log tasks loading
+  useEffect(() => {
+    console.log('🔍 Index.tsx: Tasks loaded:', tasks.length, tasks);
+    console.log('🔍 Index.tsx: Is loading:', isPersistenceLoading);
+  }, [tasks, isPersistenceLoading]);
+
   // Hook para sincronización con Service Worker
   const { 
     isServiceWorkerReady, 
@@ -497,16 +503,54 @@ const Index = () => {
 
   // Helper: formas por tipo
   const renderShapeForType = (type: Task['type'], color?: string) => {
+    // Detectar el tema actual de forma reactiva
+    const [theme, setTheme] = useState(() => {
+      const isShiny = document.documentElement.classList.contains('shiny');
+      const isDark = document.documentElement.classList.contains('dark');
+      return { isShiny, isDark };
+    });
+    
+    // Actualizar tema cuando cambie
+    useEffect(() => {
+      const updateTheme = () => {
+        const isShiny = document.documentElement.classList.contains('shiny');
+        const isDark = document.documentElement.classList.contains('dark');
+        setTheme({ isShiny, isDark });
+      };
+      
+      // Observar cambios en las clases del documento
+      const observer = new MutationObserver(updateTheme);
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+      
+      return () => observer.disconnect();
+    }, []);
+    
+    // Determinar el color según el tema
+    let shapeColor: string;
+    if (theme.isShiny) {
+      // Versión Shiny: usar colores del arcoíris
+      shapeColor = color || 'black';
+    } else if (theme.isDark) {
+      // Versión Negra: formas blancas (forzar blanco)
+      shapeColor = '#ffffff';
+    } else {
+      // Versión Blanca: formas negras
+      shapeColor = '#000000';
+    }
+    
     switch (type) {
-      case 'productividad':   return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="square" className="w-6 h-6" title="Trabajo" color={color} /></div>);
-      case 'creatividad':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Creatividad" color={color} /></div>);
-      case 'salud':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="heart" className="w-6 h-6" title="Salud" color={color} /></div>);
-      case 'organizacion':    return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Organización" color={color} /></div>);
-      case 'social':          return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Social" color={color} /></div>);
-      case 'aprendizaje':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Aprendizaje" color={color} /></div>);
-      case 'entretenimiento': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Entretenimiento" color={color} /></div>);
-      case 'extra':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Extra" color={color} /></div>);
-      default: return <div className="task-shape-wrapper task-shine mr-1" style={{ color }}><div className="w-6 h-6 border border-black" /></div>;
+      case 'productividad':   return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="square" className="w-6 h-6" title="Trabajo" color={shapeColor} /></div>);
+      case 'creatividad':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Creatividad" color={shapeColor} /></div>);
+      case 'salud':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="heart" className="w-6 h-6" title="Salud" color={shapeColor} /></div>);
+      case 'organizacion':    return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Organización" color={shapeColor} /></div>);
+      case 'social':          return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Social" color={shapeColor} /></div>);
+      case 'aprendizaje':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Aprendizaje" color={shapeColor} /></div>);
+      case 'entretenimiento': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Entretenimiento" color={shapeColor} /></div>);
+      case 'extra':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Extra" color={shapeColor} /></div>);
+      default: return <div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><div className="w-6 h-6 border border-black" /></div>;
     }
   };
 
@@ -519,6 +563,12 @@ const Index = () => {
     if (!task.scheduledDate) return true; // Show tasks without date as today's
     return task.scheduledDate <= today;
   });
+
+  // Debug: Log filtered tasks
+  useEffect(() => {
+    console.log('🔍 Index.tsx: Today:', today);
+    console.log('🔍 Index.tsx: Todays tasks:', todaysTasks.length, todaysTasks);
+  }, [today, todaysTasks]);
 
   // Dividir tareas de hoy en pendientes y completadas (hoy y anteriores)
   const pendingTodaysTasks = todaysTasks.filter(t => !t.completed);
@@ -692,7 +742,16 @@ const Index = () => {
                   });
                 })()}
               </>
-            ) : null}
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">
+                  {getRandomNoTasksPhrase()}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Debug: {tasks.length} tareas total, {todaysTasks.length} de hoy, {pendingTodaysTasks.length} pendientes
+                </p>
+              </div>
+            )}
 
             {/* Sección de tareas completadas */}
             {(completedToday.length > 0) && (

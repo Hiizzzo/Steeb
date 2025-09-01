@@ -1,12 +1,13 @@
 
+/* stylelint-disable */
 /* Importar protección para tema shiny */
 @import './styles/shiny-protection.css';
 
-
-
+/* Tailwind directives - these are valid but may show as errors in some editors */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* stylelint-enable */
 
 @layer base {
   :root {
@@ -71,6 +72,7 @@
   /* mask so only the ring (padding) is visible on rounded rectangle */
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   animation: spin 4s linear infinite;
@@ -119,15 +121,18 @@
 }
 
 @layer base {
+  /* stylelint-disable-next-line at-rule-no-unknown */
   * {
     @apply border-border;
   }
 
+  /* stylelint-disable-next-line at-rule-no-unknown */
   body {
     @apply bg-steve-white text-steve-black;
     font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
+  /* stylelint-disable-next-line at-rule-no-unknown */
   .dark body {
     @apply bg-steve-black text-steve-white;
   }
@@ -179,6 +184,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
   
+  /* stylelint-disable-next-line at-rule-no-unknown */
   .steve-border {
     @apply border border-gray-200 rounded-lg;
   }
@@ -213,6 +219,7 @@
     touch-action: manipulation !important;
   }
 
+  /* stylelint-disable at-rule-no-unknown */
   /* Dark mode overrides for common utility classes without changing component code */
   .dark .bg-white:not(.task-checkbox-button) { @apply bg-black; }
   .dark .text-black { @apply text-white; }
@@ -224,6 +231,7 @@
   .dark .bg-gray-100 { @apply bg-gray-900; }
   .dark .bg-gray-50 { @apply bg-gray-900; }
   .dark .hover\:bg-gray-50:hover { @apply bg-gray-800; }
+  /* stylelint-enable at-rule-no-unknown */
   .dark .hover\:bg-black\/5:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
 
   /* Exception: keep the TAREAS header white with black text in dark mode */
@@ -712,7 +720,7 @@
     #ff004c
   ) !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
-          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
   -webkit-mask-composite: xor !important;
           mask-composite: exclude !important; /* show only the border */
   animation: spin 8s linear infinite !important; /* slower */
@@ -923,7 +931,7 @@
   animation: spin 8s linear infinite !important;          /* slower rotation */
   will-change: background-position !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
-          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
   -webkit-mask-composite: xor !important;
           mask-composite: exclude !important;            /* show as border only */
   pointer-events: none !important;
@@ -942,10 +950,19 @@
 }
 .shiny .task-checkbox-button.completed {
   /* Keep the same inner white center on completed */
+  color: #ffffff !important;
+}
+.shiny .task-checkbox-button.completed svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
 }
 /* No neon filters for any icons inside (future-proof) */
-.shiny .task-checkbox-button svg { filter: none !important; }
-.shiny .task-checkbox-button.completed svg { color: #ffffff !important; }
+.shiny .task-checkbox-button svg { 
+  filter: none !important; 
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
 
 /* Hide any decorative divider under the header in Shiny */
 .shiny .tareas-header .shiny-divider-bottom {
@@ -1116,6 +1133,13 @@
   pointer-events: none;
 }
 
+/* Base STEEB speech bubble */
+.steeb-bubble {
+  background: #ffffff !important; /* White background */
+  color: #000 !important;
+  border: 1px solid #e5e7eb !important; /* Light gray border */
+}
+
 /* Shiny: STEEB speech bubble with animated border and white shine */
 .shiny .steeb-bubble {
   background: #000 !important;
@@ -1147,6 +1171,7 @@
   background-size: 300% 100%;
   animation: rainbow-move 4.5s linear infinite; /* faster sweep */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   pointer-events: none;
@@ -1162,6 +1187,7 @@
   mix-blend-mode: screen;
   animation: shine-sweep 2.2s linear infinite; /* slightly faster */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   pointer-events: none;
@@ -1195,6 +1221,7 @@
   background-size: 300% 100%;
   animation: rainbow-move 4.5s linear infinite; /* faster sweep */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   pointer-events: none;
@@ -1210,6 +1237,7 @@
   mix-blend-mode: screen;
   animation: shine-sweep 2.2s linear infinite; /* slightly faster */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   pointer-events: none;

@@ -268,7 +268,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   exit={{ scale: 0, rotate: -180 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
-                  <Plus size={28} color="#000000" strokeWidth={3} />
+                  <Plus size={28} className="text-white dark:!text-black" strokeWidth={3} />
                 </motion.div>
               )}
             </AnimatePresence>
