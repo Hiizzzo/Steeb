@@ -350,6 +350,12 @@
     animation: icon-glow 3s ease-in-out infinite alternate !important;
   }
 
+  /* Override: task shapes should not inherit the pink glow; they use .task-shine white pulse */
+  .shiny .task-shape-wrapper svg {
+    filter: none !important;
+    animation: none !important;
+  }
+
   @keyframes icon-glow {
     from { filter: drop-shadow(0 0 6px var(--shiny-pink)); }
     to { filter: drop-shadow(0 0 10px var(--shiny-purple)); }
@@ -678,49 +684,62 @@
 .shiny .shiny-fab {
   position: relative !important;
   z-index: 0 !important;
-  background: #ffffff !important; /* white base in Shiny */
+  /* White outer with black center using a single background */
+  background: radial-gradient(circle at 50% 50%, #000000 0 44%, #ffffff 45% 100%) !important;
   border: none !important;
   box-shadow: none !important;
   overflow: visible !important; /* let side pills protrude */
+  display: flex !important;           /* center content */
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .shiny .shiny-fab::before {
   content: "" !important;
   position: absolute !important;
-  inset: -3px !important;                 /* slightly thicker ring */
-  border-radius: 9999px !important;       /* perfect circle */
-  padding: 4px !important;                /* ring width */
+  inset: -2px !important;                 /* thin outer ring */
+  border-radius: 9999px !important;       /* circle */
+  padding: 3px !important;                /* ring thickness */
   background: conic-gradient(
     from 0deg,
-    #ff004c, /* red */
-    #ff7a00, /* orange */
-    #ffe600, /* yellow */
-    #00ff66, /* green */
-    #00c2ff, /* blue */
-    #6a00ff, /* indigo */
-    #ff00ff, /* violet */
-    #ff004c  /* wrap to red */
+    #ff004c,
+    #ff7a00,
+    #ffe600,
+    #00ff66,
+    #00c2ff,
+    #6a00ff,
+    #ff00ff,
+    #ff004c
   ) !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
   -webkit-mask-composite: xor !important;
-          mask-composite: exclude !important;      /* show only the border */
-  animation: spin 4s linear infinite !important;   /* rotating rainbow */
+          mask-composite: exclude !important; /* show only the border */
+  animation: spin 8s linear infinite !important; /* slower */
   will-change: transform !important;
-  filter: none !important;                          /* avoid violet glow */
   pointer-events: none !important;
-  z-index: 1 !important;
+  z-index: 1 !important;                 /* below icon (z3) */
 }
 
-.shiny .shiny-fab::after {
-  content: "" !important;
-  position: absolute !important;
-  inset: 3px !important; /* match ring thickness for clean edge */
-  border-radius: inherit !important;
-  background: #ffffff !important; /* white center */
-  box-shadow: 0 0 0 1px #ffffff !important; /* ensure no color bleed */
-  pointer-events: none !important;
-  z-index: 2 !important;
+.shiny .shiny-fab::after { content: none !important; }
+
+/* Ensure the plus icon on the FAB is white for strong contrast on black center */
+.shiny .shiny-fab svg {
+  color: #ffffff !important;            /* for icons that use currentColor */
+  position: relative !important;        /* create stacking context above ::after */
+  z-index: 3 !important;                /* above ::before(z1) and ::after(z2) */
+}
+/* Lucide sets explicit stroke via props; force white stroke on all child paths */
+.shiny .shiny-fab svg, 
+.shiny .shiny-fab svg * {
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+/* Fallback: ensure any direct child (text/icon wrapper) stays above the ring/center */
+.shiny .shiny-fab > * {
+  position: relative !important;
+  z-index: 3 !important;
+  color: #ffffff !important;
 }
 
 /* Shiny: DISABLE rainbow ring on the Shiny toggle (keep it simple) */
@@ -798,71 +817,110 @@
 .shiny .tareas-header::before,
 .shiny .tareas-header::after { content: none !important; }
 .shiny .tareas-header h1 {
-  background: linear-gradient(90deg,
-    #ff005d,
-    #ff7a00,
-    #ffee00,
-    #00ff7b,
-    #00b3ff,
-    #6a00ff,
-    #ff00ff,
-    #ff005d
-  ) !important;
-  background-size: 400% 100% !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  color: transparent !important;
-  animation: rainbow-move 6s linear infinite !important;
-  display: inline-block !important;
-  will-change: background-position;
-  text-shadow:
-    0 0 6px rgba(255, 0, 255, 0.35),
-    0 0 10px rgba(0, 178, 255, 0.25),
-    0 0 14px rgba(255, 234, 0, 0.2);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: none !important;
+  background-image: none !important;
+  animation: none !important;
+  text-shadow: none !important;
 }
 
 /* Shiny: tasks list container pure black */
 .shiny .tasks-list {
   background-color: #000000 !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+  padding-left: 12px !important;  /* keep a small gutter */
+  padding-right: 12px !important; /* ensure space near checkbox edge */
 }
 
-/* Shiny: make the 'Ver' completed-toggle button solid black, not neon */
-.shiny .completed-toggle-btn {
+/* Shiny: allow task title to wrap; override Tailwind's truncate */
+.shiny .tasks-list .task-title {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Shiny: make the 'Ver/Ocultar' completed-toggle button solid black, no gradient */
+.shiny .completed-header .completed-toggle-btn.completed-toggle-btn {
   background: #000000 !important;
+  background-image: none !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  border-image: none !important;
   color: #ffffff !important;
-  border: 1px solid #ffffff !important;
+  border: none !important;
+  border-width: 0 !important;
+  outline: none !important;
   box-shadow: none !important;
 }
-.shiny .completed-toggle-btn::before { display: none !important; content: none !important; }
-.shiny .completed-toggle-btn:hover { background: #0a0a0a !important; }
+.shiny .completed-header .completed-toggle-btn.completed-toggle-btn::before { display: none !important; content: none !important; }
+.shiny .completed-header .completed-toggle-btn.completed-toggle-btn:hover { background: #0a0a0a !important; background-image: none !important; border: none !important; }
+
+/* Shiny: Completed header text/icons in white */
+.shiny .completed-header {
+  color: #ffffff !important;
+}
+.shiny .completed-header h3,
+.shiny .completed-header span,
+.shiny .completed-header svg {
+  color: #ffffff !important;
+}
+.shiny .completed-header h3 {
+  /* Override global .shiny h3 gradient text */
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: #ffffff !important;
+  animation: none !important;
+}
+.shiny .completed-header svg * {
+  stroke: #ffffff !important;
+}
+
+/* Shiny: Completed toggle — black background, white label and icon */
+.shiny .completed-header .completed-toggle-btn span {
+  color: #ffffff !important;
+}
+.shiny .completed-header .completed-toggle-btn svg,
+.shiny .completed-header .completed-toggle-btn svg * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
 
 /* Shiny: task checkbox — white fill + animated multicolor border ring */
 .shiny .task-checkbox-button {
   position: relative !important;
-  background: #ffffff !important;     /* full white center */
-  border: none !important;            /* ring is drawn via ::before */
+  background: transparent !important;   /* center is drawn via ::after */
+  border: none !important;              /* ring is drawn via ::before */
   box-shadow: none !important;
   filter: none !important;
+  display: flex !important;
+  align-items: center !important;       /* strong centering */
+  justify-content: center !important;
+  align-self: center !important;        /* center within row */
 }
 .shiny .task-checkbox-button::before {
   content: "" !important;
   position: absolute !important;
-  inset: -2px !important;              /* ring thickness */
+  inset: -1px !important;              /* thinner ring */
   border-radius: 9999px !important;     /* keep it circular */
-  padding: 3px !important;              /* slightly thicker ring for balance */
+  padding: 3px !important;              /* +1px thickness */
   background: conic-gradient(
     from 0deg,
     #ff004c, /* red */
     #ff7a00, /* orange */
     #ffe600, /* yellow */
     #00ff66, /* green */
-    #00c2ff, /* blue */
     #6a00ff, /* indigo */
     #ff00ff, /* violet */
     #ff004c  /* wrap to red */
   ) !important;                         /* circular rainbow */
-  animation: spin 4s linear infinite !important;          /* smooth rotation */
+  animation: spin 8s linear infinite !important;          /* slower rotation */
   will-change: background-position !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
@@ -876,17 +934,18 @@
   position: absolute !important;
   inset: 2px !important;                 /* larger white disk to fully overpaint inner edge */
   border-radius: 9999px !important;
-  background: #ffffff !important;        /* solid white center */
+  background: #000000 !important;        /* solid black center */
   pointer-events: none !important;
   z-index: 2 !important;                 /* ensure it covers any inner gradient */
-  box-shadow: 0 0 0 1px #ffffff !important; /* subtle overpaint, avoids double border look */
+  /* Thin white ring between black fill and rainbow border */
+  box-shadow: 0 0 0 1px #ffffff !important;
 }
 .shiny .task-checkbox-button.completed {
   /* Keep the same inner white center on completed */
 }
 /* No neon filters for any icons inside (future-proof) */
 .shiny .task-checkbox-button svg { filter: none !important; }
-.shiny .task-checkbox-button.completed svg { color: #000000 !important; }
+.shiny .task-checkbox-button.completed svg { color: #ffffff !important; }
 
 /* Hide any decorative divider under the header in Shiny */
 .shiny .tareas-header .shiny-divider-bottom {
@@ -965,23 +1024,39 @@
   justify-content: center;
 }
 .shiny .task-shape-wrapper::before { content: ""; position: absolute; inset: 1px; border-radius: 3px; display: none; }
-.shiny .task-shape-wrapper::after {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border-radius: 3px;
-  pointer-events: none;
-  display: none;
+.shiny .task-shape-wrapper::after { display: none; }
+
+/* Default: hide animated strokes for other themes */
+.steeb-stroke { display: none; }
+
+/* Shiny: disable the SVG gradient stroke; we'll use static color + white shine */
+.shiny .steeb-stroke { display: none !important; }
+
+/* Subtle white shine pulse for task icons (applied on wrapper or SVG) */
+.shiny .task-shine svg {
+  animation: steeb-white-shine 2.2s ease-in-out infinite;
 }
-.shiny .task-shape-border .task-shape-wrapper > svg {
+
+@keyframes steeb-white-shine {
+  0%, 100% { filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
+  50% { filter: drop-shadow(0 0 6px rgba(255,255,255,0.95)); }
+}
+
+
+
+/* Animate only the gradient angle (supported via @property registration) */
+@property --angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes spinColors {
+  to { --angle: 360deg; }
+}
+.shiny .task-shape-wrapper > svg,
+.shiny .task-shape-wrapper > div {
   position: relative;
   z-index: 2; /* keep icon above glow and sweep */
-  fill: black !important; /* black shapes */
-}
-.shiny .task-shape-border .task-shape-wrapper > div {
-  position: relative;
-  z-index: 2; /* keep icon above glow and sweep */
-  background-color: black !important; /* black shapes */
 }
 
 /* Shiny: boost opacity of shape-following neon stroke */
@@ -1004,11 +1079,20 @@
   inset: -2px; /* border thickness */
   border-radius: inherit;
   padding: 2px; /* ring thickness */
-  background: conic-gradient(
-    from 0deg,
-    #ffffff, /* white */
-    #ffffff  /* white */
-  ) !important;                         /* white border */
+  background: linear-gradient(90deg,
+    #ff0000, /* red */
+    #ff7f00, /* orange */
+    #ffff00, /* yellow */
+    #00ff00, /* green */
+    #00ffff, /* cyan */
+    #0000ff, /* blue */
+    #4b0082, /* indigo */
+    #8b00ff, /* violet */
+    #ff66cc  /* pink */
+  );
+  background-size: 300% 100%;
+  animation: rainbow-move 7s linear infinite; /* subtle continuous left->right */
+  will-change: background-position !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -1145,3 +1229,6 @@
 
 /* Force SVG icons in Shiny FAB to be black for contrast */
 .shiny .shiny-fab svg { fill: black !important; }
+
+/* Shiny: task title white */
+.shiny h3.mb-1 { color: white !important; }

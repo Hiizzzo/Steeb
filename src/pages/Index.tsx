@@ -46,6 +46,26 @@ interface Task {
   updatedAt?: string;
 }
 
+// 9-color Shiny rainbow palette (bottom→top: red → orange → yellow → yellow-green → green → cyan → blue-violet → purple → magenta)
+// Colors chosen to stay consistent with Shiny spectrum while giving 9 distinct steps
+const SHINY_RAINBOW_9 = [
+  '#ff004c', // red/pink-red
+  '#ff3a00', // red-orange
+  '#ff7a00', // orange
+  '#ffe600', // yellow
+  '#a8ff00', // yellow-green
+  '#00ff66', // green
+  '#00c2ff', // cyan
+  '#6a00ff', // violet
+  '#ff00ff', // magenta
+] as const;
+// Given a topIndex in the combined list and the total count, return color by bottom-to-top order
+const getRainbowColorBottomUp = (topIndex: number, total: number) => {
+  const bottomIndex = total - 1 - topIndex;
+  const idx = ((bottomIndex % SHINY_RAINBOW_9.length) + SHINY_RAINBOW_9.length) % SHINY_RAINBOW_9.length;
+  return SHINY_RAINBOW_9[idx];
+};
+
 // Orden fijo para mantener categorías contiguas
 const TYPE_ORDER: Array<Task['type']> = [
   'productividad',
@@ -138,7 +158,7 @@ const Index = () => {
     finishRowSwipe(id);
   };
 
-  const renderSwipeRow = (task: Task) => (
+  const renderSwipeRow = (task: Task, color?: string) => (
     <div key={task.id} className="relative">
       {/* Fondo con tacho visible durante swipe */}
       <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-4 transition-opacity duration-150 ${ (rowOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
@@ -161,9 +181,9 @@ const Index = () => {
           onPointerCancel={onRowPointerUp(task.id)}
           onContextMenu={(e) => e.preventDefault()}
         >
-          {renderShapeForType(getGroupKey(task))}
+          {renderShapeForType(getGroupKey(task), color)}
           <div className="flex-1 min-w-0">
-            <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+            <p className={`task-title text-[18px] ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
             <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
           </div>
         </div>
@@ -476,17 +496,17 @@ const Index = () => {
   };
 
   // Helper: formas por tipo
-  const renderShapeForType = (type: Task['type']) => {
+  const renderShapeForType = (type: Task['type'], color?: string) => {
     switch (type) {
-      case 'productividad':   return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="square" className="w-6 h-6 text-black" title="Trabajo" /></div>);
-      case 'creatividad':     return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Creatividad" /></div>);
-      case 'salud':           return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="heart" className="w-6 h-6 text-black" title="Salud" /></div>);
-      case 'organizacion':    return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="diamond" className="w-6 h-6 text-black" title="Organización" /></div>);
-      case 'social':          return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Social" /></div>);
-      case 'aprendizaje':     return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Aprendizaje" /></div>);
-      case 'entretenimiento': return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Entretenimiento" /></div>);
-      case 'extra':           return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="diamond" className="w-6 h-6 text-black" title="Extra" /></div>);
-      default: return <div className="task-shape-wrapper mr-1"><div className="w-6 h-6 border border-black" /></div>;
+      case 'productividad':   return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="square" className="w-6 h-6" title="Trabajo" color={color} /></div>);
+      case 'creatividad':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Creatividad" color={color} /></div>);
+      case 'salud':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="heart" className="w-6 h-6" title="Salud" color={color} /></div>);
+      case 'organizacion':    return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Organización" color={color} /></div>);
+      case 'social':          return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Social" color={color} /></div>);
+      case 'aprendizaje':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Aprendizaje" color={color} /></div>);
+      case 'entretenimiento': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Entretenimiento" color={color} /></div>);
+      case 'extra':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Extra" color={color} /></div>);
+      default: return <div className="task-shape-wrapper task-shine mr-1" style={{ color }}><div className="w-6 h-6 border border-black" /></div>;
     }
   };
 
@@ -650,20 +670,34 @@ const Index = () => {
           <div className="tasks-list pt-1 mx-auto w-full max-w-xl sm:max-w-2xl px-6 sm:px-8 md:px-10">
             {pendingTodaysTasks.length > 0 ? (
               <>
-                {pendingTodayExact.map(renderSwipeRow)}
+                {/* Color mapping across combined pending lists from bottom to top */}
+                {(() => {
+                  const total = pendingTodayExact.length + pendingOverdue.length;
+                  return (
+                    <>
+                      {pendingTodayExact.map((t, i) => renderSwipeRow(t, getRainbowColorBottomUp(i, total)))}
+                    </>
+                  );
+                })()}
 
                 {pendingTodayExact.length > 0 && pendingOverdue.length > 0 && (
                   <div className="my-2 border-t dark:border-white/70 border-transparent" />
                 )}
 
-                {pendingOverdue.map(renderSwipeRow)}
+                {(() => {
+                  const total = pendingTodayExact.length + pendingOverdue.length;
+                  return pendingOverdue.map((t, i) => {
+                    const topIndex = pendingTodayExact.length + i;
+                    return renderSwipeRow(t, getRainbowColorBottomUp(topIndex, total));
+                  });
+                })()}
               </>
             ) : null}
 
             {/* Sección de tareas completadas */}
             {(completedToday.length > 0) && (
               <div className="mt-6">
-                <div className="flex items-center justify-center gap-3 mb-3 text-center">
+                <div className="completed-header flex items-center justify-center gap-3 mb-3 text-center">
                   <CheckCircle size={16} className="text-gray-700" />
                   <h3 className="text-sm font-semibold text-gray-700 font-varela">
                     Tareas completadas
@@ -671,7 +705,7 @@ const Index = () => {
                   <span className="text-xs text-gray-500">({completedToday.length})</span>
                   {/* Toggle mostrar/ocultar las de hoy */}
                   <button
-                    className="completed-toggle-btn flex items-center space-x-1 text-gray-600 hover:text-black text-sm rounded px-2 py-0.5"
+                    className="completed-toggle-btn shiny-toggle flex items-center space-x-1 text-gray-600 hover:text-black text-sm rounded px-2 py-0.5"
                     onClick={() => setShowCompletedToday(prev => !prev)}
                     aria-label={showCompletedToday ? 'Ocultar completadas' : 'Mostrar completadas'}
                   >
@@ -706,10 +740,11 @@ const Index = () => {
                 {completedToday.length > 0 && showCompletedToday && (
                   <div className="mt-3">
                     <p className="text-xs text-gray-500 mb-2">Hoy</p>
-                    {completedToday
-                      .slice()
-                      .sort(sortByCategoryThenTime)
-                      .map(renderSwipeRow)}
+                    {(() => {
+                      const sorted = completedToday.slice().sort(sortByCategoryThenTime);
+                      const total = sorted.length;
+                      return sorted.map((t, i) => renderSwipeRow(t, getRainbowColorBottomUp(i, total)));
+                    })()}
                   </div>
                 )}
               </div>
