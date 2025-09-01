@@ -6,26 +6,8 @@ import { useTaskStore } from '@/store/useTaskStore';
 import ShapeIcon from './ShapeIcon';
 import TaskCreationCard from './TaskCreationCard';
 // import CompactStats from './CompactStats';  // Component not found
-import type { RecurrenceRule } from '@/types';
+import type { RecurrenceRule, Task, SubTask } from '@/types';
 
-interface SubTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
-  completed: boolean;
-  subtasks?: SubTask[];
-  scheduledDate?: string;
-  scheduledTime?: string;
-  completedDate?: string;
-  notes?: string;
-  recurrence?: RecurrenceRule;
-}
 
 interface MonthlyCalendarProps {
   tasks?: Task[];
