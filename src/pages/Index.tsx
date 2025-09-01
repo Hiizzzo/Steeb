@@ -174,7 +174,7 @@ const Index = () => {
             console.log('CHECKBOX CLICKED!', task.id);
             handleToggleTask(task.id);
           }}
-          className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+          className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
           style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
         >
           {task.completed && (
@@ -189,11 +189,7 @@ const Index = () => {
     </div>
   );
 
-  const [isPremium, setIsPremium] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('stebe-premium') === '1';
-  });
-  const [showFreeBadge, setShowFreeBadge] = useState<boolean>(true);
+  // Premium/Shiny features removed
   
   // Usar el store de tareas
   const { 
@@ -240,17 +236,7 @@ const Index = () => {
     });
   }, []);
 
-  // Escuchar cambios de Premium y reflejar en UI
-  useEffect(() => {
-    const onStorage = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
-    const onPremiumUpdated = () => setIsPremium(localStorage.getItem('stebe-premium') === '1');
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('premium-updated', onPremiumUpdated as any);
-    return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('premium-updated', onPremiumUpdated as any);
-    };
-  }, []);
+  // Premium/Shiny listeners removed
 
   // El hook useTaskPersistence maneja automáticamente la carga y guardado
 
@@ -492,15 +478,15 @@ const Index = () => {
   // Helper: formas por tipo
   const renderShapeForType = (type: Task['type']) => {
     switch (type) {
-      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Trabajo" />;
-      case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Creatividad" />;
-      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-1 text-black" title="Salud" />;
-      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Organización" />;
-      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Social" />;
-      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Aprendizaje" />;
-      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Entretenimiento" />;
-      case 'extra':           return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Extra" />;
-      default: return <div className="w-6 h-6 mr-1 border border-black" />;
+      case 'productividad':   return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="square" className="w-6 h-6 text-black" title="Trabajo" /></div>);
+      case 'creatividad':     return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Creatividad" /></div>);
+      case 'salud':           return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="heart" className="w-6 h-6 text-black" title="Salud" /></div>);
+      case 'organizacion':    return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="diamond" className="w-6 h-6 text-black" title="Organización" /></div>);
+      case 'social':          return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Social" /></div>);
+      case 'aprendizaje':     return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Aprendizaje" /></div>);
+      case 'entretenimiento': return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="triangle" className="w-6 h-6 text-black" title="Entretenimiento" /></div>);
+      case 'extra':           return (<div className="task-shape-wrapper mr-1"><ShapeIcon variant="diamond" className="w-6 h-6 text-black" title="Extra" /></div>);
+      default: return <div className="task-shape-wrapper mr-1"><div className="w-6 h-6 border border-black" /></div>;
     }
   };
 
@@ -636,11 +622,11 @@ const Index = () => {
           className="w-24 h-24 sm:w-20 sm:h-20 object-contain bg-transparent rounded-none shadow-none"
         />
         <div className="relative">
-          <div className="rounded-xl border border-black/15 dark:border-white/20 bg-white dark:bg-black shadow-sm px-3 py-2 max-w-[280px]">
-            <div className="text-xs font-bold text-gray-700 dark:text-gray-200 mb-0.5">
+          <div className="steeb-bubble rounded-xl px-3 py-2 max-w-[280px]">
+            <div className="text-xs font-bold mb-0.5">
               STEEB
             </div>
-            <p className="text-sm text-gray-900 dark:text-gray-100 leading-snug">
+            <p className="text-sm leading-snug">
               {steebGreeting}
             </p>
           </div>
@@ -654,14 +640,14 @@ const Index = () => {
       <div className="pt-24 mb-1" />
       {/* Título principal */}
       <div className="pt-6 mb-2">
-        <div className="flex items-center justify-center py-2 bg-black text-white dark:!bg-white dark:text-black">
-          <h1 className="text-white dark:!text-black text-xl font-light tracking-wide" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>TAREAS</h1>
+        <div className="tareas-header flex items-center justify-center py-2 bg-black text-white relative border-x border-black">
+          <h1 className="text-white text-xl font-light tracking-wide" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>TAREAS</h1>
         </div>
       </div>
       {viewMode === 'tasks' ? (
         <>
           {/* Lista de Tareas */}
-          <div className="pt-1 mx-auto w-full max-w-xl sm:max-w-2xl px-6 sm:px-8 md:px-10">
+          <div className="tasks-list pt-1 mx-auto w-full max-w-xl sm:max-w-2xl px-6 sm:px-8 md:px-10">
             {pendingTodaysTasks.length > 0 ? (
               <>
                 {pendingTodayExact.map(renderSwipeRow)}
@@ -685,7 +671,7 @@ const Index = () => {
                   <span className="text-xs text-gray-500">({completedToday.length})</span>
                   {/* Toggle mostrar/ocultar las de hoy */}
                   <button
-                    className="flex items-center space-x-1 text-gray-600 hover:text-black text-sm"
+                    className="completed-toggle-btn flex items-center space-x-1 text-gray-600 hover:text-black text-sm rounded px-2 py-0.5"
                     onClick={() => setShowCompletedToday(prev => !prev)}
                     aria-label={showCompletedToday ? 'Ocultar completadas' : 'Mostrar completadas'}
                   >
@@ -701,12 +687,12 @@ const Index = () => {
                   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
                   return (
                     <div className="mb-3">
-                      <div className="w-full h-[4px] bg-neutral-200 dark:bg-white/15 rounded-full overflow-hidden">
+                      <div className="w-full h-[4px] bg-neutral-200 dark:bg-white/15 rounded-full overflow-hidden progress-track">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${pct}%` }}
                           transition={{ duration: 0.6 }}
-                          className="h-full bg-black dark:!bg-white"
+                          className="h-full bg-black dark:!bg-white progress-fill"
                         />
                       </div>
                       <div className="mt-1 text-xs text-gray-600 dark:text-gray-300 text-center">
@@ -746,30 +732,7 @@ const Index = () => {
         onCreateTask={handleAddTask}
       />
 
-      {/* Banner sutil de plan (FREE/PREMIUM) */}
-      {showFreeBadge && (
-        <div className="fixed left-0 bottom-0 z-20 relative" style={{ transform: 'translateY(6px)' }}>
-          <button
-            onClick={() => {
-              if (isPremium) {
-                localStorage.removeItem('stebe-premium');
-                setIsPremium(false);
-                toast({ title: "Cambiaste a versión Free" });
-              } else {
-                localStorage.setItem('stebe-premium','1');
-                setIsPremium(true);
-                toast({ title: "Cambiaste a versión Premium" });
-              }
-              window.dispatchEvent(new Event('premium-updated'));
-            }}
-            className={`min-w-[64px] text-center px-3 py-1 rounded-full text-xs border ${isPremium ? 'bg-black text-white border-black' : 'bg-white text-black border-black'}`}
-            aria-label={isPremium ? 'Premium' : 'Free'}
-          >
-            {isPremium ? 'Premium' : 'Free'}
-          </button>
-          {/* Close button removed as requested */}
-        </div>
-      )}
+      {/* Premium badge removed */}
 
       {/* Modal para Agregar/Editar Tarea */}
       <AnimatePresence>

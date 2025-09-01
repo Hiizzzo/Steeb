@@ -43,13 +43,9 @@ const AppContent = () => {
     return <LoadingScreen />;
   }
 
-  // Route guard: auth + onboarding
-  const profileComplete = Boolean(user?.name && user?.nickname);
+  // Route guard: only require authentication. Do not block on onboarding/profile completeness.
   if (!isAuthenticated) {
     return <AuthScreen onComplete={() => { /* post-login handled by AuthScreen */ }} />;
-  }
-  if (!profileComplete) {
-    return <AuthScreen onComplete={() => { /* after onboarding, routes render */ }} />;
   }
 
   return (
@@ -75,10 +71,6 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          {/* Version badge visible en toda la app */}
-          <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 px-3 py-1 rounded-full text-xs bg-black text-white dark:bg-white dark:text-black shadow-md border border-white/20 dark:border-black/20">
-            v{APP_VERSION}
-          </div>
           <AppContent />
         </TooltipProvider>
       </AuthProvider>

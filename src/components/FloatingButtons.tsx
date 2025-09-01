@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Settings, BarChart2 } from 'lucide-react';
@@ -15,6 +14,7 @@ interface FloatingButtonsProps {
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTask }) => {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const [shinyEnabled, setShinyEnabled] = useState<boolean>(false);
   const [isLongPressed, setIsLongPressed] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -137,6 +137,35 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     };
   }, []);
 
+  // Init shiny toggle from localStorage and DOM
+  useEffect(() => {
+    const saved = localStorage.getItem('stebe-shiny-enabled');
+    const isOn = saved === '1' || document.documentElement.classList.contains('shiny');
+    setShinyEnabled(!!isOn);
+    if (isOn) {
+      // Ensure mutual exclusivity with dark
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('shiny');
+    }
+  }, []);
+
+  const toggleShiny = () => {
+    setShinyEnabled((prev) => {
+      const next = !prev;
+      if (next) {
+        // Enable shiny, disable dark
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('shiny');
+        localStorage.setItem('stebe-shiny-enabled', '1');
+      } else {
+        // Disable shiny; revert to stored theme (do nothing else)
+        document.documentElement.classList.remove('shiny');
+        localStorage.setItem('stebe-shiny-enabled', '0');
+      }
+      return next;
+    });
+  };
+
   // Cerrar con Esc
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -188,7 +217,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
             onTouchEnd={handleTouchEnd}
             onTouchCancel={handleTouchCancel}
             onContextMenu={handleContextMenu}
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 bg-black dark:!bg-white pointer-events-auto touch-button no-select"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 bg-black dark:!bg-white pointer-events-auto touch-button no-select shiny-fab"
             style={{ 
               touchAction: 'none',
               userSelect: 'none',
@@ -239,11 +268,29 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   exit={{ scale: 0, rotate: -180 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
-                  <Plus size={28} className="text-white dark:!text-black sm:w-8 sm:h-8" strokeWidth={3} />
+                  <Plus size={28} color="#000000" strokeWidth={3} />
                 </motion.div>
               )}
             </AnimatePresence>
           </motion.button>
+        </div>
+        {/* Shiny toggle slider under the FAB */}
+        <div className="mt-3 flex items-center justify-center pointer-events-auto">
+          <button
+            aria-label="Toggle Shiny mode"
+            onClick={toggleShiny}
+            className={`relative w-16 h-7 rounded-full transition-colors border-2 shiny-toggle ${
+              shinyEnabled ? 'bg-black border-black' : 'bg-white border-black'
+            }`}
+            style={{ boxShadow: shinyEnabled ? '0 0 8px rgba(0,0,0,0.25)' : 'none' }}
+          >
+            <span
+              className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full transition-transform ${
+                shinyEnabled ? 'translate-x-8 bg-white' : 'translate-x-1 bg-black'
+              }`}
+            />
+          </button>
+          <span className="ml-3 text-sm font-medium select-none text-black dark:text-white">Shiny</span>
         </div>
       </div>
 

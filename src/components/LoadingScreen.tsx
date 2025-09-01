@@ -10,13 +10,14 @@ const LoadingScreen: React.FC = () => {
     
     const check = () => {
       const hasDarkClass = document.documentElement.classList.contains('dark');
-      const savedTheme = localStorage.getItem('theme');
+      // Mantener consistencia con useTheme: clave 'stebe-theme'
+      const savedTheme = localStorage.getItem('stebe-theme');
       
       console.log('LoadingScreen - hasDarkClass:', hasDarkClass);
       console.log('LoadingScreen - savedTheme:', savedTheme);
       
-      // Si no hay tema guardado o clase dark, asumir modo oscuro para pelotitas blancas
-      const isDarkMode = hasDarkClass || savedTheme === 'dark' || !savedTheme;
+      // Considerar shiny como fondo negro también
+      const isDarkMode = hasDarkClass || savedTheme === 'dark' || savedTheme === 'shiny' || !savedTheme;
       console.log('LoadingScreen - isDarkMode:', isDarkMode);
       setIsDark(isDarkMode);
     };
@@ -43,8 +44,6 @@ const LoadingScreen: React.FC = () => {
         >
           STEEB
         </h1>
-        {/* Número de versión debajo del título */}
-        <div className={`mt-2 text-sm font-semibold tracking-wide ${isDark ? 'text-white/80' : 'text-black/80'}`}>v0.93</div>
         
         {/* Puntos animados */}
         <div className="flex justify-center items-center space-x-3 mt-6">
@@ -91,3 +90,4 @@ const LoadingScreen: React.FC = () => {
 };
 
 export default LoadingScreen;
+

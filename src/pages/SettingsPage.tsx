@@ -5,6 +5,7 @@ import { ArrowLeft, Settings, Globe, Bell, User, LogOut } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/useTheme';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useAuth } from '@/hooks/useAuth';
 import { NotificationSettings } from '@/components/NotificationSettings';
 
 const SettingsPage = () => {
@@ -12,6 +13,8 @@ const SettingsPage = () => {
   const { settings, updateGeneralSettings } = useSettings();
   const { isShiny, toggleTheme } = useTheme();
   const { name, nickname, clearProfile } = useUserProfile();
+  const { user, linkGoogleAccount } = useAuth();
+  const isGoogleLinked = user?.provider === 'google';
 
   const handleClearProfile = () => {
     clearProfile();
@@ -172,10 +175,23 @@ const SettingsPage = () => {
               <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Cuenta vinculada</div>
                 <div className="flex items-center justify-between">
-                  <div className="font-medium text-black dark:text-white">No vinculada</div>
-                  <button className="text-sm bg-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
-                    Vincular con Google
-                  </button>
+                  <div className="font-medium text-black dark:text-white">
+                    {isGoogleLinked ? 'Vinculada con Google' : 'No vinculada'}
+                  </div>
+                  {!isGoogleLinked && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await linkGoogleAccount();
+                        } catch (e: any) {
+                          alert(e?.message || 'No se pudo vincular con Google. Intenta desde navegador si estás en iOS.');
+                        }
+                      }}
+                      className="text-sm bg-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                    >
+                      Vincular con Google
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

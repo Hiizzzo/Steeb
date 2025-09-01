@@ -222,7 +222,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {/* Tarjeta principal */}
       <div 
         ref={cardRef}
-        className={`bg-white border border-gray-200 dark:!border-white rounded-lg p-4 transition-all duration-200 ease-out transform dark:hover:!border-white ${
+        className={`bg-white border border-gray-200 dark:bg-black dark:border-black rounded-lg p-4 transition-all duration-200 ease-out transform dark:hover:border-black ${
           completed ? 'opacity-40' : 'hover:border-black'
         } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''}`}
         style={{
@@ -243,7 +243,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-center space-x-3 flex-1">
             {/* Icono del tipo */}
             <div className={`transition-all duration-300 ${completed ? 'opacity-60' : ''}`}>
-              {getTypeIcon()}
+              <div className="task-shape-border rounded-xl">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                  {getTypeIcon()}
+                </div>
+              </div>
             </div>
             
             {/* Texto de la tarea y hora */}
@@ -252,7 +256,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 className={`text-lg font-normal transition-all duration-300 ${
                   completed 
                     ? 'line-through text-gray-400' 
-                    : 'text-black dark:text-black'
+                    : 'text-black dark:text-white'
                 }`} style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui, -apple-system, sans-serif' }}
               >
                 {title.trim() || 'Tarea sin título'}
@@ -279,11 +283,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
               onClick={handleCheckboxToggle}
             >
               {completed ? (
-                <div className="w-6 h-6 bg-black dark:bg-white border-2 border-black dark:border-white rounded-full cursor-pointer transition-all duration-200">
-                </div>
+                <div className="task-checkbox-button completed w-6 h-6 rounded-full cursor-pointer transition-all duration-200"></div>
               ) : (
-                <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full cursor-pointer hover:border-black dark:hover:border-white transition-all duration-200">
-                </div>
+                <div className="task-checkbox-button w-6 h-6 rounded-full cursor-pointer transition-all duration-200"></div>
               )}
             </div>
           )}

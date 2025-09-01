@@ -10,6 +10,7 @@ import {
   signOut,
   linkWithCredential,
   EmailAuthProvider,
+  linkWithPopup,
   signInWithCredential,
   GoogleAuthProvider,
   sendEmailVerification,
@@ -47,6 +48,7 @@ interface AuthContextType {
   hasPasswordProvider: () => boolean;
   linkEmailPassword: (password: string) => Promise<void>;
   resendEmailVerification: () => Promise<void>;
+  linkGoogleAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,7 +63,7 @@ const mapFirebaseUserToUser = async (fbUser: FirebaseUser): Promise<User> => {
     name: data.name || '',
     nickname: data.nickname || '',
     avatar: fbUser.photoURL || data.avatar,
-    provider: (fbUser.providerData?.[0]?.providerId?.includes('google') ? 'google' : 'manual'),
+    provider: (fbUser.providerData?.some(p => (p?.providerId || '').includes('google')) ? 'google' : 'manual'),
     createdAt: (data.createdAt?.toDate?.() || new Date()).toISOString(),
     emailVerified: !!fbUser.emailVerified,
   };
@@ -91,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: '',
         nickname: '',
         avatar: fbUser.photoURL || undefined,
-        provider: (fbUser.providerData?.[0]?.providerId?.includes('google') ? 'google' : 'manual'),
+        provider: (fbUser.providerData?.some(p => (p?.providerId || '').includes('google')) ? 'google' : 'manual'),
         createdAt: new Date().toISOString(),
         emailVerified: !!fbUser.emailVerified,
       });
@@ -272,6 +274,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await linkWithCredential(current, cred);
   };
 
+  const linkGoogleAccount = async () => {
+    ensureConfigured();
+    const current = auth.currentUser;
+    if (!current) throw new Error('No hay usuario autenticado');
+    // Si ya está vinculado Google, no hacer nada
+    const already = current.providerData?.some(p => (p?.providerId || '').includes('google'));
+    if (already) return;
+
+    // Nativo: intentar plugin; Web: popup
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const Google: any = (globalThis as any)?.Capacitor?.Plugins?.GoogleAuth || (globalThis as any)?.Capacitor?.Plugins?.Google;
+        if (Google?.signIn) {
+          try { await Google.initialize?.(); } catch {}
+          const gRes = await Google.signIn();
+          const idToken = gRes?.authentication?.idToken || gRes?.idToken;
+          if (!idToken) throw new Error('No se obtuvo idToken de Google');
+          const credential = GoogleAuthProvider.credential(idToken);
+          await linkWithCredential(current, credential);
+        } else {
+          throw new Error('Plugin de Google no disponible');
+        }
+      } catch (e) {
+        // Si falla nativo, no forzar redirect aquí para no romper la sesión; el usuario puede probar en web
+        throw e as any;
+      }
+    } else {
+      await linkWithPopup(current, googleProvider);
+    }
+
+    // Refrescar estado de usuario y asegurar doc en Firestore
+    const refreshed = auth.currentUser as FirebaseUser;
+    const ref = doc(db, 'users', refreshed.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        email: refreshed.email,
+        name: '',
+        nickname: '',
+        avatar: refreshed.photoURL,
+        provider: 'google',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+    // Actualizar provider en estado local
+    setUser(prev => prev ? { ...prev, provider: 'google' } : prev);
+  };
+
   const resendEmailVerification = async () => {
     ensureConfigured();
     if (!auth.currentUser) throw new Error('No hay usuario autenticado');
@@ -290,6 +341,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasPasswordProvider,
     linkEmailPassword,
     resendEmailVerification,
+    linkGoogleAccount,
   };
 
   return React.createElement(AuthContext.Provider, { value }, children as any);

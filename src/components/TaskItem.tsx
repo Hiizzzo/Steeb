@@ -94,6 +94,19 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
 
+  // Track Shiny theme to render special checkbox visuals only in Shiny
+  const [isShiny, setIsShiny] = useState<boolean>(() =>
+    typeof document !== 'undefined' ? document.documentElement.classList.contains('shiny') : false
+  );
+  React.useEffect(() => {
+    const el = document.documentElement;
+    const update = () => setIsShiny(el.classList.contains('shiny'));
+    update();
+    const obs = new MutationObserver(update);
+    obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+
   const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
   const DELETE_THRESHOLD = 120; // Distancia para mostrar el botón de eliminar
   const LONG_PRESS_DURATION = 800; // Duración del long press en milisegundos
@@ -244,23 +257,40 @@ const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3 flex-1">
               {/* Icono personalizado de la categoría */}
-              <div className={cn(
-                'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mt-1',
-                visuals.iconBg,
-                task.completed ? 'opacity-60' : ''
-              )}>
-                <IconComponent size={20} className="text-white" />
+              <div
+                className={cn(
+                  'flex-shrink-0 mt-1 task-shape-border rounded-xl',
+                  task.completed ? 'opacity-60' : ''
+                )}
+              >
+                <div
+                  className={cn(
+                    'w-10 h-10 rounded-lg flex items-center justify-center',
+                    visuals.iconBg
+                  )}
+                >
+                  <IconComponent size={20} className="text-white" />
+                </div>
               </div>
               
               {/* Checkbox de completado */}
               <button 
                 onClick={() => !isDragging && swipeOffset === 0 && onComplete(task.id)}
-                className="mt-1 hover:scale-110 transition-transform"
+                className="mt-1 hover:scale-110 transition-transform task-check"
+                aria-label={task.completed ? 'Marcar como no completada' : 'Marcar como completada'}
               >
                 {task.completed ? (
-                  <CheckCircle size={28} className="text-green-500" />
+                  isShiny ? (
+                    <CheckCircle size={28} className="text-white" />
+                  ) : (
+                    <CheckCircle size={28} className="text-green-500" />
+                  )
                 ) : (
-                  <Circle size={28} className="text-gray-400 hover:text-gray-600" />
+                  isShiny ? (
+                    <Circle size={28} className="text-white" />
+                  ) : (
+                    <Circle size={28} className="text-gray-400 hover:text-gray-600" />
+                  )
                 )}
               </button>
               

@@ -56,13 +56,11 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({ open, onOpenCha
               alt="STEEB"
               className="w-24 h-24 sm:w-16 sm:h-16 rounded-lg mt-1.5"
             />
-            {/* Burbuja de diálogo */}
+            {/* Burbuja de diálogo (neón en shiny, fondo negro y texto blanco) */}
             <div className="relative flex-1 mt-1">
-              <div className="rounded-xl border border-black/15 dark:border-white/20 bg-white dark:bg-black shadow-sm px-3 py-2">
-                <div className="text-xs font-bold text-gray-700 dark:text-gray-200 mb-0.5">
-                  STEEB
-                </div>
-                <p className="text-sm text-gray-900 dark:text-gray-100 leading-snug" aria-live="polite">
+              <div className="steeb-bubble rounded-xl px-3 py-2">
+                <div className="text-xs font-bold mb-0.5">STEEB</div>
+                <p className="text-sm leading-snug" aria-live="polite">
                   {message ? message : steebGreeting}
                 </p>
               </div>

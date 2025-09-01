@@ -49,6 +49,32 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+}
+
+/* Shiny toggle: animated multicolor border like checkbox */
+.shiny .shiny-toggle {
+  position: relative;
+  border-color: transparent !important; /* let gradient border be visible */
+}
+
+.shiny .shiny-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 0; /* cover the whole rounded pill */
+  border-radius: inherit;
+  padding: 2px; /* border thickness */
+  background: conic-gradient(
+    from 0deg,
+    #ff004c,#ff7a00,#ffe600,#00ff66,#00c2ff,#6a00ff,#ff00ff,#ff004c
+  );
+  /* mask so only the ring (padding) is visible on rounded rectangle */
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: spin 4s linear infinite;
+  pointer-events: none;
 }
 
 @layer base {
@@ -200,10 +226,14 @@
   .dark .hover\:bg-gray-50:hover { @apply bg-gray-800; }
   .dark .hover\:bg-black\/5:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
 
+  /* Exception: keep the TAREAS header white with black text in dark mode */
+  .dark .tareas-header { background-color: #ffffff !important; color: #000000 !important; }
+  .dark .tareas-header h1 { color: #000000 !important; }
+
   /* Tema Shiny - Colores Elegantes y Modernos */
   .shiny {
-    --shiny-bg: #0f0f23;
-    --shiny-card-bg: #1a1a2e;
+    --shiny-bg: #000000;
+    --shiny-card-bg: #000000;
     --shiny-text: #e8e8f0;
     --shiny-primary: #ff6b9d;
     --shiny-secondary: #9c88ff;
@@ -220,6 +250,14 @@
   .shiny body {
     background: var(--shiny-bg) !important;
     color: var(--shiny-text) !important;
+  }
+
+  /* Shiny: ensure the entire app surface is pure black */
+  .shiny,
+  .shiny html,
+  .shiny body,
+  .shiny #root {
+    background-color: #000000 !important;
   }
 
   /* Fondo principal shiny */
@@ -240,7 +278,11 @@
   }
 
   /* Bordes neón animados - Solo elementos específicos */
-  .shiny .border:not(.task-border):not(.floating-border) {
+  .shiny .border:not(.task-border):not(.floating-border):not(.tareas-header),
+  .shiny .border-black:not(.task-border):not(.floating-border):not(.tareas-header),
+  .shiny .border-white:not(.task-border):not(.floating-border):not(.tareas-header),
+  .shiny .border-gray-200:not(.task-border):not(.floating-border):not(.tareas-header),
+  .shiny .border-gray-700:not(.task-border):not(.floating-border):not(.tareas-header) {
     border-color: transparent !important;
     background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-blue), var(--shiny-teal), var(--shiny-pink)) !important;
     background-size: 400% 400% !important;
@@ -252,8 +294,8 @@
     50% { background-position: 100% 50%; }
   }
 
-  /* Botones neón - Solo botones específicos */
-  .shiny button:not(.floating-button):not(.task-checkbox):not(.swipe-button) {
+  /* Botones neón - Solo botones específicos (excluir header y checkbox de tareas) */
+  .shiny button:not(.floating-button):not(.task-checkbox):not(.task-checkbox-button):not(.swipe-button):not(.tareas-header):not(.shiny-toggle):not(.shiny-fab) {
     background: linear-gradient(135deg, var(--shiny-pink), var(--shiny-purple)) !important;
     border: 1px solid transparent !important;
     background-clip: padding-box !important;
@@ -263,7 +305,7 @@
     box-shadow: 0 4px 15px rgba(255, 107, 157, 0.2) !important;
   }
 
-  .shiny button::before {
+  .shiny button:not(.floating-button):not(.task-checkbox):not(.task-checkbox-button):not(.swipe-button):not(.tareas-header):not(.shiny-toggle):not(.shiny-fab)::before {
     content: '' !important;
     position: absolute !important;
     top: 0 !important;
@@ -283,26 +325,18 @@
   .shiny .bg-gray-50,
   .shiny .bg-gray-100,
   .shiny .bg-gray-900 {
-    background: linear-gradient(135deg, var(--shiny-card-bg), #1e1e3f) !important;
+    background: #000000 !important; /* pure black cards */
     border: 1px solid transparent !important;
     background-clip: padding-box !important;
     position: relative !important;
-    backdrop-filter: blur(10px) !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
   }
 
   .shiny .bg-gray-50::before,
   .shiny .bg-gray-100::before,
   .shiny .bg-gray-900::before {
-    content: '' !important;
-    position: absolute !important;
-    inset: 0 !important;
-    padding: 1px !important;
-    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-blue), var(--shiny-teal)) !important;
-    background-size: 300% 300% !important;
-    animation: shiny-card 5s ease-in-out infinite !important;
-    border-radius: inherit !important;
-    z-index: -1 !important;
-    opacity: 0.6 !important;
+    content: none !important; /* disable neon overlay for pure black */
   }
 
   @keyframes shiny-card {
@@ -349,10 +383,10 @@
   }
 
   /* Elementos específicos de la app en modo shiny - Excluir componentes críticos */
-  .shiny .border-black:not(.task-border):not(.floating-border),
-  .shiny .border-white:not(.task-border):not(.floating-border),
-  .shiny .border-gray-200:not(.task-border):not(.floating-border),
-  .shiny .border-gray-700:not(.task-border):not(.floating-border) {
+  .shiny .border-black:not(.task-border):not(.floating-border):not(.tareas-header),
+  .shiny .border-white:not(.task-border):not(.floating-border):not(.tareas-header),
+  .shiny .border-gray-200:not(.task-border):not(.floating-border):not(.tareas-header),
+  .shiny .border-gray-700:not(.task-border):not(.floating-border):not(.tareas-header) {
     border-color: transparent !important;
     background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-teal)) !important;
     background-size: 300% 300% !important;
@@ -550,3 +584,564 @@
     color: var(--shiny-text) !important;
   }
 }
+
+/* ==========================
+   Shiny: Header divider, Progress bar, FAB ring + shine
+   ========================== */
+
+/* Animated rainbow divider under the page title */
+.shiny .shiny-divider-under-title {
+  height: 2px;
+  border-radius: 9999px;
+  margin: 6px auto 0;
+  max-width: 240px;
+  background: linear-gradient(90deg,
+    #ff5f6d,
+    #ffc371,
+    #47cf73,
+    #00c6ff,
+    #845ec2,
+    #ff5f6d
+  );
+  background-size: 200% 100%;
+  animation: rainbow-move 6s linear infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.shiny .shiny-divider-under-title::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.95), transparent);
+  transform: translateX(-150%);
+  animation: shine-sweep 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Progress bar track + fill with rainbow and white shine */
+.shiny .progress-track {
+  /* 9 colores con transiciones MUY suaves a lo largo de todo el ancho */
+  background: linear-gradient(90deg,
+    /* Rojo → Naranja */
+    #ff0000 0%,
+    #ff3f00 6.25%,
+    #ff7f00 12.5%,
+    /* Naranja → Amarillo */
+    #ffbf00 18.75%,
+    #ffff00 25%,
+    /* Amarillo → Verde */
+    #80ff00 31.25%,
+    #00ff00 37.5%,
+    /* Verde → Celeste */
+    #00ff80 43.75%,
+    #00ffff 50%,
+    /* Celeste → Azul */
+    #0080ff 56.25%,
+    #0000ff 62.5%,
+    /* Azul → Índigo */
+    #2600c0 68.75%,
+    #4b0082 75%,
+    /* Índigo → Violeta */
+    #6f00c0 81.25%,
+    #8b00ff 87.5%,
+    /* Violeta → Rosa */
+    #c233e6 93.75%,
+    #ff66cc 100%
+  ) !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 6px rgba(255,255,255,0.18) !important;
+}
+
+.shiny .progress-fill {
+  /* La capa de progreso ahora resalta por encima del arcoíris del track */
+  background: linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.22)) !important;
+  animation: none !important; /* el arcoíris está fijo en el track */
+  position: relative;
+  overflow: hidden;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.25)) drop-shadow(0 0 10px rgba(255,0,255,0.18)) !important;
+}
+
+.shiny .progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.98), transparent);
+  transform: translateX(-150%);
+  animation: shine-sweep 3.2s ease-in-out infinite; /* slower white light */
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* Floating Action Button: rainbow ring + white moving shine */
+.shiny .shiny-fab {
+  position: relative !important;
+  z-index: 0 !important;
+  background: #ffffff !important; /* white base in Shiny */
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important; /* let side pills protrude */
+}
+
+.shiny .shiny-fab::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -3px !important;                 /* slightly thicker ring */
+  border-radius: 9999px !important;       /* perfect circle */
+  padding: 4px !important;                /* ring width */
+  background: conic-gradient(
+    from 0deg,
+    #ff004c, /* red */
+    #ff7a00, /* orange */
+    #ffe600, /* yellow */
+    #00ff66, /* green */
+    #00c2ff, /* blue */
+    #6a00ff, /* indigo */
+    #ff00ff, /* violet */
+    #ff004c  /* wrap to red */
+  ) !important;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
+  -webkit-mask-composite: xor !important;
+          mask-composite: exclude !important;      /* show only the border */
+  animation: spin 4s linear infinite !important;   /* rotating rainbow */
+  will-change: transform !important;
+  filter: none !important;                          /* avoid violet glow */
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.shiny .shiny-fab::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 3px !important; /* match ring thickness for clean edge */
+  border-radius: inherit !important;
+  background: #ffffff !important; /* white center */
+  box-shadow: 0 0 0 1px #ffffff !important; /* ensure no color bleed */
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+
+/* Shiny: DISABLE rainbow ring on the Shiny toggle (keep it simple) */
+.shiny .shiny-toggle { border-color: #000000 !important; }
+.shiny .shiny-toggle::before { content: none !important; }
+
+/* Shiny: side multicolor pills next to the FAB (like STEEB dialog accents) */
+.shiny .shiny-fab .shiny-fab-side {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: block !important;
+  width: 50px !important;
+  height: 16px !important;
+  border-radius: 9999px !important;
+  background: linear-gradient(90deg,
+    #ff004c, /* red */
+    #ff7a00, /* orange */
+    #ffe600, /* yellow */
+    #00ff66, /* green */
+    #00c2ff, /* blue */
+    #6a00ff, /* indigo */
+    #ff00ff  /* violet */
+  ) !important;
+  background-size: 300% 100% !important;
+  animation: rainbow-move 6s linear infinite !important;
+  box-shadow: 0 2px 8px rgba(255, 0, 128, 0.25) !important;
+  pointer-events: none !important;
+  z-index: 0 !important; /* below the rainbow ring of the FAB */
+}
+.shiny .shiny-fab .shiny-fab-side::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.8), transparent) !important;
+  mix-blend-mode: screen !important;
+  animation: shine-sweep 2.8s ease-in-out infinite !important;
+  pointer-events: none !important;
+}
+.shiny .shiny-fab .shiny-left { left: -66px !important; }
+.shiny .shiny-fab .shiny-right { right: -66px !important; }
+
+/* Keyframes for rainbow motion and white shine sweep */
+@keyframes rainbow-move {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes shine-sweep {
+  0% { transform: translateX(-150%); }
+  55% { transform: translateX(150%); }
+  100% { transform: translateX(150%); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Shiny: force black background on main page wrapper */
+.shiny .shiny-page-bg {
+  background-color: #000 !important;
+}
+
+/* Shiny: TAREAS header - black background, neon animated text */
+.shiny .tareas-header {
+  border: 1px solid #000000 !important;
+  background: #000000 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  position: relative;
+}
+/* Shiny TAREAS header: disable side ring to show ONLY top & bottom neon lines */
+.shiny .tareas-header::before,
+.shiny .tareas-header::after { content: none !important; }
+.shiny .tareas-header h1 {
+  background: linear-gradient(90deg,
+    #ff005d,
+    #ff7a00,
+    #ffee00,
+    #00ff7b,
+    #00b3ff,
+    #6a00ff,
+    #ff00ff,
+    #ff005d
+  ) !important;
+  background-size: 400% 100% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  animation: rainbow-move 6s linear infinite !important;
+  display: inline-block !important;
+  will-change: background-position;
+  text-shadow:
+    0 0 6px rgba(255, 0, 255, 0.35),
+    0 0 10px rgba(0, 178, 255, 0.25),
+    0 0 14px rgba(255, 234, 0, 0.2);
+}
+
+/* Shiny: tasks list container pure black */
+.shiny .tasks-list {
+  background-color: #000000 !important;
+}
+
+/* Shiny: make the 'Ver' completed-toggle button solid black, not neon */
+.shiny .completed-toggle-btn {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: none !important;
+}
+.shiny .completed-toggle-btn::before { display: none !important; content: none !important; }
+.shiny .completed-toggle-btn:hover { background: #0a0a0a !important; }
+
+/* Shiny: task checkbox — white fill + animated multicolor border ring */
+.shiny .task-checkbox-button {
+  position: relative !important;
+  background: #ffffff !important;     /* full white center */
+  border: none !important;            /* ring is drawn via ::before */
+  box-shadow: none !important;
+  filter: none !important;
+}
+.shiny .task-checkbox-button::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -2px !important;              /* ring thickness */
+  border-radius: 9999px !important;     /* keep it circular */
+  padding: 3px !important;              /* slightly thicker ring for balance */
+  background: conic-gradient(
+    from 0deg,
+    #ff004c, /* red */
+    #ff7a00, /* orange */
+    #ffe600, /* yellow */
+    #00ff66, /* green */
+    #00c2ff, /* blue */
+    #6a00ff, /* indigo */
+    #ff00ff, /* violet */
+    #ff004c  /* wrap to red */
+  ) !important;                         /* circular rainbow */
+  animation: spin 4s linear infinite !important;          /* smooth rotation */
+  will-change: background-position !important;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
+  -webkit-mask-composite: xor !important;
+          mask-composite: exclude !important;            /* show as border only */
+  pointer-events: none !important;
+  z-index: 1 !important;                /* place ring below the white disk */
+}
+.shiny .task-checkbox-button::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 2px !important;                 /* larger white disk to fully overpaint inner edge */
+  border-radius: 9999px !important;
+  background: #ffffff !important;        /* solid white center */
+  pointer-events: none !important;
+  z-index: 2 !important;                 /* ensure it covers any inner gradient */
+  box-shadow: 0 0 0 1px #ffffff !important; /* subtle overpaint, avoids double border look */
+}
+.shiny .task-checkbox-button.completed {
+  /* Keep the same inner white center on completed */
+}
+/* No neon filters for any icons inside (future-proof) */
+.shiny .task-checkbox-button svg { filter: none !important; }
+.shiny .task-checkbox-button.completed svg { color: #000000 !important; }
+
+/* Hide any decorative divider under the header in Shiny */
+.shiny .tareas-header .shiny-divider-bottom {
+  display: none !important;
+}
+.shiny .tareas-header .shiny-divider-bottom {
+  position: absolute;
+  left: -1px; /* extend to border edge */
+  right: -1px;
+  bottom: -1px; /* sit on top of the border edge */
+  height: 2px;
+  /* Neon ROYGBIV */
+  background: linear-gradient(90deg,
+    #ff004c, /* red */
+    #ff7a00, /* orange */
+    #ffe600, /* yellow */
+    #00ff66, /* green */
+    #00c2ff, /* blue */
+    #6a00ff, /* indigo */
+    #ff00ff  /* violet */
+  );
+  background-size: 300% 100%;
+  animation: rainbow-move 6s linear infinite; /* slower */
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)) drop-shadow(0 0 10px rgba(255,0,255,0.25));
+  pointer-events: none;
+}
+/* White light sweep over the bottom neon line */
+.shiny .tareas-header .shiny-divider-bottom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+  mix-blend-mode: screen;
+  animation: shine-sweep 3s linear infinite; /* gentle sweep */
+  pointer-events: none;
+}
+
+/* Shiny: top rainbow bar for TAREAS header */
+.shiny .tareas-header .shiny-divider-top {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 2px;
+  /* Neon ROYGBIV */
+  background: linear-gradient(90deg,
+    #ff004c, /* red */
+    #ff7a00, /* orange */
+    #ffe600, /* yellow */
+    #00ff66, /* green */
+    #00c2ff, /* blue */
+    #6a00ff, /* indigo */
+    #ff00ff  /* violet */
+  );
+  background-size: 300% 100%;
+  animation: rainbow-move 6s linear infinite; /* slower */
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)) drop-shadow(0 0 10px rgba(255,0,255,0.25));
+  pointer-events: none;
+}
+/* White light sweep over the top neon line */
+.shiny .tareas-header .shiny-divider-top::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+  mix-blend-mode: screen;
+  animation: shine-sweep 3s linear infinite; /* gentle sweep */
+  pointer-events: none;
+}
+
+/* Shiny: neon multicolor glow for task shapes */
+.shiny .task-shape-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.shiny .task-shape-wrapper::before { content: ""; position: absolute; inset: 1px; border-radius: 3px; display: none; }
+.shiny .task-shape-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 3px;
+  pointer-events: none;
+  display: none;
+}
+.shiny .task-shape-border .task-shape-wrapper > svg {
+  position: relative;
+  z-index: 2; /* keep icon above glow and sweep */
+  fill: black !important; /* black shapes */
+}
+.shiny .task-shape-border .task-shape-wrapper > div {
+  position: relative;
+  z-index: 2; /* keep icon above glow and sweep */
+  background-color: black !important; /* black shapes */
+}
+
+/* Shiny: boost opacity of shape-following neon stroke */
+.shiny .has-neon-stroke .neon-stroke {
+  opacity: 0.9; /* brighter stroke */
+}
+
+/* (removed) side-rainbow-move keyframes no longer needed */
+
+/* Shiny: animated rainbow border wrapper for task icons */
+.shiny .task-shape-border {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.shiny .task-shape-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px; /* border thickness */
+  border-radius: inherit;
+  padding: 2px; /* ring thickness */
+  background: conic-gradient(
+    from 0deg,
+    #ffffff, /* white */
+    #ffffff  /* white */
+  ) !important;                         /* white border */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude; /* show as border only */
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.25));
+}
+.shiny .task-shape-border::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+  opacity: 0.5; /* gentle white sweep */
+  mix-blend-mode: screen;
+  animation: shine-sweep 3.2s ease-in-out infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Shiny: STEEB speech bubble with animated border and white shine */
+.shiny .steeb-bubble {
+  background: #000 !important;
+  color: #fff !important;
+  position: relative;
+}
+.shiny .steeb-bubble > *,
+.shiny .steeb-bubble div,
+.shiny .steeb-bubble p,
+.shiny .steeb-bubble span {
+  background-color: transparent !important; /* let black container show */
+  color: #fff !important;
+}
+.shiny .steeb-bubble::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  padding: 2px; /* thicker neon ring */
+  background: linear-gradient(90deg,
+    #ff004c, /* red */
+    #ff7a00, /* orange */
+    #ffe600, /* yellow */
+    #00ff66, /* green */
+    #00c2ff, /* blue */
+    #6a00ff, /* indigo */
+    #ff00ff  /* violet */
+  );
+  background-size: 300% 100%;
+  animation: rainbow-move 4.5s linear infinite; /* faster sweep */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.35)) drop-shadow(0 0 12px rgba(255,0,255,0.25));
+}
+.shiny .steeb-bubble::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  opacity: 0.8; /* brighter white sweep */
+  mix-blend-mode: screen;
+  animation: shine-sweep 2.2s linear infinite; /* slightly faster */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Dark mode: apply the same neon bubble without requiring a .shiny parent */
+.dark .steeb-bubble {
+  background: #000 !important;
+  color: #fff !important;
+  position: relative;
+}
+.dark .steeb-bubble div,
+.dark .steeb-bubble p {
+  color: #fff !important;
+}
+.dark .steeb-bubble::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  padding: 2px; /* thicker neon ring */
+  background: linear-gradient(90deg,
+    #ff004c, /* red */
+    #ff7a00, /* orange */
+    #ffe600, /* yellow */
+    #00ff66, /* green */
+    #00c2ff, /* blue */
+    #6a00ff, /* indigo */
+    #ff00ff  /* violet */
+  );
+  background-size: 300% 100%;
+  animation: rainbow-move 4.5s linear infinite; /* faster sweep */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.35)) drop-shadow(0 0 12px rgba(255,0,255,0.25));
+}
+.dark .steeb-bubble::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  opacity: 0.8; /* brighter white sweep */
+  mix-blend-mode: screen;
+  animation: shine-sweep 2.2s linear infinite; /* slightly faster */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Black/Dark version: solid white border, no rainbow */
+.dark .steeb-bubble {
+  display: block !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 12px !important;
+}
+.dark .steeb-bubble::before,
+.dark .steeb-bubble::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Force SVG icons in Shiny FAB to be black for contrast */
+.shiny .shiny-fab svg { fill: black !important; }
