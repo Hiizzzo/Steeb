@@ -206,12 +206,16 @@ export const useTaskStore = create<TaskStore>()(
         },
 
         addTask: async (taskData) => {
+          console.log('🏪 Store: addTask llamado con:', taskData);
+          
           // Validar que el título no esté vacío
           if (!taskData.title || !taskData.title.trim()) {
-            console.warn(' Intento de crear tarea con título vacío bloqueado en el store');
+            console.warn('❌ Store: Intento de crear tarea con título vacío bloqueado en el store');
             set({ error: 'El título de la tarea no puede estar vacío' });
             return;
           }
+          
+          console.log('✅ Store: Título válido, creando tarea...');
 
           try {
             // Crear nueva tarea directamente en localStorage

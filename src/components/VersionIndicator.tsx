@@ -6,7 +6,7 @@ interface VersionIndicatorProps {
 }
 
 const VersionIndicator: React.FC<VersionIndicatorProps> = ({ 
-  version = "0.96", 
+  version = "8.5", 
   className = "" 
 }) => {
   return (

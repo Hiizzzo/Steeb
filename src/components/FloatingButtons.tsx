@@ -4,7 +4,7 @@ import { Plus, Calendar, Settings, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCreationCard from './TaskCreationCard';
 import type { RecurrenceRule } from '@/types';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from 'next-themes';
 
 interface FloatingButtonsProps {
   onAddTask: () => void;
@@ -13,7 +13,7 @@ interface FloatingButtonsProps {
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTask }) => {
   const navigate = useNavigate();
-  const { currentTheme } = useTheme();
+  const { theme } = useTheme();
   const [shinyEnabled, setShinyEnabled] = useState<boolean>(false);
   const [isLongPressed, setIsLongPressed] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -32,7 +32,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     e.stopPropagation();
 
     // Usar tema real para elegir variante
-    const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark');
+    const isDark = theme === 'dark' || document.documentElement.classList.contains('dark');
     setMenuVariant(isDark ? 'dark' : 'light');
 
     hasLongPressTriggered.current = false;

@@ -389,10 +389,11 @@ const Index = () => {
 
   const handleAddTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, recurrence?: RecurrenceRule, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
     console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes, isPrimary });
+    console.log('🔍 Index.tsx: Detalles del título:', { titleOriginal: title, titleLength: title?.length, titleTrimmed: title?.trim(), titleTrimmedLength: title?.trim()?.length });
     
     // Validar que el título no esté vacío
     if (!title.trim()) {
-      console.log('❌ Index.tsx: Título vacío detectado');
+      console.log('❌ Index.tsx: Título vacío detectado - bloqueando creación');
       toast({
         title: "Error",
         description: "El título de la tarea no puede estar vacío.",
@@ -400,6 +401,8 @@ const Index = () => {
       });
       return;
     }
+    
+    console.log('✅ Index.tsx: Título válido, continuando con la creación...');
 
     if (selectedTask) {
       // Estamos editando una tarea existente
