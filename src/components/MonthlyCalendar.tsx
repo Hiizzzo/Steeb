@@ -6,26 +6,8 @@ import { useTaskStore } from '@/store/useTaskStore';
 import ShapeIcon from './ShapeIcon';
 import TaskCreationCard from './TaskCreationCard';
 // import CompactStats from './CompactStats';  // Component not found
-import type { RecurrenceRule } from '@/types';
+import type { RecurrenceRule, Task, SubTask } from '@/types';
 
-interface SubTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
-  completed: boolean;
-  subtasks?: SubTask[];
-  scheduledDate?: string;
-  scheduledTime?: string;
-  completedDate?: string;
-  notes?: string;
-  recurrence?: RecurrenceRule;
-}
 
 interface MonthlyCalendarProps {
   tasks?: Task[];
@@ -639,8 +621,10 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                       setShowEditModal(false);
                       setEditingTask(null);
                     }}
-                    onCreate={handleEditTask}
-                    editingTask={editingTask}
+                    onCreate={(title, type, subtasks, scheduledDate, scheduledTime, notes, _isPrimary, recurrence) =>
+                      handleEditTask(title, type as any, subtasks, scheduledDate, scheduledTime, notes, false, recurrence)
+                    }
+                    editingTask={editingTask as any}
                   />
                 </motion.div>
               </motion.div>
@@ -875,8 +859,10 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     setShowEditModal(false);
                     setEditingTask(null);
                   }}
-                  onCreate={handleEditTask}
-                  editingTask={editingTask}
+                  onCreate={(title, type, subtasks, scheduledDate, scheduledTime, notes, _isPrimary, recurrence) =>
+                    handleEditTask(title, type as any, subtasks, scheduledDate, scheduledTime, notes, false, recurrence)
+                  }
+                  editingTask={editingTask as any}
                 />
               </motion.div>
             </motion.div>

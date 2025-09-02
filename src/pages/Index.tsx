@@ -22,29 +22,8 @@ import TaskCreationCard from '@/components/TaskCreationCard';
 import DailyTaskReminderModal from '@/components/DailyTaskReminderModal';
 import MonthlyCalendar from '@/components/MonthlyCalendar';
 import ShapeIcon from '@/components/ShapeIcon';
-import type { RecurrenceRule } from '@/types';
+import type { RecurrenceRule, Task, SubTask } from '@/types';
 
-interface SubTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
-  subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra';
-  completed: boolean;
-  subtasks?: SubTask[];
-  scheduledDate?: string;
-  scheduledTime?: string;
-  completedDate?: string;
-  notes?: string; // Notas adicionales de la tarea
-  tags?: string[];
-  recurrence?: RecurrenceRule;
-  updatedAt?: string;
-}
 
 // 9-color Shiny rainbow palette (bottom→top: red → orange → yellow → yellow-green → green → cyan → blue-violet → purple → magenta)
 // Colors chosen to stay consistent with Shiny spectrum while giving 9 distinct steps
@@ -836,8 +815,10 @@ const Index = () => {
               setShowModal(false);
               setSelectedTask(null);
             }}
-            onCreate={handleAddTask}
-            editingTask={selectedTask}
+            onCreate={(title, type, subtasks, scheduledDate, scheduledTime, notes, isPrimary, recurrence) =>
+              handleAddTask(title, type as any, subtasks, scheduledDate, scheduledTime, notes, isPrimary, recurrence)
+            }
+            editingTask={selectedTask as any}
           />
         )}
       </AnimatePresence>

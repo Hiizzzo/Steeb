@@ -5,37 +5,19 @@ import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Clock, Pointer, Repeat } from 'lucide-react';
 import ShapeIcon from "./ShapeIcon";
 
-import type { RecurrenceRule, RecurrenceFrequency } from '@/types';
+import type { RecurrenceRule, RecurrenceFrequency, Task as AppTask, SubTask } from '@/types';
 
 // Íconos simples para los tipos de tarea
 const PersonalIcon = () => <div className="w-4 h-4 bg-black rounded-full"></div>;
 const WorkIcon = () => <div className="w-4 h-4 bg-black rounded-sm"></div>;
 const MeditationIcon = () => <div className="w-4 h-4 bg-black rounded-full border-2 border-white"></div>;
 
-interface SubTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  type: 'productividad' | 'social' | 'salud';
-  completed: boolean;
-  subtasks?: SubTask[];
-  scheduledDate?: string;
-  scheduledTime?: string;
-  notes?: string;
-  tags?: string[];
-  recurrence?: RecurrenceRule;
-}
 
 interface TaskCreationCardProps {
   onCancel: () => void;
   onCreate: (
     title: string,
-    type: 'productividad' | 'social' | 'salud',
+    type: AppTask['type'],
     subtasks?: SubTask[],
     scheduledDate?: string,
     scheduledTime?: string,
@@ -43,7 +25,7 @@ interface TaskCreationCardProps {
     isPrimary?: boolean,
     recurrence?: RecurrenceRule
   ) => void;
-  editingTask?: Task | null;
+  editingTask?: AppTask | null;
 }
 
 const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate, editingTask }) => {
@@ -52,7 +34,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedTag, setSelectedTag] = useState<'productividad' | 'social' | 'salud'>('productividad');
+  const [selectedTag, setSelectedTag] = useState<AppTask['type']>('productividad');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);
@@ -159,16 +141,17 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     }
   };
 
-  const getTagLabel = (tag: 'productividad' | 'social' | 'salud') => {
+  const getTagLabel = (tag: AppTask['type']) => {
     switch (tag) {
       case 'productividad': return 'Trabajo';
       case 'salud': return 'Salud';
       case 'social': return 'Social';
+      default: return tag;
     }
   };
 
   // Formas geométricas por tag con tamaños fijos (evita variaciones por fuentes)
-  const getTagIcon = (tag: 'productividad' | 'social' | 'salud', isSelected = false) => {
+  const getTagIcon = (tag: AppTask['type'], isSelected = false) => {
     const wrap = (node: React.ReactNode) => (
       <span className="inline-grid place-items-center w-7 h-7 mr-1 shrink-0" style={{ width: 28, height: 28 }}>
         {node}
@@ -207,6 +190,15 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           <path fill="currentColor" d="M12 3l9 18H3l9-18z"/>
         </svg>
       );
+      default:
+        return wrap(
+          <span
+            title={tag}
+            aria-label={tag}
+            className="block rounded-full outline outline-2"
+            style={{ width: 20, height: 20, backgroundColor: bgColor, outlineColor }}
+          />
+        );
     }
   };
 
