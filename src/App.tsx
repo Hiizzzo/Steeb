@@ -13,6 +13,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
 import ThemeToggle from "./components/ThemeToggle";
 import AuthScreen from "./components/AuthScreen";
+import { NetworkStatus } from "./components/NetworkStatus";
 import { useAuth } from "./hooks/useAuth";
 import { useTextSize } from "./hooks/useTextSize";
 import { initializeRecurrenceManager } from "./utils/recurrenceManager";
@@ -51,6 +52,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <ThemeToggle />
+      <NetworkStatus />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />

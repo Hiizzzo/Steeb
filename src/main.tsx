@@ -5,6 +5,14 @@ import App from './App.tsx';
 import './index.css';
 import { registerServiceWorker } from './registerServiceWorker';
 import { ThemeProvider } from "next-themes";
+import { setupDevelopmentErrorHandling } from './lib/errorHandler';
+import { firebaseErrorHandler } from './lib/firebaseErrorHandler';
+
+// Setup development error handling
+setupDevelopmentErrorHandling();
+
+// Initialize Firebase error handler
+firebaseErrorHandler.logDevelopmentInfo();
 
 // Registramos el service worker
 registerServiceWorker();

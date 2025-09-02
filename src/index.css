@@ -791,9 +791,10 @@
 .shiny .shiny-fab .shiny-left { left: -66px !important; }
 .shiny .shiny-fab .shiny-right { right: -66px !important; }
 
-/* Keyframes for rainbow motion and white shine sweep */
+/* Keyframes for elegant multicolor motion and white shine sweep */
 @keyframes rainbow-move {
   0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
   100% { background-position: 200% 50%; }
 }
 
@@ -1083,7 +1084,7 @@
 
 /* (removed) side-rainbow-move keyframes no longer needed */
 
-/* Shiny: animated rainbow border wrapper for task icons */
+/* Shiny: animated multicolor border wrapper for task icons */
 .shiny .task-shape-border {
   position: relative !important;
   display: inline-flex !important;
@@ -1097,25 +1098,25 @@
   border-radius: inherit;
   padding: 2px; /* ring thickness */
   background: linear-gradient(90deg,
-    #ff0000, /* red */
-    #ff7f00, /* orange */
-    #ffff00, /* yellow */
-    #00ff00, /* green */
-    #00ffff, /* cyan */
-    #0000ff, /* blue */
-    #4b0082, /* indigo */
-    #8b00ff, /* violet */
-    #ff66cc  /* pink */
+    #6366f1, /* indigo */
+    #8b5cf6, /* violet */
+    #a855f7, /* purple */
+    #d946ef, /* fuchsia */
+    #ec4899, /* pink */
+    #f97316, /* orange */
+    #eab308, /* yellow */
+    #22c55e, /* green */
+    #06b6d4  /* cyan */
   );
   background-size: 300% 100%;
-  animation: rainbow-move 7s linear infinite; /* subtle continuous left->right */
+  animation: rainbow-move 8s ease-in-out infinite; /* smoother motion */
   will-change: background-position !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude; /* show as border only */
   pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(255,255,255,0.25));
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
 }
 .shiny .task-shape-border::after {
   content: "";
@@ -1158,24 +1159,26 @@
   position: absolute;
   inset: -2px;
   border-radius: 12px;
-  padding: 2px; /* thicker neon ring */
-  background: linear-gradient(90deg,
-    #ff004c, /* red */
-    #ff7a00, /* orange */
-    #ffe600, /* yellow */
-    #00ff66, /* green */
-    #00c2ff, /* blue */
-    #6a00ff, /* indigo */
-    #ff00ff  /* violet */
+  padding: 2px; /* thicker elegant ring */
+  background: linear-gradient(135deg,
+    #3b82f6, /* blue */
+    #6366f1, /* indigo */
+    #8b5cf6, /* violet */
+    #a855f7, /* purple */
+    #d946ef, /* fuchsia */
+    #ec4899, /* pink */
+    #f59e0b, /* amber */
+    #10b981, /* emerald */
+    #06b6d4  /* cyan */
   );
-  background-size: 300% 100%;
-  animation: rainbow-move 4.5s linear infinite; /* faster sweep */
+  background-size: 400% 400%;
+  animation: rainbow-move 6s ease-in-out infinite; /* elegant sweep */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   pointer-events: none;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.35)) drop-shadow(0 0 12px rgba(255,0,255,0.25));
+  filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 15px rgba(168, 85, 247, 0.3));
 }
 .shiny .steeb-bubble::after {
   content: "";
@@ -1208,24 +1211,26 @@
   position: absolute;
   inset: -2px;
   border-radius: 12px;
-  padding: 2px; /* thicker neon ring */
-  background: linear-gradient(90deg,
-    #ff004c, /* red */
-    #ff7a00, /* orange */
-    #ffe600, /* yellow */
-    #00ff66, /* green */
-    #00c2ff, /* blue */
-    #6a00ff, /* indigo */
-    #ff00ff  /* violet */
+  padding: 2px; /* thicker elegant ring */
+  background: linear-gradient(135deg,
+    #3b82f6, /* blue */
+    #6366f1, /* indigo */
+    #8b5cf6, /* violet */
+    #a855f7, /* purple */
+    #d946ef, /* fuchsia */
+    #ec4899, /* pink */
+    #f59e0b, /* amber */
+    #10b981, /* emerald */
+    #06b6d4  /* cyan */
   );
-  background-size: 300% 100%;
-  animation: rainbow-move 4.5s linear infinite; /* faster sweep */
+  background-size: 400% 400%;
+  animation: rainbow-move 6s ease-in-out infinite; /* elegant sweep */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   pointer-events: none;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.35)) drop-shadow(0 0 12px rgba(255,0,255,0.25));
+  filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 15px rgba(168, 85, 247, 0.3));
 }
 .dark .steeb-bubble::after {
   content: "";

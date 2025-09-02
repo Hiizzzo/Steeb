@@ -45,6 +45,12 @@ const LoadingScreen: React.FC = () => {
           STEEB
         </h1>
         
+        {/* Versión */}
+        <div className={`text-lg font-medium mt-2 ${isDark ? 'text-white/80' : 'text-black/80'}`}
+             style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          0.96
+        </div>
+        
         {/* Puntos animados */}
         <div className="flex justify-center items-center space-x-3 mt-6">
           <div 
