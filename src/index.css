@@ -221,8 +221,8 @@
 
   /* stylelint-disable at-rule-no-unknown */
   /* Dark mode overrides for common utility classes without changing component code */
-  .dark .bg-white:not(.task-checkbox-button) { @apply bg-black; }
-  .dark .text-black { @apply text-white; }
+  .dark .bg-white:not(.task-checkbox-button):not(.task-creation-modal):not(.task-creation-modal *) { @apply bg-black; }
+  .dark .text-black:not(.task-creation-modal):not(.task-creation-modal *) { @apply text-white; }
   .dark .border-gray-200 { @apply border-gray-700; }
   .dark .text-gray-900 { @apply text-gray-100; }
   .dark .text-gray-800 { @apply text-gray-200; }

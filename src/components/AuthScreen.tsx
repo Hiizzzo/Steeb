@@ -5,9 +5,10 @@ import { useAuth } from '../hooks/useAuth';
 
 interface AuthScreenProps {
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
-const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
+const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
   const { user, login, loginWithGoogle, register, updateProfile, hasPasswordProvider, linkEmailPassword, resendEmailVerification } = useAuth();
   const [mode, setMode] = useState<'welcome' | 'login' | 'register' | 'onboarding'>(() => {
     // Si ya hay usuario autenticado y faltan datos, arrancar en onboarding
@@ -225,6 +226,16 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete }) => {
             >
               Crear Cuenta
             </button>
+            
+            {/* Botón Skip */}
+            {onSkip && (
+              <button
+                onClick={onSkip}
+                className="w-full text-gray-500 dark:text-gray-400 py-2 text-sm hover:text-gray-700 dark:hover:text-gray-200 transition-colors mt-4"
+              >
+                Skip
+              </button>
+            )}
           </div>
         </motion.div>
       </div>

@@ -1,7 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 
-const LoadingScreen: React.FC = () => {
+interface LoadingScreenProps {
+  onSkip?: () => void;
+}
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -84,6 +88,20 @@ const LoadingScreen: React.FC = () => {
             }}
           ></div>
         </div>
+        
+        {/* Botón Skip */}
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 ${
+              isDark 
+                ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20' 
+                : 'bg-black/10 text-black border border-black/20 hover:bg-black/20'
+            }`}
+          >
+            Skip
+          </button>
+        )}
       </div>
     </div>
   );

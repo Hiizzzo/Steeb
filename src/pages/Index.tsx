@@ -58,15 +58,6 @@ const TYPE_ORDER: Array<Task['type']> = [
 ];
 
 const Index = () => {
-  // Random phrases for when there are no tasks
-  const getRandomNoTasksPhrase = () => {
-    const phrases = [
-      "¿Un día libre? Te envidio…",
-      "Ni una tarea. O estás a punto de procrastinar, o estás en paz.",
-      "Steeb dice: eso no suena a productividad, eh…"
-    ];
-    return phrases[Math.floor(Math.random() * phrases.length)];
-  };
 
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -137,56 +128,64 @@ const Index = () => {
     finishRowSwipe(id);
   };
 
-  const renderSwipeRow = (task: Task, color?: string) => (
-    <div key={task.id} className="relative">
-      {/* Fondo con tacho visible durante swipe */}
-      <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-4 transition-opacity duration-150 ${ (rowOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
-        <Trash2 className="w-5 h-5" />
-      </div>
-
-      <div className="flex items-center gap-3 px-1.5 py-2">
-        <div
-          className="flex items-center gap-3 flex-1"
-          style={{
-            transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
-            transition: 'transform 150ms ease-out',
-            touchAction: 'pan-y',
-            userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
-            willChange: 'transform',
-          }}
-          onPointerDown={onRowPointerDown(task.id)}
-          onPointerMove={onRowPointerMove(task.id)}
-          onPointerUp={onRowPointerUp(task.id)}
-          onPointerCancel={onRowPointerUp(task.id)}
-          onContextMenu={(e) => e.preventDefault()}
-        >
-          {renderShapeForType(getGroupKey(task), color)}
-          <div className="flex-1 min-w-0">
-            <p className={`task-title text-[18px] ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
-            <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
-          </div>
+  const renderSwipeRow = (task: Task, color?: string) => {
+    // Validación de seguridad para evitar errores de renderizado
+    if (!task || !task.id || !task.title) {
+      console.warn('⚠️ Tarea inválida en renderSwipeRow:', task);
+      return null;
+    }
+    
+    return (
+      <div key={task.id} className="relative">
+        {/* Fondo con tacho visible durante swipe */}
+        <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-4 transition-opacity duration-150 ${ (rowOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
+          <Trash2 className="w-5 h-5" />
         </div>
-        
-        {/* Checkbox FUERA del área de swipe */}
-        <button
-          onClick={() => {
-            console.log('CHECKBOX CLICKED!', task.id);
-            handleToggleTask(task.id);
-          }}
-          className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
-          style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
-        >
-          {task.completed && (
-            <Check 
-              size={14} 
-              className="text-white dark:!text-black" 
-              strokeWidth={3}
-            />
-          )}
-        </button>
+
+        <div className="flex items-center gap-3 px-1.5 py-2">
+          <div
+            className="flex items-center gap-3 flex-1"
+            style={{
+              transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
+              transition: 'transform 150ms ease-out',
+              touchAction: 'pan-y',
+              userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
+              willChange: 'transform',
+            }}
+            onPointerDown={onRowPointerDown(task.id)}
+            onPointerMove={onRowPointerMove(task.id)}
+            onPointerUp={onRowPointerUp(task.id)}
+            onPointerCancel={onRowPointerUp(task.id)}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            {renderShapeForType(getGroupKey(task), color)}
+            <div className="flex-1 min-w-0">
+              <p className={`task-title text-[18px] ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
+              <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+            </div>
+          </div>
+          
+          {/* Checkbox FUERA del área de swipe */}
+          <button
+            onClick={() => {
+              console.log('CHECKBOX CLICKED!', task.id);
+              handleToggleTask(task.id);
+            }}
+            className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+            style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
+          >
+            {task.completed && (
+              <Check 
+                size={14} 
+                className="text-white dark:!text-black" 
+                strokeWidth={3}
+              />
+            )}
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Premium/Shiny features removed
   
@@ -245,14 +244,21 @@ const Index = () => {
 
   // El hook useTaskPersistence maneja automáticamente la carga y guardado
 
-  // Limpiar tareas con títulos vacíos al cargar
+  // Limpiar tareas con títulos vacíos al cargar (con debounce para evitar loops)
   useEffect(() => {
-    const tasksWithEmptyTitles = tasks.filter(task => !task.title || !task.title.trim());
-    if (tasksWithEmptyTitles.length > 0) {
-      const cleanedTasks = tasks.filter(task => task.title && task.title.trim());
-      updateTasks(cleanedTasks);
-      console.log(`🧹 Eliminadas ${tasksWithEmptyTitles.length} tareas con títulos vacíos`);
-    }
+    const timeoutId = setTimeout(() => {
+      const tasksWithEmptyTitles = tasks.filter(task => !task.title || !task.title.trim() || !task.id);
+      if (tasksWithEmptyTitles.length > 0) {
+        console.log(`🧹 Encontradas ${tasksWithEmptyTitles.length} tareas inválidas para limpiar`);
+        const cleanedTasks = tasks.filter(task => task.title && task.title.trim() && task.id);
+        if (cleanedTasks.length !== tasks.length) {
+          updateTasks(cleanedTasks);
+          console.log(`🧹 Eliminadas ${tasksWithEmptyTitles.length} tareas inválidas`);
+        }
+      }
+    }, 500); // Debounce de 500ms para evitar múltiples ejecuciones
+    
+    return () => clearTimeout(timeoutId);
   }, [tasks.length]); // Solo ejecutar cuando cambie el número de tareas
 
   // Verificar si hay una fecha seleccionada del calendario
@@ -375,25 +381,38 @@ const Index = () => {
   };
 
   const handleDeleteTask = (id: string) => {
-    const taskToDelete = tasks.find(t => t.id === id);
-    if (taskToDelete) {
-      const updatedTasks = tasks.filter(task => task.id !== id);
-      updateTasks(updatedTasks);
-      // Persistencia automática manejada por useTaskPersistence
+    try {
+      const taskToDelete = tasks.find(t => t.id === id);
+      if (!taskToDelete) {
+        console.warn('⚠️ Tarea no encontrada para eliminar:', id);
+        return;
+      }
+      
+      console.log('🗑️ Eliminando tarea:', taskToDelete.title);
+      
+      // Usar la función del store que es más robusta
+      deleteTask(id);
+      
       toast({
-        title: "Task deleted",
-        description: `"${taskToDelete.title}" has been removed from your list.`,
+        title: "Tarea eliminada",
+        description: `"${taskToDelete.title}" ha sido eliminada de tu lista.`,
+      });
+    } catch (error) {
+      console.error('❌ Error al eliminar tarea:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la tarea. Inténtalo de nuevo.",
+        variant: "destructive",
       });
     }
   };
 
   const handleAddTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, recurrence?: RecurrenceRule, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
     console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes, isPrimary });
-    console.log('🔍 Index.tsx: Detalles del título:', { titleOriginal: title, titleLength: title?.length, titleTrimmed: title?.trim(), titleTrimmedLength: title?.trim()?.length });
     
     // Validar que el título no esté vacío
     if (!title.trim()) {
-      console.log('❌ Index.tsx: Título vacío detectado - bloqueando creación');
+      console.log('❌ Index.tsx: Título vacío detectado');
       toast({
         title: "Error",
         description: "El título de la tarea no puede estar vacío.",
@@ -401,8 +420,6 @@ const Index = () => {
       });
       return;
     }
-    
-    console.log('✅ Index.tsx: Título válido, continuando con la creación...');
 
     if (selectedTask) {
       // Estamos editando una tarea existente
@@ -483,33 +500,33 @@ const Index = () => {
     setShowModal(true);
   };
 
-  // Helper: formas por tipo
-  const renderShapeForType = (type: Task['type'], color?: string) => {
-    // Detectar el tema actual de forma reactiva
-    const [theme, setTheme] = useState(() => {
+  // Estado para detectar el tema actual
+  const [theme, setTheme] = useState(() => {
+    const isShiny = document.documentElement.classList.contains('shiny');
+    const isDark = document.documentElement.classList.contains('dark');
+    return { isShiny, isDark };
+  });
+  
+  // Actualizar tema cuando cambie
+  useEffect(() => {
+    const updateTheme = () => {
       const isShiny = document.documentElement.classList.contains('shiny');
       const isDark = document.documentElement.classList.contains('dark');
-      return { isShiny, isDark };
+      setTheme({ isShiny, isDark });
+    };
+    
+    // Observar cambios en las clases del documento
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
     });
     
-    // Actualizar tema cuando cambie
-    useEffect(() => {
-      const updateTheme = () => {
-        const isShiny = document.documentElement.classList.contains('shiny');
-        const isDark = document.documentElement.classList.contains('dark');
-        setTheme({ isShiny, isDark });
-      };
-      
-      // Observar cambios en las clases del documento
-      const observer = new MutationObserver(updateTheme);
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class']
-      });
-      
-      return () => observer.disconnect();
-    }, []);
-    
+    return () => observer.disconnect();
+  }, []);
+
+  // Helper: formas por tipo
+  const renderShapeForType = (type: Task['type'], color?: string) => {
     // Determinar el color según el tema
     let shapeColor: string;
     if (theme.isShiny) {
@@ -538,13 +555,24 @@ const Index = () => {
 
   // Filter tasks for today and overdue
   const today = new Date().toISOString().split('T')[0];
-  const todaysTasks = tasks.filter(task => {
-    // Filtrar tareas con títulos vacíos o solo espacios en blanco
-    if (!task.title || !task.title.trim()) return false;
-    
-    if (!task.scheduledDate) return true; // Show tasks without date as today's
-    return task.scheduledDate <= today;
-  });
+  const todaysTasks = useMemo(() => {
+    return tasks.filter(task => {
+      // Filtrar tareas con títulos vacíos o solo espacios en blanco
+      if (!task.title || !task.title.trim()) {
+        console.warn('⚠️ Tarea con título vacío encontrada:', task.id);
+        return false;
+      }
+      
+      // Verificar que la tarea tenga un ID válido
+      if (!task.id) {
+        console.warn('⚠️ Tarea sin ID encontrada:', task);
+        return false;
+      }
+      
+      if (!task.scheduledDate) return true; // Show tasks without date as today's
+      return task.scheduledDate <= today;
+    });
+  }, [tasks, today]);
 
   // Debug: Log filtered tasks
   useEffect(() => {
@@ -724,16 +752,7 @@ const Index = () => {
                   });
                 })()}
               </>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">
-                  {getRandomNoTasksPhrase()}
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Debug: {tasks.length} tareas total, {todaysTasks.length} de hoy, {pendingTodaysTasks.length} pendientes
-                </p>
-              </div>
-            )}
+            ) : null}
 
             {/* Sección de tareas completadas */}
             {(completedToday.length > 0) && (
@@ -854,10 +873,10 @@ const Index = () => {
       <AppUpdateNotification
         isServiceWorkerReady={isServiceWorkerReady}
         triggerBackup={triggerBackup}
-                  exportTasks={() => {
-            // Función placeholder para exportar tareas
-            console.log('Exportar tareas');
-          }}
+        exportTasks={() => {
+          // Función placeholder para exportar tareas
+          console.log('Exportar tareas');
+        }}
       />
 
       {/* Modal de recordatorio diario */}

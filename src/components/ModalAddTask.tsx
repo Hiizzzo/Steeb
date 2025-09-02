@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { useTheme } from '@/hooks/useTheme';
 
 import { dailyTasks, DailyTask } from '@/data/dailyTasks';
 
@@ -47,6 +48,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [subtasks, setSubtasks] = useState<string[]>(['']);
   const { toast } = useToast();
+  const { isDark } = useTheme();
   const [isAddingDaily, setIsAddingDaily] = useState(false);
   const [currentTasks, setCurrentTasks] = useState<DailyTask[]>(dailyTasks);
 
@@ -219,20 +221,32 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-gray-100 w-full sm:max-w-lg h-[90vh] sm:h-[80vh] sm:max-h-[700px] sm:rounded-2xl flex flex-col modal-add-task">
+      <div className={cn(
+        "w-full sm:max-w-lg h-[90vh] sm:h-[80vh] sm:max-h-[700px] sm:rounded-2xl flex flex-col modal-add-task",
+        isDark ? "bg-gray-800" : "bg-gray-100"
+      )}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 bg-gray-200/80 backdrop-blur-sm sm:rounded-t-2xl">
+        <div className={cn(
+          "flex items-center justify-between px-4 py-4 backdrop-blur-sm sm:rounded-t-2xl",
+          isDark ? "bg-gray-700/80" : "bg-gray-200/80"
+        )}>
           <button
             onClick={() => {
               resetForm();
               onClose();
             }}
-            className="text-black text-lg"
+            className={cn(
+              "text-lg",
+              isDark ? "text-white" : "text-black"
+            )}
             style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
           >
             Cancelar
           </button>
-          <h2 className="text-lg font-semibold text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+          <h2 className={cn(
+            "text-lg font-semibold",
+            isDark ? "text-white" : "text-black"
+          )} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
             {editingTask ? 'Editar' : 'Nuevo'}
           </h2>
           <button
@@ -240,7 +254,13 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
             disabled={!title.trim()}
             className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-              title.trim() ? "bg-black text-white hover:bg-gray-800" : "bg-gray-200 text-gray-400"
+              title.trim() 
+                ? isDark 
+                  ? "bg-white text-black hover:bg-gray-200" 
+                  : "bg-black text-white hover:bg-gray-800"
+                : isDark
+                  ? "bg-gray-600 text-gray-400"
+                  : "bg-gray-200 text-gray-400"
             )}
           >
             {editingTask ? <Save size={18} /> : <Plus size={18} />}
@@ -248,13 +268,22 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-white">
+        <div className={cn(
+          "flex-1 overflow-y-auto",
+          isDark ? "bg-gray-800" : "bg-white"
+        )}>
           {/* Botón de tareas diarias de Steve */}
-          <div className="px-4 py-4 border-b border-gray-200">
+          <div className={cn(
+            "px-4 py-4 border-b",
+            isDark ? "border-gray-600" : "border-gray-200"
+          )}>
             <button
               onClick={handleAddDailyTasks}
               disabled={isAddingDaily}
-              className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none"
+              className={cn(
+                "w-full font-semibold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 steve-shadow disabled:opacity-50 disabled:transform-none",
+                isDark ? "bg-white text-black hover:bg-gray-200" : "bg-black hover:bg-gray-800 text-white"
+              )}
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
             >
               <div className="flex items-center justify-center space-x-2">
@@ -273,7 +302,10 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
             
             {!isAddingDaily && (
               <div className="text-center mt-2">
-                <p className="text-sm text-gray-600">
+                <p className={cn(
+                  "text-sm",
+                  isDark ? "text-gray-300" : "text-gray-600"
+                )}>
                   {currentTasks.length} tareas diarias inteligentes
                 </p>
               </div>
@@ -281,40 +313,61 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
           </div>
 
           {/* Title Input */}
-          <div className="px-4 py-4 border-b border-gray-200">
+          <div className={cn(
+            "px-4 py-4 border-b",
+            isDark ? "border-gray-600" : "border-gray-200"
+          )}>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título"
-              className="w-full text-xl placeholder-gray-400 focus:outline-none bg-transparent cursor-visible"
+              className={cn(
+                "w-full text-xl focus:outline-none bg-transparent cursor-visible",
+                isDark ? "text-white placeholder-gray-400" : "text-black placeholder-gray-400"
+              )}
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
               autoFocus
             />
           </div>
 
           {/* Notes */}
-          <div className="px-4 py-4 border-b border-gray-200">
+          <div className={cn(
+            "px-4 py-4 border-b",
+            isDark ? "border-gray-600" : "border-gray-200"
+          )}>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas"
-              className="w-full text-sm placeholder-gray-400 focus:outline-none bg-transparent cursor-visible"
+              className={cn(
+                "w-full text-sm focus:outline-none bg-transparent cursor-visible",
+                isDark ? "text-white placeholder-gray-400" : "text-black placeholder-gray-400"
+              )}
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
             />
           </div>
 
           {/* Subtasks */}
-          <div className="px-4 py-4 border-b border-gray-200">
+          <div className={cn(
+            "px-4 py-4 border-b",
+            isDark ? "border-gray-600" : "border-gray-200"
+          )}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-lg text-gray-600" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+              <span className={cn(
+                "text-lg",
+                isDark ? "text-gray-300" : "text-gray-600"
+              )} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
                 Subtareas
               </span>
               <button
                 type="button"
                 onClick={addSubtask}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                  isDark ? "bg-gray-600 hover:bg-gray-500 text-white" : "bg-gray-100 hover:bg-gray-200 text-black"
+                )}
               >
                 <Plus size={16} />
               </button>
@@ -322,13 +375,19 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
             <div className="space-y-3">
               {subtasks.map((subtask, index) => (
                 <div key={index} className="flex items-center space-x-3">
-                  <span className="text-gray-400 text-lg">•</span>
+                  <span className={cn(
+                    "text-lg",
+                    isDark ? "text-gray-400" : "text-gray-400"
+                  )}>•</span>
                   <input
                     type="text"
                     value={subtask}
                     onChange={(e) => updateSubtask(index, e.target.value)}
                     placeholder="Nueva subtarea..."
-                    className="flex-1 text-lg placeholder-gray-400 focus:outline-none bg-transparent py-1 cursor-visible"
+                    className={cn(
+                      "flex-1 text-lg focus:outline-none bg-transparent py-1 cursor-visible",
+                      isDark ? "text-white placeholder-gray-400" : "text-black placeholder-gray-400"
+                    )}
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   />
                   {subtasks.length > 1 && (
@@ -346,29 +405,49 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
           </div>
 
           {/* List Selector */}
-          <div className="px-4 py-4 bg-gray-50 border-b border-gray-200">
+          <div className={cn(
+            "px-4 py-4 border-b",
+            isDark ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
+          )}>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+              <span className={cn(
+                "text-sm uppercase tracking-wide",
+                isDark ? "text-gray-300" : "text-gray-600"
+              )} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
                 Lista
               </span>
               <div className="flex items-center space-x-2">
                 <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-black rounded-full"></div>
-                  <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                  <div className={cn(
+                    "w-3 h-3 rounded-full",
+                    isDark ? "bg-white" : "bg-black"
+                  )}></div>
+                  <span className={cn(
+                    "text-base",
+                    isDark ? "text-white" : "text-black"
+                  )} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
                     {selectedList}
                   </span>
                 </div>
-                <ChevronRight size={16} className="text-gray-400" />
+                <ChevronRight size={16} className={cn(
+                  isDark ? "text-gray-400" : "text-gray-400"
+                )} />
               </div>
             </div>
           </div>
 
           {/* Fecha y Hora compactos */}
-          <div className="bg-white px-4 py-4">
+          <div className={cn(
+            "px-4 py-4",
+            isDark ? "bg-gray-800" : "bg-white"
+          )}>
             <div className="flex flex-row items-center justify-between gap-4">
               {/* Fecha */}
               <div className="flex items-center gap-2 flex-1">
-                <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                <span className={cn(
+                  "text-base",
+                  isDark ? "text-white" : "text-black"
+                )} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
                   Fecha
                 </span>
                 <button
@@ -380,20 +459,28 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
                   }}
                   className={cn(
                     "w-[51px] h-[31px] rounded-full transition-all relative",
-                    hasDate ? "bg-black" : "bg-gray-300"
+                    hasDate 
+                      ? isDark ? "bg-white" : "bg-black"
+                      : isDark ? "bg-gray-600" : "bg-gray-300"
                   )}
                 >
                   <div
                     className={cn(
-                      "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
-                      hasDate ? "translate-x-[22px]" : "translate-x-[2px]"
+                      "absolute w-[27px] h-[27px] rounded-full shadow-sm transition-transform top-[2px]",
+                      hasDate ? "translate-x-[22px]" : "translate-x-[2px]",
+                      hasDate 
+                        ? isDark ? "bg-black" : "bg-white"
+                        : "bg-white"
                     )}
                   />
                 </button>
               </div>
               {/* Hora */}
               <div className="flex items-center gap-2 flex-1">
-                <span className="text-base text-black" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+                <span className={cn(
+                  "text-base",
+                  isDark ? "text-white" : "text-black"
+                )} style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
                   Hora
                 </span>
                 <button
@@ -406,13 +493,18 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
                   }}
                   className={cn(
                     "w-[51px] h-[31px] rounded-full transition-all relative",
-                    hasTime ? "bg-black" : "bg-gray-300"
+                    hasTime 
+                      ? isDark ? "bg-white" : "bg-black"
+                      : isDark ? "bg-gray-600" : "bg-gray-300"
                   )}
                 >
                   <div
                     className={cn(
-                      "absolute w-[27px] h-[27px] bg-white rounded-full shadow-sm transition-transform top-[2px]",
-                      hasTime ? "translate-x-[22px]" : "translate-x-[2px]"
+                      "absolute w-[27px] h-[27px] rounded-full shadow-sm transition-transform top-[2px]",
+                      hasTime ? "translate-x-[22px]" : "translate-x-[2px]",
+                      hasTime 
+                        ? isDark ? "bg-black" : "bg-white"
+                        : "bg-white"
                     )}
                   />
                 </button>
@@ -424,7 +516,10 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
                 <div className="flex-1">
                   <button
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className="w-full text-left text-black text-base"
+                    className={cn(
+                      "w-full text-left text-base",
+                      isDark ? "text-white" : "text-black"
+                    )}
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   >
                     {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy") : "Seleccionar fecha"}
@@ -450,7 +545,10 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
                     type="time"
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
-                    className="w-full text-black text-base bg-transparent focus:outline-none cursor-visible"
+                    className={cn(
+                      "w-full text-base bg-transparent focus:outline-none cursor-visible",
+                      isDark ? "text-white" : "text-black"
+                    )}
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}
                   />
                 </div>

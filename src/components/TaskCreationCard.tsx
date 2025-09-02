@@ -48,6 +48,13 @@ interface TaskCreationCardProps {
 
 const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate, editingTask }) => {
   const { currentTheme } = useTheme();
+  
+  // Debug: Log theme when component mounts
+  useEffect(() => {
+    console.log('🎨 TaskCreationCard: currentTheme =', currentTheme);
+    console.log('🎨 TaskCreationCard: document classes =', document.documentElement.className);
+    console.log('🎨 TaskCreationCard: localStorage theme =', localStorage.getItem('stebe-theme'));
+  }, [currentTheme]);
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -107,11 +114,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   }, [editingTask]);
 
   const handleCreate = () => {
-    console.log('🔍 TaskCreationCard: handleCreate llamado');
-    console.log('🔍 Estado actual del título:', { title, titleLength: title.length, titleTrimmed: title.trim(), titleTrimmedLength: title.trim().length });
-    
     if (title.trim()) {
-      console.log('✅ TaskCreationCard: Título válido, iniciando creación de tarea...');
+      console.log('📝 TaskCreationCard: Iniciando creación de tarea...');
       console.log('📝 Datos de la tarea:', { 
         title: title.trim(), 
         selectedTag, 
@@ -184,9 +188,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     let outlineColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
     
     if (isSelected) {
-      iconColor = currentTheme === 'light' ? '#FFFFFF' : '#000000';
-      bgColor = currentTheme === 'light' ? '#FFFFFF' : '#000000';
-      outlineColor = currentTheme === 'light' ? '#FFFFFF' : '#000000';
+      iconColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
+      bgColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
+      outlineColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
     }
     
     switch (tag) {
@@ -233,28 +237,40 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 20 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      className="task-creation-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden">
+      <div className={`w-full max-w-md rounded-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden ${
+        currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
+      }`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className={`flex items-center justify-between px-6 py-4 border-b ${
+          currentTheme === 'light' ? 'border-gray-100' : 'border-gray-700'
+        }`}>
           <button
             onClick={onCancel}
-            className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors font-medium"
+            className={`transition-colors font-medium ${
+              currentTheme === 'light' ? 'text-black hover:text-gray-600' : 'text-white hover:text-gray-300'
+            }`}
           >
             Cancelar
           </button>
           
           <button
             onClick={handleCreate}
-            className="flex items-center justify-center w-10 h-10 bg-white dark:bg-gray-800 text-black dark:text-white border border-black dark:border-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+              currentTheme === 'light' 
+                ? 'bg-white text-black border border-black hover:bg-gray-100' 
+                : 'bg-gray-700 text-white border border-gray-600 hover:bg-gray-600'
+            }`}
           >
-            <Pointer size={20} className="text-black dark:text-white" strokeWidth={2} />
+            <Pointer size={20} strokeWidth={2} />
           </button>
           
           <button
             onClick={handleCreate}
-            className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors font-bold text-lg"
+            className={`transition-colors font-bold text-lg ${
+              currentTheme === 'light' ? 'text-black hover:text-gray-600' : 'text-white hover:text-gray-300'
+            }`}
           >
             Crear
           </button>
@@ -264,7 +280,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         <div className="p-4">
           {/* Task Name Input */}
           <div className="mb-4">
-            <h2 className="text-2xl font-bold text-black dark:text-white mb-3">
+            <h2 className={`text-2xl font-bold mb-3 ${
+              currentTheme === 'light' ? 'text-black' : 'text-white'
+            }`}>
               Nombre de la tarea
             </h2>
             <input
@@ -272,7 +290,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Nombre de la tarea"
-              className="w-full text-xl text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 border-none outline-none bg-transparent pr-6"
+              className={`w-full text-xl border-none outline-none bg-transparent pr-6 ${
+                currentTheme === 'light' 
+                  ? 'text-black placeholder-gray-400' 
+                  : 'text-white placeholder-gray-500'
+              }`}
               autoFocus
             />
           </div>
@@ -283,7 +305,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas"
-              className="w-full text-base text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 border-none outline-none bg-transparent resize-none min-h-[44px]"
+              className={`w-full text-base border-none outline-none bg-transparent resize-none min-h-[44px] ${
+                currentTheme === 'light' 
+                  ? 'text-gray-600 placeholder-gray-400' 
+                  : 'text-gray-300 placeholder-gray-500'
+              }`}
             />
           </div>
 
@@ -297,9 +323,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowDatePicker(!showDatePicker)}
             aria-label="Fecha"
             title={selectedDate ? selectedDate.toLocaleDateString() : 'Seleccionar fecha'}
-            className="flex-1 flex items-center justify-center h-16 text-black dark:text-white hover:text-black hover:bg-white transition-colors"
+            className={`flex-1 flex items-center justify-center h-16 transition-colors ${
+              currentTheme === 'light' 
+                ? 'text-black hover:text-black hover:bg-white' 
+                : 'text-white hover:text-white hover:bg-gray-700'
+            }`}
           >
-            <Calendar size={28} className="text-black dark:text-white" />
+            <Calendar size={28} />
           </button>
           
           {/* Repeat Section */}
@@ -307,9 +337,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowRepeatPicker(!showRepeatPicker)}
             aria-label="Repetir"
             title={recurrenceDaysOfWeek.length === 0 ? 'Configurar repetición' : ['D','L','M','M','J','V','S'].filter((_, idx) => recurrenceDaysOfWeek.includes(idx)).join(' ')}
-            className="flex-1 flex items-center justify-center h-16 text-black dark:text-white hover:text-black hover:bg-white transition-colors"
+            className={`flex-1 flex items-center justify-center h-16 transition-colors ${
+              currentTheme === 'light' 
+                ? 'text-black hover:text-black hover:bg-white' 
+                : 'text-white hover:text-white hover:bg-gray-700'
+            }`}
           >
-            <Repeat size={28} className="text-black dark:text-white" />
+            <Repeat size={28} />
           </button>
 
           {/* Time Section */}
@@ -317,9 +351,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowTimePicker(!showTimePicker)}
             aria-label="Hora"
             title={selectedTime || 'Seleccionar hora'}
-            className="flex-1 flex items-center justify-center h-16 text-black dark:text-white hover:text-black hover:bg-white transition-colors"
+            className={`flex-1 flex items-center justify-center h-16 transition-colors ${
+              currentTheme === 'light' 
+                ? 'text-black hover:text-black hover:bg-white' 
+                : 'text-white hover:text-white hover:bg-gray-700'
+            }`}
           >
-            <Clock size={28} className="text-black dark:text-white" />
+            <Clock size={28} />
           </button>
           
           {/* Divider removed to make buttons seamless */}
@@ -329,7 +367,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowTagPicker(!showTagPicker)}
             aria-label="Categoría"
             title={getTagLabel(selectedTag)}
-            className="flex-1 flex items-center justify-center h-16 bg-white dark:bg-gray-800 text-black dark:text-white rounded-none transition-colors"
+            className={`flex-1 flex items-center justify-center h-16 rounded-none transition-colors ${
+              currentTheme === 'light' 
+                ? 'bg-white text-black hover:bg-gray-100' 
+                : 'bg-gray-800 text-white hover:bg-gray-700'
+            }`}
           >
             {getTagIcon(selectedTag)}
           </button>
@@ -337,7 +379,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Date Picker */}
         {showDatePicker && (
-          <div className="p-3 bg-white dark:bg-gray-800">
+          <div className={`p-3 ${
+            currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
+          }`}>
             <input
               type="date"
               value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
@@ -345,14 +389,20 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                 setSelectedDate(e.target.value ? new Date(e.target.value) : undefined);
                 setShowDatePicker(false);
               }}
-              className="w-full h-11 px-4 rounded-2xl border border-black/15 dark:border-white/30 bg-white dark:bg-gray-700 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/20"
+              className={`w-full h-11 px-4 rounded-2xl border focus:outline-none focus:ring-2 ${
+                currentTheme === 'light' 
+                  ? 'border-black/15 bg-white text-black focus:ring-black/10' 
+                  : 'border-gray-600 bg-gray-700 text-white focus:ring-gray-500'
+              }`}
             />
           </div>
         )}
 
         {/* Time Picker */}
         {showTimePicker && (
-          <div className="p-3 bg-white dark:bg-gray-800">
+          <div className={`p-3 ${
+            currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
+          }`}>
             <input
               type="time"
               value={selectedTime}
@@ -360,16 +410,24 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                 setSelectedTime(e.target.value);
                 setShowTimePicker(false);
               }}
-              className="w-full h-11 px-4 rounded-2xl border border-black/15 dark:border-white/30 bg-white dark:bg-gray-700 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/20"
+              className={`w-full h-11 px-4 rounded-2xl border focus:outline-none focus:ring-2 ${
+                currentTheme === 'light' 
+                  ? 'border-black/15 bg-white text-black focus:ring-black/10' 
+                  : 'border-gray-600 bg-gray-700 text-white focus:ring-gray-500'
+              }`}
             />
           </div>
         )}
 
         {/* Repeat Picker */}
         {showRepeatPicker && (
-          <div className="p-2 bg-white dark:bg-gray-800">
+          <div className={`p-2 ${
+            currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
+          }`}>
             <div>
-              <p className="text-base text-black dark:text-white mb-2 text-center">Seleccioná los días que se repite</p>
+              <p className={`text-base mb-2 text-center ${
+                currentTheme === 'light' ? 'text-black' : 'text-white'
+              }`}>Seleccioná los días que se repite</p>
               <div className="grid grid-cols-7 gap-1">
                 {['D','L','M','M','J','V','S'].map((label, idx) => {
                   const toggled = recurrenceDaysOfWeek.includes(idx);
@@ -385,10 +443,15 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                           return next;
                         });
                       }}
-                      className={`py-1 text-xs rounded border transition-colors
-                        ${toggled 
-                          ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-black'
-                      : 'bg-white text-black border-gray-300 dark:bg-transparent dark:text-white dark:border-gray-500'}`}
+                      className={`py-1 text-xs rounded border transition-colors ${
+                        toggled 
+                          ? (currentTheme === 'light' 
+                              ? 'bg-black text-white border-black' 
+                              : 'bg-white text-black border-white')
+                          : (currentTheme === 'light' 
+                              ? 'bg-white text-black border-gray-300' 
+                              : 'bg-transparent text-white border-gray-500')
+                      }`}
                     >
                       {label}
                     </button>
@@ -401,7 +464,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Tag Picker */}
         {showTagPicker && (
-          <div className="border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 z-50">
+          <div className={`border-t z-50 ${
+            currentTheme === 'light' 
+              ? 'border-gray-100 bg-white' 
+              : 'border-gray-700 bg-gray-800'
+          }`}>
             <div className="grid grid-cols-3 gap-2 p-3">
               {(['social', 'productividad', 'salud'] as const).map((tag) => (
                 <button
@@ -410,10 +477,15 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                     setSelectedTag(tag);
                     setShowTagPicker(false);
                   }}
-                  className={`flex items-center gap-1 px-1.5 py-3 min-h-[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible
-                    ${selectedTag === tag
-                      ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-black'
-                    : 'bg-white text-black border-black hover:bg-gray-100 dark:bg-transparent dark:text-white dark:border-white/30 hover:dark:bg-white/10'}`}
+                  className={`flex items-center gap-1 px-1.5 py-3 min-h-[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible ${
+                    selectedTag === tag
+                      ? (currentTheme === 'light' 
+                          ? 'bg-black text-white border-black' 
+                          : 'bg-white text-black border-white')
+                      : (currentTheme === 'light' 
+                          ? 'bg-white text-black border-black hover:bg-gray-100' 
+                          : 'bg-transparent text-white border-white/30 hover:bg-white/10')
+                  }`}
                 >
                   {getTagIcon(tag, selectedTag === tag)}
                   <span className="text-base font-medium">{getTagLabel(tag)}</span>

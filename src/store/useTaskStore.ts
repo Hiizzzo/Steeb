@@ -5,7 +5,10 @@
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { Task, TaskFilters, TaskStats, SyncStatus } from '@/types';
-import { tasksAPI } from '@/api/tasks';
+// Importaciones de API removidas para modo offline
+// import { tasksAPI } from '@/api/tasks';
+// import { FirestoreTaskService } from '@/services/firestoreTaskService';
+import { auth } from '@/lib/firebase';
 
 interface TaskStore {
   // ========== STATE ==========
@@ -47,6 +50,9 @@ interface TaskStore {
   loadTasks: () => Promise<void>;
   loadTasksInRange: (startDate: string, endDate: string) => Promise<void>;
   loadTasksForDate: (date: string) => Promise<void>;
+  
+  // Real-time updates
+  setupRealtimeListener: (userId?: string) => () => void;
   
   // Filtering and search
   setFilters: (filters: Partial<TaskFilters>) => void;
@@ -206,43 +212,43 @@ export const useTaskStore = create<TaskStore>()(
         },
 
         addTask: async (taskData) => {
-          console.log('🏪 Store: addTask llamado con:', taskData);
-          
           // Validar que el título no esté vacío
           if (!taskData.title || !taskData.title.trim()) {
-            console.warn('❌ Store: Intento de crear tarea con título vacío bloqueado en el store');
+            console.warn('🚫 Intento de crear tarea con título vacío bloqueado en el store');
             set({ error: 'El título de la tarea no puede estar vacío' });
             return;
           }
-          
-          console.log('✅ Store: Título válido, creando tarea...');
 
           try {
-            // Crear nueva tarea directamente en localStorage
+            set({ isLoading: true, error: null });
+            
+            console.log('📝 Creando nueva tarea offline:', taskData.title.trim());
+            
+            // Crear tarea offline
             const newTask: Task = {
+              id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               ...taskData,
-              id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               title: taskData.title.trim(),
-              // Asegurar defaults consistentes en creación
               completed: taskData.completed ?? false,
               status: taskData.status || 'pending',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
             
-            console.log(' Creando nueva tarea:', newTask.title);
-            
+            // Actualizar estado local
             set(state => ({
               tasks: [...state.tasks, newTask],
+              isLoading: false,
               error: null
             }));
             
             get().calculateStats();
-            console.log(' Tarea añadida exitosamente al store');
+            console.log('✅ Tarea creada exitosamente offline');
           } catch (error) {
-            console.error(' Error al crear tarea:', error);
+            console.error('❌ Error al crear tarea:', error);
             set({ 
-              error: error instanceof Error ? error.message : 'Failed to create task'
+              isLoading: false,
+              error: error instanceof Error ? error.message : 'Error al crear la tarea'
             });
           }
         },
@@ -251,24 +257,33 @@ export const useTaskStore = create<TaskStore>()(
           try {
             const previousTask = get().tasks.find(task => task.id === id);
             if (!previousTask) {
-              throw new Error('Task not found');
+              throw new Error('Tarea no encontrada');
             }
             
-            console.log(' Actualizando tarea:', id);
+            set({ isLoading: true, error: null });
+            console.log('📝 Actualizando tarea offline:', id);
             
+            // Actualizar offline
+            const updatedTask = {
+              ...previousTask,
+              ...updates,
+              updatedAt: new Date().toISOString()
+            };
+            
+            // Actualizar estado local
             set(state => ({
-              tasks: state.tasks.map(task =>
-                task.id === id ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
-              ),
+              tasks: state.tasks.map(task => task.id === id ? updatedTask : task),
+              isLoading: false,
               error: null
             }));
             
             get().calculateStats();
-            console.log(' Tarea actualizada exitosamente');
+            console.log('✅ Tarea actualizada exitosamente offline');
           } catch (error) {
-            console.error(' Error al actualizar tarea:', error);
+            console.error('❌ Error al actualizar tarea:', error);
             set({ 
-              error: error instanceof Error ? error.message : 'Failed to update task'
+              isLoading: false,
+              error: error instanceof Error ? error.message : 'Error al actualizar la tarea'
             });
           }
         },
@@ -280,20 +295,24 @@ export const useTaskStore = create<TaskStore>()(
               throw new Error('Task not found');
             }
             
-            console.log(' Eliminando tarea:', taskToDelete.title);
+            set({ isLoading: true, error: null });
+            console.log('🗑️ Eliminando tarea offline:', taskToDelete.title);
             
+            // Actualizar estado local
             set(state => ({
               tasks: state.tasks.filter(task => task.id !== id),
               selectedTaskIds: state.selectedTaskIds.filter(taskId => taskId !== id),
+              isLoading: false,
               error: null
             }));
             
             get().calculateStats();
-            console.log(' Tarea eliminada exitosamente');
+            console.log('✅ Tarea eliminada exitosamente offline');
           } catch (error) {
-            console.error(' Error al eliminar tarea:', error);
+            console.error('❌ Error al eliminar tarea:', error);
             set({ 
-              error: error instanceof Error ? error.message : 'Failed to delete task'
+              isLoading: false,
+              error: error instanceof Error ? error.message : 'Error al eliminar la tarea'
             });
           }
         },
@@ -304,37 +323,22 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            // Optimistic updates
-            const previousTasks = [...get().tasks];
+            console.log('📝 Actualizando tareas en lote offline:', updates.length);
             
+            // En modo offline, solo aplicamos las actualizaciones localmente
             set(state => ({
               tasks: state.tasks.map(task => {
                 const update = updates.find(u => u.id === task.id);
                 return update ? { ...task, ...update.updates, updatedAt: new Date().toISOString() } : task;
               }),
-              syncStatus: { ...state.syncStatus, pendingChanges: state.syncStatus.pendingChanges + updates.length }
+              syncStatus: 'offline'
             }));
             
-            // API call
-            const response = await tasksAPI.updateTasks(updates);
-            
-            if (response.success && response.data) {
-              set(state => ({
-                tasks: response.data!,
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - updates.length) }
-              }));
-            } else {
-              // Revert on failure
-              set({
-                tasks: previousTasks,
-                error: response.error || 'Failed to update tasks',
-                syncStatus: { ...get().syncStatus, pendingChanges: Math.max(0, get().syncStatus.pendingChanges - updates.length) }
-              });
-            }
+            console.log('✅ Tareas actualizadas en lote offline exitosamente');
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Failed to update tasks',
-              syncStatus: { ...get().syncStatus, hasError: true }
+              syncStatus: 'error'
             });
           } finally {
             set({ isLoading: false });
@@ -346,34 +350,20 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            // Optimistic update
-            const tasksToDelete = get().tasks.filter(task => ids.includes(task.id));
+            console.log('🗑️ Eliminando tareas en lote offline:', ids.length);
             
+            // En modo offline, solo eliminamos localmente
             set(state => ({
               tasks: state.tasks.filter(task => !ids.includes(task.id)),
               selectedTaskIds: state.selectedTaskIds.filter(id => !ids.includes(id)),
-              syncStatus: { ...state.syncStatus, pendingChanges: state.syncStatus.pendingChanges + ids.length }
+              syncStatus: 'offline'
             }));
             
-            // API call
-            const response = await tasksAPI.deleteTasks(ids);
-            
-            if (response.success) {
-              set(state => ({
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - ids.length) }
-              }));
-            } else {
-              // Restore tasks on failure
-              set(state => ({
-                tasks: [...state.tasks, ...tasksToDelete],
-                error: response.error || 'Failed to delete tasks',
-                syncStatus: { ...state.syncStatus, pendingChanges: Math.max(0, state.syncStatus.pendingChanges - ids.length) }
-              }));
-            }
+            console.log('✅ Tareas eliminadas en lote offline exitosamente');
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Failed to delete tasks',
-              syncStatus: { ...get().syncStatus, hasError: true }
+              syncStatus: 'error'
             });
           } finally {
             set({ isLoading: false });
@@ -513,29 +503,60 @@ export const useTaskStore = create<TaskStore>()(
 
         loadTasks: async () => {
           try {
-            // Las tareas ya están cargadas desde localStorage por el middleware persist
-            // Solo necesitamos calcular las estadísticas
-            get().calculateStats();
-            console.log('✅ Tareas cargadas desde localStorage');
-          } catch (error) {
-            console.error('❌ Error al cargar tareas:', error);
+            set({ isLoading: true, error: null, syncStatus: 'syncing' });
+            
+            console.log('📥 Cargando tareas offline (modo local)');
+            
+            // En modo offline, simplemente inicializamos con las tareas existentes en el estado
+            // o con un array vacío si no hay tareas
+            const currentTasks = get().tasks || [];
+            
             set({ 
-              error: error instanceof Error ? error.message : 'Failed to load tasks'
+              tasks: currentTasks,
+              isLoading: false,
+              lastSync: new Date().toISOString(),
+              syncStatus: 'offline',
+              error: null
+            });
+            
+            get().calculateStats();
+            console.log('✅ Tareas cargadas exitosamente offline:', currentTasks.length);
+          } catch (error) {
+            console.error('❌ Error cargando tareas:', error);
+            set({ 
+              isLoading: false,
+              error: error instanceof Error ? error.message : 'Error al cargar las tareas',
+              syncStatus: 'error'
             });
           }
+        },
+
+        // Nueva función para configurar listeners en tiempo real (modo offline)
+        setupRealtimeListener: (userId?: string) => {
+          console.log('🔄 Listener en tiempo real deshabilitado (modo offline)');
+          
+          // En modo offline, retornamos una función vacía
+          return () => {
+            console.log('🔄 Listener offline cleanup (no action needed)');
+          };
         },
 
         loadTasksInRange: async (startDate, endDate) => {
           set({ isLoading: true, error: null });
           
           try {
-            const response = await tasksAPI.getTasksInRange(startDate, endDate);
+            console.log('📅 Filtrando tareas offline por rango de fechas:', startDate, 'a', endDate);
             
-            if (response.success && response.data) {
-              set({ tasks: response.data });
-            } else {
-              set({ error: response.error || 'Failed to load tasks' });
-            }
+            // En modo offline, filtramos las tareas existentes por el rango de fechas
+            const allTasks = get().tasks || [];
+            const filteredTasks = allTasks.filter(task => {
+              if (!task.scheduledFor) return false;
+              const taskDate = task.scheduledFor.split('T')[0]; // Obtener solo la fecha
+              return taskDate >= startDate && taskDate <= endDate;
+            });
+            
+            set({ tasks: filteredTasks });
+            console.log('✅ Tareas filtradas offline:', filteredTasks.length);
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to load tasks' });
           } finally {
@@ -548,13 +569,18 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            const response = await tasksAPI.getTasksForDate(date);
+            console.log('📅 Filtrando tareas offline para fecha:', date);
             
-            if (response.success && response.data) {
-              set({ tasks: response.data });
-            } else {
-              set({ error: response.error || 'Failed to load tasks' });
-            }
+            // En modo offline, filtramos las tareas existentes por la fecha específica
+            const allTasks = get().tasks || [];
+            const filteredTasks = allTasks.filter(task => {
+              if (!task.scheduledFor) return false;
+              const taskDate = task.scheduledFor.split('T')[0]; // Obtener solo la fecha
+              return taskDate === date;
+            });
+            
+            set({ tasks: filteredTasks });
+            console.log('✅ Tareas filtradas offline para fecha:', filteredTasks.length);
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to load tasks' });
           } finally {
@@ -582,16 +608,21 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            const response = await tasksAPI.searchTasks(query);
+            console.log('🔍 Buscando tareas offline:', query);
             
-            if (response.success && response.data) {
-              set({ 
-                tasks: response.data,
-                filters: { ...get().filters, search: query }
-              });
-            } else {
-              set({ error: response.error || 'Failed to search tasks' });
-            }
+            // En modo offline, buscamos en las tareas locales
+            const allTasks = get().tasks || [];
+            const searchResults = allTasks.filter(task => 
+              task.title.toLowerCase().includes(query.toLowerCase()) ||
+              (task.description && task.description.toLowerCase().includes(query.toLowerCase()))
+            );
+            
+            set({ 
+              tasks: searchResults,
+              filters: { ...get().filters, search: query }
+            });
+            
+            console.log('✅ Búsqueda offline completada:', searchResults.length, 'resultados');
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to search tasks' });
           } finally {

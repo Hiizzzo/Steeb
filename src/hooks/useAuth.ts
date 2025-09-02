@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { auth, db, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
+import { useTaskStore } from '@/store/useTaskStore';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -72,20 +73,31 @@ const mapFirebaseUserToUser = async (fbUser: FirebaseUser): Promise<User> => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { setupRealtimeListener, loadTasks } = useTaskStore();
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
-      // Sin configuración: no intentes suscribirte a Auth
+    let unsubscribeTaskListener: (() => void) | null = null;
+    
+    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
+    if (!isFirebaseConfigured || true) { // Forzar modo offline
+      console.log('🔄 Auth deshabilitado - modo offline para versión shiny');
       setUser(null);
       setIsLoading(false);
       return;
     }
+    
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
       if (!fbUser) {
         setUser(null);
         setIsLoading(false);
+        // Limpiar listener de tareas si existe
+        if (unsubscribeTaskListener) {
+          unsubscribeTaskListener();
+          unsubscribeTaskListener = null;
+        }
         return;
       }
+      
       // Set estado rápido con datos mínimos para no bloquear el primer render
       setUser({
         id: fbUser.uid,
@@ -98,6 +110,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emailVerified: !!fbUser.emailVerified,
       });
       setIsLoading(false);
+      
+      // Configurar listener de tareas en tiempo real
+      console.log('🔄 Configurando listener de tareas para usuario:', fbUser.uid);
+      unsubscribeTaskListener = setupRealtimeListener(fbUser.uid);
+      
+      // Cargar tareas iniciales
+      try {
+        await loadTasks();
+      } catch (error) {
+        console.error('❌ Error cargando tareas iniciales:', error);
+      }
+      
       // Completar datos desde Firestore en segundo plano
       try {
         const mapped = await mapFirebaseUserToUser(fbUser);
@@ -106,8 +130,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // si falla Firestore, dejamos el estado rápido ya mostrado
       }
     });
-    return () => unsub();
-  }, []);
+    
+    return () => {
+      unsub();
+      if (unsubscribeTaskListener) {
+        unsubscribeTaskListener();
+      }
+    };
+  }, [setupRealtimeListener, loadTasks]);
 
   // Manejar resultado de Google Sign-In por redirect (para móvil nativo)
   useEffect(() => {

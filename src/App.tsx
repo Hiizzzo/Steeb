@@ -1,3 +1,8 @@
+// ============================================================================
+// STEBE APP - MODO OFFLINE TEMPORAL PARA VERSIÓN SHINY
+// Firebase/Firestore deshabilitado temporalmente para desarrollo offline
+// ============================================================================
+
 import React, { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -25,6 +30,19 @@ const AppContent = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [isAppLoading, setIsAppLoading] = useState(true);
   
+  const handleSkipLoading = () => {
+    setIsAppLoading(false);
+  };
+  
+  const handleSkipToTasks = () => {
+    // Simular usuario autenticado temporal para modo offline
+    setIsAppLoading(false);
+    // En modo offline, el usuario ya está configurado como null en useAuth
+    // pero necesitamos forzar que la aplicación se muestre
+    window.localStorage.setItem('skip-auth-temp', 'true');
+    window.location.reload();
+  };
+  
   // Cargar configuración de texto grande
   useTextSize();
 
@@ -41,12 +59,12 @@ const AppContent = () => {
   }, []);
 
   if (isAppLoading || isLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen onSkip={handleSkipLoading} />;
   }
 
   // Route guard: only require authentication. Do not block on onboarding/profile completeness.
-  if (!isAuthenticated) {
-    return <AuthScreen onComplete={() => { /* post-login handled by AuthScreen */ }} />;
+  if (!isAuthenticated && !localStorage.getItem('skip-auth-temp')) {
+    return <AuthScreen onComplete={() => { /* post-login handled by AuthScreen */ }} onSkip={handleSkipToTasks} />;
   }
 
   return (

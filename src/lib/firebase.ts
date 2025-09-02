@@ -23,9 +23,9 @@ const cfg = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || fallbackCfg.measurementId,
 };
 
-export const isFirebaseConfigured = Boolean(
-  cfg.apiKey && cfg.authDomain && cfg.projectId && cfg.appId
-);
+// TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
+export const isFirebaseConfigured = false;
+// Original: Boolean(cfg.apiKey && cfg.authDomain && cfg.projectId && cfg.appId);
 
 // Firebase error handling is now managed by firebaseErrorHandler
 
@@ -65,13 +65,20 @@ const initializeFirebase = async () => {
   }, 'Firebase initialization');
 };
 
+// TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
 // Initialize Firebase
-initializeFirebase().catch(() => {
-  // Fallback to undefined values if initialization fails
-  app = undefined;
-  auth = undefined;
-  db = undefined;
-  googleProvider = undefined;
-});
+// initializeFirebase().catch(() => {
+//   // Fallback to undefined values if initialization fails
+//   app = undefined;
+//   auth = undefined;
+//   db = undefined;
+//   googleProvider = undefined;
+// });
+
+// Force offline mode - all Firebase services disabled
+app = undefined;
+auth = undefined;
+db = undefined;
+googleProvider = undefined;
 
 export { auth, db, googleProvider };

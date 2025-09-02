@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react';
 export type Theme = 'light' | 'dark' | 'shiny';
 
 export const useTheme = () => {
-  const [currentTheme, setCurrentTheme] = useState<Theme>('light');
+  // Initialize with saved theme immediately to prevent flash
+  const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('stebe-theme') as Theme) || 'light';
+    }
+    return 'light';
+  });
 
   useEffect(() => {
-    // Load saved theme as-is
-    const savedTheme = (localStorage.getItem('stebe-theme') as Theme) || 'light';
-    applyTheme(savedTheme);
+    // Apply the theme on mount
+    applyTheme(currentTheme);
   }, []);
 
   const applyTheme = (theme: Theme) => {
