@@ -36,6 +36,7 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const isShiny = document.documentElement.classList.contains('shiny');
 
   const today = new Date();
   const currentMonth = currentDate.getMonth();
@@ -318,7 +319,9 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
           </Button>
           
           <div className="text-center">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className={`text-xl font-bold ${
+              isShiny ? 'text-black' : 'text-white'
+            }`}>
               {monthNamesFull[currentMonth]} {currentYear}
             </h2>
           </div>
@@ -365,7 +368,9 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
               `}
             >
               <div className="flex flex-col items-center justify-center h-full">
-                <div className="text-sm font-medium">{day.day}</div>
+                <div className={`text-sm font-medium ${
+                  isShiny ? 'text-black' : 'text-white'
+                }`}>{day.day}</div>
                 {day.completionCount > 0 && (
                   <div className="mt-1 px-2 py-0.5 bg-white text-black text-[10px] rounded-full border font-bold">
                     {day.completionCount > 9 ? '9+' : day.completionCount}

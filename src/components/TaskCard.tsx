@@ -4,6 +4,7 @@ import { Pencil, Calendar, ShoppingCart, CheckCircle, Heart, Trash2, Clock, File
 import { Button } from '@/components/ui/button';
 import { TaskType } from '@/types';
 import ShapeIcon from './ShapeIcon';
+import { useTheme } from '@/hooks/useTheme';
 
 interface SubTask {
   id: string;
@@ -48,6 +49,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const currentX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
+  const { isDark, isShiny } = useTheme();
+  const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000');
 
   const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
   const DELETE_THRESHOLD = 120; // Distancia para mostrar el botón de eliminar
@@ -56,23 +59,23 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const getTypeIcon = () => {
     switch (type) {
       case 'productividad':
-        return <ShapeIcon variant="square" className="w-8 h-8 text-black" title="Trabajo" />;
+        return <ShapeIcon variant="square" className="w-8 h-8" title="Trabajo" color={shapeColor} />;
       case 'creatividad':
-        return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Creatividad" />;
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Creatividad" color={shapeColor} />;
       case 'salud':
-        return <ShapeIcon variant="heart" className="w-8 h-8 text-black" title="Salud" />;
+        return <ShapeIcon variant="heart" className="w-8 h-8" title="Salud" color={shapeColor} />;
       case 'organizacion':
-        return <ShapeIcon variant="diamond" className="w-8 h-8 text-black" title="Organización" />;
+        return <ShapeIcon variant="diamond" className="w-8 h-8" title="Organización" color={shapeColor} />;
       case 'social':
-        return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Social" />;
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Social" color={shapeColor} />;
       case 'aprendizaje':
-        return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Aprendizaje" />;
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Aprendizaje" color={shapeColor} />;
       case 'entretenimiento':
-        return <ShapeIcon variant="triangle" className="w-8 h-8 text-black" title="Entretenimiento" />;
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Entretenimiento" color={shapeColor} />;
       case 'extra':
-        return <ShapeIcon variant="diamond" className="w-8 h-8 text-black" title="Extra" />;
+        return <ShapeIcon variant="diamond" className="w-8 h-8" title="Extra" color={shapeColor} />;
       default:
-        return <div className="w-5 h-5 border border-black" />;
+        return <div className="w-5 h-5 border" style={{ borderColor: shapeColor }} />;
     }
   };
 

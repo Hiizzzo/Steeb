@@ -44,8 +44,8 @@ const ShapeIcon: React.FC<ShapeIconProps> = ({ variant, className, title, color 
           <stop offset="28.5714%" stopColor="#ffe600" />
           <stop offset="42.8571%" stopColor="#00ff66" />
           <stop offset="57.1429%" stopColor="#00c2ff" />
-          <stop offset="71.4286%" stopColor="#6a00ff" />
-          <stop offset="85.7143%" stopColor="#ff00ff" />
+          <stop offset="71.4286%" stopColor="#ffffff" />
+          <stop offset="85.7143%" stopColor="#ffffff" />
           <stop offset="100%" stopColor="#ff004c" />
           {/* Ping-pong translate to mimic background-position ease-in-out loop */}
           <animateTransform attributeName="gradientTransform" type="translate" values="0 0; 1 0; 0 0" keyTimes="0; 0.5; 1" dur="4s" repeatCount="indefinite" />

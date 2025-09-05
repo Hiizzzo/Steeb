@@ -4,7 +4,7 @@ import { Settings, Sun, Moon, Sparkles, Calendar, CheckCircle, Plus } from 'luci
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/hooks/useTheme';
 import EnhancedCalendar from './EnhancedCalendar';
 import TaskCreationCard from './TaskCreationCard';
 import { RecurrenceRule } from '@/types';
@@ -79,7 +79,7 @@ const mockTasks = [
 ];
 
 const EnhancedCalendarDemo: React.FC = () => {
-  const { theme, setTheme } = useTheme();
+  const { currentTheme, toggleTheme } = useTheme();
   const [tasks, setTasks] = useState<any[]>(mockTasks as any[]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
@@ -104,7 +104,7 @@ const EnhancedCalendarDemo: React.FC = () => {
   const [showTaskCreation, setShowTaskCreation] = useState(false);
   const [selectedDateForTask, setSelectedDateForTask] = useState<string | null>(null);
 
-  const isDark = theme === 'dark';
+  const isDark = currentTheme === 'dark';
 
   // Handlers para el calendario
   const handleToggleTask = (taskId: string) => {
@@ -188,7 +188,7 @@ const EnhancedCalendarDemo: React.FC = () => {
                 <Sparkles size={24} className="text-blue-500" />
               </motion.div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-white bg-clip-text text-transparent">
                   Enhanced Calendar
                 </h1>
                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -203,7 +203,7 @@ const EnhancedCalendarDemo: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                  onClick={() => toggleTheme(isDark ? 'light' : 'dark')}
                   className="p-2"
                 >
                   {isDark ? <Sun size={20} /> : <Moon size={20} />}
@@ -412,7 +412,7 @@ const EnhancedCalendarDemo: React.FC = () => {
                               task.type === 'work' 
                                 ? 'bg-blue-100 text-blue-800'
                                 : task.type === 'personal'
-                                ? 'bg-purple-100 text-purple-800'
+                                ? 'bg-gray-100 text-gray-800'
                                 : 'bg-green-100 text-green-800'
                             }`}>
                               {task.type === 'work' ? 'Trabajo' : 

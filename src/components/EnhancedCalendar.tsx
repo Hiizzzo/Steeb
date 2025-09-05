@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform, PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, CheckCircle, Clock, Plus, Sparkles } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -27,13 +27,13 @@ const ANIMATION_CONFIG = {
   colors: {
     primary: '#3B82F6', // Azul principal
     primaryDark: '#1D4ED8',
-    accent: '#8B5CF6', // Púrpura
+    accent: '#FFFFFF', // Blanco
     success: '#10B981', // Verde
     warning: '#F59E0B', // Amarillo
     error: '#EF4444', // Rojo
     
     // Gradientes
-    selectedGradient: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+    selectedGradient: 'linear-gradient(135deg, #3B82F6 0%, #FFFFFF 100%)',
     todayGradient: 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)',
     taskGradient: 'linear-gradient(90deg, #F59E0B 0%, #EF4444 50%, #10B981 100%)',
   }
@@ -106,7 +106,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
   showTaskIndicators = true,
   autoDetectTheme = true
 }) => {
-  const { theme, systemTheme } = useTheme();
+  const { currentTheme } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedMultipleDates, setSelectedMultipleDates] = useState<string[]>(selectedDates);
@@ -123,10 +123,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
   // Configuración combinada de animaciones
   const config = { ...ANIMATION_CONFIG, ...animationConfig };
 
-  // Auto-detectar tema del sistema si está habilitado
-  const currentTheme = autoDetectTheme 
-    ? (theme === 'system' ? systemTheme : theme)
-    : theme;
+  // Usar el tema actual directamente
   const isDark = currentTheme === 'dark';
 
   // Estado para doble clic
@@ -806,7 +803,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         ${calendarDay.isToday 
           ? (isDark 
             ? 'bg-gray-700 text-white shadow-xl' 
-            : 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-xl shadow-blue-500/30'
+            : 'bg-gradient-to-br from-blue-500 to-white text-white shadow-xl shadow-blue-500/30'
             ) 
           : calendarDay.isSelected
             ? (isDark 
@@ -919,7 +916,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
       <AnimatePresence>
         {isHovered && (
           <motion.div
-            className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-400/20 to-purple-400/20"
+            className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-400/20 to-white/20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

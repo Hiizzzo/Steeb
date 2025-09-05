@@ -458,7 +458,7 @@ export const SETTINGS_PRESETS = {
     theme: {
       ...DEFAULT_SETTINGS.theme,
       mode: 'dark' as const,
-      accentColor: '#8b5cf6',
+      accentColor: '#ffffff',
     },
   },
 

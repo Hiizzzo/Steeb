@@ -182,16 +182,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       </span>
     );
     
-    // Set icon colors based on theme - black for light mode, white for dark/shiny modes
-    let iconColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
-    let bgColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
-    let outlineColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
-    
-    if (isSelected) {
-      iconColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
-      bgColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
-      outlineColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
-    }
+    // Set icon colors based on theme
+    const iconColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
     
     switch (tag) {
       case 'productividad':   return wrap(
@@ -202,9 +194,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           style={{ 
             width: 20, 
             height: 20, 
-            color: bgColor,
-            backgroundColor: 'currentColor',
-            outlineColor: 'currentColor'
+            backgroundColor: iconColor,
+            outlineColor: iconColor
           }}
         />
       );
@@ -213,9 +204,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           viewBox="0 0 24 24"
           aria-label="Salud"
           role="img"
-          style={{ width: 28, height: 28, color: iconColor }}
+          style={{ width: 28, height: 28 }}
         >
-          <path fill="currentColor" d="M12 21s-6.716-4.35-9.193-7.36C.953 10.545 2.097 6.5 5.293 5.364 7.162 4.688 9.21 5.29 10.5 6.7 11.79 5.29 13.838 4.688 15.707 5.364c3.196 1.136 4.34 5.181 2.486 8.276C18.716 16.65 12 21 12 21z"/>
+          <path fill={iconColor} d="M12 21s-6.716-4.35-9.193-7.36C.953 10.545 2.097 6.5 5.293 5.364 7.162 4.688 9.21 5.29 10.5 6.7 11.79 5.29 13.838 4.688 15.707 5.364c3.196 1.136 4.34 5.181 2.486 8.276C18.716 16.65 12 21 12 21z"/>
         </svg>
       );
       case 'social':          return wrap(
@@ -223,7 +214,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           viewBox="0 0 24 24"
           aria-label="Social"
           role="img"
-          style={{ width: 28, height: 28, color: iconColor }}
+          style={{ width: 28, height: 28 }}
         >
           <path fill={iconColor} d="M12 3l9 18H3l9-18z"/>
         </svg>
@@ -239,12 +230,12 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className="task-creation-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
     >
-      <div className={`w-full max-w-md rounded-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden ${
-        currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
+      <div className={`task-creation-modal w-full max-w-md rounded-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden ${
+        currentTheme === 'light' ? 'bg-white' : 'bg-black border border-white'
       }`}>
         {/* Header */}
         <div className={`flex items-center justify-between px-6 py-4 border-b ${
-          currentTheme === 'light' ? 'border-gray-100' : 'border-gray-700'
+          currentTheme === 'light' ? 'border-gray-100' : 'border-gray-500'
         }`}>
           <button
             onClick={onCancel}
@@ -483,7 +474,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                           ? 'bg-black text-white border-black' 
                           : 'bg-white text-black border-white')
                       : (currentTheme === 'light' 
-                          ? 'bg-white text-black border-black hover:bg-gray-100' 
+                          ? `bg-white border-black hover:bg-gray-100 ${
+                              tag === 'productividad' ? 'text-[#FF0088]' :
+                              tag === 'salud' ? 'text-[#8800FF]' :
+                              tag === 'social' ? 'text-[#4444FF]' : 'text-black'
+                            }` 
                           : 'bg-transparent text-white border-white/30 hover:bg-white/10')
                   }`}
                 >

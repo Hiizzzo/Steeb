@@ -58,20 +58,32 @@
   transform: none !important;
 }
 
-/* Proteger el botón principal + */
-.shiny .bg-black.rounded-full,
-.shiny .bg-white.rounded-full {
+/* Proteger el botón principal + - PERMITIR estilos shiny personalizados */
+.shiny .bg-black.rounded-full:not(.shiny-fab),
+.shiny .bg-white.rounded-full:not(.shiny-fab) {
   background: inherit !important;
   border: inherit !important;
   box-shadow: inherit !important;
   animation: none !important;
 }
 
+/* Permitir estilos personalizados para el FAB en modo shiny */
+.shiny .shiny-fab {
+  background: white !important;
+}
+
+.shiny .shiny-fab svg {
+  color: black !important;
+  fill: black !important;
+}
+
+/* Estilos básicos para el FAB - sin dependencias circulares */
+
 /* Proteger el modal de creación de tareas */
 .shiny .modal-add-task,
 .shiny .modal-add-task * {
   background: var(--shiny-card-bg) !important;
-  border: 1px solid var(--shiny-purple) !important;
+  border: 1px solid #000000 !important;
   color: var(--shiny-text) !important;
 }
 
@@ -142,7 +154,7 @@
 }
 
 .shiny .task-checkbox-button:focus {
-  outline: 2px solid var(--shiny-purple) !important;
+  outline: 2px solid #000000 !important;
   outline-offset: 2px !important;
 }
 

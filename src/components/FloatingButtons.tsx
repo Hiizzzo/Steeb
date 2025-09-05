@@ -274,24 +274,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
             </AnimatePresence>
           </motion.button>
         </div>
-        {/* Shiny toggle slider under the FAB */}
-        <div className="mt-3 flex items-center justify-center pointer-events-auto">
-          <button
-            aria-label="Toggle Shiny mode"
-            onClick={toggleShiny}
-            className={`relative w-16 h-7 rounded-full transition-colors border-2 shiny-toggle ${
-              shinyEnabled ? 'bg-black border-black' : 'bg-white border-black'
-            }`}
-            style={{ boxShadow: shinyEnabled ? '0 0 8px rgba(0,0,0,0.25)' : 'none' }}
-          >
-            <span
-              className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full transition-transform ${
-                shinyEnabled ? 'translate-x-8 bg-white' : 'translate-x-1 bg-black'
-              }`}
-            />
-          </button>
-          <span className="ml-3 text-sm font-medium select-none text-black dark:text-white">Shiny</span>
-        </div>
+
       </div>
 
       <AnimatePresence>

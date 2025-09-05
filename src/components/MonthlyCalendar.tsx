@@ -125,23 +125,44 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
   };
 
   const renderTypeShape = (type: Task['type']) => {
+    const isShiny = document.documentElement.classList.contains('shiny');
+    
+    // Función para obtener el color específico del icono
+    const getIconColor = () => {
+      if (isShiny) {
+        switch (type) {
+          case 'productividad':
+            return '#FF0088'; // Rosa
+          case 'salud':
+            return '#8800FF'; // Violeta
+          case 'social':
+            return '#4444FF'; // Azul
+          default:
+            return '#FFFFFF';
+        }
+      }
+      return '#000000'; // Negro para modo normal
+    };
+    
+    const iconColor = getIconColor();
+    
     switch (type) {
       case 'productividad':
-        return <ShapeIcon variant="square" className="w-4 h-4 mr-1 text-black" title="Trabajo" />;
+        return <ShapeIcon variant="square" className="w-4 h-4 mr-1" title="Trabajo" color={iconColor} />;
       case 'salud':
-        return <ShapeIcon variant="heart" className="w-4 h-4 mr-1 text-black" title="Salud" />;
+        return <ShapeIcon variant="heart" className="w-4 h-4 mr-1" title="Salud" color={iconColor} />;
       case 'social':
-        return <ShapeIcon variant="triangle" className="w-4 h-4 mr-1 text-black" title="Social" />;
+        return <ShapeIcon variant="triangle" className="w-4 h-4 mr-1" title="Social" color={iconColor} />;
       case 'organizacion':
-        return <ShapeIcon variant="diamond" className="w-4 h-4 mr-1 text-black" title="Organización" />;
+        return <ShapeIcon variant="diamond" className="w-4 h-4 mr-1" title="Organización" color={iconColor} />;
       case 'aprendizaje':
       case 'creatividad':
       case 'entretenimiento':
-        return <ShapeIcon variant="triangle" className="w-4 h-4 mr-1 text-black" title={type} />;
+        return <ShapeIcon variant="triangle" className="w-4 h-4 mr-1" title={type} color={iconColor} />;
       case 'extra':
-        return <ShapeIcon variant="diamond" className="w-4 h-4 mr-1 text-black" title="Extra" />;
+        return <ShapeIcon variant="diamond" className="w-4 h-4 mr-1" title="Extra" color={iconColor} />;
       default:
-        return <div className="w-4 h-4 mr-1 border border-black" />;
+        return <div className="w-4 h-4 mr-1 border" style={{ borderColor: iconColor }} />;
     }
   };
 
@@ -502,7 +523,11 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                         </div>
                         
                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-300">
-                          <div className="px-2 py-1 rounded-full text-xs bg-black text-white dark:bg-white dark:text-black">
+                          <div className={`px-2 py-1 rounded-full text-xs bg-black text-white dark:bg-white ${
+                            task.type === 'productividad' ? 'dark:text-[#FF0088]' :
+                            task.type === 'salud' ? 'dark:text-[#8800FF]' :
+                            task.type === 'social' ? 'dark:text-[#4444FF]' : 'dark:text-black'
+                          }`}>
                             {task.type}
                           </div>
                           
@@ -873,4 +898,4 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
   );
 };
 
-export default MonthlyCalendar; 
+export default MonthlyCalendar;

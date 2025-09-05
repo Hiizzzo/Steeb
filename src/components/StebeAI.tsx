@@ -353,7 +353,7 @@ const StebeAI: React.FC<StebeAIProps> = ({ onMessageGenerated, className = '' })
                   <Button 
                     onClick={generateTasksFromRequest}
                     disabled={isGenerating}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="w-full bg-gradient-to-r from-blue-600 to-white hover:from-blue-700 hover:to-gray-100"
                   >
                     {isGenerating ? (
                       <>

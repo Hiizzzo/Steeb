@@ -69,15 +69,36 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   };
 
   const getTypeIcon = (type: Task['type']) => {
+    const isShiny = document.documentElement.classList.contains('shiny');
+    
+    // Función para obtener el color específico del icono
+    const getIconColor = () => {
+      if (isShiny) {
+        switch (type) {
+          case 'productividad':
+            return '#FF0088'; // Rosa
+          case 'salud':
+            return '#8800FF'; // Violeta
+          case 'social':
+            return '#4444FF'; // Azul
+          default:
+            return '#FFFFFF';
+        }
+      }
+      return '#000000'; // Negro para modo normal
+    };
+    
+    const iconColor = getIconColor();
+    
     switch (type) {
-      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1 text-black" title="Cuadrado" />;
-      case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Creatividad" />;
-      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-1 text-black" title="Salud" />;
-      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Diamante" />;
-      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Social" />;
-      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Aprendizaje" />;
-      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1 text-black" title="Entretenimiento" />;
-      case 'extra':           return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1 text-black" title="Diamante" />;
+      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1" title="Cuadrado" color={iconColor} />;
+      case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Creatividad" color={iconColor} />;
+      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-1" title="Salud" color={iconColor} />;
+      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1" title="Diamante" color={iconColor} />;
+      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Social" color={iconColor} />;
+      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Aprendizaje" color={iconColor} />;
+      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Entretenimiento" color={iconColor} />;
+      case 'extra':           return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1" title="Diamante" color={iconColor} />;
       default:                return null;
     }
   };
@@ -96,7 +117,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {task.title}
               </h2>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black border border-gray-300 flex items-center`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-100 border border-gray-300 flex items-center ${
+                  task.type === 'productividad' ? 'text-[#FF0088]' :
+                  task.type === 'salud' ? 'text-[#8800FF]' :
+                  task.type === 'social' ? 'text-[#4444FF]' : 'text-black'
+                }`}>
                   {getTypeIcon(task.type)}
                   {getTypeLabel(task.type)}
                 </span>

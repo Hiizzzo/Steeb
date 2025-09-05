@@ -30,7 +30,7 @@ const getTaskVisuals = (category?: string) => {
     case 'work':
       return {
         icon: Code,
-        bgGradient: 'from-blue-500 to-purple-600',
+        bgGradient: 'from-blue-500 to-white',
         bgLight: 'bg-blue-50',
         iconBg: 'bg-blue-500',
         textColor: 'text-blue-600'
@@ -62,10 +62,10 @@ const getTaskVisuals = (category?: string) => {
     case 'project':
       return {
         icon: Target,
-        bgGradient: 'from-purple-500 to-indigo-600',
-        bgLight: 'bg-purple-50',
-        iconBg: 'bg-purple-500',
-        textColor: 'text-purple-600'
+        bgGradient: 'from-white to-gray-200',
+        bgLight: 'bg-gray-50',
+        iconBg: 'bg-white',
+        textColor: 'text-gray-800'
       };
     default:
       return {

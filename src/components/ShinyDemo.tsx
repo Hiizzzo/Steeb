@@ -61,7 +61,7 @@ const ShinyDemo = () => {
           transition={{ duration: 3, repeat: Infinity, delay: 1 }}
         >
           <div className="flex items-center gap-3 mb-4">
-            <Zap className="w-8 h-8 text-purple-400" />
+            <Zap className="w-8 h-8 text-white" />
             <h3 className="text-xl font-semibold">Animaciones</h3>
           </div>
           <p className="text-gray-300">

@@ -35,7 +35,7 @@ const SHINY_RAINBOW_9 = [
   '#a8ff00', // yellow-green
   '#00ff66', // green
   '#00c2ff', // cyan
-  '#6a00ff', // violet
+  '#000000', // black
   '#ff00ff', // magenta
 ] as const;
 // Given a topIndex in the combined list and the total count, return color by bottom-to-top order
@@ -809,6 +809,11 @@ const Index = () => {
                 )}
               </div>
             )}
+            
+            {/* Barra separadora blanca entre tareas y STEEB */}
+            <div className="mt-8 mb-4 mx-auto w-full max-w-md">
+              <div className="h-[2px] bg-white dark:bg-white rounded-full opacity-80" />
+            </div>
           </div>
         </>
       ) : (

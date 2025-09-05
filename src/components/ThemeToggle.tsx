@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/hooks/useTheme";
 import { Switch } from "@/components/ui/switch";
 
 const ThemeToggle = () => {
-	const { theme, setTheme } = useTheme();
+	const { currentTheme, toggleTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -12,7 +12,7 @@ const ThemeToggle = () => {
 
 	if (!mounted) return null;
 
-	const isDark = theme === "dark";
+	const isDark = currentTheme === "dark";
 
 	return (
 		<div className="fixed top-4 right-4 z-50">
@@ -20,7 +20,7 @@ const ThemeToggle = () => {
 				className={`scale-125 origin-top-right`}
 				checked={isDark}
 				onCheckedChange={(checked) => {
-					setTheme(checked ? "dark" : "light");
+					toggleTheme(checked ? "dark" : "light");
 				}}
 				aria-label="Toggle theme"
 			/>

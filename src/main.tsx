@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { registerServiceWorker } from './registerServiceWorker';
-import { ThemeProvider } from "next-themes";
 import { setupDevelopmentErrorHandling } from './lib/errorHandler';
 import { firebaseErrorHandler } from './lib/firebaseErrorHandler';
 
@@ -19,8 +18,6 @@ registerServiceWorker();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <App />
-    </ThemeProvider>
+    <App />
   </React.StrictMode>
 );

@@ -13,11 +13,7 @@ const ProductivityStatsPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/monthly-calendar');
-    }
+    navigate('/monthly-calendar');
   };
 
   const handleAddTask = async (

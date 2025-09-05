@@ -13,6 +13,20 @@ interface StatsPanelProps {
 const StatsPanel: React.FC<StatsPanelProps> = ({ tasks }) => {
   const [showDetailedProgress, setShowDetailedProgress] = useState(false);
   
+  // Detectar si está en modo shiny
+  const isShiny = document.documentElement.classList.contains('shiny');
+  
+  // Colores vibrantes para la versión shiny
+  const shinyColors = [
+    '#FF6B6B', // Rojo vibrante
+    '#4ECDC4', // Turquesa
+    '#45B7D1', // Azul
+    '#96CEB4', // Verde menta
+    '#FFEAA7', // Amarillo
+    '#FFFFFF', // Blanco
+    '#98D8C8'  // Verde agua
+  ];
+  
   // Calcular estadísticas básicas
   const completedTasks = tasks.filter(task => task.completed).length;
   const totalTasks = tasks.length;
@@ -46,7 +60,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ tasks }) => {
             cx="50"
             cy="50"
             r="45"
-            stroke="#e5e7eb"
+            stroke={isShiny ? "#333333" : "#e5e7eb"}
             strokeWidth="8"
             fill="transparent"
             className="opacity-20"
@@ -56,7 +70,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ tasks }) => {
             cx="50"
             cy="50"
             r="45"
-            stroke="#10b981"
+            stroke={isShiny ? shinyColors[0] : "#10b981"}
             strokeWidth="8"
             fill="transparent"
             strokeDasharray={strokeDasharray}
@@ -68,10 +82,14 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ tasks }) => {
         {/* Porcentaje en el centro */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-2xl font-bold text-steve-black">
+            <div className={`text-2xl font-bold ${
+              isShiny ? 'text-white' : 'text-steve-black'
+            }`}>
               {Math.round(percentage)}%
             </div>
-            <div className="text-xs text-steve-gray-dark">
+            <div className={`text-xs ${
+              isShiny ? 'text-gray-300' : 'text-steve-gray-dark'
+            }`}>
               Completado
             </div>
           </div>
@@ -101,14 +119,21 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ tasks }) => {
   
   return (
     <div>
-      <Card className="steve-border p-6 bg-steve-white mb-3">
+      <Card className={`p-6 mb-3 ${
+        isShiny ? 'bg-black border-2 border-white' : 'steve-border bg-steve-white'
+      }`}>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold">Tu Día</h3>
+          <h3 className={`text-lg font-bold ${
+            isShiny ? 'text-white' : 'text-black'
+          }`}>Tu Día</h3>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowDetailedProgress(true)}
-            className="steve-border bg-steve-white hover:bg-steve-gray-light"
+            className={isShiny 
+              ? 'border-white text-white hover:bg-white hover:text-black'
+              : 'steve-border bg-steve-white hover:bg-steve-gray-light'
+            }
           >
             <TrendingUp size={16} className="mr-1" />
             Detalles

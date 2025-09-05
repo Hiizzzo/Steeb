@@ -67,7 +67,7 @@
   padding: 2px; /* border thickness */
   background: conic-gradient(
     from 0deg,
-    #ff004c,#ff7a00,#ffe600,#00ff66,#00c2ff,#6a00ff,#ff00ff,#ff004c
+    #ff004c,#ff7a00,#ffe600,#00ff66,#00c2ff,#8b00ff,#ff00ff,#ff004c
   );
   /* mask so only the ring (padding) is visible on rounded rectangle */
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -249,7 +249,7 @@
     --shiny-success: #45b7d1;
     --shiny-warning: #f9ca24;
     --shiny-error: #ff6b6b;
-    --shiny-purple: #6c5ce7;
+    --shiny-purple: #000000;
     --shiny-blue: #74b9ff;
     --shiny-teal: #00cec9;
     --shiny-pink: #fd79a8;
@@ -292,7 +292,7 @@
   .shiny .border-gray-200:not(.task-border):not(.floating-border):not(.tareas-header),
   .shiny .border-gray-700:not(.task-border):not(.floating-border):not(.tareas-header) {
     border-color: transparent !important;
-    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-blue), var(--shiny-teal), var(--shiny-pink)) !important;
+    background: #000000 !important;
     background-size: 400% 400% !important;
     animation: shiny-border 4s ease-in-out infinite !important;
   }
@@ -304,7 +304,7 @@
 
   /* Botones neón - Solo botones específicos (excluir header y checkbox de tareas) */
   .shiny button:not(.floating-button):not(.task-checkbox):not(.task-checkbox-button):not(.swipe-button):not(.tareas-header):not(.shiny-toggle):not(.shiny-fab) {
-    background: linear-gradient(135deg, var(--shiny-pink), var(--shiny-purple)) !important;
+    background: #000000 !important;
     border: 1px solid transparent !important;
     background-clip: padding-box !important;
     position: relative !important;
@@ -355,7 +355,7 @@
   /* Iconos neón */
   .shiny svg {
     filter: drop-shadow(0 0 6px var(--shiny-pink)) !important;
-    animation: icon-glow 3s ease-in-out infinite alternate !important;
+    animation: icon-glow 3s ease-in-out infinite !important;
   }
 
   /* Override: task shapes should not inherit the pink glow; they use .task-shine white pulse */
@@ -366,14 +366,14 @@
 
   @keyframes icon-glow {
     from { filter: drop-shadow(0 0 6px var(--shiny-pink)); }
-    to { filter: drop-shadow(0 0 10px var(--shiny-purple)); }
+    to { filter: drop-shadow(0 0 10px #000000); }
   }
 
   /* Texto neón */
   .shiny h1,
   .shiny h2,
   .shiny h3 {
-    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-blue)) !important;
+    background: #000000 !important;
     background-size: 200% 200% !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
@@ -402,7 +402,7 @@
   .shiny .border-gray-200:not(.task-border):not(.floating-border):not(.tareas-header),
   .shiny .border-gray-700:not(.task-border):not(.floating-border):not(.tareas-header) {
     border-color: transparent !important;
-    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple), var(--shiny-teal)) !important;
+    background: #000000 !important;
     background-size: 300% 300% !important;
     animation: shiny-border 4s ease-in-out infinite !important;
   }
@@ -411,7 +411,7 @@
   .shiny input,
   .shiny textarea {
     background: var(--shiny-card-bg) !important;
-    border: 1px solid var(--shiny-purple) !important;
+    border: 1px solid #000000 !important;
     color: var(--shiny-text) !important;
     position: relative !important;
     box-shadow: 0 2px 10px rgba(108, 92, 231, 0.1) !important;
@@ -456,7 +456,7 @@
   }
 
   .shiny ::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, var(--shiny-pink), var(--shiny-purple)) !important;
+    background: #000000 !important;
     border-radius: 4px !important;
     box-shadow: 0 0 10px rgba(255, 107, 157, 0.3) !important;
   }
@@ -692,8 +692,8 @@
 .shiny .shiny-fab {
   position: relative !important;
   z-index: 0 !important;
-  /* White outer with black center using a single background */
-  background: radial-gradient(circle at 50% 50%, #000000 0 44%, #ffffff 45% 100%) !important;
+  /* Black center background */
+  background: #000000 !important;
   border: none !important;
   box-shadow: none !important;
   overflow: visible !important; /* let side pills protrude */
@@ -710,19 +710,15 @@
   padding: 3px !important;                /* ring thickness */
   background: conic-gradient(
     from 0deg,
-    #ff004c,
-    #ff7a00,
-    #ffe600,
-    #00ff66,
-    #00c2ff,
-    #6a00ff,
-    #ff00ff,
-    #ff004c
-  ) !important;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
-  -webkit-mask-composite: xor !important;
-          mask-composite: exclude !important; /* show only the border */
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
   animation: spin 8s linear infinite !important; /* slower */
   will-change: transform !important;
   pointer-events: none !important;
@@ -731,7 +727,7 @@
 
 .shiny .shiny-fab::after { content: none !important; }
 
-/* Ensure the plus icon on the FAB is white for strong contrast on black center */
+/* Ensure the plus icon on the FAB is white for strong contrast on white center */
 .shiny .shiny-fab svg {
   color: #ffffff !important;            /* for icons that use currentColor */
   position: relative !important;        /* create stacking context above ::after */
@@ -764,13 +760,13 @@
   height: 16px !important;
   border-radius: 9999px !important;
   background: linear-gradient(90deg,
-    #ff004c, /* red */
+    #ffffff, /* white */
     #ff7a00, /* orange */
     #ffe600, /* yellow */
     #00ff66, /* green */
     #00c2ff, /* blue */
     #6a00ff, /* indigo */
-    #ff00ff  /* violet */
+    #ffffff  /* white */
   ) !important;
   background-size: 300% 100% !important;
   animation: rainbow-move 6s linear infinite !important;
@@ -806,6 +802,14 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes neon-background-move {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 25%; }
+  50% { background-position: 200% 75%; }
+  75% { background-position: 300% 25%; }
+  100% { background-position: 400% 50%; }
 }
 
 /* Shiny: force black background on main page wrapper */
@@ -916,20 +920,11 @@
 .shiny .task-checkbox-button::before {
   content: "" !important;
   position: absolute !important;
-  inset: -1px !important;              /* thinner ring */
+  inset: -3px !important;              /* create space for black border */
   border-radius: 9999px !important;     /* keep it circular */
   padding: 3px !important;              /* +1px thickness */
-  background: conic-gradient(
-    from 0deg,
-    #ff004c, /* red */
-    #ff7a00, /* orange */
-    #ffe600, /* yellow */
-    #00ff66, /* green */
-    #6a00ff, /* indigo */
-    #ff00ff, /* violet */
-    #ff004c  /* wrap to red */
-  ) !important;                         /* circular rainbow */
-  animation: spin 8s linear infinite !important;          /* slower rotation */
+  background: #ffffff !important;
+  border: 2px solid #ffffff !important;
   will-change: background-position !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
@@ -941,13 +936,13 @@
 .shiny .task-checkbox-button::after {
   content: "" !important;
   position: absolute !important;
-  inset: 2px !important;                 /* larger white disk to fully overpaint inner edge */
+  inset: 2px !important;                 /* larger black disk to fully overpaint inner edge */
   border-radius: 9999px !important;
   background: #000000 !important;        /* solid black center */
   pointer-events: none !important;
   z-index: 2 !important;                 /* ensure it covers any inner gradient */
-  /* Thin white ring between black fill and rainbow border */
-  box-shadow: 0 0 0 1px #ffffff !important;
+  /* Thin black ring between black fill and white border */
+  box-shadow: 0 0 0 1px #000000 !important;
 }
 .shiny .task-checkbox-button.completed {
   /* Keep the same inner white center on completed */
@@ -983,7 +978,7 @@
     #00ff66, /* green */
     #00c2ff, /* blue */
     #6a00ff, /* indigo */
-    #ff00ff  /* violet */
+    #ffffff  /* white */
   );
   background-size: 300% 100%;
   animation: rainbow-move 6s linear infinite; /* slower */
@@ -1016,7 +1011,7 @@
     #00ff66, /* green */
     #00c2ff, /* blue */
     #6a00ff, /* indigo */
-    #ff00ff  /* violet */
+    #ffffff  /* white */
   );
   background-size: 300% 100%;
   animation: rainbow-move 6s linear infinite; /* slower */
@@ -1099,8 +1094,8 @@
   padding: 2px; /* ring thickness */
   background: linear-gradient(90deg,
     #6366f1, /* indigo */
-    #8b5cf6, /* violet */
-    #a855f7, /* purple */
+    #ffffff, /* white */
+    #ffffff, /* white */
     #d946ef, /* fuchsia */
     #ec4899, /* pink */
     #f97316, /* orange */
@@ -1160,19 +1155,19 @@
   inset: -2px;
   border-radius: 12px;
   padding: 2px; /* thicker elegant ring */
-  background: linear-gradient(135deg,
-    #3b82f6, /* blue */
-    #6366f1, /* indigo */
-    #8b5cf6, /* violet */
-    #a855f7, /* purple */
-    #d946ef, /* fuchsia */
-    #ec4899, /* pink */
-    #f59e0b, /* amber */
-    #10b981, /* emerald */
-    #06b6d4  /* cyan */
+  background: linear-gradient(
+    90deg,
+    #ff004c,
+    #ff7a00,
+    #ffe600,
+    #00ff66,
+    #00c2ff,
+    #8b00ff,
+    #ff00ff,
+    #ff004c
   );
-  background-size: 400% 400%;
-  animation: rainbow-move 6s ease-in-out infinite; /* elegant sweep */
+  background-size: 300% 100%;
+  animation: rainbow-move 8s linear infinite; /* faster left-to-right sweep */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -1212,19 +1207,19 @@
   inset: -2px;
   border-radius: 12px;
   padding: 2px; /* thicker elegant ring */
-  background: linear-gradient(135deg,
-    #3b82f6, /* blue */
-    #6366f1, /* indigo */
-    #8b5cf6, /* violet */
-    #a855f7, /* purple */
-    #d946ef, /* fuchsia */
-    #ec4899, /* pink */
-    #f59e0b, /* amber */
-    #10b981, /* emerald */
-    #06b6d4  /* cyan */
+  background: linear-gradient(
+    90deg,
+    #ff004c,
+    #ff7a00,
+    #ffe600,
+    #00ff66,
+    #00c2ff,
+    #8b00ff,
+    #ff00ff,
+    #ff004c
   );
-  background-size: 400% 400%;
-  animation: rainbow-move 6s ease-in-out infinite; /* elegant sweep */
+  background-size: 300% 100%;
+  animation: rainbow-move 8s linear infinite; /* faster left-to-right sweep */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -1259,6 +1254,148 @@
   display: none !important;
   content: none !important;
 }
+
+/* Estilos específicos para ProductivityStats en versión shiny - igual a versión blanca */
+.shiny .productivity-stats {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .header {
+  background-color: #ffffff !important;
+}
+
+.shiny .productivity-stats .steeb-bubble {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .steeb-bubble::after {
+  border-right-color: #e5e7eb !important;
+}
+
+.shiny .productivity-stats .steeb-bubble::before {
+  border-right-color: #ffffff !important;
+}
+
+.shiny .productivity-stats .steeb-bubble-text {
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .kpi-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .kpi-title {
+  color: #6b7280 !important;
+}
+
+.shiny .productivity-stats .kpi-value {
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .progress-bar {
+  background-color: #f3f4f6 !important;
+}
+
+.shiny .productivity-stats .progress-fill {
+  background: #000000 !important;
+}
+
+.shiny .productivity-stats .chart-container {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.shiny .productivity-stats .chart-title {
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .stats-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .stats-title {
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .donut-background {
+  stroke: #f3f4f6 !important;
+}
+
+.shiny .productivity-stats .donut-progress {
+  stroke: #3b82f6 !important;
+}
+
+.shiny .productivity-stats .donut-text {
+  color: #000000 !important;
+}
+
+.shiny .productivity-stats .stats-progress {
+  background-color: #f3f4f6 !important;
+}
+
+.shiny .productivity-stats .stats-progress-fill {
+  background: #000000 !important;
+}
+
+.shiny .productivity-stats .streak-bar {
+  background: #000000 !important;
+}
+
+.shiny .productivity-stats .streak-labels {
+  color: #6b7280 !important;
+}
+
+.shiny .productivity-stats .chart-line {
+  stroke: #3b82f6 !important;
+}
+
+.shiny .productivity-stats .chart-point {
+  fill: #3b82f6 !important;
+}
+
+.shiny .productivity-stats .chart-grid {
+  stroke: #f3f4f6 !important;
+}
+
+.shiny .productivity-stats .chart-label {
+  fill: #6b7280 !important;
+}
+
+/* Estilos para gráficos Recharts en versión shiny */
+.shiny .recharts-cartesian-grid-horizontal line,
+.shiny .recharts-cartesian-grid-vertical line {
+  stroke: #333333 !important;
+}
+
+.shiny .recharts-bar-rectangle {
+  fill: #ffffff !important;
+}
+
+.shiny .recharts-line-curve {
+  stroke: #ffffff !important;
+}
+
+.shiny .recharts-tooltip-wrapper {
+  background: #000000 !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Gradiente SVG para gráficos shiny */
+.shiny svg defs linearGradient#shinyGradient stop:nth-child(1) { stop-color: #ff004c; }
+.shiny svg defs linearGradient#shinyGradient stop:nth-child(2) { stop-color: #ff7a00; }
+.shiny svg defs linearGradient#shinyGradient stop:nth-child(3) { stop-color: #ffe600; }
+.shiny svg defs linearGradient#shinyGradient stop:nth-child(4) { stop-color: #00ff66; }
+.shiny svg defs linearGradient#shinyGradient stop:nth-child(5) { stop-color: #00c2ff; }
+.shiny svg defs linearGradient#shinyGradient stop:nth-child(6) { stop-color: #ffffff; }
+.shiny svg defs linearGradient#shinyGradient stop:nth-child(7) { stop-color: #ffffff; }
 
 /* Force SVG icons in Shiny FAB to be black for contrast */
 .shiny .shiny-fab svg { fill: black !important; }

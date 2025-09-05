@@ -63,9 +63,23 @@ const CentralStatsChart: React.FC<{
   onSelectDay?: (iso: string) => void;
   isDark?: boolean;
 }> = ({ period, weekData, monthData, yearData, onSelectDay, isDark = false }) => {
-  const axisStyle = { fontSize: 12, fill: isDark ? '#ffffff' : '#111111' } as const;
-  const gridStroke = isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb';
+  const isShiny = document.documentElement.classList.contains('shiny');
+  const axisStyle = { fontSize: 12, fill: isShiny ? '#000000' : (isDark ? '#ffffff' : '#111111') } as const;
+  const gridStroke = isShiny ? '#333333' : (isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb');
   const commonChartProps = { margin: { top: 10, right: 8, bottom: 0, left: 0 } } as const;
+  
+  const rainbowColors = [
+    '#FF0088', // Rosa vibrante
+    '#8800FF', // Violeta vibrante
+    '#4444FF'  // Azul vibrante
+  ];
+  
+  const getBarColor = (index: number, isCurrent?: boolean) => {
+    if (isShiny) {
+      return rainbowColors[index % rainbowColors.length];
+    }
+    return isCurrent ? (isDark ? '#ffffff' : '#000000') : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)');
+  };
 
   return (
          <div className={`w-full ${period === 'year' ? 'h-72 -mx-4' : 'h-56'}`}>
@@ -78,7 +92,6 @@ const CentralStatsChart: React.FC<{
             <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
             <Bar
               dataKey="value"
-              fill={isDark ? '#ffffff' : '#000000'}
               radius={[2, 2, 0, 0]}
               barSize={24}
               onClick={(data) => {
@@ -87,7 +100,11 @@ const CentralStatsChart: React.FC<{
               }}
               isAnimationActive
               animationDuration={200}
-            />
+            >
+              {weekData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getBarColor(index, entry.isCurrent)} />
+              ))}
+            </Bar>
           </BarChart>
         ) : period === 'month' ? (
           <BarChart data={monthData} {...commonChartProps} barCategoryGap="30%" barGap={6}>
@@ -95,8 +112,11 @@ const CentralStatsChart: React.FC<{
             <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
-            <Bar dataKey="value" fill={isDark ? '#ffffff' : '#000000'} radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} barSize={28}>
+            <Bar dataKey="value" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} barSize={28}>
               <LabelList dataKey="value" position="top" formatter={(v: number) => (v > 0 ? v : '')} style={{ fill: axisStyle.fill, fontSize: 11 }} />
+              {monthData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getBarColor(index)} />
+              ))}
             </Bar>
           </BarChart>
                  ) : (
@@ -125,7 +145,7 @@ const CentralStatsChart: React.FC<{
                {yearData.map((entry, index) => (
                  <Cell
                    key={`cell-${index}`}
-                   fill={entry.isCurrent ? (isDark ? '#ffffff' : '#000000') : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)')}
+                   fill={isShiny ? rainbowColors[index % rainbowColors.length] : (entry.isCurrent ? (isDark ? '#ffffff' : '#000000') : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'))}
                  />
                ))}
              </Bar>
@@ -354,7 +374,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
   }, []);
 
   return (
-         <div className={`${period === 'year' ? 'max-w-2xl' : 'max-w-md'} mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20`}>
+         <div className={`productivity-stats ${period === 'year' ? 'max-w-2xl' : 'max-w-md'} mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20`}>
       <h1 className="mt-0 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase">ESTADÍSTICAS</h1>
 
       {/* Objetivo del mes (solo input y checkbox, sin etiquetas adicionales) */}

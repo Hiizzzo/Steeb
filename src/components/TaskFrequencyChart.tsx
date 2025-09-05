@@ -16,6 +16,13 @@ interface TaskFrequencyChartProps {
 }
 
 const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, isDark = false }) => {
+  const isShiny = document.documentElement.classList.contains('shiny');
+  // Colores rosa, violeta y azul para mejor visualización
+  const rainbowColors = [
+    '#FF0088', // Rosa vibrante
+    '#8800FF', // Violeta vibrante
+    '#4444FF'  // Azul vibrante
+  ];
   const frequencyData = useMemo(() => {
     // Filtrar tareas completadas según el período
     const now = new Date();
@@ -80,14 +87,71 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
   
   const levels = ['Muy alta', 'Alta', 'Media', 'Baja', 'Muy baja'];
   
+  const getTaskShape = (type: string) => {
+    // Color dinámico de la forma:
+    // - Versión blanca (no-shiny): negro en modo claro y blanco en modo oscuro
+    // - Versión shiny: colores vibrantes por categoría
+    const getShapeColor = (t: string) => {
+      if (isShiny) {
+        switch (t) {
+          case 'productividad':
+            return '#FF0088'; // Rosa
+          case 'salud':
+            return '#8800FF'; // Violeta
+          case 'social':
+            return '#4444FF'; // Azul
+          default:
+            return '#FFFFFF'; // Fallback en shiny
+        }
+      }
+      return isDark ? '#FFFFFF' : '#000000';
+    };
+
+    const color = getShapeColor(type);
+
+    switch (type) {
+      case 'productividad':
+        return (
+          <div 
+            className="w-4 h-4 mr-2 flex-shrink-0" 
+            style={{ backgroundColor: color }}
+          />
+        );
+      case 'salud':
+        return (
+          <div className="w-4 h-4 mr-2 flex-shrink-0 relative">
+            <svg viewBox="0 0 24 24" className="w-full h-full" fill={color}>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </div>
+        );
+      case 'social':
+        return (
+          <div className="w-4 h-4 mr-2 flex-shrink-0 relative">
+            <svg viewBox="0 0 24 24" className="w-full h-full" fill={color}>
+              <path d="M12 2 L22 20 L2 20 Z"/>
+            </svg>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+  
   return (
-    <div className="w-full bg-white dark:bg-black p-6 rounded-lg">
+    <div className={`w-full p-6 rounded-lg ${
+      isShiny ? 'bg-white border border-gray-200' : 'bg-white dark:bg-black'
+    }`}>
       {/* Título con información de tareas */}
       <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-black dark:text-white mb-2">
+        <h2 className={`text-xl font-bold mb-2 ${
+          isShiny ? 'text-white' : 'text-black dark:text-white'
+        }`}>
           Tipo de tareas más completadas
         </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className={`text-sm ${
+          isShiny ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+        }`}>
           Basado en {frequencyData.reduce((total, item) => total + item.count, 0)} de {tasks.length} tareas completadas
         </p>
       </div>
@@ -98,9 +162,13 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
           {frequencyData.map((item, index) => {
             // Diferentes patrones de líneas para cada segmento
             const getPattern = (index: number) => {
+              if (isShiny) {
+                // En versión shiny, usar colores vibrantes sólidos
+                return '';
+              }
               if (index === 0) {
-                // Más frecuente: sólido negro
-                return 'bg-black dark:bg-white';
+                // Más frecuente: sólido blanco en ambos temas
+                return 'bg-white';
               } else if (index === 1) {
                 // Segunda: líneas diagonales
                 return 'bg-white dark:bg-black';
@@ -108,6 +176,16 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 // Tercera: líneas horizontales
                 return 'bg-white dark:bg-black';
               }
+            };
+            
+            const dividerColor = isDark ? '#ffffff' : '#000000';
+            
+            const getShinyBackground = (index: number, type: string) => {
+              if (isShiny) {
+                // Usar colores del arcoíris basados en el índice
+                return { backgroundColor: rainbowColors[index % rainbowColors.length] };
+              }
+              return {};
             };
             
             const getLinePattern = (index: number, type: string) => {
@@ -156,19 +234,20 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 className={`flex items-center justify-center relative ${getPattern(index)}`}
                 style={{ 
                   width: `${item.percentage}%`,
-                  backgroundImage: getLinePattern(index, item.type),
-                  borderRight: index < frequencyData.length - 1 ? `2px solid ${isDark ? '#ffffff' : '#000000'}` : 'none'
+                  backgroundImage: isShiny ? 'none' : getLinePattern(index, item.type),
+                  borderRight: index < frequencyData.length - 1 ? `2px solid ${dividerColor}` : 'none',
+                  ...getShinyBackground(index, item.type)
                 }}
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ duration: 0.8, delay: index * 0.2 }}
               >
-                {/* Indicador para el más frecuente */}
+                {/* Indicador para el más frecuente - sin animación molesta */}
                 {item.isTop && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className={`w-4 h-4 rounded-full border-2 ${
-                      isDark ? 'border-black bg-black' : 'border-white bg-white'
-                    } animate-pulse`} />
+                      isShiny ? 'border-white bg-white shadow-lg' : (isDark ? 'border-white bg-white' : 'border-black bg-black')
+                    }`} />
                   </div>
                 )}
               </motion.div>
@@ -178,19 +257,44 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
         
         {/* Etiquetas de los 3 tipos */}
         <div className="flex mt-4">
-          {frequencyData.map((item, index) => (
-            <div 
-              key={item.type} 
-              className="text-center px-1"
-              style={{ width: `${item.percentage}%` }}
-            >
-              <span className={`text-sm text-black dark:text-white ${
-                item.isTop ? 'font-bold' : 'font-medium'
-              }`}>
-                {item.label}
-              </span>
-            </div>
-          ))}
+          {frequencyData.map((item, index) => {
+            // Definir colores específicos para cada categoría
+            const getCategoryColor = (type: string) => {
+                if (isShiny) {
+                  switch (type) {
+                    case 'productividad': return '#FF0088'; // Rosa
+                    case 'salud': return '#8800FF'; // Violeta
+                    case 'social': return '#4444FF'; // Azul
+                    default: return '#FFFFFF'; // Blanco por defecto en shiny
+                  }
+                } else {
+                  // En modo no-shiny (versión blanca), todos los textos son negros
+                  return isDark ? '#FFFFFF' : '#000000';
+                }
+              };
+              
+
+            
+            return (
+              <div 
+                key={item.type} 
+                className="text-center px-1 flex flex-col items-center"
+                style={{ width: `${item.percentage}%` }}
+              >
+                <div className="flex items-center justify-center mb-1">
+                  {getTaskShape(item.type)}
+                </div>
+                <span 
+                  className={`text-sm ${
+                    item.isTop ? 'font-bold' : 'font-medium'
+                  }`}
+                  style={{ color: getCategoryColor(item.type) }}
+                >
+                  {item.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
       
@@ -202,8 +306,14 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               const labels = ['Más realizada', 'Segunda más realizada', 'Tercera más realizada'];
               
               const getPatternBox = (index: number) => {
+                // Solo en modo shiny no necesitamos clases de fondo
+                if (isShiny) {
+                  return '';
+                }
+                
+                // Comportamiento para modos normal y oscuro
                 if (index === 0) {
-                  return 'bg-black dark:bg-white';
+                  return 'bg-white';
                 } else if (index === 1) {
                   return 'bg-white dark:bg-black';
                 } else {
@@ -212,6 +322,23 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               };
               
               const getPatternStyle = (index: number, type: string) => {
+                // Solo aplicar colores específicos en modo shiny
+                if (isShiny) {
+                  // Usar colores específicos para cada tipo de tarea
+                  if (type === 'productividad') {
+                    return { backgroundColor: '#FF0088' }; // Rosa
+                  }
+                  if (type === 'salud') {
+                    return { backgroundColor: '#8800FF' }; // Violeta
+                  }
+                  if (type === 'social') {
+                    return { backgroundColor: '#4444FF' }; // Azul
+                  }
+                  // Para otros tipos, usar colores del arcoíris basados en el índice
+                  return { backgroundColor: rainbowColors[index % rainbowColors.length] };
+                }
+                
+                // Comportamiento original para modos normal y oscuro
                 const color = isDark ? '#ffffff' : '#000000';
                 if (type === 'social') {
                   return { backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };
@@ -258,13 +385,24 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <div 
-                    className={`w-5 h-5 border-2 border-black dark:border-white ${getPatternBox(index)}`}
+                    className={`w-5 h-5 ${isShiny ? 'rounded-sm border-2 border-black' : 'border-2 border-black dark:border-white'} ${getPatternBox(index)}`}
                     style={getPatternStyle(index, item.type)}
                   />
-                  <span className={`text-sm text-black dark:text-white ${item.isTop ? 'font-bold' : 'font-medium'}`}>
+                  {getTaskShape(item.type)}
+                  <span 
+                    className={`text-sm ${item.isTop ? 'font-bold' : 'font-medium'}`}
+                    style={{ 
+                      color: isShiny ? (
+                        item.type === 'productividad' ? '#FF0088' : 
+                        item.type === 'salud' ? '#8800FF' : 
+                        item.type === 'social' ? '#4444FF' : 
+                        '#FFFFFF'
+                      ) : '#000000'
+                    }}
+                  >
                     {item.label}
                   </span>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                  <span className={`text-xs ${isShiny ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                     - {labels[index]} ({item.count} tareas, {item.percentage.toFixed(1)}%)
                   </span>
                 </motion.div>
@@ -277,7 +415,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       {/* Mensaje cuando no hay datos */}
       {frequencyData.length === 0 && (
         <div className="text-center py-8">
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className={`${isShiny ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}>
             No hay tareas completadas en este período
           </p>
         </div>

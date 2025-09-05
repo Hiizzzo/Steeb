@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, CheckCircle, Clock, Plus } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -63,7 +63,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
   selectedDates = [],
   onDateSelect
 }) => {
-  const { theme } = useTheme();
+  const { currentTheme } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedMultipleDates, setSelectedMultipleDates] = useState<string[]>(selectedDates);
@@ -84,7 +84,8 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
     };
   }, [clickTimeout]);
 
-  const isDark = theme === 'dark';
+  const isDark = currentTheme === 'dark';
+  const isShiny = document.documentElement.classList.contains('shiny');
 
   // Configuración de localización para español
   const monthNames = [
@@ -317,12 +318,12 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
           transition={{ duration: 0.2 }}
         >
           <h2 className={`text-2xl font-semibold ${
-            isDark ? 'text-white' : 'text-gray-900'
+            isShiny ? 'text-black' : (isDark ? 'text-white' : 'text-gray-900')
           }`}>
             {monthNames[currentDate.getMonth()]}
           </h2>
           <p className={`text-lg ${
-            isDark ? 'text-gray-400' : 'text-gray-600'
+            isShiny ? 'text-black' : (isDark ? 'text-gray-400' : 'text-gray-600')
           }`}>
             {currentDate.getFullYear()}
           </p>
@@ -396,7 +397,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
               <span className={`text-lg font-semibold ${
                 calendarDay.isToday 
                   ? 'text-white' 
-                  : (isDark ? 'text-white' : 'text-gray-900')
+                  : (isShiny ? 'text-black' : (isDark ? 'text-white' : 'text-gray-900'))
               }`}>
                 {calendarDay.day}
               </span>

@@ -48,8 +48,14 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
         >
           STEEB
         </h1>
-        
-        {/* Puntos animados */}
+-        <p className={`mt-2 text-sm ${isDark ? 'text-white/70' : 'text-black/70'}`} style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+-          0.97
+-        </p>
++        <p className="mt-1 text-xs sm:text-sm text-gray-400" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
++          0.97
++        </p>
+         
+         {/* Puntos animados */}
         <div className="flex justify-center items-center space-x-3 mt-6">
           <div 
             className="animate-bounce [animation-delay:-0.3s]"

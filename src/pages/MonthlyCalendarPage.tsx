@@ -107,6 +107,7 @@ const MonthlyCalendarPage: React.FC = () => {
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
   const { name, nickname } = useUserProfile();
+  const isShiny = document.documentElement.classList.contains('shiny');
   
   const { 
     tasks, 
@@ -516,7 +517,7 @@ const MonthlyCalendarPage: React.FC = () => {
       {/* Número del día */}
       <div
         className={`absolute top-1 left-1/2 -translate-x-1/2 text-[18px] sm:text-[20px] tabular-nums
-          ${day.isCurrentMonth ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 dark:text-white/60'}
+          ${isShiny ? 'text-black' : (day.isCurrentMonth ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 dark:text-white/60')}
           ${day.isToday ? 'font-bold' : 'font-semibold'}`}
       >
         {day.day}
@@ -634,7 +635,9 @@ const MonthlyCalendarPage: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="text-2xl font-bold text-black dark:text-white"
+                className={`text-2xl font-bold ${
+                  isShiny ? 'text-black' : 'text-black dark:text-white'
+                }`}
               >
                 {capitalize(currentDate.toLocaleDateString('es-ES', { 
                   month: 'long', 
@@ -829,4 +832,4 @@ const MonthlyCalendarPage: React.FC = () => {
   );
 };
 
-export default MonthlyCalendarPage; 
+export default MonthlyCalendarPage;
