@@ -42,9 +42,17 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    const isShiny = typeof document !== 'undefined' && document.documentElement.classList.contains('shiny')
+    const shinyOverride = isShiny && variant === 'default'
+      ? 'bg-white text-black hover:bg-white/90 border border-black'
+      : ''
+
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          shinyOverride
+        )}
         ref={ref}
         {...props}
       />

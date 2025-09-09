@@ -170,7 +170,11 @@ const MonthlyCalendarPage: React.FC = () => {
         const completedMatch = completedStr ? completedStr === dateString : false;
         return scheduledMatch || completedMatch;
       });
-      const completedTasks = dayTasks.filter(task => task.completed).length;
+      // IMPORTANTE: Contar como "completadas en este día" SOLO si completedDate coincide con el día
+      const completedTasks = dayTasks.filter(task => {
+        const completedStr = normalizeDateString(task.completedDate || '');
+        return task.completed && !!completedStr && completedStr === dateString;
+      }).length;
       const totalTasks = dayTasks.length;
       const completionPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
       
@@ -204,22 +208,30 @@ const MonthlyCalendarPage: React.FC = () => {
         return;
       }
     }
-    
-    const updatedTasks = tasks.map(task => 
-      task.id === id ? { 
-        ...task, 
-        completed: !task.completed,
-        completedDate: !task.completed ? new Date().toISOString() : undefined
-      } : task
-    );
+
+    const targetDateStr = selectedDate || toLocalDateString(new Date());
+
+    const updatedTasks = tasks.map(task => {
+      if (task.id !== id) return task;
+      const isCompletedForSelectedDate = task.completed && normalizeDateString(task.completedDate || '') === targetDateStr;
+      const willComplete = !isCompletedForSelectedDate;
+      return {
+        ...task,
+        completed: willComplete,
+        completedDate: willComplete ? new Date(`${targetDateStr}T12:00:00`).toISOString() : undefined
+      };
+    });
     updateTasks(updatedTasks);
     
-    if (task && !task.completed) {
-      playTaskCompleteSound();
-      toast({
-        title: "¡Tarea completada!",
-        description: "¡Excelente trabajo! Has completado una tarea.",
-      });
+    if (task) {
+      const isCompletedForSelectedDate = task.completed && normalizeDateString(task.completedDate || '') === (selectedDate || toLocalDateString(new Date()));
+      if (!isCompletedForSelectedDate) {
+        playTaskCompleteSound();
+        toast({
+          title: "¡Tarea completada!",
+          description: "¡Excelente trabajo!",
+        });
+      }
     }
   };
 
@@ -310,9 +322,8 @@ const MonthlyCalendarPage: React.FC = () => {
       localStorage.removeItem('stebe-selected-date');
       
       toast({
-        title: "¡Tarea creada!",
-        description: "Tu tarea ha sido agregada exitosamente.",
-      });
+          title: "TAREA CREADA",
+        });
     } catch (error) {
       console.error('Error al crear tarea:', error);
       toast({
@@ -333,16 +344,20 @@ const MonthlyCalendarPage: React.FC = () => {
   };
 
   const renderShapeForType = (type: Task['type']) => {
+    const isShiny = document.documentElement.classList.contains('shiny');
+    const isDark = document.documentElement.classList.contains('dark');
+    const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#1f2937');
+    
     switch (type) {
-      case 'productividad':   return <ShapeIcon variant="square" className="w-4 h-4 mr-2 text-black" title="Trabajo" />;
-      case 'salud':           return <ShapeIcon variant="heart" className="w-4 h-4 mr-2 text-black" title="Salud" />;
-      case 'social':          return <ShapeIcon variant="triangle" className="w-4 h-4 mr-2 text-black" title="Social" />;
-      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-4 h-4 mr-2 text-black" title="Organización" />;
+      case 'productividad':   return <ShapeIcon variant="square" className="w-4 h-4 mr-2" title="Trabajo" color={shapeColor} />;
+      case 'salud':           return <ShapeIcon variant="heart" className="w-4 h-4 mr-2" title="Salud" color={shapeColor} />;
+      case 'social':          return <ShapeIcon variant="triangle" className="w-4 h-4 mr-2" title="Social" color={shapeColor} />;
+      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-4 h-4 mr-2" title="Organización" color={shapeColor} />;
       case 'aprendizaje':
       case 'creatividad':
-      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-4 h-4 mr-2 text-black" title={type} />;
-      case 'extra':           return <ShapeIcon variant="diamond" className="w-4 h-4 mr-2 text-black" title="Extra" />;
-      default: return <div className="w-4 h-4 mr-2 border border-black" />;
+      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-4 h-4 mr-2" title={type} color={shapeColor} />;
+      case 'extra':           return <ShapeIcon variant="diamond" className="w-4 h-4 mr-2" title="Extra" color={shapeColor} />;
+      default: return <div className="w-4 h-4 mr-2 border" style={{ borderColor: shapeColor }} />;
     }
   };
 
@@ -574,8 +589,7 @@ const MonthlyCalendarPage: React.FC = () => {
     </motion.div>
   );
 
-  return (
-    <div
+  return (<div
       className="min-h-screen bg-white dark:bg-black p-2 pt-1"
       style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}
     >
@@ -591,7 +605,7 @@ const MonthlyCalendarPage: React.FC = () => {
             />
           </div>
           <motion.div 
-            className="relative flex-1 max-w-[calc(100%-110px)] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2 mr-4 mt-2 text-sm leading-snug text-black dark:text-white shadow-sm"
+            className="relative flex-1 max-w-[calc(100%-110px)] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2 mr-4 mt-2 text-sm leading-snug text-black dark:text-white shadow-sm shiny-steeb-dialog"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -607,7 +621,11 @@ const MonthlyCalendarPage: React.FC = () => {
           <motion.button
             onClick={() => navigate('/')}
             aria-label="Ir al inicio"
-            className="w-7 h-7 rounded-full flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+              isShiny 
+                ? 'shiny-home-button bg-black text-white border-none' 
+                : 'border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
+            }`}
             whileTap={{ scale: 0.85 }}
             whileHover={{ scale: 1.08 }}
           >
@@ -618,7 +636,9 @@ const MonthlyCalendarPage: React.FC = () => {
         </div>
 
         {/* Controles del calendario */}
-        <Card className="p-3 mb-2 bg-white dark:bg-black relative border-0 shadow-none">
+        <Card className="p-3 mb-2 bg-white dark:bg-black relative border-0 shadow-none shiny-calendar-card">
+          {/* Etiqueta STEEB solo en modo Shiny */}
+          <div className="shiny-steeb-label text-[10px] font-bold tracking-wide text-white/90 mb-1 ml-0.5">STEEB</div>
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
@@ -762,42 +782,47 @@ const MonthlyCalendarPage: React.FC = () => {
                 <div className="space-y-4">
                   {calendarDays.find(d => d.dateString === selectedDate)?.tasks
                     .sort((a, b) => {
-                      // Tareas completadas van al final
-                      if (a.completed && !b.completed) return 1;
-                      if (!a.completed && b.completed) return -1;
+                      // Tareas completadas van al final (según fecha seleccionada)
+                      const aCompleted = a.completed && normalizeDateString(a.completedDate || '') === selectedDate;
+                      const bCompleted = b.completed && normalizeDateString(b.completedDate || '') === selectedDate;
+                      if (aCompleted && !bCompleted) return 1;
+                      if (!aCompleted && bCompleted) return -1;
                       // Si ambas tienen el mismo estado, mantener orden original
                       return 0;
                     })
-                    .map((task) => (
-                    <motion.div
-                      key={task.id}
-                      initial={{ opacity: 0, x: -14 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 px-1.5 py-2 transition-colors"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center">
-                          {renderShapeForType(task.type)}
-                          <p className={`text-[18px] truncate ${task.completed ? 'line-through text-gray-500 dark:text-white' : 'text-black dark:text-white font-medium'}`}>{task.title}</p>
-                        </div>
-                        {task.scheduledTime && (
-                          <p className="text-sm text-gray-600">{task.scheduledTime}</p>
-                        )}
-                      </div>
-                      {/* Selector estilo radio a la derecha */}
-                      <button
-                        onClick={() => handleToggleTask(task.id)}
-                        aria-label="Seleccionar tarea"
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${task.completed ? 'bg-black border-black dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
-                      >
-                        {task.completed && (
-                          <svg className="w-3 h-3 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </button>
-                    </motion.div>
-                  ))}
+                    .map((task) => {
+                      const isCompletedForSelectedDate = task.completed && normalizeDateString(task.completedDate || '') === selectedDate;
+                      return (
+                        <motion.div
+                          key={task.id}
+                          initial={{ opacity: 0, x: -14 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-center gap-3 px-1.5 py-2 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center">
+                              {renderShapeForType(task.type)}
+                              <p className={`text-[18px] truncate ${isCompletedForSelectedDate ? 'line-through text-gray-500 dark:text-white' : 'text-black dark:text-white font-medium'}`}>{task.title}</p>
+                            </div>
+                            {task.scheduledTime && (
+                              <p className="text-sm text-gray-600">{task.scheduledTime}</p>
+                            )}
+                          </div>
+                          {/* Selector estilo radio a la derecha */}
+                          <button
+                            onClick={() => handleToggleTask(task.id)}
+                            aria-label="Seleccionar tarea"
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isCompletedForSelectedDate ? 'bg-black border-black dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
+                          >
+                            {isCompletedForSelectedDate && (
+                              <svg className="w-3 h-3 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        </motion.div>
+                      );
+                    })}
                 </div>
               )}
             </motion.div>

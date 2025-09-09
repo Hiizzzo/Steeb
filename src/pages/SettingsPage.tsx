@@ -80,7 +80,7 @@ const SettingsPage = () => {
               }`}
             >
               <div className="text-center">
-                <span className="text-sm font-medium">🇪🇸 Español</span>
+                <span className="text-sm font-medium">Español</span>
               </div>
             </button>
             
@@ -93,7 +93,7 @@ const SettingsPage = () => {
               }`}
             >
               <div className="text-center">
-                <span className="text-sm font-medium">🇺🇸 English</span>
+                <span className="text-sm font-medium">English</span>
               </div>
             </button>
           </div>

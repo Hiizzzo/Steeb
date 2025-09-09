@@ -85,7 +85,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             return '#FFFFFF';
         }
       }
-      return '#000000'; // Negro para modo normal
+      return '#1f2937'; // Gris oscuro para mejor contraste en modo claro
     };
     
     const iconColor = getIconColor();

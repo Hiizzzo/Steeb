@@ -303,7 +303,8 @@
   }
 
   /* Botones neón - Solo botones específicos (excluir header y checkbox de tareas) */
-  .shiny button:not(.floating-button):not(.task-checkbox):not(.task-checkbox-button):not(.swipe-button):not(.tareas-header):not(.shiny-toggle):not(.shiny-fab) {
+  /* Excluir botones absolutos (.absolute) para no romper menú radial */
+  .shiny button:not(.floating-button):not(.task-checkbox):not(.task-checkbox-button):not(.swipe-button):not(.tareas-header):not(.shiny-toggle):not(.shiny-fab):not(.absolute) {
     background: #000000 !important;
     border: 1px solid transparent !important;
     background-clip: padding-box !important;
@@ -387,7 +388,8 @@
   }
 
   /* Hover effects neón */
-  .shiny button:hover,
+  /* Excluir botones flotantes críticos para no romper su transform */
+  .shiny button:hover:not(.floating-button):not(.absolute),
   .shiny .bg-gray-50:hover,
   .shiny .bg-gray-100:hover,
   .shiny .bg-gray-900:hover {
@@ -463,8 +465,8 @@
 
   /* Protección de componentes críticos en modo shiny */
   .shiny .floating-buttons-container,
-  .shiny [class*="floating"],
-  .shiny [class*="FloatingButtons"] {
+  .shiny [class*="floating"]:not(.floating-border),
+  .shiny [class*="FloatingButtons"]:not(.floating-border) {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -478,17 +480,23 @@
     border: inherit !important;
     box-shadow: inherit !important;
     animation: none !important;
-    transform: none !important;
+    /* transform: none !important;  REMOVED to preserve radial positioning */
   }
 
   /* Proteger específicamente el menú circular principal */
-  .shiny .absolute.-top-\[140px\],
-  .shiny .absolute.-top-\[140px\] * {
+  .shiny .absolute.-top-\[140px\]:not(.floating-border),
+  .shiny .absolute.-top-\[140px\] *:not(.floating-border) {
     background: inherit !important;
-    border: inherit !important;
+    /* border: inherit !important;  Avoid overriding explicit white/black border */
     box-shadow: inherit !important;
     animation: none !important;
-    transform: none !important;
+    /* transform: none !important;  REMOVED to preserve radial positioning */
+  }
+
+  /* Ensure children don't reintroduce borders */
+  .shiny .absolute.-top-\[140px\]:not(.floating-border) *,
+  .shiny .absolute.-top-\[140px\] *:not(.floating-border) {
+    border: none !important; /* asegurar que los hijos no reintroducen bordes */
   }
 
   .shiny .task-card {
@@ -720,9 +728,35 @@
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   animation: spin 8s linear infinite !important; /* slower */
+}
+
+/* Floating Border: rainbow ring for floating menu */
+.shiny .floating-border {
+  position: relative !important;
+  z-index: 0 !important;
+}
+
+.shiny .floating-border::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -2px !important;
+  border-radius: 9999px !important;
+  padding: 3px !important;
+  background: conic-gradient(
+    from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: spin 8s linear infinite !important;
+  z-index: -1 !important;
   will-change: transform !important;
   pointer-events: none !important;
-  z-index: 1 !important;                 /* below icon (z3) */
 }
 
 .shiny .shiny-fab::after { content: none !important; }
@@ -749,6 +783,62 @@
 /* Shiny: DISABLE rainbow ring on the Shiny toggle (keep it simple) */
 .shiny .shiny-toggle { border-color: #000000 !important; }
 .shiny .shiny-toggle::before { content: none !important; }
+
+/* Shiny: Home button with rainbow ring (same as FAB) */
+.shiny .shiny-home-button {
+  position: relative !important;
+  z-index: 0 !important;
+  background: #000000 !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.shiny .shiny-home-button::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -2px !important;
+  border-radius: 9999px !important;
+  padding: 3px !important;
+  background: conic-gradient(
+    from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: spin 8s linear infinite !important;
+  will-change: transform !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.shiny .shiny-home-button::after { content: none !important; }
+
+.shiny .shiny-home-button svg {
+  color: #ffffff !important;
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+.shiny .shiny-home-button svg, 
+.shiny .shiny-home-button svg * {
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+
+.shiny .shiny-home-button > * {
+  position: relative !important;
+  z-index: 3 !important;
+  color: #ffffff !important;
+}
 
 /* Shiny: side multicolor pills next to the FAB (like STEEB dialog accents) */
 .shiny .shiny-fab .shiny-fab-side {
@@ -898,14 +988,13 @@
 /* Shiny: Completed toggle — black background, white label and icon */
 .shiny .completed-header .completed-toggle-btn span {
   color: #ffffff !important;
-}
-.shiny .completed-header .completed-toggle-btn svg,
+}.shiny .completed-header .completed-toggle-btn svg,
 .shiny .completed-header .completed-toggle-btn svg * {
   color: #ffffff !important;
   stroke: #ffffff !important;
 }
 
-/* Shiny: task checkbox — white fill + animated multicolor border ring */
+/* Shiny: task checkbox — anillo arcoíris de 9 colores */
 .shiny .task-checkbox-button {
   position: relative !important;
   background: transparent !important;   /* center is drawn via ::after */
@@ -920,18 +1009,23 @@
 .shiny .task-checkbox-button::before {
   content: "" !important;
   position: absolute !important;
-  inset: -3px !important;              /* create space for black border */
-  border-radius: 9999px !important;     /* keep it circular */
-  padding: 3px !important;              /* +1px thickness */
-  background: #ffffff !important;
-  border: 2px solid #ffffff !important;
-  will-change: background-position !important;
+  inset: -2px !important;                 /* thin outer ring */
+  border-radius: 9999px !important;       /* circle */
+  padding: 3px !important;                /* ring thickness */
+  background: conic-gradient(
+    from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  ) !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
   -webkit-mask-composite: xor !important;
-          mask-composite: exclude !important;            /* show as border only */
+          mask-composite: exclude !important;
+  animation: spin 8s linear infinite !important; /* slower */
   pointer-events: none !important;
-  z-index: 1 !important;                /* place ring below the white disk */
+  z-index: 1 !important;
 }
 .shiny .task-checkbox-button::after {
   content: "" !important;
@@ -941,11 +1035,12 @@
   background: #000000 !important;        /* solid black center */
   pointer-events: none !important;
   z-index: 2 !important;                 /* ensure it covers any inner gradient */
-  /* Thin black ring between black fill and white border */
-  box-shadow: 0 0 0 1px #000000 !important;
+  /* White border between black center and multicolor ring */
+  box-shadow: 0 0 0 2px #ffffff !important;
 }
 .shiny .task-checkbox-button.completed {
-  /* Keep the same inner white center on completed */
+  /* Black background with white check when completed */
+  background: #000000 !important;
   color: #ffffff !important;
 }
 .shiny .task-checkbox-button.completed svg {
@@ -958,30 +1053,34 @@
   filter: none !important; 
   color: #ffffff !important;
   stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Force white color for completed task icons in Shiny theme */
+.shiny .task-checkbox-button.completed .lucide-check {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
 }
 
 /* Hide any decorative divider under the header in Shiny */
 .shiny .tareas-header .shiny-divider-bottom {
   display: none !important;
 }
+/* Rainbow inferior del header (colores idénticos al FAB ring) */
 .shiny .tareas-header .shiny-divider-bottom {
   position: absolute;
   left: -1px; /* extend to border edge */
   right: -1px;
   bottom: -1px; /* sit on top of the border edge */
   height: 2px;
-  /* Neon ROYGBIV */
   background: linear-gradient(90deg,
-    #ff004c, /* red */
-    #ff7a00, /* orange */
-    #ffe600, /* yellow */
-    #00ff66, /* green */
-    #00c2ff, /* blue */
-    #6a00ff, /* indigo */
-    #ffffff  /* white */
-  );
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%);
   background-size: 300% 100%;
-  animation: rainbow-move 6s linear infinite; /* slower */
+  animation: rainbow-move 6s linear infinite; /* movimiento conservando colores */
   filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)) drop-shadow(0 0 10px rgba(255,0,255,0.25));
   pointer-events: none;
 }
@@ -996,7 +1095,93 @@
   pointer-events: none;
 }
 
-/* Shiny: top rainbow bar for TAREAS header */
+/* === Shiny: Footer 4 categorías (blanco/negro/multicolor, sin grises) === */
+.shiny .shiny-task-card .shiny-footer-btn {
+  position: relative;
+  background: #000 !important; /* negro puro por default */
+  color: #fff !important;
+}
+.shiny .shiny-task-card .shiny-footer-btn svg { color: currentColor; }
+
+/* Variante blanca explícita */
+.shiny .shiny-task-card .shiny-footer-btn.is-white {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+/* Variante multicolor: mismo gradiente del FAB ring */
+.shiny .shiny-task-card .shiny-footer-btn.is-multi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%, #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%, #ff00ff 85.7142%, #ff004c 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude; /* mostrar como borde */
+  padding: 2px; /* grosor del borde */
+  border-radius: 12px;
+  pointer-events: none;
+  animation: rainbow-move 6s linear infinite;
+}
+
+/* Paneles de picker en shiny: sin grises */
+.shiny .shiny-task-card .picker-panel {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+/* Variante blanca si el usuario usa tema claro dentro de shiny */
+.light .shiny .shiny-task-card .picker-panel,
+.shiny.light .shiny-task-card .picker-panel {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+/* Botones de días de repetición: blanco/negro, sin grises */
+.shiny .shiny-task-card .repeat-day-btn {
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid #fff !important;
+}
+.shiny .shiny-task-card .repeat-day-btn.is-on {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}
+
+/* Botones de tags: borde multicolor cuando no están activos; blanco/negro cuando están activos */
+.shiny .shiny-task-card .tag-btn {
+  position: relative;
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
+}
+.shiny .shiny-task-card .tag-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: conic-gradient(from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%, #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%, #ff00ff 85.7142%, #ff004c 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  border-radius: 10px;
+  pointer-events: none;
+  animation: rainbow-move 6s linear infinite;
+}
+.shiny .shiny-task-card .tag-btn.is-on {
+  background: #fff !important;
+  color: #000 !important;
+}
+.shiny .shiny-task-card .tag-btn.is-on::before {
+  background: none;
+}
 .shiny .tareas-header .shiny-divider-top {
   position: absolute;
   left: -1px;
@@ -1044,6 +1229,13 @@
 
 /* Shiny: disable the SVG gradient stroke; we'll use static color + white shine */
 .shiny .steeb-stroke { display: none !important; }
+
+/* Control de rellenos para las formas */
+.shape-fill-rainbow9 { display: none; }
+.shape-fill-current { display: inline; }
+/* En modo Shiny: USAR COLOR SÓLIDO POR TAREA — ocultar el gradiente y mostrar currentColor */
+.shiny .shape-fill-rainbow9 { display: none !important; }
+.shiny .shape-fill-current { display: inline !important; }
 
 /* Subtle white shine pulse for task icons (applied on wrapper or SVG) */
 .shiny .task-shine svg {
@@ -1397,8 +1589,154 @@
 .shiny svg defs linearGradient#shinyGradient stop:nth-child(6) { stop-color: #ffffff; }
 .shiny svg defs linearGradient#shinyGradient stop:nth-child(7) { stop-color: #ffffff; }
 
-/* Force SVG icons in Shiny FAB to be black for contrast */
-.shiny .shiny-fab svg { fill: black !important; }
+/* Shiny: íconos del FAB blancos para consistencia */
+.shiny .shiny-fab svg { fill: white !important; }
 
 /* Shiny: task title white */
 .shiny h3.mb-1 { color: white !important; }
+
+/* Shiny: rainbow border for Task Creation card (match FAB ring) */
+.shiny .shiny-task-card {
+  position: relative !important;
+  border: none !important; /* override any solid border */
+}
+.shiny .shiny-task-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;                  /* draw ring inside bounds */
+  border-radius: inherit !important;     /* match card rounded corners */
+  padding: 3px !important;               /* ring thickness (match FAB) */
+  background: conic-gradient(
+    from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;       /* show as border only */
+  animation: hueShift 8s linear infinite !important; /* colors move, element stays still */
+  will-change: filter !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+@keyframes hueShift {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+.shiny .shiny-task-card::after { content: none !important; }
+
+/* Shiny: rainbow separators inside TaskCreationCard */
+.shiny .shiny-task-card .task-card-header {
+  border-color: transparent !important; /* hide default gray divider */
+}
+.shiny .shiny-task-card .shiny-divider-h {
+  display: block !important;
+  height: 2px;
+  position: relative;
+  border-radius: 9999px;
+  background: linear-gradient(90deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%);
+  animation: rainbow-move 6s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.35));
+  pointer-events: none;
+}
+.shiny .shiny-task-card .shiny-v-lines { display: block !important; }
+.shiny .shiny-task-card .shiny-divider-v {
+  width: 1px;
+  background: linear-gradient(180deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%);
+  animation: rainbow-move 6s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.35));
+  pointer-events: none;
+}
+
+/* Shiny: rainbow border for MonthlyCalendar (match FAB ring) */
+.shiny .shiny-calendar-card {
+  position: relative !important;
+  border: none !important;
+  background: #000 !important; /* black canvas in shiny */
+  color: #fff !important;
+}
+.shiny .shiny-calendar-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  padding: 3px !important; /* same thickness as TaskCreationCard */
+  background: conic-gradient(
+    from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: rainbow-move 6s linear infinite;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+.shiny .shiny-calendar-card::after { content: none !important; }
+
+/* STEEB label small, only visible in Shiny */
+.shiny .shiny-calendar-card .shiny-steeb-label {
+  display: inline-block !important;
+  color: #fff !important;
+  opacity: 0.9;
+}
+/* Hide label outside shiny */
+.shiny-steeb-label { display: none; }
+
+/* Calendar inner texts in Shiny: ensure white text, black bg, no grays */
+.shiny .shiny-calendar-card .text-black { color: #fff !important; }
+.shiny .shiny-calendar-card .hover\:bg-gray-100 { background: transparent !important; }
+.shiny .shiny-calendar-card .text-gray-400, 
+.shiny .shiny-calendar-card .text-gray-500, 
+.shiny .shiny-calendar-card .text-gray-600 { color: #fff !important; opacity: 0.8; }
+.shiny .shiny-calendar-card .ring-black { --tw-ring-color: #fff !important; }
+.shiny .shiny-calendar-card .bg-black { background-color: #000 !important; }
+.shiny .shiny-calendar-card .text-white { color: #fff !important; }
+
+/* Hide any decorative divider under the header in Shiny */
+.shiny .tareas-header .shiny-divider-bottom {
+  display: none !important;
+}
+/* Rainbow inferior del header (colores idénticos al FAB ring) */
+.shiny .tareas-header .shiny-divider-bottom {
+  position: absolute;
+  left: -1px; /* extend to border edge */
+  right: -1px;
+  bottom: -1px; /* sit on top of the border edge */
+  height: 2px;
+  background: linear-gradient(90deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%);
+  background-size: 300% 100%;
+  animation: rainbow-move 6s linear infinite; /* movimiento conservando colores */
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)) drop-shadow(0 0 10px rgba(255,0,255,0.25));
+  pointer-events: none;
+}
+/* White light sweep over the bottom neon line */
+.shiny .tareas-header .shiny-divider-bottom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+  mix-blend-mode: screen;
+  animation: shine-sweep 3s linear infinite; /* gentle sweep */
+  pointer-events: none;
+}

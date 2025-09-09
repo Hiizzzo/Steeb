@@ -154,8 +154,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       onCancel();
       
       toast({
-        title: editingTask ? "¡Tarea actualizada!" : "¡Tarea creada!",
-        description: editingTask ? "Tu tarea ha sido actualizada exitosamente." : "Tu nueva tarea ha sido añadida exitosamente.",
+        title: editingTask ? "TAREA ACTUALIZADA" : "TAREA CREADA",
       });
     } else {
       toast({
@@ -232,11 +231,11 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
     >
       <div className={`task-creation-modal w-full max-w-md rounded-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden ${
         currentTheme === 'light' ? 'bg-white' : 'bg-black border border-white'
-      }`}>
+      } shiny-task-card`}>
         {/* Header */}
         <div className={`flex items-center justify-between px-6 py-4 border-b ${
           currentTheme === 'light' ? 'border-gray-100' : 'border-gray-500'
-        }`}>
+        } task-card-header`}>
           <button
             onClick={onCancel}
             className={`transition-colors font-medium ${
@@ -266,6 +265,9 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             Crear
           </button>
         </div>
+
+        {/* Shiny: horizontal rainbow divider under header */}
+        <div className="shiny-divider-h hidden mx-6" aria-hidden></div>
 
         {/* Main Content */}
         <div className="p-4">
@@ -308,13 +310,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         </div>
 
         {/* Footer */}
-        <div className="flex">
+        <div className="flex relative">
           {/* Date Section */}
           <button 
             onClick={() => setShowDatePicker(!showDatePicker)}
             aria-label="Fecha"
             title={selectedDate ? selectedDate.toLocaleDateString() : 'Seleccionar fecha'}
-            className={`flex-1 flex items-center justify-center h-16 transition-colors ${
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors ${
               currentTheme === 'light' 
                 ? 'text-black hover:text-black hover:bg-white' 
                 : 'text-white hover:text-white hover:bg-gray-700'
@@ -328,7 +330,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowRepeatPicker(!showRepeatPicker)}
             aria-label="Repetir"
             title={recurrenceDaysOfWeek.length === 0 ? 'Configurar repetición' : ['D','L','M','M','J','V','S'].filter((_, idx) => recurrenceDaysOfWeek.includes(idx)).join(' ')}
-            className={`flex-1 flex items-center justify-center h-16 transition-colors ${
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors ${
               currentTheme === 'light' 
                 ? 'text-black hover:text-black hover:bg-white' 
                 : 'text-white hover:text-white hover:bg-gray-700'
@@ -342,7 +344,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowTimePicker(!showTimePicker)}
             aria-label="Hora"
             title={selectedTime || 'Seleccionar hora'}
-            className={`flex-1 flex items-center justify-center h-16 transition-colors ${
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors ${
               currentTheme === 'light' 
                 ? 'text-black hover:text-black hover:bg-white' 
                 : 'text-white hover:text-white hover:bg-gray-700'
@@ -358,7 +360,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
             onClick={() => setShowTagPicker(!showTagPicker)}
             aria-label="Categoría"
             title={getTagLabel(selectedTag)}
-            className={`flex-1 flex items-center justify-center h-16 rounded-none transition-colors ${
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 rounded-none transition-colors ${
               currentTheme === 'light' 
                 ? 'bg-white text-black hover:bg-gray-100' 
                 : 'bg-gray-800 text-white hover:bg-gray-700'
@@ -366,11 +368,18 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           >
             {getTagIcon(selectedTag)}
           </button>
+
+          {/* Shiny: vertical rainbow dividers overlay between categories */}
+          <div className="pointer-events-none absolute inset-0 z-10 hidden shiny-v-lines" aria-hidden>
+            <div className="shiny-divider-v absolute top-0 bottom-0" style={{ left: '25%' }}></div>
+            <div className="shiny-divider-v absolute top-0 bottom-0" style={{ left: '50%' }}></div>
+            <div className="shiny-divider-v absolute top-0 bottom-0" style={{ left: '75%' }}></div>
+          </div>
         </div>
 
         {/* Date Picker */}
         {showDatePicker && (
-          <div className={`p-3 ${
+          <div className={`picker-panel p-3 ${
             currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
           }`}>
             <input
@@ -391,7 +400,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Time Picker */}
         {showTimePicker && (
-          <div className={`p-3 ${
+          <div className={`picker-panel p-3 ${
             currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
           }`}>
             <input
@@ -412,7 +421,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Repeat Picker */}
         {showRepeatPicker && (
-          <div className={`p-2 ${
+          <div className={`picker-panel p-2 ${
             currentTheme === 'light' ? 'bg-white' : 'bg-gray-800'
           }`}>
             <div>
@@ -434,7 +443,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                           return next;
                         });
                       }}
-                      className={`py-1 text-xs rounded border transition-colors ${
+                      className={`repeat-day-btn ${toggled ? 'is-on' : ''} py-1 text-xs rounded border transition-colors ${
                         toggled 
                           ? (currentTheme === 'light' 
                               ? 'bg-black text-white border-black' 
@@ -455,7 +464,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
 
         {/* Tag Picker */}
         {showTagPicker && (
-          <div className={`border-t z-50 ${
+          <div className={`picker-panel border-t z-50 ${
             currentTheme === 'light' 
               ? 'border-gray-100 bg-white' 
               : 'border-gray-700 bg-gray-800'
@@ -468,7 +477,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                     setSelectedTag(tag);
                     setShowTagPicker(false);
                   }}
-                  className={`flex items-center gap-1 px-1.5 py-3 min-h-[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible ${
+                  className={`tag-btn ${selectedTag === tag ? 'is-on' : ''} flex items-center gap-1 px-1.5 py-3 min-h-[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible ${
                     selectedTag === tag
                       ? (currentTheme === 'light' 
                           ? 'bg-black text-white border-black' 

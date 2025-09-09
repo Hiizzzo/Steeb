@@ -82,7 +82,7 @@ const AppContent = () => {
   );
 };
 
-const APP_VERSION = '0.97';
+const APP_VERSION = '%0.98';
 
 const App = () => {
   return (

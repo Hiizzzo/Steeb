@@ -25,24 +25,23 @@ import ShapeIcon from '@/components/ShapeIcon';
 import type { RecurrenceRule, Task, SubTask } from '@/types';
 
 
-// 9-color Shiny rainbow palette (bottom→top: red → orange → yellow → yellow-green → green → cyan → blue-violet → purple → magenta)
-// Colors chosen to stay consistent with Shiny spectrum while giving 9 distinct steps
-const SHINY_RAINBOW_9 = [
-  '#ff004c', // red/pink-red
-  '#ff3a00', // red-orange
-  '#ff7a00', // orange
-  '#ffe600', // yellow
-  '#a8ff00', // yellow-green
-  '#00ff66', // green
-  '#00c2ff', // cyan
-  '#000000', // black
-  '#ff00ff', // magenta
+// 8-colores (de arriba a abajo): ROJO, NARANJA, AMARILLO, VERDE, CELESTE, AZUL, VIOLETA, ROSA
+const STEEBE_COLORS_8 = [
+  '#ff004c', // ROJO
+  '#ff7a00', // NARANJA
+  '#ffe600', // AMARILLO
+  '#00ff66', // VERDE
+  '#00c2ff', // CELESTE
+  '#0000ff', // AZUL
+  '#8b00ff', // VIOLETA
+  '#ff00ff', // ROSA
 ] as const;
-// Given a topIndex in the combined list and the total count, return color by bottom-to-top order
-const getRainbowColorBottomUp = (topIndex: number, total: number) => {
-  const bottomIndex = total - 1 - topIndex;
-  const idx = ((bottomIndex % SHINY_RAINBOW_9.length) + SHINY_RAINBOW_9.length) % SHINY_RAINBOW_9.length;
-  return SHINY_RAINBOW_9[idx];
+
+// Dado un índice desde el tope (0 es la primera tarea visible), devolver color en orden top->down
+const getRainbowColorBottomUp = (topIndex: number, _total: number) => {
+  const len = STEEBE_COLORS_8.length;
+  const idx = ((topIndex % len) + len) % len;
+  return STEEBE_COLORS_8[idx];
 };
 
 // Orden fijo para mantener categorías contiguas
@@ -139,7 +138,7 @@ const Index = () => {
       <div key={task.id} className="relative">
         {/* Fondo con tacho visible durante swipe */}
         <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-4 transition-opacity duration-150 ${ (rowOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
-          <Trash2 className="w-5 h-5" />
+          <Trash2 className={`w-5 h-5 ${theme.isShiny ? 'text-white' : ''}`} />
         </div>
 
         <div className="flex items-center gap-3 px-1.5 py-2">
@@ -332,13 +331,9 @@ const Index = () => {
     updateTasks(updatedTasks);
     // Persistencia automática manejada por useTaskPersistence
     
-    // Solo reproducir sonido y mostrar toast cuando se completa (no cuando se desmarca)
+    // Solo reproducir sonido cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
       playTaskCompleteSound();
-      toast({
-        title: "Task completed!",
-        description: "Great job! You've completed a task.",
-      });
     }
   };
 
@@ -372,10 +367,6 @@ const Index = () => {
       
       if (subtask && !subtask.completed && allOthersCompleted) {
         playTaskCompleteSound();
-        toast({
-          title: "Task completed!",
-          description: "Great job! You've completed all subtasks.",
-        });
       }
     }
   };
@@ -394,8 +385,7 @@ const Index = () => {
       deleteTask(id);
       
       toast({
-        title: "Tarea eliminada",
-        description: `"${taskToDelete.title}" ha sido eliminada de tu lista.`,
+        title: "Tu tarea se ha eliminado correctamente",
       });
     } catch (error) {
       console.error('❌ Error al eliminar tarea:', error);
@@ -530,14 +520,14 @@ const Index = () => {
     // Determinar el color según el tema
     let shapeColor: string;
     if (theme.isShiny) {
-      // Versión Shiny: usar colores del arcoíris
-      shapeColor = color || 'black';
+      // En modo Shiny usar el color calculado por índice (patrón solicitado)
+      shapeColor = color ?? '#ffffff';
     } else if (theme.isDark) {
       // Versión Negra: formas blancas (forzar blanco)
       shapeColor = '#ffffff';
     } else {
-      // Versión Blanca: formas negras
-      shapeColor = '#000000';
+      // Versión Blanca: formas con color más oscuro para mejor contraste
+      shapeColor = '#1f2937'; // gris oscuro en lugar de negro puro
     }
     
     switch (type) {
@@ -758,19 +748,19 @@ const Index = () => {
             {(completedToday.length > 0) && (
               <div className="mt-6">
                 <div className="completed-header flex items-center justify-center gap-3 mb-3 text-center">
-                  <CheckCircle size={16} className="text-gray-700" />
-                  <h3 className="text-sm font-semibold text-gray-700 font-varela">
+                  <CheckCircle size={16} className={theme.isShiny ? 'text-white' : 'text-gray-700'} />
+                  <h3 className={`text-sm font-semibold font-varela ${theme.isShiny ? 'text-white' : 'text-gray-700'}`}>
                     Tareas completadas
                   </h3>
-                  <span className="text-xs text-gray-500">({completedToday.length})</span>
+                  <span className={`text-xs ${theme.isShiny ? 'text-white' : 'text-gray-500'}`}>({completedToday.length})</span>
                   {/* Toggle mostrar/ocultar las de hoy */}
                   <button
-                    className="completed-toggle-btn shiny-toggle flex items-center space-x-1 text-gray-600 hover:text-black text-sm rounded px-2 py-0.5"
+                    className={`completed-toggle-btn shiny-toggle flex items-center space-x-1 text-sm rounded px-2 py-0.5 ${theme.isShiny ? 'text-white hover:text-gray-300' : 'text-gray-600 hover:text-black'}`}
                     onClick={() => setShowCompletedToday(prev => !prev)}
                     aria-label={showCompletedToday ? 'Ocultar completadas' : 'Mostrar completadas'}
                   >
-                    {showCompletedToday ? <EyeOff size={16} /> : <Eye size={16} />}
-                    <span>{showCompletedToday ? 'Ocultar' : 'Ver'}</span>
+                    {showCompletedToday ? <EyeOff size={16} className={theme.isShiny ? 'text-white' : ''} /> : <Eye size={16} className={theme.isShiny ? 'text-white' : ''} />}
+                    <span className={theme.isShiny ? 'text-white' : ''}>{showCompletedToday ? 'Ocultar' : 'Ver'}</span>
                   </button>
                 </div>
 
@@ -789,7 +779,7 @@ const Index = () => {
                           className="h-full bg-black dark:!bg-white progress-fill"
                         />
                       </div>
-                      <div className="mt-1 text-xs text-gray-600 dark:text-gray-300 text-center">
+                      <div className={`mt-1 text-xs text-center ${theme.isShiny ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
                         {done} de {total}
                       </div>
                     </div>

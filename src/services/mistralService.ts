@@ -66,7 +66,7 @@ class MistralService {
   private context: any = null;
   private isInitialized = false;
   private isInitializing = false;
-  private downloadProgress = 0.97;
+  private downloadProgress = %0.98;
   private modelPath = '';
   private conversationContext: ConversationContext = {
     recentTopics: [],

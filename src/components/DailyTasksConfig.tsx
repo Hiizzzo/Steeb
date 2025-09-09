@@ -71,8 +71,7 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
     const updatedTasks = customTasks.filter((_, i) => i !== index);
     saveCustomTasks(updatedTasks);
     toast({
-      title: "Steve dice:",
-      description: "¡Tarea eliminada! Tu lista está más limpia ahora.",
+      title: "Tu tarea se ha eliminado correctamente",
     });
   };
 

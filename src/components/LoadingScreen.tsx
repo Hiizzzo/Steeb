@@ -48,12 +48,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
         >
           STEEB
         </h1>
--        <p className={`mt-2 text-sm ${isDark ? 'text-white/70' : 'text-black/70'}`} style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
--          0.97
--        </p>
-+        <p className="mt-1 text-xs sm:text-sm text-gray-400" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-+          0.97
-+        </p>
+        <p className={`mt-1 text-xs sm:text-sm ${isDark ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          %0.98
+        </p>
          
          {/* Puntos animados */}
         <div className="flex justify-center items-center space-x-3 mt-6">
@@ -63,8 +60,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
               width: '16px', 
               height: '16px', 
               borderRadius: '50%',
-              backgroundColor: isDark ? '#ffffff' : '#000000',
-              border: `2px solid ${isDark ? '#ffffff' : '#000000'}`,
+              backgroundColor: '#ffffff',
+              border: '2px solid #ffffff',
               zIndex: 9999,
               position: 'relative'
             }}
@@ -75,8 +72,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
               width: '16px', 
               height: '16px', 
               borderRadius: '50%',
-              backgroundColor: isDark ? '#ffffff' : '#000000',
-              border: `2px solid ${isDark ? '#ffffff' : '#000000'}`,
+              backgroundColor: '#ffffff',
+              border: '2px solid #ffffff',
               zIndex: 9999,
               position: 'relative'
             }}
@@ -87,8 +84,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
               width: '16px', 
               height: '16px', 
               borderRadius: '50%',
-              backgroundColor: isDark ? '#ffffff' : '#000000',
-              border: `2px solid ${isDark ? '#ffffff' : '#000000'}`,
+              backgroundColor: '#ffffff',
+              border: '2px solid #ffffff',
               zIndex: 9999,
               position: 'relative'
             }}

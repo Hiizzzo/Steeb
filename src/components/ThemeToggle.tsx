@@ -13,11 +13,16 @@ const ThemeToggle = () => {
 	if (!mounted) return null;
 
 	const isDark = currentTheme === "dark";
+	const isShiny = currentTheme === "shiny";
 
 	return (
 		<div className="fixed top-4 right-4 z-50">
 			<Switch
-				className={`scale-125 origin-top-right`}
+				className={`scale-125 origin-top-right ${
+					isShiny 
+						? 'data-[state=checked]:bg-black data-[state=unchecked]:bg-white [&>span]:bg-black data-[state=checked]:[&>span]:bg-white data-[state=unchecked]:[&>span]:bg-black' 
+						: ''
+				}`}
 				checked={isDark}
 				onCheckedChange={(checked) => {
 					toggleTheme(checked ? "dark" : "light");

@@ -32,7 +32,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     e.stopPropagation();
 
     // Usar tema real para elegir variante
-    const isDark = theme === 'dark' || document.documentElement.classList.contains('dark');
+    const isDark = theme === 'dark' || document.documentElement.classList.contains('dark') || document.documentElement.classList.contains('shiny');
     setMenuVariant(isDark ? 'dark' : 'light');
 
     hasLongPressTriggered.current = false;
@@ -305,7 +305,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.55 }}
               exit={{ opacity: 0 }}
-              className={`${menuVariant === 'dark' ? 'bg-black' : 'bg-white'} absolute inset-0`}
+              className={`${menuVariant === 'dark' ? 'bg-black' : 'bg-white'} absolute inset-0 z-[1]`}
               onClick={() => setShowCalendarMenu(false)}
               onPointerDown={() => setShowCalendarMenu(false)}
               onMouseDown={() => setShowCalendarMenu(false)}
@@ -317,14 +317,14 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', duration: 0.4 }}
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-[2]"
               ref={menuRootRef}
             >
               <div className="relative w-[0px] h-[0px]">
                 {menuVariant === 'dark' ? (
                   // Círculo único negro con 3 opciones internas (móvil), sin textos
                   <div
-                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-white bg-black text-white flex items-center justify-center shadow-xl pointer-events-auto"
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-white bg-black text-white flex items-center justify-center shadow-xl pointer-events-auto floating-border"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
@@ -336,7 +336,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-white" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(-60deg)', transformOrigin: 'top' }} />
                     </div>
 
-                    {/* Botón arriba - Calendario (más cerca del centro) */}
+                    {/* Botón arriba - Calendario (layout polar) */}
                     <button
                       aria-label="Calendario"
                       onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
@@ -344,12 +344,12 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                      style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(75deg) translateY(-115%) rotate(-75deg)' }}
                     >
                       <Calendar size={36} color="#FFFFFF" />
                     </button>
 
-                    {/* Botón abajo-izquierda - Configuración (separar levemente) */}
+                    {/* Botón abajo-izquierda - Configuración (layout polar) */}
                     <button
                       aria-label="Configuración"
                       onClick={() => { setShowCalendarMenu(false); navigate('/settings'); }}
@@ -357,12 +357,12 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ top: '70%', left: '29%', transform: 'translate(-50%, -50%)' }}
+                      style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(195deg) translateY(-115%) rotate(-195deg)' }}
                     >
                       <Settings size={34} color="#FFFFFF" />
                     </button>
 
-                    {/* Botón abajo-derecha - Estadísticas (separar levemente) */}
+                    {/* Botón abajo-derecha - Estadísticas (layout polar) */}
                     <button
                       aria-label="Estadísticas"
                       onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
@@ -370,7 +370,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ top: '70%', left: '71%', transform: 'translate(-50%, -50%)' }}
+                      style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(315deg) translateY(-115%) rotate(-315deg)' }}
                     >
                       <BarChart2 size={34} color="#FFFFFF" />
                     </button>
@@ -378,7 +378,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                 ) : (
                   // Variante blanca: círculo único blanco con borde negro e iconos negros (igual al dark pero invertido)
                   <div
-                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-black bg-white text-black flex items-center justify-center shadow-xl pointer-events-auto"
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-black bg-white text-black flex items-center justify-center shadow-xl pointer-events-auto floating-border"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
@@ -398,7 +398,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                      style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(75deg) translateY(-115%) rotate(-75deg)' }}
                     >
                       <Calendar size={36} color="#000000" />
                     </button>
@@ -411,7 +411,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ top: '70%', left: '29%', transform: 'translate(-50%, -50%)' }}
+                      style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(195deg) translateY(-115%) rotate(-195deg)' }}
                     >
                       <Settings size={34} color="#000000" />
                     </button>
@@ -424,7 +424,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
-                      style={{ top: '70%', left: '71%', transform: 'translate(-50%, -50%)' }}
+                      style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(315deg) translateY(-115%) rotate(-315deg)' }}
                     >
                       <BarChart2 size={34} color="#000000" />
                     </button>

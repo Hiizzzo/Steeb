@@ -64,7 +64,7 @@ const CentralStatsChart: React.FC<{
   isDark?: boolean;
 }> = ({ period, weekData, monthData, yearData, onSelectDay, isDark = false }) => {
   const isShiny = document.documentElement.classList.contains('shiny');
-  const axisStyle = { fontSize: 12, fill: isShiny ? '#000000' : (isDark ? '#ffffff' : '#111111') } as const;
+  const axisStyle = { fontSize: 12, fill: isShiny ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#111111') } as const;
   const gridStroke = isShiny ? '#333333' : (isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb');
   const commonChartProps = { margin: { top: 10, right: 8, bottom: 0, left: 0 } } as const;
   

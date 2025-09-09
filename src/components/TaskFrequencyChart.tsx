@@ -145,7 +145,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       {/* Título con información de tareas */}
       <div className="text-center mb-6">
         <h2 className={`text-xl font-bold mb-2 ${
-          isShiny ? 'text-white' : 'text-black dark:text-white'
+          isShiny ? (isDark ? 'text-white' : 'text-black') : 'text-black dark:text-white'
         }`}>
           Tipo de tareas más completadas
         </h2>
@@ -397,7 +397,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                         item.type === 'salud' ? '#8800FF' : 
                         item.type === 'social' ? '#4444FF' : 
                         '#FFFFFF'
-                      ) : '#000000'
+                      ) : (isDark ? '#ffffff' : '#000000')
                     }}
                   >
                     {item.label}

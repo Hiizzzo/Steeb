@@ -32,7 +32,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
   // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
   const { deleteTask, updateTask } = useTaskStore();
-  const SWIPE_THRESHOLD = 80;
+  const SWIPE_THRESHOLD = 60; // Reducido para hacer más fácil el swipe
   const MAX_SWIPE = 160;
   const [disableDayDrag, setDisableDayDrag] = useState(false);
   const [swipeOffsetById, setSwipeOffsetById] = useState<Record<string, number>>({});
@@ -141,7 +141,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
             return '#FFFFFF';
         }
       }
-      return '#000000'; // Negro para modo normal
+      return '#1f2937'; // Gris oscuro para mejor contraste en modo claro
     };
     
     const iconColor = getIconColor();
@@ -462,10 +462,15 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                 animate={{ opacity: [1, 0.5, 1] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 1 }}
               >
-                <div className="flex items-center space-x-2 text-xs text-gray-400">
-                  <ChevronLeft className="w-3 h-3" />
-                  <span>Desliza para cambiar día</span>
-                  <ChevronRight className="w-3 h-3" />
+                <div className="flex flex-col items-center space-y-1">
+                  <div className="flex items-center space-x-2 text-xs text-gray-400">
+                    <ChevronLeft className="w-3 h-3" />
+                    <span>Desliza para cambiar día</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs text-red-400">
+                    <span>← Desliza tareas para eliminar</span>
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -498,6 +503,29 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                     onPointerMove={onPointerMoveSwipe(task.id)}
                     onPointerUp={onPointerUpSwipe(task.id)}
                     onPointerCancel={onPointerUpSwipe(task.id)}
+                    onTouchStart={(e) => {
+                      const touch = e.touches[0];
+                      if (touch) {
+                        activeIdRef.current = task.id;
+                        startXRef.current = touch.clientX;
+                        setDisableDayDrag(true);
+                      }
+                    }}
+                    onTouchMove={(e) => {
+                      if (activeIdRef.current === task.id && e.touches[0]) {
+                        const deltaX = startXRef.current - e.touches[0].clientX;
+                        if (deltaX > 0) {
+                          e.preventDefault();
+                          const next = Math.min(deltaX, MAX_SWIPE);
+                          setSwipeOffsetById(prev => ({ ...prev, [task.id]: next }));
+                        }
+                      }
+                    }}
+                    onTouchEnd={() => {
+                      if (activeIdRef.current === task.id) {
+                        finishRowSwipe(task.id);
+                      }
+                    }}
                     onContextMenu={(e) => e.preventDefault()}
                     onDragStart={(e) => e.preventDefault()}
                                          style={{
@@ -509,8 +537,13 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                      }}
                   >
                     {/* Fondo de eliminación con tacho visible durante el swipe */}
-                    <div className={`absolute inset-0 rounded-xl flex items-center justify-end pr-4 transition-opacity duration-150 ${ (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
-                      <Trash2 className="w-5 h-5 text-black dark:text-white" />
+                    <div className={`absolute inset-0 rounded-xl flex items-center justify-end pr-4 transition-all duration-150 ${ 
+                      (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100 bg-red-500' : 'opacity-0 bg-red-300'
+                    }`}>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-white font-medium text-sm">Eliminar</span>
+                        <Trash2 className="w-5 h-5 text-white" />
+                      </div>
                     </div>
 
                     <div className="flex items-center space-x-3">
@@ -670,12 +703,13 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
 
         {/* Calendario mensual */}
         <motion.div 
-          className="bg-white dark:bg-black rounded-xl p-3 sm:p-6 mx-2 overflow-x-auto min-w-0 border-0 shadow-none"
+          className="bg-white dark:bg-black rounded-xl p-3 sm:p-6 mx-2 overflow-x-auto min-w-0 border-0 shadow-none shiny-calendar-card relative"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
         >
-          {/* Navegación del mes */}
+          {/* Etiqueta STEEB en modo Shiny */}
+          <div className="shiny-steeb-label text-[10px] font-bold tracking-wide text-white/90 mb-1 ml-0.5">STEEB</div>
           <motion.div 
             className="flex items-center justify-between mb-3 sm:mb-6"
             animate={{ scale: isAnimating ? 0.95 : 1 }}

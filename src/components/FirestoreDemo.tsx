@@ -7,9 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Trash2, Check, Clock, AlertCircle } from 'lucide-react';
 import { Task } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 const FirestoreDemo: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { 
     tasks, 
     isLoading, 
@@ -60,6 +62,9 @@ const FirestoreDemo: React.FC = () => {
   const handleDeleteTask = async (taskId: string) => {
     try {
       await deleteTask(taskId);
+      toast({
+        title: "Tu tarea se ha eliminado correctamente",
+      });
     } catch (error) {
       console.error('Error eliminando tarea:', error);
     }

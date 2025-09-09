@@ -1,37 +1,39 @@
 /* Protección de Componentes Críticos - Tema Shiny */
 
-/* Proteger completamente el menú flotante */
+/* Proteger completamente el menú flotante (sin afectar el borde del círculo) */
 .shiny .floating-buttons-container,
-.shiny [class*="floating"],
-.shiny [class*="FloatingButtons"],
+.shiny [class*="floating"]:not(.floating-border),
+.shiny [class*="FloatingButtons"]:not(.floating-border),
 .shiny .absolute.-top-\[140px\],
 .shiny .absolute.-top-\[140px\] *,
-.shiny .w-40.h-40,
-.shiny .sm\\:w-56.sm\\:h-56 {
+.shiny .w-40.h-40:not(.floating-border),
+.shiny .sm\\:w-56.sm\\:h-56:not(.floating-border) {
   background: inherit !important;
-  border: inherit !important;
+  /* border: inherit !important; */
   box-shadow: inherit !important;
   animation: none !important;
-  transform: none !important;
-  position: relative !important;
-  z-index: auto !important;
+  /* transform: none !important; - REMOVED to allow icon positioning */
 }
 
-/* Proteger botones del menú flotante */
+/* Asegurar el borde del círculo del menú radial en Shiny */
+.shiny .floating-border.bg-black { border-color: #ffffff !important; border-width: 2px !important; border-style: solid !important; }
+.shiny .floating-border.bg-white { border-color: #000000 !important; border-width: 2px !important; border-style: solid !important; }
+
+/* Proteger botones del menú flotante (sin borde en los íconos) */
 .shiny .floating-buttons-container button,
 .shiny [class*="floating"] button,
 .shiny [class*="FloatingButtons"] button,
 .shiny .absolute.-top-\[140px\] button {
   background: inherit !important;
-  border: inherit !important;
+  border: none !important; /* quitar cualquier borde en los botones de íconos */
   box-shadow: inherit !important;
   animation: none !important;
-  transform: none !important;
+  /* transform: none !important; - REMOVED to allow icon positioning */
   color: inherit !important;
   filter: none !important;
 }
 
-/* Proteger iconos del menú flotante */
+/* Proteger iconos del menú flotante (sin borde ni outline extra) */
 .shiny .floating-buttons-container svg,
 .shiny [class*="floating"] svg,
 .shiny [class*="FloatingButtons"] svg,
@@ -39,6 +41,8 @@
   filter: none !important;
   animation: none !important;
   color: inherit !important;
+  stroke: currentColor !important; /* usar solo el stroke propio de lucide */
+  outline: none !important;
 }
 
 /* Proteger las líneas divisorias del menú */
@@ -55,12 +59,12 @@
   border: inherit !important;
   box-shadow: inherit !important;
   animation: none !important;
-  transform: none !important;
+  /* transform: none !important;  REMOVED to allow polar positioning */
 }
 
 /* Proteger el botón principal + - PERMITIR estilos shiny personalizados */
-.shiny .bg-black.rounded-full:not(.shiny-fab),
-.shiny .bg-white.rounded-full:not(.shiny-fab) {
+.shiny .bg-black.rounded-full:not(.shiny-fab):not(.floating-border),
+.shiny .bg-white.rounded-full:not(.shiny-fab):not(.floating-border) {
   background: inherit !important;
   border: inherit !important;
   box-shadow: inherit !important;
@@ -85,6 +89,16 @@
   background: var(--shiny-card-bg) !important;
   border: 1px solid #000000 !important;
   color: var(--shiny-text) !important;
+}
+
+/* Force inner controls borders to white inside task creation card */
+.shiny .shiny-task-card .border-black,
+.shiny .shiny-task-card .border-gray-600,
+.shiny .shiny-task-card .border-gray-500,
+.shiny .shiny-task-card .border-black\/15,
+.shiny .shiny-task-card .border-white\/30,
+.shiny .shiny-task-card .border { /* generic border utility */
+  border-color: #ffffff !important;
 }
 
 /* Proteger inputs y textareas */
@@ -209,4 +223,41 @@
 .shiny .w-4.h-4.rounded-full {
   background: var(--shiny-pink) !important;
   border: none !important;
+}
+
+/* Shiny: borde arcoíris animado alrededor del diálogo de STEEB */
+.shiny .shiny-steeb-dialog {
+  position: relative;
+  border: none !important; /* oculto el borde gris para mostrar solo el anillo */
+}
+.shiny .shiny-steeb-dialog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit; /* igual que el calendario (hereda el radio real del contenedor) */
+  padding: 3px; /* mismo grosor que el calendario */
+  background: conic-gradient(
+    from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude; /* solo borde */
+  /* sin animación para igualar el calendario */
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Sombra interna muy sutil para separar el anillo del contenido */
+.shiny .shiny-steeb-dialog::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(1rem - 1px);
+  box-shadow: inset 0 0 8px rgba(255,255,255,0.06);
+  pointer-events: none;
 }
