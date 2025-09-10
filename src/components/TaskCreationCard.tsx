@@ -181,8 +181,13 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       </span>
     );
     
-    // Set icon colors based on theme
-    const iconColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
+    // Color del ícono según tema/selección
+    // - En tema claro: íconos de categorías NO seleccionadas deben verse en blanco
+    // - La categoría seleccionada debe usar el color del tema actual (negro en claro, blanco en oscuro)
+    const themeIconColor = currentTheme === 'light' ? '#000000' : '#FFFFFF';
+    const iconColor = isSelected
+      ? themeIconColor
+      : (currentTheme === 'light' ? '#FFFFFF' : '#FFFFFF');
     
     switch (tag) {
       case 'productividad':   return wrap(
@@ -366,7 +371,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                 : 'bg-gray-800 text-white hover:bg-gray-700'
             }`}
           >
-            {getTagIcon(selectedTag)}
+            {getTagIcon(selectedTag, true)}
           </button>
 
           {/* Shiny: vertical rainbow dividers overlay between categories */}
@@ -480,7 +485,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
                   className={`tag-btn ${selectedTag === tag ? 'is-on' : ''} flex items-center gap-1 px-1.5 py-3 min-h-[60px] transition-colors rounded-lg border whitespace-nowrap overflow-visible ${
                     selectedTag === tag
                       ? (currentTheme === 'light' 
-                          ? 'bg-black text-white border-black' 
+                          ? 'bg-white text-black border-black' 
                           : 'bg-white text-black border-white')
                       : (currentTheme === 'light' 
                           ? `bg-white border-black hover:bg-gray-100 ${

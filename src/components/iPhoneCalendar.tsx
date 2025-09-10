@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, CheckCircle, Clock, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, CheckCircle, Clock, Plus, Trash2 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -533,9 +533,16 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
   const renderDayView = () => {
     if (!selectedDate) return null;
     
-    const selectedDay = calendarDays.find(day => 
-      day.date.toDateString() === selectedDate.toDateString()
-    );
+    const selectedDay = useMemo(() => {
+      const target = selectedDate || currentDate;
+      const y = target.getFullYear();
+      const m = target.getMonth();
+      const d = target.getDate();
+      // Suponemos que tasks es un array de { id, dateISO, ... }
+      const dateKey = new Date(y, m, d).toISOString().split('T')[0];
+      const dayTasks = tasks.filter((t: any) => (t.date || t.dateISO || t.scheduledDate) === dateKey || (t.date && t.date.startsWith(dateKey)));
+      return { dateKey, tasks: dayTasks };
+    }, [tasks, currentDate, selectedDate]);
 
     return (
       <motion.div
@@ -596,9 +603,47 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
         <div className="space-y-3">
           {selectedDay && selectedDay.tasks.length > 0 ? (
             selectedDay.tasks.map(task => (
-              <Card key={task.id} className={`p-4 ${
+              <Card key={task.id} className={`relative overflow-hidden p-4 ${
                 isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              }`}>
+              }`}
+                onPointerDown={onPointerDownSwipe(task.id)}
+                onPointerMove={onPointerMoveSwipe(task.id)}
+                onPointerUp={onPointerUpSwipe(task.id)}
+                onPointerCancel={onPointerUpSwipe(task.id)}
+                onTouchStart={(e) => {
+                  const touch = e.touches[0];
+                  if (!touch) return;
+                  activeIdRef.current = task.id;
+                  startXRef.current = touch.clientX;
+                }}
+                onTouchMove={(e) => {
+                  if (activeIdRef.current !== task.id || !e.touches[0]) return;
+                  const deltaX = startXRef.current - e.touches[0].clientX;
+                  if (deltaX > 0) {
+                    e.preventDefault();
+                    const next = Math.min(deltaX, MAX_SWIPE);
+                    setSwipeOffsetById(prev => ({ ...prev, [task.id]: next }));
+                  }
+                }}
+                onTouchEnd={() => finishRowSwipe(task.id)}
+                style={{
+                  transform: `translate3d(-${swipeOffsetById[task.id] || 0}px,0,0)`,
+                  transition: 'transform 150ms ease-out',
+                  touchAction: 'pan-y',
+                  userSelect: (swipeOffsetById[task.id] || 0) > 0 ? 'none' as any : undefined,
+                  willChange: 'transform',
+                }}
+              >
+                {/* Fondo de eliminación */}
+                <div className={`absolute inset-0 flex items-center justify-end pr-4 transition-all duration-150 ${
+                  (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100 bg-black dark:bg-white' : 'opacity-0 bg-gray-300 dark:bg-gray-200'
+                }`}>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-white font-medium text-sm">Eliminar</span>
+                    <Trash2 className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
                     <Button
@@ -664,19 +709,6 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
                         </div>
                       )}
                     </div>
-                  </div>
-                  
-                  <div className="flex gap-1">
-                    {onShowTaskDetail && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onShowTaskDetail(task.id)}
-                        className="p-1"
-                      >
-                        <Calendar size={16} />
-                      </Button>
-                    )}
                   </div>
                 </div>
               </Card>

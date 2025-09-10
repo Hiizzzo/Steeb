@@ -93,16 +93,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
     // - Versión shiny: colores vibrantes por categoría
     const getShapeColor = (t: string) => {
       if (isShiny) {
-        switch (t) {
-          case 'productividad':
-            return '#FF0088'; // Rosa
-          case 'salud':
-            return '#8800FF'; // Violeta
-          case 'social':
-            return '#4444FF'; // Azul
-          default:
-            return '#FFFFFF'; // Fallback en shiny
-        }
+        return '#FFFFFF';
       }
       return isDark ? '#FFFFFF' : '#000000';
     };
@@ -139,18 +130,18 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
   };
   
   return (
-    <div className={`w-full p-6 rounded-lg ${
+    <div className={`w-full p-6 rounded-lg shiny-stats-chart-card ${
       isShiny ? 'bg-white border border-gray-200' : 'bg-white dark:bg-black'
     }`}>
       {/* Título con información de tareas */}
       <div className="text-center mb-6">
         <h2 className={`text-xl font-bold mb-2 ${
-          isShiny ? (isDark ? 'text-white' : 'text-black') : 'text-black dark:text-white'
+          isShiny ? 'text-black' : 'text-black dark:text-white'
         }`}>
           Tipo de tareas más completadas
         </h2>
         <p className={`text-sm ${
-          isShiny ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+          isShiny ? 'text-black' : 'text-gray-600 dark:text-gray-400'
         }`}>
           Basado en {frequencyData.reduce((total, item) => total + item.count, 0)} de {tasks.length} tareas completadas
         </p>
@@ -178,12 +169,12 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               }
             };
             
-            const dividerColor = isDark ? '#ffffff' : '#000000';
+            const dividerColor = isShiny ? '#000000' : (isDark ? '#ffffff' : '#000000');
             
             const getShinyBackground = (index: number, type: string) => {
               if (isShiny) {
-                // Usar colores del arcoíris basados en el índice
-                return { backgroundColor: rainbowColors[index % rainbowColors.length] };
+                // En Shiny, usar segmentos blancos para un look monocromático
+                return { backgroundColor: '#FFFFFF' };
               }
               return {};
             };
@@ -288,7 +279,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   className={`text-sm ${
                     item.isTop ? 'font-bold' : 'font-medium'
                   }`}
-                  style={{ color: getCategoryColor(item.type) }}
+                  style={{ color: (isShiny ? '#000000' : (isDark ? '#FFFFFF' : '#000000')) }}
                 >
                   {item.label}
                 </span>
@@ -324,18 +315,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               const getPatternStyle = (index: number, type: string) => {
                 // Solo aplicar colores específicos en modo shiny
                 if (isShiny) {
-                  // Usar colores específicos para cada tipo de tarea
-                  if (type === 'productividad') {
-                    return { backgroundColor: '#FF0088' }; // Rosa
-                  }
-                  if (type === 'salud') {
-                    return { backgroundColor: '#8800FF' }; // Violeta
-                  }
-                  if (type === 'social') {
-                    return { backgroundColor: '#4444FF' }; // Azul
-                  }
-                  // Para otros tipos, usar colores del arcoíris basados en el índice
-                  return { backgroundColor: rainbowColors[index % rainbowColors.length] };
+                  // En Shiny, caja de leyenda blanca
+                  return { backgroundColor: '#FFFFFF' };
                 }
                 
                 // Comportamiento original para modos normal y oscuro
@@ -385,25 +366,20 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <div 
-                    className={`w-5 h-5 ${isShiny ? 'rounded-sm border-2 border-black' : 'border-2 border-black dark:border-white'} ${getPatternBox(index)}`}
+                    className={`w-5 h-5 ${isShiny ? 'rounded-sm border-2 border-white' : 'border-2 border-black dark:border-white'} ${getPatternBox(index)}`}
                     style={getPatternStyle(index, item.type)}
                   />
                   {getTaskShape(item.type)}
                   <span 
                     className={`text-sm ${item.isTop ? 'font-bold' : 'font-medium'}`}
                     style={{ 
-                      color: isShiny ? (
-                        item.type === 'productividad' ? '#FF0088' : 
-                        item.type === 'salud' ? '#8800FF' : 
-                        item.type === 'social' ? '#4444FF' : 
-                        '#FFFFFF'
-                      ) : (isDark ? '#ffffff' : '#000000')
+                      color: isShiny ? '#000000' : (isDark ? '#ffffff' : '#000000')
                     }}
                   >
                     {item.label}
                   </span>
-                  <span className={`text-xs ${isShiny ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                    - {labels[index]} ({item.count} tareas, {item.percentage.toFixed(1)}%)
+                  <span className={`text-xs ${isShiny ? 'text-black' : 'text-gray-600 dark:text-gray-400'}`}>
+                    {labels[index]} ({item.count} tareas, {item.percentage.toFixed(1)}%)
                   </span>
                 </motion.div>
               );
@@ -415,7 +391,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       {/* Mensaje cuando no hay datos */}
       {frequencyData.length === 0 && (
         <div className="text-center py-8">
-          <p className={`${isShiny ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+          <p className={`${isShiny ? 'text-black' : 'text-gray-500 dark:text-gray-400'}`}>
             No hay tareas completadas en este período
           </p>
         </div>

@@ -6,7 +6,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/useTheme';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAuth } from '@/hooks/useAuth';
-import { NotificationSettings } from '@/components/NotificationSettings';
+
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -65,11 +65,11 @@ const SettingsPage = () => {
         transition={{ duration: 0.3 }}
         className="mb-8"
       >
-        <div className="p-4 bg-gray-50 dark:bg-black rounded-lg">
-          <div className="flex items-center gap-3 mb-3">
-            <Globe className="w-5 h-5" />
-            <span className="font-medium">{t('app_language')}</span>
-          </div>
+        <div className="p-4 bg-gray-50 dark:bg-black rounded-lg border shiny-settings-card">
+           <div className="flex items-center gap-3 mb-3">
+             <Globe className={`w-5 h-5 ${isShiny ? 'text-white' : ''}`} />
+             <span className={`font-medium ${isShiny ? 'text-white' : ''}`}>{t('app_language')}</span>
+           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => updateGeneralSettings({ language: 'es' })}
@@ -80,7 +80,7 @@ const SettingsPage = () => {
               }`}
             >
               <div className="text-center">
-                <span className="text-sm font-medium">Español</span>
+                <span className={`text-sm font-medium ${isShiny ? 'text-white' : ''}`}>Español</span>
               </div>
             </button>
             
@@ -93,7 +93,7 @@ const SettingsPage = () => {
               }`}
             >
               <div className="text-center">
-                <span className="text-sm font-medium">English</span>
+                <span className={`text-sm font-medium ${isShiny ? 'text-white' : ''}`}>English</span>
               </div>
             </button>
           </div>
@@ -107,14 +107,14 @@ const SettingsPage = () => {
         transition={{ duration: 0.3 }}
         className="mb-8"
       >
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg">
-          <div>
-            <span className="font-medium block">{t('shiny_toggle')} ✨</span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">{isShiny ? t('enabled') : t('disabled')}</span>
-          </div>
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg border shiny-settings-card">
+           <div>
+             <span className={`font-medium block ${isShiny ? 'text-white' : ''}`}>{t('shiny_toggle')} ✨</span>
+             <span className={`text-sm ${isShiny ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'}`}>{isShiny ? t('enabled') : t('disabled')}</span>
+           </div>
           <button
             onClick={() => toggleTheme(isShiny ? 'light' : 'shiny')}
-            className={`w-12 h-6 rounded-full transition-colors ${
+            className={`w-12 h-6 rounded-full transition-colors shiny-toggle ${
               isShiny ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
             }`}
           >
@@ -124,15 +124,7 @@ const SettingsPage = () => {
           </button>
         </div>
       </motion.div>
-      {/* Notificaciones */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className="mb-8"
-      >
-        <NotificationSettings />
-      </motion.div>
+
       {/* Perfil de Usuario */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -140,11 +132,11 @@ const SettingsPage = () => {
         transition={{ duration: 0.3, delay: 0.2 }}
         className="mb-8"
       >
-        <div className="p-4 bg-gray-50 dark:bg-black rounded-lg">
-          <div className="flex items-center gap-3 mb-4">
-            <User className="w-5 h-5" />
-            <span className="font-medium">Perfil de Usuario</span>
-          </div>
+        <div className="p-4 bg-gray-50 dark:bg-black rounded-lg border shiny-settings-card">
+           <div className="flex items-center gap-3 mb-4">
+             <User className={`w-5 h-5 ${isShiny ? 'text-white' : ''}`} />
+             <span className={`font-medium ${isShiny ? 'text-white' : ''}`}>Perfil de Usuario</span>
+           </div>
           
           <div className="space-y-4 mb-4">
             <div className="flex items-center gap-4">
@@ -154,10 +146,10 @@ const SettingsPage = () => {
                 </span>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-black dark:text-white">
+                <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>
                   {name || 'Usuario'}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className={`${isShiny ? 'text-white/80' : 'text-sm text-gray-600 dark:text-gray-400'}`}>
                   {nickname && `"${nickname}"` || 'Sin apodo configurado'}
                 </div>
               </div>
@@ -165,17 +157,17 @@ const SettingsPage = () => {
             
             <div className="grid grid-cols-1 gap-3">
               <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Nombre completo</div>
-                <div className="font-medium text-black dark:text-white">{name || 'No configurado'}</div>
+                <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Nombre completo</div>
+                <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>{name || 'No configurado'}</div>
               </div>
               <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Apodo</div>
-                <div className="font-medium text-black dark:text-white">{nickname || 'No configurado'}</div>
+                <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Apodo</div>
+                <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>{nickname || 'No configurado'}</div>
               </div>
               <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Cuenta vinculada</div>
+                <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Cuenta vinculada</div>
                 <div className="flex items-center justify-between">
-                  <div className="font-medium text-black dark:text-white">
+                  <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>
                     {isGoogleLinked ? 'Vinculada con Google' : 'No vinculada'}
                   </div>
                   {!isGoogleLinked && (

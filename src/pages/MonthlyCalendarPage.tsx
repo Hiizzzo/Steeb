@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Home } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Home, Trash2 } from 'lucide-react';
 
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -112,6 +112,7 @@ const MonthlyCalendarPage: React.FC = () => {
   const { 
     tasks, 
     setTasks: updateTasks, 
+    deleteTask: deleteTaskStore,
     isLoading: isPersistenceLoading 
   } = useTaskStore();
 
@@ -343,6 +344,48 @@ const MonthlyCalendarPage: React.FC = () => {
     navigate('/');
   };
 
+  // Gestos: swipe-to-delete para la lista diaria (pestaña Calendario)
+  const SWIPE_THRESHOLD = 60;
+  const MAX_SWIPE = 160;
+  const [swipeOffsetById, setSwipeOffsetById] = useState<Record<string, number>>({});
+  const activeIdRef = useRef<string | null>(null);
+  const startXRef = useRef(0);
+
+  const onPointerDownSwipe = (id: string) => (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    activeIdRef.current = id;
+    startXRef.current = e.clientX;
+    document.body.style.userSelect = 'none';
+  };
+  const onPointerMoveSwipe = (id: string) => (e: React.PointerEvent) => {
+    if (activeIdRef.current !== id) return;
+    const deltaX = startXRef.current - e.clientX; // mover a la izquierda
+    if (deltaX > 0) {
+      e.preventDefault();
+      const next = Math.min(deltaX, MAX_SWIPE);
+      setSwipeOffsetById(prev => ({ ...prev, [id]: next }));
+    }
+  };
+  const finishRowSwipe = (id: string) => {
+    const offset = swipeOffsetById[id] || 0;
+    if (offset > SWIPE_THRESHOLD) {
+      if (deleteTaskStore) {
+        // Si existe en el store, usar API oficial
+        try { (deleteTaskStore as any)(id); } catch (e) { console.error(e); }
+      } else {
+        // Fallback: eliminar localmente
+        updateTasks(tasks.filter(t => t.id !== id));
+      }
+    }
+    setSwipeOffsetById(prev => ({ ...prev, [id]: 0 }));
+    activeIdRef.current = null;
+    document.body.style.userSelect = '';
+  };
+  const onPointerUpSwipe = (id: string) => (e: React.PointerEvent) => {
+    e.stopPropagation();
+    finishRowSwipe(id);
+  };
+
   const renderShapeForType = (type: Task['type']) => {
     const isShiny = document.documentElement.classList.contains('shiny');
     const isDark = document.documentElement.classList.contains('dark');
@@ -481,31 +524,32 @@ const MonthlyCalendarPage: React.FC = () => {
   const adviceText = useMemo(() => {
     const { completed, scheduled } = monthStats;
     const rate = scheduled > 0 ? Math.round((completed / Math.max(1, scheduled)) * 100) : 0;
-    const userName = name || 'Usuario';
-    const userNickname = nickname || 'amigo';
-    const nickAllowed = allowNicknamePraiseOncePerDay();
+
+    const fullName = name?.trim() || 'Usuario';
+    const nickName = nickname?.trim() || (name?.split(' ')[0] || 'amigo');
 
     // Casos especiales
     if (scheduled === 0 && totalCompleted === 0) {
-      return `${userName}, aún no hay tareas este mes. Planifica 1-3 objetivos clave para empezar con foco.`;
+      return (<>Hola <strong className="font-bold">{fullName}</strong>, 0/0. Arranquemos con 1–3 metas sencillas. Estoy con vos.</>);
     }
     if (scheduled === 0 && totalCompleted > 0) {
-      return `¡Buen impulso${nickAllowed ? `, ${userNickname}` : ''}! Completaste ${totalCompleted} tareas. Programa metas para enfocar tu energía.`;
+      return (<>Bien ahí, <strong className="font-bold">{nickName}</strong>! {totalCompleted}/0. Definí 1–3 metas y le damos.</>);
     }
 
-    // Consejos según rendimiento (usar apodo para felicitar, nombre para motivar)
+    // Consejos según rendimiento (apodo para felicitar, nombre completo para retar/motivar)
     if (rate >= 85) {
-      return `¡Increíble mes${nickAllowed ? `, ${userNickname}` : ''}! Completaste ${completed} de ${scheduled} (${rate}%). Mantén la racha de ${currentStreak} día(s).`;
+      return (<>Tremendo, <strong className="font-bold">{nickName}</strong>! {completed}/{scheduled} ({rate}%). Racha {currentStreak}d. Seguimos.</>);
     }
     if (rate >= 60) {
-      return `Vas muy bien${nickAllowed ? `, ${userNickname}` : ''}: ${completed}/${scheduled} (${rate}%). Intenta sumar 1-2 días más activos.`;
+      return (<>Vamos bien, <strong className="font-bold">{nickName}</strong>. {completed}/{scheduled} ({rate}%). Sumemos 1–2 días.</>);
     }
     if (rate > 0) {
-      return `${userName}, progreso en marcha: ${completed}/${scheduled} (${rate}%). Elige 1 tarea pequeña diaria para ganar ritmo.`;
+      return (<>Ey <strong className="font-bold">{fullName}</strong>, {completed}/{scheduled} ({rate}%). Meté 1 tarea hoy y tomás ritmo.</>);
     }
 
-    return `${userName}, empieza con una tarea sencilla hoy para construir momentum. ¡Yo te acompaño!`;
-  }, [monthStats, currentStreak, daysWithCompletedInMonth, totalCompleted]);
+    // scheduled > 0 y completed = 0
+    return (<>Hola <strong className="font-bold">{fullName}</strong>, 0/{scheduled} (0%). Empecemos con 1 tarea hoy. Yo te acompaño.</>);
+  }, [monthStats, currentStreak, daysWithCompletedInMonth, totalCompleted, name, nickname]);
 
   // Se deshabilitan gestos de navegación hacia atrás. Solo el botón dedicado permite volver.
 
@@ -797,29 +841,67 @@ const MonthlyCalendarPage: React.FC = () => {
                           key={task.id}
                           initial={{ opacity: 0, x: -14 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className="flex items-center gap-3 px-1.5 py-2 transition-colors"
+                          className="relative overflow-hidden px-1.5 py-2"
+                          onPointerDown={onPointerDownSwipe(task.id)}
+                          onPointerMove={onPointerMoveSwipe(task.id)}
+                          onPointerUp={onPointerUpSwipe(task.id)}
+                          onPointerCancel={onPointerUpSwipe(task.id)}
+                          onTouchStart={(e) => {
+                            const touch = e.touches[0];
+                            if (!touch) return;
+                            activeIdRef.current = task.id;
+                            startXRef.current = touch.clientX;
+                          }}
+                          onTouchMove={(e) => {
+                            if (activeIdRef.current !== task.id || !e.touches[0]) return;
+                            const deltaX = startXRef.current - e.touches[0].clientX;
+                            if (deltaX > 0) {
+                              e.preventDefault();
+                              const next = Math.min(deltaX, MAX_SWIPE);
+                              setSwipeOffsetById(prev => ({ ...prev, [task.id]: next }));
+                            }
+                          }}
+                          onTouchEnd={() => finishRowSwipe(task.id)}
+                          style={{
+                            transform: `translate3d(-${swipeOffsetById[task.id] || 0}px,0,0)`,
+                            transition: 'transform 150ms ease-out',
+                            touchAction: 'pan-y',
+                            userSelect: (swipeOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
+                            willChange: 'transform',
+                          }}
                         >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center">
-                              {renderShapeForType(task.type)}
-                              <p className={`text-[18px] truncate ${isCompletedForSelectedDate ? 'line-through text-gray-500 dark:text-white' : 'text-black dark:text-white font-medium'}`}>{task.title}</p>
-                            </div>
-                            {task.scheduledTime && (
-                              <p className="text-sm text-gray-600">{task.scheduledTime}</p>
-                            )}
+                          {/* Fondo rojo eliminar */}
+                          <div className={`absolute inset-0 flex items-center justify-end pr-3 transition-all duration-150 ${
+                            (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100 bg-black dark:bg-white' : 'opacity-0 bg-gray-300 dark:bg-gray-200'
+                          }`}>
+                            <span className="text-white text-sm mr-2">Eliminar</span>
+                            <Trash2 className="w-5 h-5 text-white" />
                           </div>
-                          {/* Selector estilo radio a la derecha */}
-                          <button
-                            onClick={() => handleToggleTask(task.id)}
-                            aria-label="Seleccionar tarea"
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isCompletedForSelectedDate ? 'bg-black border-black dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
-                          >
-                            {isCompletedForSelectedDate && (
-                              <svg className="w-3 h-3 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </button>
+
+                          {/* Fila de contenido */}
+                          <div className="relative z-10 flex items-center gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center">
+                                {renderShapeForType(task.type)}
+                                <p className={`text-[18px] truncate ${isCompletedForSelectedDate ? 'line-through text-gray-500 dark:text-white' : 'text-black dark:text-white font-medium'}`}>{task.title}</p>
+                              </div>
+                              {task.scheduledTime && (
+                                <p className="text-sm text-gray-600">{task.scheduledTime}</p>
+                              )}
+                            </div>
+                            {/* Selector estilo radio a la derecha */}
+                            <button
+                              onClick={() => handleToggleTask(task.id)}
+                              aria-label="Seleccionar tarea"
+                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isCompletedForSelectedDate ? 'bg-black border-black dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
+                            >
+                              {isCompletedForSelectedDate && (
+                                <svg className="w-3 h-3 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </motion.div>
                       );
                     })}

@@ -538,7 +538,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                   >
                     {/* Fondo de eliminación con tacho visible durante el swipe */}
                     <div className={`absolute inset-0 rounded-xl flex items-center justify-end pr-4 transition-all duration-150 ${ 
-                      (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100 bg-red-500' : 'opacity-0 bg-red-300'
+                      (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100 bg-black dark:bg-white' : 'opacity-0 bg-gray-300 dark:bg-gray-200'
                     }`}>
                       <div className="flex items-center space-x-2">
                         <span className="text-white font-medium text-sm">Eliminar</span>

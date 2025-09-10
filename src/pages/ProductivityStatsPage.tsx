@@ -53,7 +53,7 @@ const ProductivityStatsPage: React.FC = () => {
             className={`flex items-center justify-center w-9 h-9 rounded-full shadow-sm hover:shadow-md transition-all duration-200 ${
               document.documentElement.classList.contains('shiny') 
                 ? 'bg-white text-black' 
-                : 'bg-black text-white dark:bg-white dark:text-black'
+                : 'bg-white text-black border border-black dark:bg-white dark:text-black dark:border dark:border-white'
             }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

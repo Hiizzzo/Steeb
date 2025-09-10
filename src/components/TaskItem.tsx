@@ -224,7 +224,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     <div className={cn('relative mb-3', className)}>
       {/* Fondo rojo de eliminación */}
       <div 
-        className={`absolute inset-0 bg-red-500 rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-black dark:bg-white rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
           showDeleteButton ? 'opacity-100' : 'opacity-0'
         }`}
       >

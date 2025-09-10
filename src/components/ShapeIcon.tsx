@@ -23,7 +23,7 @@ const ShapeIcon: React.FC<ShapeIconProps> = ({ variant, className, title, color 
   return (
     <svg
       viewBox="0 0 24 24"
-      className={`${className ?? "w-6 h-6 text-black"} shape-outline`}
+      className={`${className ?? "w-6 h-6"} shape-outline shape-${variant}`}
       role="img"
       aria-label={title ?? variant}
       xmlns="http://www.w3.org/2000/svg"

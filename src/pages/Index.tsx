@@ -25,7 +25,7 @@ import ShapeIcon from '@/components/ShapeIcon';
 import type { RecurrenceRule, Task, SubTask } from '@/types';
 
 
-// 8-colores (de arriba a abajo): ROJO, NARANJA, AMARILLO, VERDE, CELESTE, AZUL, VIOLETA, ROSA
+// 9-colores (de abajo hacia arriba): ROJO, NARANJA, AMARILLO, VERDE, CELESTE, AZUL, INDIGO, ROSA FUERTE, VIOLETA
 const STEEBE_COLORS_8 = [
   '#ff004c', // ROJO
   '#ff7a00', // NARANJA
@@ -33,15 +33,18 @@ const STEEBE_COLORS_8 = [
   '#00ff66', // VERDE
   '#00c2ff', // CELESTE
   '#0000ff', // AZUL
+  '#4b0082', // INDIGO
+  '#ff00ff', // ROSA FUERTE
   '#8b00ff', // VIOLETA
-  '#ff00ff', // ROSA
 ] as const;
 
-// Dado un índice desde el tope (0 es la primera tarea visible), devolver color en orden top->down
-const getRainbowColorBottomUp = (topIndex: number, _total: number) => {
+// Dado un índice desde el tope (0 es la primera tarea visible), asignar color contando desde abajo
+const getRainbowColorBottomUp = (topIndex: number, total: number) => {
   const len = STEEBE_COLORS_8.length;
-  const idx = ((topIndex % len) + len) % len;
-  return STEEBE_COLORS_8[idx];
+  if (total <= 0) return STEEBE_COLORS_8[0];
+  // El último (más abajo) debe recibir ROJO (índice 0), y hacia arriba sigue NARANJA, etc.
+  const idxFromBottom = ((total - 1 - topIndex) % len + len) % len;
+  return STEEBE_COLORS_8[idxFromBottom];
 };
 
 // Orden fijo para mantener categorías contiguas

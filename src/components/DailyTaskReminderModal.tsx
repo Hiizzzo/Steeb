@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, X, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface Task {
   id: string;
@@ -65,9 +64,6 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
 
   if (!open) return null;
 
-  const { name, nickname } = useUserProfile();
-  const userName = name || 'Usuario';
-
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -105,7 +101,7 @@ const DailyTaskReminderModal: React.FC<DailyTaskReminderModalProps> = ({
                   <span className="text-xs font-semibold text-black dark:text-white uppercase tracking-wide">Recordatorio</span>
                 </div>
                 <p className="text-sm text-black dark:text-white">
-                  {userName}, ¿completaste las tareas de ayer? Marcá las que terminaste y no te olvides más de registrarlas.
+                  ¿Completaste tareas ayer? Elegí las que terminaste para mantener tus estadísticas precisas.
                 </p>
               </div>
             </div>

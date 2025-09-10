@@ -75,7 +75,7 @@
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  animation: spin 4s linear infinite;
+  animation: none;
   pointer-events: none;
 }
 
@@ -363,6 +363,9 @@
   .shiny .task-shape-wrapper svg {
     filter: none !important;
     animation: none !important;
+    /* Allow inline color from React (style/color on SVG or wrapper) to win */
+    color: inherit;
+    fill: currentColor !important;
   }
 
   @keyframes icon-glow {
@@ -643,46 +646,20 @@
 
 /* Progress bar track + fill with rainbow and white shine */
 .shiny .progress-track {
-  /* 9 colores con transiciones MUY suaves a lo largo de todo el ancho */
-  background: linear-gradient(90deg,
-    /* Rojo → Naranja */
-    #ff0000 0%,
-    #ff3f00 6.25%,
-    #ff7f00 12.5%,
-    /* Naranja → Amarillo */
-    #ffbf00 18.75%,
-    #ffff00 25%,
-    /* Amarillo → Verde */
-    #80ff00 31.25%,
-    #00ff00 37.5%,
-    /* Verde → Celeste */
-    #00ff80 43.75%,
-    #00ffff 50%,
-    /* Celeste → Azul */
-    #0080ff 56.25%,
-    #0000ff 62.5%,
-    /* Azul → Índigo */
-    #2600c0 68.75%,
-    #4b0082 75%,
-    /* Índigo → Violeta */
-    #6f00c0 81.25%,
-    #8b00ff 87.5%,
-    /* Violeta → Rosa */
-    #c233e6 93.75%,
-    #ff66cc 100%
-  ) !important;
+  /* Track completamente blanco en modo Shiny (sin arcoíris) */
+  background: #ffffff !important;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 6px rgba(255,255,255,0.18) !important;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.08) !important;
 }
 
 .shiny .progress-fill {
-  /* La capa de progreso ahora resalta por encima del arcoíris del track */
-  background: linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.22)) !important;
-  animation: none !important; /* el arcoíris está fijo en el track */
+  /* Mantener contraste: relleno negro sobre track blanco */
+  background: #000000 !important;
+  animation: none !important;
   position: relative;
   overflow: hidden;
-  filter: drop-shadow(0 0 6px rgba(255,255,255,0.25)) drop-shadow(0 0 10px rgba(255,0,255,0.18)) !important;
+  filter: none !important;
 }
 
 .shiny .progress-fill::after {
@@ -727,7 +704,7 @@
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  animation: spin 8s linear infinite !important; /* slower */
+  animation: none !important; /* stop rotation */
 }
 
 /* Floating Border: rainbow ring for floating menu */
@@ -753,9 +730,9 @@
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  animation: spin 8s linear infinite !important;
+  animation: none !important;
   z-index: -1 !important;
-  will-change: transform !important;
+  will-change: auto !important;
   pointer-events: none !important;
 }
 
@@ -780,9 +757,13 @@
   color: #ffffff !important;
 }
 
-/* Shiny: DISABLE rainbow ring on the Shiny toggle (keep it simple) */
-.shiny .shiny-toggle { border-color: #000000 !important; }
-.shiny .shiny-toggle::before { content: none !important; }
+/* Shiny: ENABLE rainbow ring on the Shiny toggle (multicolor) */
+.shiny .shiny-toggle { border-color: transparent !important; }
+/* ::before already defined above draws the conic-gradient ring */
+
+/* Shiny: Settings cards with animated multicolor border */
+.shiny .shiny-settings-card { position: relative !important; background: #000000 !important; border: 1px solid transparent !important; background-clip: padding-box !important; }
+.shiny .shiny-settings-card::before { content: "" !important; position: absolute !important; inset: 0; border-radius: inherit; padding: 1.5px; background: conic-gradient(from 0deg, #ff004c,#ff7a00,#ffe600,#00ff66,#00c2ff,#8b00ff,#ff00ff,#ff004c) !important; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: none !important; pointer-events: none; }
 
 /* Shiny: Home button with rainbow ring (same as FAB) */
 .shiny .shiny-home-button {
@@ -814,8 +795,8 @@
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  animation: spin 8s linear infinite !important;
-  will-change: transform !important;
+  animation: none !important;
+  will-change: auto !important;
   pointer-events: none !important;
   z-index: 1 !important;
 }
@@ -1227,25 +1208,256 @@
 /* Default: hide animated strokes for other themes */
 .steeb-stroke { display: none; }
 
-/* Shiny: disable the SVG gradient stroke; we'll use static color + white shine */
+/* Shiny: DISABLE the SVG gradient stroke, use white border instead */
 .shiny .steeb-stroke { display: none !important; }
 
 /* Control de rellenos para las formas */
 .shape-fill-rainbow9 { display: none; }
 .shape-fill-current { display: inline; }
-/* En modo Shiny: USAR COLOR SÓLIDO POR TAREA — ocultar el gradiente y mostrar currentColor */
+/* En modo Shiny: usar relleno rosa con borde blanco */
 .shiny .shape-fill-rainbow9 { display: none !important; }
-.shiny .shape-fill-current { display: inline !important; }
+.shiny .shape-fill-current { display: inline; }
+
+/* Estilos específicos para formas en modo Shiny: borde blanco y relleno fucsia */
+.shiny .task-shape-wrapper svg { 
+  color: #ff1493 !important; /* Fucsia más intenso */
+  stroke: white !important;
+  stroke-width: 2px !important;
+  fill: #ff1493 !important;
+}
+
+.shiny .task-shape-wrapper svg path,
+.shiny .task-shape-wrapper svg circle {
+  stroke: white !important;
+  stroke-width: 2px !important;
+  fill: #ff1493 !important;
+}
+/* Colores por forma en Shiny (desactivado): ahora el color lo define la posición de la tarea (de abajo hacia arriba). */
+/*
+.shiny .task-shape-wrapper svg.shape-triangle { color: #ff004c !important; }  
+.shiny .task-shape-wrapper svg.shape-square   { color: #ff7a00 !important; }  
+.shiny .task-shape-wrapper svg.shape-circle   { color: #ffe600 !important; }  
+.shiny .task-shape-wrapper svg.shape-diamond  { color: #00ff66 !important; }  
+.shiny .task-shape-wrapper svg.shape-hexagon  { color: #00c2ff !important; }  
+.shiny .task-shape-wrapper svg.shape-spade    { color: #0000ff !important; }  
+.shiny .task-shape-wrapper svg.shape-club     { color: #ff00ff !important; }  
+.shiny .task-shape-wrapper svg.shape-heart    { color: #4b0082 !important; }  
+.shiny .task-shape-wrapper svg.shape-question { color: #8b00ff !important; }  
+*/
 
 /* Subtle white shine pulse for task icons (applied on wrapper or SVG) */
 .shiny .task-shine svg {
   animation: steeb-white-shine 2.2s ease-in-out infinite;
 }
 
+/* ========== ESTADÍSTICAS SHINY MODE ========== */
+/* Contenedor principal de estadísticas con borde multicolor animado */
+.shiny .productivity-stats {
+  position: relative;
+}
+
+.shiny .productivity-stats::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  background: linear-gradient(45deg, #ff0088, #8800ff, #0088ff, #00ff88, #ffff00, #ff8800, #ff0088);
+  background-size: 400% 400%;
+  border-radius: 12px;
+  animation: none;
+  z-index: -1;
+}
+
+/* Tarjetas de estadísticas con bordes multicolor */
+.shiny .productivity-stats > div:not(.mt-10):not(.mt-8):not(.mt-4) {
+  position: relative;
+  border-radius: 12px;
+}
+
+.shiny .productivity-stats > div:not(.mt-10):not(.mt-8):not(.mt-4)::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  background: linear-gradient(90deg, #ff1493, #00bfff, #32cd32, #ffd700, #ff69b4, #ff1493);
+  background-size: 300% 300%;
+  border-radius: inherit;
+  animation: none;
+  z-index: -1;
+}
+
+/* Objetivo del mes con borde multicolor especial */
+.shiny .productivity-stats .border-black {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, 
+              linear-gradient(45deg, #ff0088, #8800ff, #0088ff, #00ff88) border-box !important;
+  animation: none;
+}
+
+.shiny .productivity-stats .dark\:border-white {
+  border: 2px solid transparent !important;
+  background: linear-gradient(black, black) padding-box, 
+              linear-gradient(45deg, #ff0088, #8800ff, #0088ff, #00ff88) border-box !important;
+  animation: none;
+}
+
+/* Selector de período con borde multicolor */
+.shiny .productivity-stats .border-black.rounded-full,
+.shiny .productivity-stats .dark\:border-white.rounded-full {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, 
+              linear-gradient(90deg, #ff1493, #00bfff, #32cd32, #ffd700) border-box !important;
+  animation: none;
+}
+
+/* Historial de objetivos con bordes suaves multicolor */
+.shiny .productivity-stats .border-gray-200,
+.shiny .productivity-stats .dark\:border-gray-700 {
+  border: 1px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, 
+              linear-gradient(135deg, #ff69b4, #87ceeb, #98fb98) border-box !important;
+}
+
+/* Números principales con efectos de color */
+.shiny .productivity-stats .text-\[56px\],
+.shiny .productivity-stats .sm\:text-\[100px\] {
+  background: linear-gradient(45deg, #ff0088, #8800ff, #0088ff, #00ff88, #ffff00, #ff8800);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rainbow-text 3s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(255, 0, 136, 0.3);
+}
+
+/* Texto secundario con colores vibrantes */
+.shiny .productivity-stats .text-base,
+.shiny .productivity-stats .sm\:text-xl {
+  color: #ff1493 !important;
+  text-shadow: 0 0 10px rgba(255, 20, 147, 0.4);
+}
+
+/* Título ESTADÍSTICAS con efecto arcoíris */
+.shiny .productivity-stats h1 {
+  background: linear-gradient(90deg, #ff0088, #8800ff, #0088ff, #00ff88, #ffff00, #ff8800, #ff0088);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rainbow-text-fast 2s linear infinite;
+  text-shadow: 0 0 30px rgba(255, 0, 136, 0.5);
+}
+
+/* Botones del selector de período con efectos hover */
+.shiny .productivity-stats button {
+  transition: all 0.3s ease;
+}
+
+.shiny .productivity-stats button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 20, 147, 0.6);
+}
+
+/* Bordes multicolor para elementos específicos seleccionados */
+.shiny [data-lov-id="src\\components\\TaskFrequencyChart.tsx:142:4"] {
+  position: relative !important;
+  background: #000000 !important; /* fondo oscuro para Shiny */
+  border: 1px solid transparent !important;
+  background-clip: padding-box !important;
+  color: #ffffff !important; /* texto blanco */
+}
+.shiny [data-lov-id="src\\components\\TaskFrequencyChart.tsx:142:4"] * {
+  color: #ffffff !important; /* forzar texto blanco dentro del contenedor */
+  text-shadow: 0 0 8px rgba(255,255,255,0.25);
+}
+.shiny [data-lov-id="src\\components\\TaskFrequencyChart.tsx:142:4"]::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  padding: 2px !important;
+  background: conic-gradient(
+    from 0deg,
+    #ff004c 0%, #ff7a00 14.2857%,
+    #ffe600 28.5714%, #00ff66 42.8571%,
+    #00c2ff 57.1428%, #8b00ff 71.4285%,
+    #ff00ff 85.7142%, #ff004c 100%
+  ) !important;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: none !important;
+  pointer-events: none !important;
+}
+
+.shiny [data-lov-name="div"][data-component-path="src\components\ProductivityStatsConnected.tsx"][data-component-line="501"] {
+  border: 3px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, 
+              linear-gradient(90deg, #ff1493, #00bfff, #32cd32, #ffd700, #ff69b4, #87ceeb) border-box !important;
+  animation: none;
+}
+/* Texto blanco dentro del selector de período (borde negro) en Shiny */
+.shiny [data-lov-name="div"][data-component-path="src\components\ProductivityStatsConnected.tsx"][data-component-line="501"],
+.shiny [data-lov-name="div"][data-component-path="src\components\ProductivityStatsConnected.tsx"][data-component-line="501"] * {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(255,255,255,0.35);
+}
+
+/* Texto blanco para textarea específico */
+.shiny [data-lov-name="textarea"][data-component-path="src\components\ProductivityStatsConnected.tsx"] {
+  color: white !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Texto negro para div específico */
+.shiny [data-lov-name="motion.div"][data-component-path="src\components\ProductivityStatsConnected.tsx"][data-component-line="488"] {
+  color: black !important;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Animaciones para bordes multicolor */
+@keyframes rainbow-border {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes rainbow-border-static {
+  0% { filter: hue-rotate(0deg) brightness(1); }
+  25% { filter: hue-rotate(90deg) brightness(1.1); }
+  50% { filter: hue-rotate(180deg) brightness(1.2); }
+  75% { filter: hue-rotate(270deg) brightness(1.1); }
+  100% { filter: hue-rotate(360deg) brightness(1); }
+}
+
+@keyframes rainbow-text {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes rainbow-text-fast {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
 @keyframes steeb-white-shine {
   0%, 100% { filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
   50% { filter: drop-shadow(0 0 6px rgba(255,255,255,0.95)); }
 }
+
+/* Shiny: borde multicolor fijo para el card del gráfico de frecuencias (interior blanco) */
+.shiny .shiny-stats-chart-card {
+  position: relative !important;
+  border: 2px solid transparent !important;
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+              linear-gradient(90deg, #ff1493, #00bfff, #32cd32, #ffd700, #ff69b4) border-box !important;
+}
+
+/* Sin pseudo-elemento para mantenerlo estático y liviano */
+.shiny .shiny-stats-chart-card::before { content: none !important; }
 
 
 
