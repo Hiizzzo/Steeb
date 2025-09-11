@@ -709,7 +709,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
         >
           {/* Etiqueta STEEB en modo Shiny */}
-          <div className="shiny-steeb-label text-[10px] font-bold tracking-wide text-white/90 mb-1 ml-0.5">STEEB</div>
+          
           <motion.div 
             className="flex items-center justify-between mb-3 sm:mb-6"
             animate={{ scale: isAnimating ? 0.95 : 1 }}

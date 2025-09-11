@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useTheme } from '@/hooks/useTheme';
 import {
   ResponsiveContainer,
   LineChart,
@@ -365,6 +366,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
   };
 
   const [isDark, setIsDark] = useState(false);
+  const { currentTheme } = useTheme();
   useEffect(() => {
     const check = () => setIsDark(document.documentElement.classList.contains('dark'));
     check();
@@ -374,12 +376,12 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
   }, []);
 
   return (
-         <div className={`productivity-stats ${period === 'year' ? 'max-w-2xl' : 'max-w-md'} mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20`}>
-      <h1 className="mt-0 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase">ESTADÍSTICAS</h1>
+    <div className={`productivity-stats ${period === 'year' ? 'max-w-2xl' : 'max-w-md'} mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20`}>
+      <h1 className="mt-0 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase text-black">ESTADÍSTICAS</h1>
 
       {/* Objetivo del mes (solo input y checkbox, sin etiquetas adicionales) */}
       <div className="mt-4">
-        <div className="w-full border border-black dark:border-white rounded-xl p-3 bg-white dark:bg-black">
+        <div className="w-full border border-black dark:border-white rounded-xl p-3 bg-white dark:bg-black text-white stats-border">
           <div className="flex items-start gap-3">
             <Pin className="w-5 h-5 mt-1" />
             <div className="flex-1 grid grid-cols-[1fr_auto] gap-x-3 items-start">
@@ -485,7 +487,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
           </motion.div>
         </AnimatePresence>
         <AnimatePresence mode="wait">
-          <motion.div key={`sub-${period}-${selectedISO}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }} className="text-base sm:text-xl text-center">
+          <motion.div key={`sub-${period}-${selectedISO}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }} className={`text-base sm:text-xl text-center ${document.documentElement.classList.contains('shiny') ? 'tareas-multicolor' : ''}`}>
             {secondaryText}
           </motion.div>
         </AnimatePresence>
@@ -498,7 +500,12 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       </AnimatePresence>
 
       <div className="mt-10 flex items-center justify-center">
-        <div className="flex w-full max-w-sm border border-black dark:border-white rounded-full overflow-hidden">
+        <div className={`flex w-full max-w-sm rounded-full overflow-hidden shiny-period-buttons ${
+          currentTheme === 'shiny' 
+            ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1' 
+            : 'border border-black dark:border-white'
+        }`}>
+          <div className={currentTheme === 'shiny' ? 'flex w-full rounded-full overflow-hidden bg-white dark:bg-black' : 'flex w-full'}>
           {([
             { key: 'week', label: 'Semana' },
             { key: 'month', label: 'Mes' },
@@ -519,6 +526,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
               </button>
             );
           })}
+          </div>
         </div>
       </div>
 

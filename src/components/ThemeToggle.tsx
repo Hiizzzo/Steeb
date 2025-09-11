@@ -20,7 +20,7 @@ const ThemeToggle = () => {
 			<Switch
 				className={`scale-125 origin-top-right ${
 					isShiny 
-						? 'data-[state=checked]:bg-black data-[state=unchecked]:bg-white [&>span]:bg-black data-[state=checked]:[&>span]:bg-white data-[state=unchecked]:[&>span]:bg-black' 
+						? 'data-[state=checked]:bg-white data-[state=unchecked]:bg-white [&>span]:bg-black data-[state=checked]:[&>span]:bg-black data-[state=unchecked]:[&>span]:bg-black' 
 						: ''
 				}`}
 				checked={isDark}

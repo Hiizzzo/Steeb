@@ -506,6 +506,14 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
           variant={viewMode === 'month' ? 'default' : 'outline'}
           onClick={() => setViewMode('month')}
           size="sm"
+          className={`relative overflow-hidden ${isShiny ? 'rainbow-border-animated' : ''}`}
+          style={isShiny ? {
+            background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff)',
+            backgroundSize: '400% 400%',
+            animation: 'rainbow-move 3s ease infinite',
+            border: '2px solid transparent',
+            backgroundClip: 'padding-box'
+          } : {}}
         >
           Mes
         </Button>
@@ -513,6 +521,14 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
           variant={viewMode === 'week' ? 'default' : 'outline'}
           onClick={() => setViewMode('week')}
           size="sm"
+          className={`relative overflow-hidden ${isShiny ? 'rainbow-border-animated' : ''}`}
+          style={isShiny ? {
+            background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff)',
+            backgroundSize: '400% 400%',
+            animation: 'rainbow-move 3s ease infinite',
+            border: '2px solid transparent',
+            backgroundClip: 'padding-box'
+          } : {}}
         >
           Semana
         </Button>
@@ -521,6 +537,14 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
             variant={viewMode === 'day' ? 'default' : 'outline'}
             onClick={() => setViewMode('day')}
             size="sm"
+            className={`relative overflow-hidden ${isShiny ? 'rainbow-border-animated' : ''}`}
+            style={isShiny ? {
+              background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff)',
+              backgroundSize: '400% 400%',
+              animation: 'rainbow-move 3s ease infinite',
+              border: '2px solid transparent',
+              backgroundClip: 'padding-box'
+            } : {}}
           >
             Día
           </Button>

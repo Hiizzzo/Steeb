@@ -68,7 +68,7 @@ const SettingsPage = () => {
         <div className="p-4 bg-gray-50 dark:bg-black rounded-lg border shiny-settings-card">
            <div className="flex items-center gap-3 mb-3">
              <Globe className={`w-5 h-5 ${isShiny ? 'text-white' : ''}`} />
-             <span className={`font-medium ${isShiny ? 'text-white' : ''}`}>{t('app_language')}</span>
+             <span className={`font-medium ${isShiny ? 'tareas-multicolor' : ''}`}>{t('app_language')}</span>
            </div>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -109,7 +109,7 @@ const SettingsPage = () => {
       >
         <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg border shiny-settings-card">
            <div>
-             <span className={`font-medium block ${isShiny ? 'text-white' : ''}`}>{t('shiny_toggle')} ✨</span>
+             <span className={`font-medium block ${isShiny ? 'tareas-multicolor' : ''}`}>{t('shiny_toggle')} ✨</span>
              <span className={`text-sm ${isShiny ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'}`}>{isShiny ? t('enabled') : t('disabled')}</span>
            </div>
           <button
@@ -135,7 +135,7 @@ const SettingsPage = () => {
         <div className="p-4 bg-gray-50 dark:bg-black rounded-lg border shiny-settings-card">
            <div className="flex items-center gap-3 mb-4">
              <User className={`w-5 h-5 ${isShiny ? 'text-white' : ''}`} />
-             <span className={`font-medium ${isShiny ? 'text-white' : ''}`}>Perfil de Usuario</span>
+             <span className={`font-medium ${isShiny ? 'tareas-multicolor' : ''}`}>Perfil de Usuario</span>
            </div>
           
           <div className="space-y-4 mb-4">
@@ -156,15 +156,15 @@ const SettingsPage = () => {
             </div>
             
             <div className="grid grid-cols-1 gap-3">
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-gray-600'}`}>
                 <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Nombre completo</div>
                 <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>{name || 'No configurado'}</div>
               </div>
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-gray-600'}`}>
                 <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Apodo</div>
                 <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>{nickname || 'No configurado'}</div>
               </div>
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-gray-600'}`}>
                 <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Cuenta vinculada</div>
                 <div className="flex items-center justify-between">
                   <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>

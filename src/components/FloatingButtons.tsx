@@ -329,12 +329,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
                   >
-                    {/* Líneas divisorias en Y */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-white" style={{ height: '36%', top: '0' }} />
-                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-white" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(60deg)', transformOrigin: 'top' }} />
-                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-white" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(-60deg)', transformOrigin: 'top' }} />
-                    </div>
+
 
                     {/* Botón arriba - Calendario (layout polar) */}
                     <button
@@ -383,12 +378,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
                   >
-                    {/* Líneas divisorias en Y */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-black" style={{ height: '36%', top: '0' }} />
-                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-black" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(60deg)', transformOrigin: 'top' }} />
-                      <div className="absolute left-1/2 -translate-x-1/2 w-[2px] bg-black" style={{ height: '32%', transform: 'translate(-50%, 0) rotate(-60deg)', transformOrigin: 'top' }} />
-                    </div>
+
 
                     {/* Botón arriba - Calendario */}
                     <button

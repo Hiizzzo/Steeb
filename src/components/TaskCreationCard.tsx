@@ -153,9 +153,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       
       onCancel();
       
-      toast({
-        title: editingTask ? "TAREA ACTUALIZADA" : "TAREA CREADA",
-      });
+
     } else {
       toast({
         title: "Error",

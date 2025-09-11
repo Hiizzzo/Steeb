@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import { useDailyTaskReminder } from '@/hooks/useDailyTaskReminder';
+import { useTheme } from '@/hooks/useTheme';
 import { notificationService } from '@/services/notificationService';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
@@ -69,6 +70,7 @@ const Index = () => {
   const { toast } = useToast();
   const { playTaskCompleteSound } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
+  const { currentTheme } = useTheme();
 
   // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
   const SWIPE_THRESHOLD = 80;
@@ -173,16 +175,10 @@ const Index = () => {
               console.log('CHECKBOX CLICKED!', task.id);
               handleToggleTask(task.id);
             }}
-            className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-black border-black dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+            className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-green-500 border-green-500 dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
             style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
           >
-            {task.completed && (
-              <Check 
-                size={14} 
-                className="text-white dark:!text-black" 
-                strokeWidth={3}
-              />
-            )}
+
           </button>
         </div>
       </div>
@@ -713,8 +709,10 @@ const Index = () => {
       <div className="pt-24 mb-1" />
       {/* Título principal */}
       <div className="pt-6 mb-2">
-        <div className="tareas-header flex items-center justify-center py-2 bg-black text-white relative border-x border-black">
-          <h1 className="text-white text-xl font-light tracking-wide" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>TAREAS</h1>
+        <div className={`tareas-header flex items-center justify-center py-2 relative border-x border-white ${currentTheme === 'shiny' ? 'bg-white' : currentTheme === 'dark' ? 'bg-black' : 'bg-black'} ${currentTheme === 'shiny' ? 'text-black' : 'text-white'}`}>
+          <h1 className={`text-xl font-light tracking-wide ${
+            currentTheme === 'shiny' ? 'tareas-multicolor text-black' : (currentTheme === 'dark' ? 'text-white' : 'text-white')
+          }`} style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>TAREAS</h1>
         </div>
       </div>
       {viewMode === 'tasks' ? (
@@ -752,7 +750,7 @@ const Index = () => {
               <div className="mt-6">
                 <div className="completed-header flex items-center justify-center gap-3 mb-3 text-center">
                   <CheckCircle size={16} className={theme.isShiny ? 'text-white' : 'text-gray-700'} />
-                  <h3 className={`text-sm font-semibold font-varela ${theme.isShiny ? 'text-white' : 'text-gray-700'}`}>
+                  <h3 className={`text-sm font-semibold font-varela ${theme.isShiny ? 'tareas-multicolor' : 'text-gray-700'}`}>
                     Tareas completadas
                   </h3>
                   <span className={`text-xs ${theme.isShiny ? 'text-white' : 'text-gray-500'}`}>({completedToday.length})</span>

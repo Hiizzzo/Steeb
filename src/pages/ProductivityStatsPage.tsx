@@ -6,11 +6,13 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { RecurrenceRule } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 
 const ProductivityStatsPage: React.FC = () => {
   const [showModal, setShowModal] = React.useState(false);
   const { addTask } = useTaskStore();
   const navigate = useNavigate();
+  const { currentTheme } = useTheme();
 
   const handleBack = () => {
     navigate('/monthly-calendar');
@@ -51,8 +53,8 @@ const ProductivityStatsPage: React.FC = () => {
             aria-label="Volver"
             onClick={handleBack}
             className={`flex items-center justify-center w-9 h-9 rounded-full shadow-sm hover:shadow-md transition-all duration-200 ${
-              document.documentElement.classList.contains('shiny') 
-                ? 'bg-white text-black' 
+              currentTheme === 'shiny' 
+                ? 'bg-white text-black border-2 border-white' 
                 : 'bg-white text-black border border-black dark:bg-white dark:text-black dark:border dark:border-white'
             }`}
             whileHover={{ scale: 1.05 }}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Home, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Home, Trash2, Check } from 'lucide-react';
 
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -322,9 +322,7 @@ const MonthlyCalendarPage: React.FC = () => {
       setSelectedDateForTask(null);
       localStorage.removeItem('stebe-selected-date');
       
-      toast({
-          title: "TAREA CREADA",
-        });
+
     } catch (error) {
       console.error('Error al crear tarea:', error);
       toast({
@@ -682,7 +680,7 @@ const MonthlyCalendarPage: React.FC = () => {
         {/* Controles del calendario */}
         <Card className="p-3 mb-2 bg-white dark:bg-black relative border-0 shadow-none shiny-calendar-card">
           {/* Etiqueta STEEB solo en modo Shiny */}
-          <div className="shiny-steeb-label text-[10px] font-bold tracking-wide text-white/90 mb-1 ml-0.5">STEEB</div>
+          
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
@@ -893,13 +891,9 @@ const MonthlyCalendarPage: React.FC = () => {
                             <button
                               onClick={() => handleToggleTask(task.id)}
                               aria-label="Seleccionar tarea"
-                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isCompletedForSelectedDate ? 'bg-black border-black dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
+                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isCompletedForSelectedDate ? 'bg-green-500 border-green-500 dark:bg-white dark:border-white' : 'border-black dark:border-white'}`}
                             >
-                              {isCompletedForSelectedDate && (
-                                <svg className="w-3 h-3 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              )}
+
                             </button>
                           </div>
                         </motion.div>
