@@ -50,7 +50,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
   const { isDark, isShiny } = useTheme();
-  const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#1f2937');
+  const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000');
 
   const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
   const DELETE_THRESHOLD = 120; // Distancia para mostrar el botón de eliminar

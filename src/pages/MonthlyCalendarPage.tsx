@@ -387,7 +387,7 @@ const MonthlyCalendarPage: React.FC = () => {
   const renderShapeForType = (type: Task['type']) => {
     const isShiny = document.documentElement.classList.contains('shiny');
     const isDark = document.documentElement.classList.contains('dark');
-    const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#1f2937');
+    const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000');
     
     switch (type) {
       case 'productividad':   return <ShapeIcon variant="square" className="w-4 h-4 mr-2" title="Trabajo" color={shapeColor} />;

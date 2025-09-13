@@ -525,8 +525,8 @@ const Index = () => {
       // Versión Negra: formas blancas (forzar blanco)
       shapeColor = '#ffffff';
     } else {
-      // Versión Blanca: formas con color más oscuro para mejor contraste
-      shapeColor = '#1f2937'; // gris oscuro en lugar de negro puro
+      // Versión Blanca: formas negras con fondo blanco
+      shapeColor = '#000000'; // negro puro para mejor contraste
     }
     
     switch (type) {

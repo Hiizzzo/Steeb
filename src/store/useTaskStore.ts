@@ -303,6 +303,55 @@ export const useTaskStore = create<TaskStore>()(
               error: null
             }));
             
+            // Verificar si se marcó como completada y tiene recurrencia
+            if (updates.completed === true && previousTask.recurrence && previousTask.scheduledDate) {
+              console.log('🔄 Tarea recurrente completada, generando siguiente ocurrencia:', previousTask.title);
+              
+              // Usar la fecha de completado si está disponible, sino usar la fecha programada original
+              const baseDate = updates.completedDate ? updates.completedDate.split('T')[0] : previousTask.scheduledDate;
+              const nextDate = computeNextOccurrenceDate(baseDate, previousTask.recurrence);
+              
+              if (nextDate) {
+                console.log('📅 Creando siguiente ocurrencia para:', nextDate);
+                
+                // Verificar si ya existe una tarea para esa fecha
+                const existingTask = get().tasks.find(t => 
+                  t.title === previousTask.title &&
+                  t.type === previousTask.type &&
+                  t.scheduledDate === nextDate &&
+                  !t.completed
+                );
+                
+                if (!existingTask) {
+                  const resetSubtasks = previousTask.subtasks?.map(st => ({ 
+                    ...st, 
+                    completed: false,
+                    id: `subtask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                  })) || undefined;
+                  
+                  await get().addTask({
+                    title: previousTask.title,
+                    type: previousTask.type,
+                    subgroup: previousTask.subgroup,
+                    status: 'pending',
+                    completed: false,
+                    scheduledDate: nextDate,
+                    scheduledTime: previousTask.scheduledTime,
+                    notes: previousTask.notes,
+                    tags: previousTask.tags,
+                    subtasks: resetSubtasks,
+                    recurrence: previousTask.recurrence,
+                    priority: previousTask.priority,
+                    estimatedDuration: previousTask.estimatedDuration,
+                  } as any);
+                  
+                  console.log('✨ Nueva ocurrencia creada para:', nextDate);
+                } else {
+                  console.log('ℹ️ Ya existe una tarea para la fecha:', nextDate);
+                }
+              }
+            }
+            
             get().calculateStats();
             console.log('✅ Tarea actualizada exitosamente en Firestore');
           } catch (error) {
@@ -412,26 +461,7 @@ export const useTaskStore = create<TaskStore>()(
             status: willComplete ? 'completed' : 'pending',
             completedDate: willComplete ? new Date().toISOString() : undefined,
           });
-          // Auto-crear siguiente ocurrencia si corresponde
-          if (willComplete && task.recurrence) {
-            const nextDate = computeNextOccurrenceDate(task.scheduledDate, task.recurrence);
-            if (nextDate) {
-              const resetSubtasks = task.subtasks?.map(st => ({ ...st, completed: false })) || undefined;
-              await get().addTask({
-                title: task.title,
-                type: task.type,
-                subgroup: task.subgroup,
-                status: 'pending',
-                completed: false,
-                scheduledDate: nextDate,
-                scheduledTime: task.scheduledTime,
-                notes: task.notes,
-                tags: task.tags,
-                subtasks: resetSubtasks,
-                recurrence: task.recurrence,
-              } as any);
-            }
-          }
+          // La lógica de recurrencia se maneja automáticamente en updateTask
         },
 
         completeTask: async (id) => {
@@ -442,25 +472,7 @@ export const useTaskStore = create<TaskStore>()(
             status: 'completed',
             completedDate: new Date().toISOString(),
           });
-          if (task.recurrence) {
-            const nextDate = computeNextOccurrenceDate(task.scheduledDate, task.recurrence);
-            if (nextDate) {
-              const resetSubtasks = task.subtasks?.map(st => ({ ...st, completed: false })) || undefined;
-              await get().addTask({
-                title: task.title,
-                type: task.type,
-                subgroup: task.subgroup,
-                status: 'pending',
-                completed: false,
-                scheduledDate: nextDate,
-                scheduledTime: task.scheduledTime,
-                notes: task.notes,
-                tags: task.tags,
-                subtasks: resetSubtasks,
-                recurrence: task.recurrence,
-              } as any);
-            }
-          }
+          // La lógica de recurrencia se maneja automáticamente en updateTask
         },
 
         // ========== SUBTASK OPERATIONS ==========

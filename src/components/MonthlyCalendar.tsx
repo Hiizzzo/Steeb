@@ -141,7 +141,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
             return '#FFFFFF';
         }
       }
-      return '#1f2937'; // Gris oscuro para mejor contraste en modo claro
+      return '#000000'; // Negro puro para mejor contraste en modo claro
     };
     
     const iconColor = getIconColor();

@@ -49,7 +49,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
           STEEB
         </h1>
         <p className={`mt-1 text-xs sm:text-sm ${isDark ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-          %0.98
+          0.9
         </p>
          
          {/* Puntos animados */}
