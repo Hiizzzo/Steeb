@@ -6,6 +6,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/useTheme';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAuth } from '@/hooks/useAuth';
+import LocalStoragePanel from '@/components/LocalStoragePanel';
 
 
 const SettingsPage = () => {
@@ -100,31 +101,6 @@ const SettingsPage = () => {
         </div>
       </motion.div>
 
-      {/* Shiny toggle */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="mb-8"
-      >
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-black rounded-lg border shiny-settings-card">
-           <div>
-             <span className={`font-medium block ${isShiny ? 'tareas-multicolor' : ''}`}>{t('shiny_toggle')} ✨</span>
-             <span className={`text-sm ${isShiny ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'}`}>{isShiny ? t('enabled') : t('disabled')}</span>
-           </div>
-          <button
-            onClick={() => toggleTheme(isShiny ? 'light' : 'shiny')}
-            className={`w-12 h-6 rounded-full transition-colors shiny-toggle ${
-              isShiny ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
-          >
-            <div className={`w-4 h-4 rounded-full bg-white dark:bg-black transition-transform transform ${
-              isShiny ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
-      </motion.div>
-
       {/* Perfil de Usuario */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -189,7 +165,12 @@ const SettingsPage = () => {
             </div>
           </div>
           
-          <div className="space-y-3">
+          {/* Panel de Almacenamiento Local */}
+          <div className="mt-8">
+            <LocalStoragePanel />
+          </div>
+          
+          <div className="space-y-3 mt-8">
             <button className="w-full flex items-center justify-center gap-2 p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
               <User className="w-4 h-4" />
               <span className="font-medium">Editar Perfil</span>

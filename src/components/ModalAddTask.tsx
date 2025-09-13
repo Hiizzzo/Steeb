@@ -147,17 +147,14 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
         task.scheduledTime
       );
 
-      // Pequeño delay entre tareas
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Eliminado delay innecesario para creación instantánea
     }
 
-    // Mensaje final motivacional
-    setTimeout(() => {
-      toast({
-        title: "¡Steve dice:",
-        description: `¡Listo! He añadido ${currentTasks.length} tareas diarias. ¡Tú puedes con todo! 🚀`,
-      });
-    }, 500);
+    // Mensaje final motivacional inmediato
+    toast({
+      title: "¡Steve dice:",
+      description: `¡Listo! He añadido ${currentTasks.length} tareas diarias. ¡Tú puedes con todo! 🚀`,
+    });
 
     setIsAddingDaily(false);
     resetForm();

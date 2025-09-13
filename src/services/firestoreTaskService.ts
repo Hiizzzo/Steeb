@@ -30,12 +30,6 @@ export class FirestoreTaskService {
    * Obtener todas las tareas del usuario
    */
   static async getTasks(userId?: string): Promise<Task[]> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      return [];
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
@@ -62,12 +56,6 @@ export class FirestoreTaskService {
    * Obtener una tarea específica por ID
    */
   static async getTask(taskId: string): Promise<Task | null> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      return null;
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
@@ -91,19 +79,6 @@ export class FirestoreTaskService {
    * Crear una nueva tarea
    */
   static async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>, userId?: string): Promise<Task> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      // Retornar una tarea mock con ID temporal
-      const mockTask: Task = {
-        id: `offline-${Date.now()}`,
-        ...taskData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      return mockTask;
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
@@ -133,21 +108,6 @@ export class FirestoreTaskService {
    * Actualizar una tarea existente
    */
   static async updateTask(taskId: string, updates: Partial<Task>): Promise<Task> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      // Retornar una tarea mock actualizada
-      const mockTask: Task = {
-        id: taskId,
-        title: 'Tarea offline',
-        completed: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        ...updates,
-      };
-      return mockTask;
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
@@ -179,12 +139,6 @@ export class FirestoreTaskService {
    * Eliminar una tarea
    */
   static async deleteTask(taskId: string): Promise<void> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      return; // No hacer nada en modo offline
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
@@ -197,21 +151,6 @@ export class FirestoreTaskService {
    * Marcar/desmarcar tarea como completada
    */
   static async toggleTask(taskId: string): Promise<Task> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      // Retornar una tarea mock toggleada
-      const mockTask: Task = {
-        id: taskId,
-        title: 'Tarea offline',
-        completed: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-      };
-      return mockTask;
-    }
-    
     return handleFirebaseOperation(async () => {
       const task = await this.getTask(taskId);
       if (!task) throw new Error('Tarea no encontrada');
@@ -229,12 +168,6 @@ export class FirestoreTaskService {
    * Obtener tareas por fecha
    */
   static async getTasksForDate(date: string, userId?: string): Promise<Task[]> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      return [];
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
@@ -277,9 +210,8 @@ export class FirestoreTaskService {
    * Escuchar cambios en tiempo real
    */
   static subscribeToTasks(userId: string | undefined, callback: (tasks: Task[]) => void): () => void {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
     if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
+      console.error('Firestore no está inicializado');
       return () => {};
     }
     
@@ -309,12 +241,6 @@ export class FirestoreTaskService {
    * Operaciones en lote
    */
   static async bulkUpdateTasks(updates: Array<{ id: string; updates: Partial<Task> }>): Promise<void> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      return;
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
@@ -337,12 +263,6 @@ export class FirestoreTaskService {
    * Eliminar múltiples tareas
    */
   static async bulkDeleteTasks(taskIds: string[]): Promise<void> {
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!db) {
-      console.log('🔄 Firestore deshabilitado - modo offline para versión shiny');
-      return;
-    }
-    
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       

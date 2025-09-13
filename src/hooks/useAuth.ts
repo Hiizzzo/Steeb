@@ -78,9 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let unsubscribeTaskListener: (() => void) | null = null;
     
-    // TEMPORARILY DISABLED FOR OFFLINE MODE - SHINY VERSION
-    if (!isFirebaseConfigured || true) { // Forzar modo offline
-      console.log('🔄 Auth deshabilitado - modo offline para versión shiny');
+    if (!isFirebaseConfigured) {
+      console.log('🔄 Firebase no configurado');
       setUser(null);
       setIsLoading(false);
       return;

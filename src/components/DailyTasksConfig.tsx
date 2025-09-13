@@ -99,15 +99,13 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
         undefined
       );
 
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Eliminado delay innecesario para creación instantánea
     }
 
-    setTimeout(() => {
-      toast({
-        title: "¡Steve dice:",
-        description: `¡Listo! He añadido ${customTasks.length} tareas personalizadas. ¡Tú eres increíble! 🚀`,
-      });
-    }, 500);
+    toast({
+      title: "¡Steve dice:",
+      description: `¡Listo! He añadido ${customTasks.length} tareas personalizadas. ¡Tú eres increíble! 🚀`,
+    });
 
     onClose();
   };

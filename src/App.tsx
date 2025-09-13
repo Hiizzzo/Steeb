@@ -1,6 +1,5 @@
 // ============================================================================
-// STEBE APP - MODO OFFLINE TEMPORAL PARA VERSIÓN SHINY
-// Firebase/Firestore deshabilitado temporalmente para desarrollo offline
+// STEBE APP - APLICACIÓN PRINCIPAL CON FIREBASE HABILITADO
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -34,12 +33,9 @@ const AppContent = () => {
   };
   
   const handleSkipToTasks = () => {
-    // Simular usuario autenticado temporal para modo offline
+    // Permitir acceso temporal sin autenticación
     setIsAppLoading(false);
-    // En modo offline, el usuario ya está configurado como null en useAuth
-    // pero necesitamos forzar que la aplicación se muestre
     window.localStorage.setItem('skip-auth-temp', 'true');
-    window.location.reload();
   };
   
   // Cargar configuración de texto grande

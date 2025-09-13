@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
+import { useUserCredits } from "@/hooks/useUserCredits";
 import { Switch } from "@/components/ui/switch";
+import ShinyGreetingModal from "@/components/ShinyGreetingModal";
+import { PaymentModal } from "@/components/PaymentModal";
+import { Coins, Crown } from "lucide-react";
 
 const ThemeToggle = () => {
 	const { currentTheme, toggleTheme } = useTheme();
+	const { userCredits } = useUserCredits();
 	const [mounted, setMounted] = useState(false);
+	const [showGame, setShowGame] = useState(false);
+	const [showPaymentModal, setShowPaymentModal] = useState(false);
+	const [shinyUnlocked, setShinyUnlocked] = useState(() => {
+		if (typeof window !== 'undefined') {
+			return localStorage.getItem('stebe-shiny-unlocked') === 'true';
+		}
+		return false;
+	});
 
 	useEffect(() => {
 		setMounted(true);
@@ -16,7 +29,36 @@ const ThemeToggle = () => {
 	const isShiny = currentTheme === "shiny";
 
 	return (
-		<div className="fixed top-4 right-4 z-50">
+		<div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+			{/* Indicador de versión DARK */}
+			{userCredits.hasDarkVersion && (
+				<div className="flex items-center gap-2 bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
+					<Crown className="w-4 h-4 text-purple-500" />
+					<span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">DARK</span>
+				</div>
+			)}
+
+			{/* Botón para tema Shiny (solo visible si está desbloqueado) */}
+			{shinyUnlocked && (
+				<button
+					onClick={() => toggleTheme('shiny')}
+					className={`w-12 h-6 rounded-full border-2 transition-all duration-200 ${
+						isShiny 
+							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 border-white shadow-lg' 
+							: 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-purple-400'
+					}`}
+					aria-label="Activar tema Shiny"
+					title="Tema Shiny desbloqueado ✨"
+				>
+					<div className={`w-4 h-4 rounded-full transition-transform duration-200 ${
+						isShiny 
+							? 'bg-white transform translate-x-6 shadow-md' 
+							: 'bg-white transform translate-x-0.5'
+					}`} />
+				</button>
+			)}
+			
+			{/* Switch normal para light/dark */}
 			<Switch
 				className={`scale-125 origin-top-right ${
 					isShiny 
@@ -24,10 +66,41 @@ const ThemeToggle = () => {
 						: ''
 				}`}
 				checked={isDark}
-				onCheckedChange={(checked) => {
+			onCheckedChange={(checked) => {
+				if (checked && currentTheme === 'light') {
+					// Si intenta cambiar de light a dark, verificar si tiene versión dark
+					if (userCredits.hasDarkVersion) {
+						// Si tiene versión dark, mostrar el juego
+						setShowGame(true);
+					} else {
+						// Si no tiene versión dark, mostrar modal de pago
+						setShowPaymentModal(true);
+					}
+				} else {
+					// Si ya está en dark y quiere volver a light, permitir el cambio
 					toggleTheme(checked ? "dark" : "light");
-				}}
+				}
+			}}
 				aria-label="Toggle theme"
+			/>
+			
+			{/* Modal del juego de adivinanza */}
+			<ShinyGreetingModal
+				open={showGame}
+				onOpenChange={setShowGame}
+				onWin={() => {
+					// Al ganar, desbloquear Shiny y cambiar al tema dark
+					setShinyUnlocked(true);
+					localStorage.setItem('stebe-shiny-unlocked', 'true');
+					toggleTheme('dark');
+					setShowGame(false);
+				}}
+			/>
+
+			{/* Modal de pago para versión dark */}
+			<PaymentModal
+				isOpen={showPaymentModal}
+				onClose={() => setShowPaymentModal(false)}
 			/>
 		</div>
 	);

@@ -90,33 +90,33 @@
     --popover: 0 0% 0%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 0 0% 5%;
+    --muted-foreground: 0 0% 80%;
 
-    --accent: 0 0% 12%;
+    --accent: 0 0% 5%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 0% 100%;
-    --destructive-foreground: 0 0% 0%;
+    --destructive: 0 0% 0%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 0 0% 100%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 0%;
 
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 12%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 0%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 5%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 0 0% 100%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 0%;
   }
 }
 
@@ -433,6 +433,25 @@
     /* Allow inline color from React (style/color on SVG or wrapper) to win */
     color: inherit;
     fill: currentColor !important;
+  }
+
+  /* Estilos para formas de categorías - evitar color azul inicial */
+  .task-category-icon {
+    color: inherit !important;
+  }
+
+  .dark .task-category-icon {
+    color: #FFFFFF !important;
+  }
+
+  .dark .task-category-icon path {
+    fill: #FFFFFF !important;
+    color: #FFFFFF !important;
+  }
+
+  .light .task-category-icon path {
+    fill: #000000 !important;
+    color: #000000 !important;
   }
 
   @keyframes icon-glow {

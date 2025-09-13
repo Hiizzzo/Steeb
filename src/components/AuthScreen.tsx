@@ -174,7 +174,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
               ¡Bienvenido a STEEB!
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Hola, soy STEEB y te voy a ayudar para que hagas tus tareas y dejes de scrollear.
+              Hola soy steeb y te voy ayudar a que realizes tus tareas.
             </p>
           </div>
 
@@ -227,15 +227,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
               Crear Cuenta
             </button>
             
-            {/* Botón Skip */}
-            {onSkip && (
-              <button
-                onClick={onSkip}
-                className="w-full text-gray-500 dark:text-gray-400 py-2 text-sm hover:text-gray-700 dark:hover:text-gray-200 transition-colors mt-4"
-              >
-                Skip
-              </button>
-            )}
+
           </div>
         </motion.div>
       </div>

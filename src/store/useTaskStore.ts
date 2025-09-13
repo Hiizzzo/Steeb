@@ -5,9 +5,10 @@
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { Task, TaskFilters, TaskStats, SyncStatus } from '@/types';
-// Importaciones de API removidas para modo offline
-// import { tasksAPI } from '@/api/tasks';
-// import { FirestoreTaskService } from '@/services/firestoreTaskService';
+// Importaciones de API activadas para producción
+import { tasksAPI } from '@/api/tasks';
+import { FirestoreTaskService } from '@/services/firestoreTaskService';
+import { localStorageService } from '@/services/localStorageService';
 import { auth } from '@/lib/firebase';
 
 interface TaskStore {
@@ -75,6 +76,12 @@ interface TaskStore {
   // Sync operations
   syncWithServer: () => Promise<void>;
   setSyncStatus: (status: Partial<SyncStatus>) => void;
+  
+  // Local storage operations
+  loadTasksFromLocal: () => void;
+  exportTasksAsText: () => void;
+  getTasksAsText: () => string;
+  clearLocalStorage: () => void;
   
   // Error handling
   setError: (error: string | null) => void;
@@ -219,38 +226,54 @@ export const useTaskStore = create<TaskStore>()(
             return;
           }
 
-          try {
-            set({ isLoading: true, error: null });
-            
-            console.log('📝 Creando nueva tarea offline:', taskData.title.trim());
-            
-            // Crear tarea offline
-            const newTask: Task = {
-              id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              ...taskData,
-              title: taskData.title.trim(),
-              completed: taskData.completed ?? false,
-              status: taskData.status || 'pending',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            };
-            
-            // Actualizar estado local
-            set(state => ({
-              tasks: [...state.tasks, newTask],
-              isLoading: false,
-              error: null
-            }));
-            
-            get().calculateStats();
-            console.log('✅ Tarea creada exitosamente offline');
-          } catch (error) {
-            console.error('❌ Error al crear tarea:', error);
-            set({ 
-              isLoading: false,
-              error: error instanceof Error ? error.message : 'Error al crear la tarea'
+          // Crear tarea localmente de forma inmediata (UI optimista)
+          const newTask: Task = {
+            id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            title: taskData.title.trim(),
+            type: taskData.type || 'extra',
+            completed: taskData.completed ?? false,
+            status: taskData.status || 'pending',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            // Solo incluir campos opcionales si tienen valores válidos
+            ...(taskData.description && { description: taskData.description }),
+            ...(taskData.subgroup && { subgroup: taskData.subgroup }),
+            ...(taskData.priority && { priority: taskData.priority }),
+            ...(taskData.scheduledDate && { scheduledDate: taskData.scheduledDate }),
+            ...(taskData.scheduledTime && { scheduledTime: taskData.scheduledTime }),
+            ...(taskData.notes && { notes: taskData.notes }),
+            ...(taskData.tags && taskData.tags.length > 0 && { tags: taskData.tags }),
+            ...(taskData.estimatedDuration && { estimatedDuration: taskData.estimatedDuration }),
+          };
+          
+          console.log('⚡ Creando tarea instantáneamente:', taskData.title.trim());
+          
+          // 1. ACTUALIZAR UI INMEDIATAMENTE (sin esperar Firebase)
+          set(state => ({
+            tasks: [...state.tasks, newTask],
+            error: null
+          }));
+          
+          get().calculateStats();
+          
+          // 2. GUARDAR LOCALMENTE EN TEXTO (instantáneo)
+          const currentTasks = get().tasks;
+          localStorageService.saveTasks(currentTasks);
+          console.log('💾 Tarea guardada localmente en texto');
+          
+          // 3. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
+          FirestoreTaskService.createTask(newTask)
+            .then(() => {
+              console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
+            })
+            .catch((error) => {
+              console.error('❌ Error al sincronizar con Firebase:', error);
+              // En caso de error, mantener la tarea local pero marcar el error
+              set(state => ({ 
+                ...state,
+                error: 'Tarea creada localmente. Error de sincronización: ' + (error instanceof Error ? error.message : 'Error desconocido')
+              }));
             });
-          }
         },
 
         updateTask: async (id, updates) => {
@@ -261,14 +284,17 @@ export const useTaskStore = create<TaskStore>()(
             }
             
             set({ isLoading: true, error: null });
-            console.log('📝 Actualizando tarea offline:', id);
+            console.log('📝 Actualizando tarea:', id);
             
-            // Actualizar offline
+            // Actualizar con Firestore
             const updatedTask = {
               ...previousTask,
               ...updates,
               updatedAt: new Date().toISOString()
             };
+            
+            // Guardar en Firestore
+            await FirestoreTaskService.updateTask(id, updates);
             
             // Actualizar estado local
             set(state => ({
@@ -278,7 +304,7 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             get().calculateStats();
-            console.log('✅ Tarea actualizada exitosamente offline');
+            console.log('✅ Tarea actualizada exitosamente en Firestore');
           } catch (error) {
             console.error('❌ Error al actualizar tarea:', error);
             set({ 
@@ -296,7 +322,10 @@ export const useTaskStore = create<TaskStore>()(
             }
             
             set({ isLoading: true, error: null });
-            console.log('🗑️ Eliminando tarea offline:', taskToDelete.title);
+            console.log('🗑️ Eliminando tarea:', taskToDelete.title);
+            
+            // Eliminar de Firestore
+            await FirestoreTaskService.deleteTask(id);
             
             // Actualizar estado local
             set(state => ({
@@ -307,7 +336,7 @@ export const useTaskStore = create<TaskStore>()(
             }));
             
             get().calculateStats();
-            console.log('✅ Tarea eliminada exitosamente offline');
+            console.log('✅ Tarea eliminada exitosamente de Firestore');
           } catch (error) {
             console.error('❌ Error al eliminar tarea:', error);
             set({ 
@@ -505,22 +534,21 @@ export const useTaskStore = create<TaskStore>()(
           try {
             set({ isLoading: true, error: null, syncStatus: 'syncing' });
             
-            console.log('📥 Cargando tareas offline (modo local)');
+            console.log('📥 Cargando tareas desde Firestore');
             
-            // En modo offline, simplemente inicializamos con las tareas existentes en el estado
-            // o con un array vacío si no hay tareas
-            const currentTasks = get().tasks || [];
+            // Cargar desde Firestore
+            const tasks = await FirestoreTaskService.getTasks();
             
             set({ 
-              tasks: currentTasks,
+              tasks: tasks || [],
               isLoading: false,
               lastSync: new Date().toISOString(),
-              syncStatus: 'offline',
+              syncStatus: 'synced',
               error: null
             });
             
             get().calculateStats();
-            console.log('✅ Tareas cargadas exitosamente offline:', currentTasks.length);
+            console.log('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
           } catch (error) {
             console.error('❌ Error cargando tareas:', error);
             set({ 
@@ -531,14 +559,17 @@ export const useTaskStore = create<TaskStore>()(
           }
         },
 
-        // Nueva función para configurar listeners en tiempo real (modo offline)
+        // Nueva función para configurar listeners en tiempo real con Firestore
         setupRealtimeListener: (userId?: string) => {
-          console.log('🔄 Listener en tiempo real deshabilitado (modo offline)');
+          console.log('🔄 Configurando listener en tiempo real con Firestore');
           
-          // En modo offline, retornamos una función vacía
-          return () => {
-            console.log('🔄 Listener offline cleanup (no action needed)');
-          };
+          const unsubscribe = FirestoreTaskService.subscribeToTasks((tasks) => {
+            console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
+            set({ tasks });
+            get().calculateStats();
+          });
+          
+          return unsubscribe;
         },
 
         loadTasksInRange: async (startDate, endDate) => {
@@ -750,8 +781,32 @@ export const useTaskStore = create<TaskStore>()(
         // ========== SYNC OPERATIONS ==========
 
         syncWithServer: async () => {
-          // Sync is now handled by localStorage persistence
-          console.log('✅ Sync with localStorage - no server needed');
+          try {
+            set({ syncStatus: { ...get().syncStatus, syncInProgress: true } });
+            console.log('🔄 Sincronizando con Firestore...');
+            
+            // Recargar tareas desde Firestore
+            await get().loadTasks();
+            
+            set({ 
+              syncStatus: { 
+                ...get().syncStatus, 
+                syncInProgress: false, 
+                lastSync: new Date().toISOString() 
+              } 
+            });
+            
+            console.log('✅ Sincronización con Firestore completada');
+          } catch (error) {
+            console.error('❌ Error en sincronización:', error);
+            set({ 
+              syncStatus: { 
+                ...get().syncStatus, 
+                syncInProgress: false, 
+                hasError: true 
+              } 
+            });
+          }
         },
 
         setSyncStatus: (status) => {
@@ -774,6 +829,48 @@ export const useTaskStore = create<TaskStore>()(
 
         setLoading: (loading) => {
           set({ isLoading: loading });
+        },
+
+        // ========== LOCAL STORAGE OPERATIONS ==========
+
+        loadTasksFromLocal: () => {
+          try {
+            const localTasks = localStorageService.loadTasks();
+            if (localTasks.length > 0) {
+              set({ tasks: localTasks });
+              get().calculateStats();
+              console.log('📂 Tareas cargadas desde almacenamiento local:', localTasks.length);
+            }
+          } catch (error) {
+            console.error('❌ Error al cargar tareas locales:', error);
+          }
+        },
+
+        exportTasksAsText: () => {
+          try {
+            localStorageService.exportTasks();
+            console.log('📄 Tareas exportadas como archivo de texto');
+          } catch (error) {
+            console.error('❌ Error al exportar tareas:', error);
+          }
+        },
+
+        getTasksAsText: () => {
+          try {
+            return localStorageService.getTasksAsText();
+          } catch (error) {
+            console.error('❌ Error al obtener tareas como texto:', error);
+            return 'Error al obtener las tareas';
+          }
+        },
+
+        clearLocalStorage: () => {
+          try {
+            localStorageService.clearLocalStorage();
+            console.log('🗑️ Almacenamiento local limpiado');
+          } catch (error) {
+            console.error('❌ Error al limpiar almacenamiento local:', error);
+          }
         },
       })),
       {
