@@ -58,10 +58,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
             </div>
 
             <div className="mb-6">
-              <div className="text-3xl font-bold text-black dark:text-white mb-2">{DARK_VERSION_COST} créditos</div>
-              <div className="text-sm text-gray-500">
-                Créditos disponibles: <span className="font-bold">{userCredits.credits}</span>
-              </div>
+              <div className="text-3xl font-bold text-black dark:text-white mb-2">Versión Premium</div>
             </div>
 
             <button
@@ -73,14 +70,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
                   : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {canBuyDarkVersion() ? 'Desbloquear Versión DARK' : 'Créditos insuficientes'}
+              Desbloquear Versión DARK
             </button>
 
-            {!canBuyDarkVersion() && (
-              <p className="text-sm text-red-500 mt-2">
-                Necesitas {DARK_VERSION_COST - userCredits.credits} créditos más
-              </p>
-            )}
+
         </div>
       </div>
     </div>
