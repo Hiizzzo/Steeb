@@ -244,24 +244,96 @@ export const useTaskStore = create<TaskStore>()(
             ...(taskData.notes && { notes: taskData.notes }),
             ...(taskData.tags && taskData.tags.length > 0 && { tags: taskData.tags }),
             ...(taskData.estimatedDuration && { estimatedDuration: taskData.estimatedDuration }),
+            ...(taskData.recurrence && { recurrence: taskData.recurrence }),
+            ...(taskData.subtasks && { subtasks: taskData.subtasks }),
           };
           
           console.log('⚡ Creando tarea instantáneamente:', taskData.title.trim());
+          console.log('📊 Datos completos de la tarea:', {
+            title: taskData.title,
+            type: taskData.type,
+            scheduledDate: taskData.scheduledDate,
+            recurrence: taskData.recurrence,
+            hasRecurrence: !!(taskData.recurrence && taskData.recurrence.frequency !== 'none'),
+            hasScheduledDate: !!taskData.scheduledDate
+          });
           
           // 1. ACTUALIZAR UI INMEDIATAMENTE (sin esperar Firebase)
-          set(state => ({
-            tasks: [...state.tasks, newTask],
-            error: null
-          }));
+          set(state => {
+            const updatedTasks = [...state.tasks, newTask];
+            console.log('📝 Tarea agregada al estado. Total de tareas:', updatedTasks.length);
+            console.log('🔍 Nueva tarea creada:', {
+              id: newTask.id,
+              title: newTask.title,
+              scheduledDate: newTask.scheduledDate,
+              type: newTask.type
+            });
+            return {
+              tasks: updatedTasks,
+              error: null
+            };
+          });
+          
+          // 2. Si la tarea tiene recurrencia y fecha programada, generar instancias para el mes completo
+          if (taskData.recurrence && taskData.recurrence.frequency !== 'none' && taskData.scheduledDate) {
+            console.log('🔄 Generando instancias recurrentes para el mes completo:', taskData.title.trim());
+            
+            // Importar la función de generación de instancias mensuales
+            const { generateMonthlyRecurrenceInstances } = await import('@/utils/recurrenceManager');
+            const monthlyDates = generateMonthlyRecurrenceInstances(taskData.scheduledDate, taskData.recurrence);
+            
+            // Crear tareas para cada fecha del mes
+            const monthlyTasks: Task[] = [];
+            for (const date of monthlyDates) {
+              // Verificar si ya existe una tarea para esa fecha
+              const existingTask = get().tasks.find(t => 
+                t.title === taskData.title.trim() &&
+                t.type === taskData.type &&
+                t.scheduledDate === date
+              );
+              
+              if (!existingTask) {
+                const monthlyTask: Task = {
+                  ...newTask,
+                  id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  scheduledDate: date,
+                  subtasks: taskData.subtasks?.map(st => ({ 
+                    ...st, 
+                    completed: false,
+                    id: `subtask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                  })) || undefined,
+                };
+                monthlyTasks.push(monthlyTask);
+              }
+            }
+            
+            if (monthlyTasks.length > 0) {
+              console.log(`📅 Creando ${monthlyTasks.length} instancias adicionales para el mes`);
+              set(state => ({
+                tasks: [...state.tasks, ...monthlyTasks],
+              }));
+              
+              // Guardar las tareas adicionales en Firebase
+              for (const monthlyTask of monthlyTasks) {
+                FirestoreTaskService.createTask(monthlyTask)
+                  .then(() => {
+                    console.log('✅ Instancia mensual sincronizada:', monthlyTask.scheduledDate);
+                  })
+                  .catch((error) => {
+                    console.error('❌ Error al sincronizar instancia mensual:', error);
+                  });
+              }
+            }
+          }
           
           get().calculateStats();
           
-          // 2. GUARDAR LOCALMENTE EN TEXTO (instantáneo)
+          // 3. GUARDAR LOCALMENTE EN TEXTO (instantáneo)
           const currentTasks = get().tasks;
           localStorageService.saveTasks(currentTasks);
           console.log('💾 Tarea guardada localmente en texto');
           
-          // 3. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
+          // 4. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
           FirestoreTaskService.createTask(newTask)
             .then(() => {
               console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
@@ -573,9 +645,9 @@ export const useTaskStore = create<TaskStore>()(
 
         // Nueva función para configurar listeners en tiempo real con Firestore
         setupRealtimeListener: (userId?: string) => {
-          console.log('🔄 Configurando listener en tiempo real con Firestore');
+          console.log('🔄 Configurando listener en tiempo real con Firestore', userId ? `(userId=${userId})` : '(sin userId)');
           
-          const unsubscribe = FirestoreTaskService.subscribeToTasks((tasks) => {
+          const unsubscribe = FirestoreTaskService.subscribeToTasks(userId, (tasks) => {
             console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
             set({ tasks });
             get().calculateStats();

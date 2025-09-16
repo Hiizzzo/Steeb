@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { handleFirebaseOperation } from './firebaseErrorHandler';
 
 const fallbackCfg = {
@@ -26,47 +26,26 @@ const cfg = {
 // FIREBASE ENABLED FOR PRODUCTION
 export const isFirebaseConfigured = Boolean(cfg.apiKey && cfg.authDomain && cfg.projectId && cfg.appId);
 
-// Firebase error handling is now managed by firebaseErrorHandler
-
-// Initialize only once (Vite HMR safe) when configured
 let app: any;
 let auth: any;
 let db: any;
 let googleProvider: any;
 
-// Initialize Firebase with enhanced error handling
+// Initialize Firebase (HMR-safe)
 const initializeFirebase = async () => {
   return handleFirebaseOperation(async () => {
-    app = isFirebaseConfigured
-      ? (getApps().length ? getApps()[0] : initializeApp(cfg))
-      : undefined;
+    app = isFirebaseConfigured ? (getApps().length ? getApps()[0] : initializeApp(cfg)) : undefined;
 
     auth = isFirebaseConfigured ? getAuth(app) : undefined;
     db = isFirebaseConfigured ? getFirestore(app) : undefined;
     googleProvider = isFirebaseConfigured ? new GoogleAuthProvider() : undefined;
 
-    // Enable offline persistence for better local development experience
-    if (db && import.meta.env.DEV) {
-      // This will help with offline functionality during development
-      const { enableNetwork, disableNetwork } = await import('firebase/firestore');
-      
-      // Handle network state changes gracefully
-      window.addEventListener('online', () => {
-        handleFirebaseOperation(() => enableNetwork(db), 'Enable Firestore network');
-      });
-      
-      window.addEventListener('offline', () => {
-        handleFirebaseOperation(() => disableNetwork(db), 'Disable Firestore network');
-      });
-    }
-
     return { app, auth, db, googleProvider };
   }, 'Firebase initialization');
 };
 
-// Initialize Firebase
+// Initialize Firebase once
 initializeFirebase().catch(() => {
-  // Fallback to undefined values if initialization fails
   app = undefined;
   auth = undefined;
   db = undefined;

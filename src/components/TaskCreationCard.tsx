@@ -136,8 +136,8 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           : {
               frequency: recurrenceFrequency,
               interval: recurrenceInterval || 1,
-              daysOfWeek: recurrenceFrequency === 'weekly' ? recurrenceDaysOfWeek : undefined,
-              endDate: recurrenceEndDate || undefined,
+              ...(recurrenceFrequency === 'weekly' && recurrenceDaysOfWeek.length > 0 && { daysOfWeek: recurrenceDaysOfWeek }),
+              ...(recurrenceEndDate && { endDate: recurrenceEndDate }),
             };
 
       onCreate(

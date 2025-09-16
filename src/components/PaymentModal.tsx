@@ -58,7 +58,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
             </div>
 
             <div className="mb-6">
-              <div className="text-3xl font-bold text-black dark:text-white mb-2">Versión Premium</div>
+              <div className="text-3xl font-bold text-black dark:text-white mb-2">DARK MODE</div>
             </div>
 
             <button

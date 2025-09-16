@@ -113,6 +113,7 @@ const MonthlyCalendarPage: React.FC = () => {
     tasks, 
     setTasks: updateTasks, 
     deleteTask: deleteTaskStore,
+    addTask, // <-- usamos la acción del store para respetar recurrencias y sincronización
     isLoading: isPersistenceLoading 
   } = useTaskStore();
 
@@ -299,30 +300,53 @@ const MonthlyCalendarPage: React.FC = () => {
    recurrence?: RecurrenceRule
  ) => {
     try {
-      const newTask: Task = {
-        id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        title,
-        type,
-         status: 'pending',
-         completed: false,
-        subtasks: subtasks || [],
-        scheduledDate: scheduledDate || selectedDateForTask || undefined,
-        scheduledTime,
-        notes,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        tags: isPrimary ? ['principal'] : [],
-        recurrence
-      };
+      const effectiveDate = scheduledDate || selectedDateForTask || undefined;
 
-      const updatedTasks = [...tasks, newTask];
-      updateTasks(updatedTasks);
+      if (typeof addTask === 'function') {
+        Promise.resolve(
+          (addTask as any)({
+            title: title?.trim(),
+            type,
+            status: 'pending',
+            completed: false,
+            subtasks,
+            scheduledDate: effectiveDate,
+            scheduledTime,
+            notes,
+            tags: isPrimary ? ['principal'] : [],
+            recurrence
+          } as any)
+        ).catch((err: any) => {
+          console.error('Error al crear tarea desde calendario mensual:', err);
+          toast({
+            title: "Error",
+            description: "Hubo un problema al crear la tarea. Inténtalo de nuevo.",
+          });
+        });
+      } else {
+        // Fallback local si el store no expone addTask
+        const newTask: Task = {
+          id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: title?.trim(),
+          type,
+          status: 'pending',
+          completed: false,
+          subtasks: subtasks || [],
+          scheduledDate: effectiveDate,
+          scheduledTime,
+          notes,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          tags: isPrimary ? ['principal'] : [],
+          recurrence
+        };
+        updateTasks([...tasks, newTask]);
+      }
       
       setShowTaskCreation(false);
       setSelectedDateForTask(null);
       localStorage.removeItem('stebe-selected-date');
       
-
     } catch (error) {
       console.error('Error al crear tarea:', error);
       toast({

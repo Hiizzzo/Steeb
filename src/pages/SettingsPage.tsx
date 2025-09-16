@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Settings, Globe, Bell, User, LogOut } from 'lucide-react';
@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAuth } from '@/hooks/useAuth';
 import LocalStoragePanel from '@/components/LocalStoragePanel';
+import EditProfileModal from '@/components/EditProfileModal';
 
 
 const SettingsPage = () => {
@@ -16,6 +17,7 @@ const SettingsPage = () => {
   const { name, nickname, clearProfile } = useUserProfile();
   const { user, linkGoogleAccount } = useAuth();
   const isGoogleLinked = user?.provider === 'google';
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
   const handleClearProfile = () => {
     clearProfile();
@@ -171,7 +173,10 @@ const SettingsPage = () => {
           </div>
           
           <div className="space-y-3 mt-8">
-            <button className="w-full flex items-center justify-center gap-2 p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            <button 
+              onClick={() => setIsEditProfileModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
               <User className="w-4 h-4" />
               <span className="font-medium">Editar Perfil</span>
             </button>
@@ -187,6 +192,12 @@ const SettingsPage = () => {
       </motion.div>
 
       {/* Fin: configuraciones */}
+      
+      {/* Modal de Editar Perfil */}
+      <EditProfileModal 
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+      />
     </div>
   );
 };

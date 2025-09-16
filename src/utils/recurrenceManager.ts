@@ -39,29 +39,34 @@ function computeNextOccurrenceDate(currentDateStr: string, rule: RecurrenceRule)
     if (!days) {
       next = addDays(base, 7 * interval);
     } else {
-      let delta = 1;
-      while (delta <= 7 * interval + 7) {
-        const candidate = addDays(base, delta);
-        const dow = candidate.getDay();
-        const weeksDiff = Math.floor(delta / 7);
-        
-        if (days.includes(dow)) {
-          if (weeksDiff === 0 && baseDow < dow) {
-            next = candidate;
-            break;
+      // Si todos los días están seleccionados (0,1,2,3,4,5,6), simplemente avanzar al día siguiente
+      if (days.length === 7) {
+        next = addDays(base, 1);
+      } else {
+        let delta = 1;
+        while (delta <= 7 * interval + 7) {
+          const candidate = addDays(base, delta);
+          const dow = candidate.getDay();
+          const weeksDiff = Math.floor(delta / 7);
+          
+          if (days.includes(dow)) {
+            if (weeksDiff === 0 && baseDow < dow) {
+              next = candidate;
+              break;
+            }
+            if (weeksDiff % interval === 0) {
+              next = candidate;
+              break;
+            }
           }
-          if (weeksDiff % interval === 0) {
-            next = candidate;
-            break;
-          }
+          delta++;
         }
-        delta++;
-      }
-      
-      if (!next) {
-        const first = days[0];
-        const candidate = addDays(base, (7 * interval) + ((first - baseDow + 7) % 7 || 7));
-        next = candidate;
+        
+        if (!next) {
+          const first = days[0];
+          const candidate = addDays(base, (7 * interval) + ((first - baseDow + 7) % 7 || 7));
+          next = candidate;
+        }
       }
     }
   } else if (rule.frequency === 'monthly') {
@@ -89,6 +94,74 @@ function generateMissingDates(lastDate: string, rule: RecurrenceRule, today: str
     currentDate = nextDate;
   }
   
+  return dates;
+}
+
+// Nueva función para generar todas las instancias de una tarea recurrente para el mes completo
+export function generateMonthlyRecurrenceInstances(startDate: string, rule: RecurrenceRule): string[] {
+  if (!rule || rule.frequency === 'none') return [];
+
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  
+  // Obtener el primer y último día del mes actual
+  const firstDayOfMonth = toDateOnly(new Date(currentYear, currentMonth, 1));
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const endOfMonth = toDateOnly(new Date(currentYear, currentMonth, lastDayOfMonth));
+  
+  // Para tareas diarias, generar desde el primer día del mes o desde startDate (lo que sea más reciente)
+  let generationStart = startDate;
+  if (rule.frequency === 'daily' && startDate < firstDayOfMonth) {
+    generationStart = firstDayOfMonth;
+  }
+  
+  // INCLUIR LA FECHA INICIAL si está en el rango
+  if (startDate >= firstDayOfMonth && startDate <= endOfMonth) {
+    dates.push(startDate);
+  }
+  
+  let currentDate = generationStart;
+  
+  // Generar todas las fechas hasta el final del mes
+  while (true) {
+    const nextDate = computeNextOccurrenceDate(currentDate, rule);
+    if (!nextDate || nextDate > endOfMonth) break;
+    
+    // Verificar que la fecha esté en el mismo mes
+    const nextDateObj = new Date(nextDate);
+    if (nextDateObj.getMonth() !== currentMonth || nextDateObj.getFullYear() !== currentYear) break;
+    
+    // Solo agregar si no está ya en el array
+    if (!dates.includes(nextDate)) {
+      dates.push(nextDate);
+    }
+    currentDate = nextDate;
+  }
+  
+  // Para tareas diarias, también generar hacia atrás desde startDate hasta el primer día del mes
+  if (rule.frequency === 'daily' && startDate > firstDayOfMonth) {
+    let backwardDate = startDate;
+    while (true) {
+      const prevDate = addDays(new Date(backwardDate), -1 * (rule.interval || 1));
+      const prevDateStr = toDateOnly(prevDate);
+      
+      if (prevDateStr < firstDayOfMonth) break;
+      
+      if (!dates.includes(prevDateStr)) {
+        dates.push(prevDateStr);
+      }
+      backwardDate = prevDateStr;
+    }
+  }
+  
+  // Ordenar las fechas
+  dates.sort();
+  
+  console.log(`📅 Fechas generadas para ${startDate} con regla:`, rule);
+  console.log(`📅 Instancias generadas:`, dates);
   return dates;
 }
 
