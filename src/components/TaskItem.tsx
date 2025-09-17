@@ -89,6 +89,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
   const startX = useRef(0);
   const currentX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -107,8 +108,22 @@ const TaskItem: React.FC<TaskItemProps> = ({
     return () => obs.disconnect();
   }, []);
 
-  const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
-  const DELETE_THRESHOLD = 120; // Distancia para mostrar el botón de eliminar
+  // Función para manejar la vibración y animación de destello
+  const triggerCompletionEffects = () => {
+    // Vibración del dispositivo
+    if (navigator.vibrate) {
+      navigator.vibrate([100, 50, 100]); // Patrón de vibración: vibra-pausa-vibra
+    }
+    
+    // Animación de destello
+    setIsFlashing(true);
+    setTimeout(() => {
+      setIsFlashing(false);
+    }, 600); // Duración del destello
+  };
+
+  const SWIPE_THRESHOLD = 30; // Distancia mínima para activar la eliminación
+  const DELETE_THRESHOLD = 50; // Distancia para mostrar el botón de eliminar
   const LONG_PRESS_DURATION = 800; // Duración del long press en milisegundos
 
   const visuals = getTaskVisuals(task.category);
@@ -236,11 +251,12 @@ const TaskItem: React.FC<TaskItemProps> = ({
         ref={cardRef}
         className={cn(
           'relative overflow-hidden p-0 transition-all border-2 hover:shadow-lg transform hover:scale-[1.02] dark:!border-white', 
-          task.completed ? 'opacity-70 border-gray-300' : 'border-gray-200 hover:border-gray-300'
+          task.completed ? 'opacity-70 border-gray-300' : 'border-gray-200 hover:border-gray-300',
+          isFlashing ? 'flash-animation' : ''
         )}
         style={{
           transform: `translateX(-${swipeOffset}px)`,
-          userSelect: isDragging ? 'none' : 'auto'
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -275,7 +291,14 @@ const TaskItem: React.FC<TaskItemProps> = ({
               
               {/* Checkbox de completado */}
               <button 
-                onClick={() => !isDragging && swipeOffset === 0 && onComplete(task.id)}
+                onClick={() => {
+                  if (!isDragging && swipeOffset === 0) {
+                    if (!task.completed) {
+                      triggerCompletionEffects();
+                    }
+                    onComplete(task.id);
+                  }
+                }}
                 className="mt-1 hover:scale-110 transition-transform task-check"
                 aria-label={task.completed ? 'Marcar como no completada' : 'Marcar como completada'}
               >

@@ -68,7 +68,7 @@ const Index = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
-  const { playTaskCompleteSound } = useSoundEffects();
+  const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
   const { currentTheme } = useTheme();
 
@@ -369,9 +369,10 @@ const Index = () => {
     updateTasks(updatedTasks);
     // Persistencia automática manejada por useTaskPersistence
     
-    // Solo reproducir sonido cuando se completa (no cuando se desmarca)
+    // Solo reproducir sonido y vibración cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
       playTaskCompleteSound();
+      triggerVibration();
     }
   };
 
@@ -405,6 +406,7 @@ const Index = () => {
       
       if (subtask && !subtask.completed && allOthersCompleted) {
         playTaskCompleteSound();
+        triggerVibration();
       }
     }
   };
@@ -749,9 +751,16 @@ const Index = () => {
       {/* Título principal */}
       <div className="pt-6 mb-2">
         <div className={`tareas-header flex items-center justify-center py-2 relative border-x border-white ${currentTheme === 'shiny' ? 'bg-white' : currentTheme === 'dark' ? 'bg-black' : 'bg-black'} ${currentTheme === 'shiny' ? 'text-black' : 'text-white'}`}>
-          <h1 className={`text-xl font-light tracking-wide ${
+          <h1 className={`text-xl font-bold tracking-wide ${
             currentTheme === 'shiny' ? 'tareas-multicolor text-black' : (currentTheme === 'dark' ? 'text-white' : 'text-white')
-          }`} style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>TAREAS</h1>
+          }`} style={{ fontFamily: 'Poppins, system-ui, -apple-system, sans-serif' }}>
+            {new Date().toLocaleDateString('es-ES', { 
+              weekday: 'long', 
+              day: '2-digit', 
+              month: '2-digit', 
+              year: 'numeric' 
+            }).replace(/^\w/, c => c.toUpperCase())}
+          </h1>
         </div>
       </div>
       {viewMode === 'tasks' ? (

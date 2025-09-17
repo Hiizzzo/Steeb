@@ -144,7 +144,8 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
         'productividad', // Mapear a un tipo válido
         taskSubtasks.length > 0 ? taskSubtasks : undefined,
         new Date().toISOString().split('T')[0], // Hoy
-        task.scheduledTime
+        task.scheduledTime,
+        undefined // notes
       );
 
       // Eliminado delay innecesario para creación instantánea
@@ -552,6 +553,8 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
               )}
             </div>
           </div>
+
+
         </div>
       </div>
     </div>

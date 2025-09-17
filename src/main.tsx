@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import './styles/flash-animation.css';
 import { registerServiceWorker } from './registerServiceWorker';
 import { setupDevelopmentErrorHandling } from './lib/errorHandler';
 import { firebaseErrorHandler } from './lib/firebaseErrorHandler';

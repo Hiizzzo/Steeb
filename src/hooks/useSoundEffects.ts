@@ -2,6 +2,20 @@
 import { useCallback } from 'react';
 
 export const useSoundEffects = () => {
+  const triggerVibration = useCallback(() => {
+    try {
+      // Verificar si la vibración está disponible
+      if ('vibrate' in navigator) {
+        // Patrón de vibración: vibrar 200ms, pausa 100ms, vibrar 200ms
+        navigator.vibrate([200, 100, 200]);
+        console.log('📳 Vibración activada');
+      } else {
+        console.log('📳 Vibración no disponible en este dispositivo');
+      }
+    } catch (error) {
+      console.log('📳 Error al activar vibración:', error);
+    }
+  }, []);
   const playTaskCompleteSound = useCallback(() => {
     try {
       // Verificar si AudioContext está disponible
@@ -173,6 +187,7 @@ export const useSoundEffects = () => {
     playTaskCompleteSound,
     playTimerStartSound,
     playButtonClickSound,
-    playTaskDeleteSound
+    playTaskDeleteSound,
+    triggerVibration
   };
 };

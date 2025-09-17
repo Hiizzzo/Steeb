@@ -105,7 +105,7 @@ interface CalendarDay {
 const MonthlyCalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { playTaskCompleteSound } = useSoundEffects();
+  const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
   const { name, nickname } = useUserProfile();
   const isShiny = document.documentElement.classList.contains('shiny');
   
@@ -229,6 +229,7 @@ const MonthlyCalendarPage: React.FC = () => {
       const isCompletedForSelectedDate = task.completed && normalizeDateString(task.completedDate || '') === (selectedDate || toLocalDateString(new Date()));
       if (!isCompletedForSelectedDate) {
         playTaskCompleteSound();
+        triggerVibration();
         toast({
           title: "¡Tarea completada!",
           description: "¡Excelente trabajo!",
@@ -264,6 +265,7 @@ const MonthlyCalendarPage: React.FC = () => {
       
       if (subtask && !subtask.completed && allOthersCompleted) {
         playTaskCompleteSound();
+        triggerVibration();
         toast({
           title: "¡Tarea completada!",
           description: "¡Excelente trabajo! Has completado todas las subtareas.",
