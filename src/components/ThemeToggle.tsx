@@ -67,19 +67,8 @@ const ThemeToggle = () => {
 				}`}
 				checked={isDark}
 			onCheckedChange={(checked) => {
-				if (checked && currentTheme === 'light') {
-					// Si intenta cambiar de light a dark, verificar si tiene versión dark
-					if (userCredits.hasDarkVersion) {
-						// Si tiene versión dark, mostrar el juego
-						setShowGame(true);
-					} else {
-						// Si no tiene versión dark, mostrar modal de pago
-						setShowPaymentModal(true);
-					}
-				} else {
-					// Si ya está en dark y quiere volver a light, permitir el cambio
-					toggleTheme(checked ? "dark" : "light");
-				}
+				// Cambiar directamente entre light y dark
+				toggleTheme(checked ? "dark" : "light");
 			}}
 				aria-label="Toggle theme"
 			/>

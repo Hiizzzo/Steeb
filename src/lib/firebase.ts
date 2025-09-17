@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { handleFirebaseOperation } from './firebaseErrorHandler';
 
 const fallbackCfg = {
@@ -37,8 +37,30 @@ const initializeFirebase = async () => {
     app = isFirebaseConfigured ? (getApps().length ? getApps()[0] : initializeApp(cfg)) : undefined;
 
     auth = isFirebaseConfigured ? getAuth(app) : undefined;
-    db = isFirebaseConfigured ? getFirestore(app) : undefined;
+
+    // Prefer initializeFirestore with robust transport settings to avoid ERR_ABORTED on some networks/devices
+    if (isFirebaseConfigured) {
+      try {
+        db = initializeFirestore(app, {
+          experimentalAutoDetectLongPolling: true,
+          experimentalForceLongPolling: true,
+          useFetchStreams: false,
+          ignoreUndefinedProperties: true,
+        } as any);
+      } catch (e) {
+        // Fallback if Firestore was already initialized elsewhere
+        db = getFirestore(app);
+      }
+    } else {
+      db = undefined;
+    }
+
     googleProvider = isFirebaseConfigured ? new GoogleAuthProvider() : undefined;
+
+    // Debug: log resolved projectId to detect mismatches across environments
+    try {
+      console.log('[Firebase] Initialized with projectId:', cfg.projectId);
+    } catch {}
 
     return { app, auth, db, googleProvider };
   }, 'Firebase initialization');

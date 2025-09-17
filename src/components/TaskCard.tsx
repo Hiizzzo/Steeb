@@ -1,7 +1,8 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Pencil, Calendar, ShoppingCart, CheckCircle, Heart, Trash2, Clock, FileText, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSoundEffects } from '../hooks/useSoundEffects';
 import { TaskType } from '@/types';
 import ShapeIcon from './ShapeIcon';
 import { useTheme } from '@/hooks/useTheme';
@@ -32,23 +33,26 @@ const TaskCard: React.FC<TaskCardProps> = ({
   title, 
   type, 
   completed, 
+  scheduledTime, 
   subtasks, 
-  scheduledDate,
-  scheduledTime,
-  notes,
+  notes, 
   onToggle, 
   onToggleSubtask, 
-  onDelete,
+  onDelete, 
   onShowDetail 
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const cardRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
   const currentX = useRef(0);
-  const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
+  
+  const { playTaskDeleteSound } = useSoundEffects();
   const { isDark, isShiny } = useTheme();
   const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000');
 
@@ -126,12 +130,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
     currentX.current = e.touches[0].clientX;
     const deltaX = startX.current - currentX.current;
     
-    if (deltaX > 10) {
+    if (Math.abs(deltaX) > 10) {
       setIsDragging(true);
       e.preventDefault();
       cancelLongPress(); // Cancelar long press si se está deslizando
       
-      // Solo permitir deslizamiento hacia la izquierda
       if (deltaX > 0) {
         const newOffset = Math.min(deltaX, 150);
         setSwipeOffset(newOffset);
@@ -145,8 +148,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
     cancelLongPress();
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
-      // Si el deslizamiento supera el umbral, eliminar la tarea
-      onDelete(id);
+      // Iniciar animación de eliminación
+      setIsDeleting(true);
+      playTaskDeleteSound();
+      
+      // Esperar a que termine la animación antes de eliminar
+      setTimeout(() => {
+        onDelete(id);
+      }, 600);
     } else {
       // Si no, volver a la posición original
       setSwipeOffset(0);
@@ -179,7 +188,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     currentX.current = e.clientX;
     const deltaX = startX.current - currentX.current;
     
-    if (deltaX > 10) {
+    if (Math.abs(deltaX) > 10) {
       setIsDragging(true);
       e.preventDefault();
       cancelLongPress(); // Cancelar long press si se está deslizando
@@ -197,7 +206,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
     cancelLongPress();
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
-      onDelete(id);
+      // Iniciar animación de eliminación
+      setIsDeleting(true);
+      playTaskDeleteSound();
+      
+      // Esperar a que termine la animación antes de eliminar
+      setTimeout(() => {
+        onDelete(id);
+      }, 600);
     } else {
       setSwipeOffset(0);
       setShowDeleteButton(false);
@@ -213,24 +229,31 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div className="relative mb-3">
-      {/* Fondo negro de eliminación */}
+      {/* Fondo de eliminación - color blanco con icono negro */}
       <div 
-        className={`absolute inset-0 bg-black rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-white rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
           showDeleteButton ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <Trash2 size={24} className="text-white" />
+        <Trash2 size={24} className="text-black" />
       </div>
       
       {/* Tarjeta principal */}
       <div 
         ref={cardRef}
-        className={`bg-white border border-gray-200 dark:bg-black dark:border-black rounded-lg p-4 transition-all duration-200 ease-out transform dark:hover:border-black ${
+        className={`border border-gray-200 dark:border-black rounded-lg p-4 transition-all duration-600 ease-out transform dark:hover:border-black ${
           completed ? 'opacity-40' : 'hover:border-black'
-        } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''}`}
+        } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''} ${
+          isDeleting 
+            ? 'bg-black border-black animate-pulse' 
+            : 'bg-white dark:bg-black'
+        }`}
         style={{
-          transform: `translateX(-${swipeOffset}px)`,
-          userSelect: isDragging ? 'none' : 'auto'
+          transform: `translateX(-${swipeOffset}px) ${isDeleting ? 'scale(0.95)' : 'scale(1)'}`,
+          userSelect: isDragging ? 'none' : 'auto',
+          transition: isDeleting 
+            ? 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' 
+            : 'all 0.2s ease-out'
         }}
         onClick={onShowDetail ? handleToggle : undefined}
         onTouchStart={handleTouchStart}
@@ -257,9 +280,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
             <div className="flex-1 mr-4 ml-6">
               <span 
                 className={`text-lg font-normal transition-all duration-300 ${
-                  completed 
-                    ? 'line-through text-gray-400' 
-                    : 'text-black dark:text-white'
+                  isDeleting
+                    ? 'text-white'
+                    : completed 
+                      ? 'line-through text-gray-400' 
+                      : 'text-black dark:text-white'
                 }`} style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui, -apple-system, sans-serif' }}
               >
                 {title.trim() || 'Tarea sin título'}
@@ -268,9 +293,21 @@ const TaskCard: React.FC<TaskCardProps> = ({
               {/* Mostrar hora si está disponible */}
               {scheduledTime && (
                 <div className="flex items-center mt-1 space-x-1">
-                  <Clock size={14} className={`${completed ? 'text-gray-400' : 'text-gray-500'}`} />
+                  <Clock size={14} className={`${
+                    isDeleting 
+                      ? 'text-white' 
+                      : completed 
+                        ? 'text-gray-400' 
+                        : 'text-gray-500'
+                  }`} />
                   <span 
-                    className={`text-sm ${completed ? 'text-gray-400' : 'text-gray-500'} font-varela`}
+                    className={`text-sm font-varela ${
+                      isDeleting 
+                        ? 'text-white' 
+                        : completed 
+                          ? 'text-gray-400' 
+                          : 'text-gray-500'
+                    }`}
                   >
                     {scheduledTime}
                   </span>

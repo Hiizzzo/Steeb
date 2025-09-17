@@ -355,25 +355,35 @@ export const useTaskStore = create<TaskStore>()(
               throw new Error('Tarea no encontrada');
             }
             
-            set({ isLoading: true, error: null });
             console.log('📝 Actualizando tarea:', id);
             
-            // Actualizar con Firestore
+            // 1. ACTUALIZAR UI INMEDIATAMENTE (actualización optimista)
             const updatedTask = {
               ...previousTask,
               ...updates,
               updatedAt: new Date().toISOString()
             };
             
-            // Guardar en Firestore
-            await FirestoreTaskService.updateTask(id, updates);
-            
-            // Actualizar estado local
             set(state => ({
               tasks: state.tasks.map(task => task.id === id ? updatedTask : task),
-              isLoading: false,
               error: null
             }));
+            
+            // 2. SINCRONIZAR CON FIRESTORE EN SEGUNDO PLANO
+            try {
+              // Filtrar campos que no deben enviarse a Firestore
+              const { id: _omitId, createdAt: _omitCreatedAt, updatedAt: _omitUpdatedAt, userId: _omitUserId, ...firestoreUpdates } = (updates || {}) as any;
+              await FirestoreTaskService.updateTask(id, firestoreUpdates);
+              console.log('✅ Tarea sincronizada con Firestore:', id);
+            } catch (firestoreError) {
+              console.error('❌ Error sincronizando con Firestore:', firestoreError);
+              // Revertir cambios locales si falla Firestore
+              set(state => ({
+                tasks: state.tasks.map(task => task.id === id ? previousTask : task),
+                error: 'Error al sincronizar cambios'
+              }));
+              throw firestoreError;
+            }
             
             // Verificar si se marcó como completada y tiene recurrencia
             if (updates.completed === true && previousTask.recurrence && previousTask.scheduledDate) {

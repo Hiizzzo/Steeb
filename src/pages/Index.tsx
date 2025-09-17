@@ -76,6 +76,7 @@ const Index = () => {
   const SWIPE_THRESHOLD = 80;
   const MAX_SWIPE = 160;
   const [rowOffsetById, setRowOffsetById] = useState<Record<string, number>>({});
+  const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
   const activeIdRef = useRef<string | null>(null);
   const startXRef = useRef(0);
   const LONG_PRESS_MS = 600;
@@ -115,13 +116,33 @@ const Index = () => {
       e.preventDefault();
       const next = Math.min(deltaX, MAX_SWIPE);
       setRowOffsetById(prev => ({ ...prev, [id]: next }));
+    } else if (deltaX < 0) {
+      // Permitir retorno suave cuando se desliza hacia la derecha
+      const next = Math.max(0, rowOffsetById[id] + deltaX);
+      setRowOffsetById(prev => ({ ...prev, [id]: next }));
     }
   };
 
   const finishRowSwipe = (id: string) => {
     const offset = rowOffsetById[id] || 0;
-    if (offset > SWIPE_THRESHOLD) handleDeleteTask(id);
-    setRowOffsetById(prev => ({ ...prev, [id]: 0 }));
+    if (offset > SWIPE_THRESHOLD) {
+      // Activar animación de eliminación
+      setIsDeleting(prev => ({ ...prev, [id]: true }));
+      
+      // Reproducir sonido de eliminación
+      playTaskCompleteSound();
+      
+      // Eliminar después de la animación (300ms)
+      setTimeout(() => {
+        handleDeleteTask(id);
+        setIsDeleting(prev => ({ ...prev, [id]: false }));
+      }, 300);
+    } else {
+      // Animación suave de retorno sin rebote
+      setTimeout(() => {
+        setRowOffsetById(prev => ({ ...prev, [id]: 0 }));
+      }, 50);
+    }
     activeIdRef.current = null;
     document.body.style.userSelect = '';
   };
@@ -139,19 +160,25 @@ const Index = () => {
       return null;
     }
     
+    const isTaskDeleting = isDeleting[task.id] || false;
+    
     return (
       <div key={task.id} className="relative">
         {/* Fondo con tacho visible durante swipe */}
-        <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-4 transition-opacity duration-150 ${ (rowOffsetById[task.id] || 0) > 6 ? 'opacity-100' : 'opacity-0' }`}>
-          <Trash2 className={`w-5 h-5 ${theme.isShiny ? 'text-white' : ''}`} />
+        <div className={`absolute inset-0 rounded-lg bg-white dark:bg-black flex items-center justify-end pr-4 transition-all duration-300 ease-out ${ (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0' }`}>
+          <Trash2 className="w-5 h-5 text-black dark:text-white" />
         </div>
 
-        <div className="flex items-center gap-3 px-1.5 py-2">
+        <div className={`flex items-center gap-3 px-1.5 py-2 rounded-lg mb-2 transition-all duration-600 ${
+          isTaskDeleting 
+            ? 'bg-black dark:bg-white animate-pulse' 
+            : ''
+        }`}>
           <div
             className="flex items-center gap-3 flex-1"
             style={{
               transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
-              transition: 'transform 150ms ease-out',
+              transition: activeIdRef.current === task.id ? 'none' : 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
               touchAction: 'pan-y',
               userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
               willChange: 'transform',
@@ -164,8 +191,20 @@ const Index = () => {
           >
             {renderShapeForType(getGroupKey(task), color)}
             <div className="flex-1 min-w-0">
-              <p className={`task-title text-[18px] ${task.completed ? 'line-through text-gray-500' : 'text-black font-medium'}`}>{task.title}</p>
-              <p className="text-sm text-gray-600">{task.scheduledTime || 'Sin hora'}</p>
+              <p className={`task-title text-[18px] ${
+                isTaskDeleting 
+                  ? 'text-white dark:text-black' 
+                  : task.completed 
+                    ? 'line-through text-gray-500' 
+                    : 'text-black font-medium'
+              }`}>{task.title}</p>
+              {task.scheduledTime && (
+                <p className={`text-sm ${
+                  isTaskDeleting 
+                    ? 'text-white dark:text-black' 
+                    : 'text-gray-600'
+                }`}>{task.scheduledTime}</p>
+              )}
             </div>
           </div>
           
@@ -178,7 +217,7 @@ const Index = () => {
             className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-green-500 border-green-500 dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
             style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
           >
-
+            {task.completed && <Check size={16} className="text-white dark:text-black" />}
           </button>
         </div>
       </div>

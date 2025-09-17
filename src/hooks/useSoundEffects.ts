@@ -128,9 +128,51 @@ export const useSoundEffects = () => {
     }
   }, []);
 
+  const playTaskDeleteSound = useCallback(() => {
+    try {
+      // Verificar si AudioContext está disponible
+      if (!window.AudioContext && !(window as any).webkitAudioContext) {
+        console.log('AudioContext no disponible');
+        return;
+      }
+      
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Verificar si el contexto está en estado válido
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {
+          console.log('No se pudo reanudar AudioContext');
+        });
+      }
+      
+      // Sonido de eliminación - tono descendente dramático
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Frecuencia que desciende dramáticamente
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
+      oscillator.type = 'sawtooth';
+      
+      // Envelope con fade out suave
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.12, audioContext.currentTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.4);
+    } catch (error) {
+      console.log('No se pudo reproducir el sonido:', error);
+    }
+  }, []);
+
   return {
     playTaskCompleteSound,
     playTimerStartSound,
-    playButtonClickSound
+    playButtonClickSound,
+    playTaskDeleteSound
   };
 };
