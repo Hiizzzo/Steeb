@@ -4,19 +4,45 @@ import { useCallback } from 'react';
 export const useSoundEffects = () => {
   const triggerVibration = useCallback(() => {
     try {
+      // Debug info para móviles
+      console.log('📳 Intentando activar vibración...');
+      console.log('📳 User Agent:', navigator.userAgent);
+      console.log('📳 Vibrate disponible:', 'vibrate' in navigator);
+      console.log('📳 Es HTTPS:', window.location.protocol === 'https:');
+      
       // Verificar si la vibración está disponible
-      if ('vibrate' in navigator) {
-        // Patrón de vibración: vibrar 200ms, pausa 100ms, vibrar 200ms
-        navigator.vibrate([200, 100, 200]);
-        console.log('📳 Vibración activada');
+      if ('vibrate' in navigator && navigator.vibrate) {
+        // Patrón de vibración más fuerte para móviles: vibrar 300ms, pausa 100ms, vibrar 300ms
+        const vibrationPattern = [300, 100, 300];
+        
+        // Intentar vibrar
+        const result = navigator.vibrate(vibrationPattern);
+        
+        if (result) {
+          console.log('📳 Vibración activada exitosamente');
+        } else {
+          console.log('📳 Vibración bloqueada o no soportada, intentando fallback');
+          // Intentar vibración simple como fallback
+          navigator.vibrate(400);
+        }
       } else {
-        console.log('📳 Vibración no disponible en este dispositivo');
+        console.log('📳 API de vibración no disponible en este dispositivo/navegador');
       }
     } catch (error) {
       console.log('📳 Error al activar vibración:', error);
-    }
-  }, []);
-  const playTaskCompleteSound = useCallback(() => {
+      // Intentar vibración simple como último recurso
+      try {
+        if ('vibrate' in navigator) {
+          navigator.vibrate(200);
+          console.log('📳 Fallback de vibración simple ejecutado');
+        }
+      } catch (fallbackError) {
+        console.log('📳 Fallback de vibración también falló:', fallbackError);
+       }
+      }
+    }, []);
+   
+   const playTaskCompleteSound = useCallback(() => {
     try {
       // Verificar si AudioContext está disponible
       if (!window.AudioContext && !(window as any).webkitAudioContext) {
