@@ -589,7 +589,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                                   {subtask.completed && (
                                     <Check 
                                       size={10}
-                                      className="text-white dark:text-black"
+                                      className="text-white dark:text-white"
                                       strokeWidth={4}
                                     />
                                   )}
@@ -613,7 +613,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                           {task.completed && (
                             <Check 
                               size={12}
-                              className="text-white dark:text-black"
+                              className="text-white dark:text-white"
                               strokeWidth={4}
                             />
                           )}

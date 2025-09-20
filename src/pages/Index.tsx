@@ -68,7 +68,7 @@ const Index = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
-  const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
+  const { playTaskCompleteSound, playTaskDeleteSound, triggerVibration } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
   const { currentTheme } = useTheme();
 
@@ -217,7 +217,7 @@ const Index = () => {
             className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-green-500 border-green-500 dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
             style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
           >
-            {task.completed && <Check size={16} className="text-white dark:text-black" />}
+            {task.completed && <Check size={16} className="text-white dark:text-white" />}
           </button>
         </div>
       </div>
@@ -420,6 +420,10 @@ const Index = () => {
       }
       
       console.log('🗑️ Eliminando tarea:', taskToDelete.title);
+      
+      // Reproducir sonido específico de eliminación
+      playTaskDeleteSound();
+      triggerVibration();
       
       // Usar la función del store que es más robusta
       deleteTask(id);

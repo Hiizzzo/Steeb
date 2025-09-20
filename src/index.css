@@ -179,19 +179,19 @@
   .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) {
     background: #ffffff !important;
     border-color: #ffffff !important;
-    color: #000000 !important;
+    color: #ffffff !important;
   }
   
   .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) svg {
-    color: #000000 !important;
-    stroke: #000000 !important;
-    fill: #000000 !important;
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: #ffffff !important;
   }
   
   .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) .lucide-check {
-    color: #000000 !important;
-    stroke: #000000 !important;
-    fill: #000000 !important;
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: #ffffff !important;
   }
 
   /* Efecto multicolor animado para el texto TAREAS */

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Home, Trash2, Check } from 'lucide-react';
 
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/components/ui/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -105,8 +106,9 @@ interface CalendarDay {
 const MonthlyCalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
+  const { playTaskCompleteSound, playTaskDeleteSound, triggerVibration } = useSoundEffects();
   const { name, nickname } = useUserProfile();
+  const isMobile = useIsMobile();
   const isShiny = document.documentElement.classList.contains('shiny');
   
   const { 
@@ -372,6 +374,7 @@ const MonthlyCalendarPage: React.FC = () => {
   const SWIPE_THRESHOLD = 60;
   const MAX_SWIPE = 160;
   const [swipeOffsetById, setSwipeOffsetById] = useState<Record<string, number>>({});
+  const [deletingTaskIds, setDeletingTaskIds] = useState<Set<string>>(new Set());
   const activeIdRef = useRef<string | null>(null);
   const startXRef = useRef(0);
 
@@ -393,13 +396,35 @@ const MonthlyCalendarPage: React.FC = () => {
   const finishRowSwipe = (id: string) => {
     const offset = swipeOffsetById[id] || 0;
     if (offset > SWIPE_THRESHOLD) {
-      if (deleteTaskStore) {
-        // Si existe en el store, usar API oficial
-        try { (deleteTaskStore as any)(id); } catch (e) { console.error(e); }
-      } else {
-        // Fallback: eliminar localmente
-        updateTasks(tasks.filter(t => t.id !== id));
-      }
+      // Efectos de feedback
+      triggerVibration();
+      playTaskDeleteSound(); // Sonido específico para eliminar tareas
+      
+      // Marcar como eliminando para activar animación de salida
+      setDeletingTaskIds(prev => new Set([...prev, id]));
+      
+      // Mostrar toast de confirmación
+      toast({
+        title: "Tarea eliminada",
+        description: "La tarea ha sido eliminada exitosamente.",
+      });
+      
+      // Animación de salida con delay
+      setTimeout(() => {
+        if (deleteTaskStore) {
+          // Si existe en el store, usar API oficial
+          try { (deleteTaskStore as any)(id); } catch (e) { console.error(e); }
+        } else {
+          // Fallback: eliminar localmente
+          updateTasks(tasks.filter(t => t.id !== id));
+        }
+        // Limpiar estados
+        setDeletingTaskIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
+      }, 300); // Delay para permitir la animación
     }
     setSwipeOffsetById(prev => ({ ...prev, [id]: 0 }));
     activeIdRef.current = null;
@@ -864,42 +889,87 @@ const MonthlyCalendarPage: React.FC = () => {
                         <motion.div
                           key={task.id}
                           initial={{ opacity: 0, x: -14 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          animate={{ 
+                            opacity: deletingTaskIds.has(task.id) ? 0 : 1, 
+                            x: deletingTaskIds.has(task.id) ? -100 : 0,
+                            scale: deletingTaskIds.has(task.id) ? 0.8 : 1,
+                            height: deletingTaskIds.has(task.id) ? 0 : 'auto'
+                          }}
+                          exit={{ opacity: 0, x: -100, scale: 0.8, height: 0 }}
+                          transition={{ 
+                            duration: deletingTaskIds.has(task.id) ? 0.3 : 0.2,
+                            ease: "easeInOut"
+                          }}
                           className="relative overflow-hidden px-1.5 py-2"
-                          onPointerDown={onPointerDownSwipe(task.id)}
-                          onPointerMove={onPointerMoveSwipe(task.id)}
-                          onPointerUp={onPointerUpSwipe(task.id)}
-                          onPointerCancel={onPointerUpSwipe(task.id)}
-                          onTouchStart={(e) => {
+                          onTouchStart={isMobile ? (e) => {
+                            e.stopPropagation();
                             const touch = e.touches[0];
                             if (!touch) return;
                             activeIdRef.current = task.id;
                             startXRef.current = touch.clientX;
-                          }}
-                          onTouchMove={(e) => {
+                            document.body.style.userSelect = 'none';
+                          } : undefined}
+                          onTouchMove={isMobile ? (e) => {
                             if (activeIdRef.current !== task.id || !e.touches[0]) return;
                             const deltaX = startXRef.current - e.touches[0].clientX;
                             if (deltaX > 0) {
                               e.preventDefault();
+                              e.stopPropagation();
                               const next = Math.min(deltaX, MAX_SWIPE);
                               setSwipeOffsetById(prev => ({ ...prev, [task.id]: next }));
                             }
-                          }}
-                          onTouchEnd={() => finishRowSwipe(task.id)}
+                          } : undefined}
+                          onTouchEnd={isMobile ? (e) => {
+                            e.stopPropagation();
+                            finishRowSwipe(task.id);
+                          } : undefined}
+                          onPointerDown={!isMobile ? onPointerDownSwipe(task.id) : undefined}
+                          onPointerMove={!isMobile ? onPointerMoveSwipe(task.id) : undefined}
+                          onPointerUp={!isMobile ? onPointerUpSwipe(task.id) : undefined}
+                          onPointerCancel={!isMobile ? onPointerUpSwipe(task.id) : undefined}
                           style={{
                             transform: `translate3d(-${swipeOffsetById[task.id] || 0}px,0,0)`,
-                            transition: 'transform 150ms ease-out',
-                            touchAction: 'pan-y',
+                            transition: 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                            touchAction: 'pan-x',
                             userSelect: (swipeOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
                             willChange: 'transform',
+                            filter: (swipeOffsetById[task.id] || 0) > 30 ? 'brightness(0.9)' : 'brightness(1)',
                           }}
                         >
-                          {/* Fondo rojo eliminar */}
-                          <div className={`absolute inset-0 flex items-center justify-end pr-3 transition-all duration-150 ${
-                            (swipeOffsetById[task.id] || 0) > 6 ? 'opacity-100 bg-black dark:bg-white' : 'opacity-0 bg-gray-300 dark:bg-gray-200'
+                          {/* Fondo de eliminación con animación mejorada */}
+                          <div className={`absolute inset-0 flex items-center justify-end pr-3 transition-all duration-300 ease-out ${
+                            (swipeOffsetById[task.id] || 0) > 6 
+                              ? 'opacity-100 bg-red-500 dark:bg-white shadow-lg transform scale-105' 
+                              : 'opacity-0 bg-gray-300 dark:bg-gray-600 transform scale-100'
                           }`}>
-                            <span className="text-white text-sm mr-2">Eliminar</span>
-                            <Trash2 className="w-5 h-5 text-white" />
+                            <motion.span 
+                              className={`text-sm mr-2 font-medium ${
+                                (swipeOffsetById[task.id] || 0) > 6 
+                                  ? 'text-white dark:text-black' 
+                                  : 'text-gray-500'
+                              }`}
+                              animate={{
+                                scale: (swipeOffsetById[task.id] || 0) > 6 ? 1.1 : 1,
+                                x: (swipeOffsetById[task.id] || 0) > 6 ? -5 : 0
+                              }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                              Eliminar
+                            </motion.span>
+                            <motion.div
+                              animate={{
+                                scale: (swipeOffsetById[task.id] || 0) > 6 ? 1.2 : 1,
+                                rotate: (swipeOffsetById[task.id] || 0) > 6 ? 10 : 0,
+                                x: (swipeOffsetById[task.id] || 0) > 6 ? -3 : 0
+                              }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                              <Trash2 className={`w-5 h-5 ${
+                                (swipeOffsetById[task.id] || 0) > 6 
+                                  ? 'text-white dark:text-black' 
+                                  : 'text-gray-400'
+                              }`} />
+                            </motion.div>
                           </div>
 
                           {/* Fila de contenido */}
