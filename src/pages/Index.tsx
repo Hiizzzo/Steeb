@@ -865,19 +865,6 @@ const Index = () => {
         </div>
       )}
 
-      {/* Botón de prueba temporal para vibración */}
-      <div className="fixed bottom-20 left-4 z-40">
-        <button
-          onClick={() => {
-            console.log('🔧 Botón de prueba de vibración presionado');
-            triggerVibration();
-          }}
-          className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg"
-        >
-          🔧 Test Vibración
-        </button>
-      </div>
-
       {/* Floating Buttons */}
       <FloatingButtons 
         onAddTask={() => setShowModal(true)}
