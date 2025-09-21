@@ -192,18 +192,18 @@ export const useSoundEffects = () => {
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      // Frecuencia que desciende dramáticamente
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
-      oscillator.type = 'sawtooth';
+      // Frecuencia que desciende dramáticamente - más grave
+      oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.5);
+      oscillator.type = 'square';
       
-      // Envelope con fade out suave
+      // Envelope con fade out suave - más largo y grave
       gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.12, audioContext.currentTime + 0.05);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.08);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
       
       oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
+      oscillator.stop(audioContext.currentTime + 0.6);
     } catch (error) {
       console.log('No se pudo reproducir el sonido:', error);
     }

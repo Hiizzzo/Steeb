@@ -68,7 +68,7 @@ const Index = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
-  const { playTaskCompleteSound, playTaskDeleteSound, triggerVibration } = useSoundEffects();
+  const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
   const { currentTheme } = useTheme();
 
@@ -129,8 +129,7 @@ const Index = () => {
       // Activar animación de eliminación
       setIsDeleting(prev => ({ ...prev, [id]: true }));
       
-      // Reproducir sonido de eliminación
-      playTaskCompleteSound();
+      // Sin sonido al eliminar - solo animación
       
       // Eliminar después de la animación (300ms)
       setTimeout(() => {
@@ -421,8 +420,7 @@ const Index = () => {
       
       console.log('🗑️ Eliminando tarea:', taskToDelete.title);
       
-      // Reproducir sonido específico de eliminación
-      playTaskDeleteSound();
+      // Solo vibración al eliminar - sin sonido
       triggerVibration();
       
       // Usar la función del store que es más robusta

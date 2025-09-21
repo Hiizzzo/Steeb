@@ -52,7 +52,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const currentX = useRef(0);
   const longPressTimer = useRef<number | null>(null);
   
-  const { playTaskDeleteSound } = useSoundEffects();
+  // const { playTaskDeleteSound } = useSoundEffects(); // Ya no se usa
   const { isDark, isShiny } = useTheme();
   const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000');
 
@@ -150,7 +150,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       // Iniciar animación de eliminación
       setIsDeleting(true);
-      playTaskDeleteSound();
+      // Sin sonido al eliminar - solo animación
       
       // Esperar a que termine la animación antes de eliminar
       setTimeout(() => {
@@ -208,7 +208,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
       // Iniciar animación de eliminación
       setIsDeleting(true);
-      playTaskDeleteSound();
+      // Sin sonido al eliminar - solo animación
       
       // Esperar a que termine la animación antes de eliminar
       setTimeout(() => {
