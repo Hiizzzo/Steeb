@@ -24,6 +24,7 @@ import DailyTaskReminderModal from '@/components/DailyTaskReminderModal';
 import MonthlyCalendar from '@/components/MonthlyCalendar';
 import ShapeIcon from '@/components/ShapeIcon';
 import type { RecurrenceRule, Task, SubTask } from '@/types';
+import ModalAddTask from '@/components/ModalAddTask';
 
 
 // 9-colores (de abajo hacia arriba): ROJO, NARANJA, AMARILLO, VERDE, CELESTE, AZUL, INDIGO, ROSA FUERTE, VIOLETA
@@ -71,7 +72,6 @@ const Index = () => {
   const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
   const { currentTheme } = useTheme();
-
   // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
   const SWIPE_THRESHOLD = 80;
   const MAX_SWIPE = 160;
@@ -150,6 +150,11 @@ const Index = () => {
     e.stopPropagation();
     cancelLongPress();
     finishRowSwipe(id);
+  };
+
+  // Helper para determinar el grupo/tipo de una tarea
+  const getGroupKey = (task: Task): Task['type'] => {
+    return task?.type ?? 'extra';
   };
 
   const renderSwipeRow = (task: Task, color?: string) => {
@@ -586,7 +591,30 @@ const Index = () => {
   };
 
   // Filter tasks for today and overdue
-  const today = new Date().toISOString().split('T')[0];
+  const todayISO = new Date().toISOString().split('T')[0];
+  
+  // Selector semanal: día seleccionado (por defecto hoy)
+  const [selectedDateISO, setSelectedDateISO] = useState<string>(todayISO);
+  const selectedDateObj = useMemo(() => new Date(selectedDateISO), [selectedDateISO]);
+  
+  // Calcular los días de la semana actual (L a D), iniciando en lunes
+  const getMonday = (d: Date) => {
+  const date = new Date(d);
+  const day = (date.getDay() + 6) % 7; // 0 (L) .. 6 (D)
+  date.setDate(date.getDate() - day);
+  date.setHours(0, 0, 0, 0);
+  return date;
+  };
+  const weekStart = useMemo(() => getMonday(new Date()), []);
+  const weekDays = useMemo(() => {
+  const letters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  return Array.from({ length: 7 }, (_, i) => {
+  const date = new Date(weekStart);
+  date.setDate(weekStart.getDate() + i);
+  const iso = date.toISOString().split('T')[0];
+  return { date, iso, letter: letters[i] };
+  });
+  }, [weekStart]);
   const todaysTasks = useMemo(() => {
     return tasks.filter(task => {
       // Filtrar tareas con títulos vacíos o solo espacios en blanco
@@ -600,57 +628,37 @@ const Index = () => {
         console.warn('⚠️ Tarea sin ID encontrada:', task);
         return false;
       }
-      
-      if (!task.scheduledDate) return true; // Show tasks without date as today's
-      return task.scheduledDate <= today;
+      // Si no tiene fecha programada, solo se muestra cuando el día seleccionado es HOY
+      if (!task.scheduledDate) return selectedDateISO === todayISO;
+      // Mostrar tareas programadas hasta el día seleccionado (incluye vencidas respecto a ese día)
+      return task.scheduledDate <= selectedDateISO;
     });
-  }, [tasks, today]);
+  }, [tasks, selectedDateISO, todayISO]);
 
   // Debug: Log filtered tasks
-  useEffect(() => {
-    console.log('🔍 Index.tsx: Today:', today);
-    console.log('🔍 Index.tsx: Todays tasks:', todaysTasks.length, todaysTasks);
-  }, [today, todaysTasks]);
+   useEffect(() => {
+     console.log('🔍 Index.tsx: Selected day:', selectedDateISO);
+     console.log('🔍 Index.tsx: Tasks up to selected day:', todaysTasks.length, todaysTasks);
+   }, [selectedDateISO, todaysTasks]);
 
   // Dividir tareas de hoy en pendientes y completadas (hoy y anteriores)
-  const pendingTodaysTasks = todaysTasks.filter(t => !t.completed);
-  const completedTodaysTasks = todaysTasks.filter(t => t.completed);
+   const pendingTodaysTasks = todaysTasks.filter(t => !t.completed);
+   const completedTodaysTasks = todaysTasks.filter(t => t.completed);
   const completedToday = completedTodaysTasks.filter(t =>
-    t.completedDate ? t.completedDate.split('T')[0] === today : false
+    t.completedDate ? t.completedDate.split('T')[0] === selectedDateISO : false
   );
   const completedBeforeToday = completedTodaysTasks.filter(t =>
-    !(t.completedDate && t.completedDate.split('T')[0] === today)
+    !(t.completedDate && t.completedDate.split('T')[0] === selectedDateISO)
   );
 
   // Pendientes: separar exactamente hoy (o sin fecha) vs. vencidas
-  const pendingTodayExactRaw = pendingTodaysTasks.filter(t => !t.scheduledDate || t.scheduledDate === today);
-  const pendingOverdueRaw = pendingTodaysTasks.filter(t => t.scheduledDate && t.scheduledDate < today);
-
-  // Agrupar contiguamente por subgrupo (o tipo) sin encabezados
-  const getGroupKey = (task: Task): Task['type'] => (task.subgroup ?? task.type);
-  const timeToSortable = (t?: string) => {
-    if (!t) return '99:99';
-    const parts = t.split(':');
-    if (parts.length >= 2) {
-      const hh = parts[0].padStart(2, '0');
-      const mm = parts[1].padStart(2, '0');
-      return `${hh}:${mm}`;
-    }
-    return '99:99';
-  };
-  const sortByCategoryThenTime = (a: Task, b: Task) => {
-    const ka = getGroupKey(a);
-    const kb = getGroupKey(b);
-    const ia = TYPE_ORDER.indexOf(ka);
-    const ib = TYPE_ORDER.indexOf(kb);
-    const ca = ia === -1 ? 999 : ia;
-    const cb = ib === -1 ? 999 : ib;
-    if (ca !== cb) return ca - cb;
-    return timeToSortable(a.scheduledTime).localeCompare(timeToSortable(b.scheduledTime));
-  };
-
-  const pendingTodayExact = [...pendingTodayExactRaw].sort(sortByCategoryThenTime);
-  const pendingOverdue = [...pendingOverdueRaw].sort(sortByCategoryThenTime);
+  const pendingTodayExactRaw = pendingTodaysTasks.filter(t => {
+    // Cuando miramos HOY: incluir sin fecha o con fecha exactamente hoy
+    if (selectedDateISO === todayISO) return !t.scheduledDate || t.scheduledDate === selectedDateISO;
+    // Cuando miramos otro día: solo exactamente ese día
+    return !!t.scheduledDate && t.scheduledDate === selectedDateISO;
+  });
+  const pendingOverdueRaw = pendingTodaysTasks.filter(t => t.scheduledDate && t.scheduledDate < selectedDateISO);
 
 
 
@@ -751,197 +759,128 @@ const Index = () => {
       {/* Espaciado superior para no tapar la lista con el avatar + burbuja */}
       <div className="pt-24 mb-1" />
       {/* Título principal */}
-      <div className="pt-6 mb-2">
-        <div className={`tareas-header flex items-center justify-center py-2 relative border-x border-white ${currentTheme === 'shiny' ? 'bg-white' : currentTheme === 'dark' ? 'bg-black' : 'bg-black'} ${currentTheme === 'shiny' ? 'text-black' : 'text-white'}`}>
-          <h1 className={`text-xl font-bold tracking-wide ${
-            currentTheme === 'shiny' ? 'tareas-multicolor text-black' : (currentTheme === 'dark' ? 'text-white' : 'text-white')
-          }`} style={{ fontFamily: 'Poppins, system-ui, -apple-system, sans-serif' }}>
-            {new Date().toLocaleDateString('es-ES', { 
-              weekday: 'long', 
-              day: '2-digit', 
-              month: '2-digit', 
-              year: 'numeric' 
-            }).replace(/^\w/, c => c.toUpperCase())}
-          </h1>
+      {/* Título principal */}
+       <div className="pt-6 mb-2">
+         <div className={`tareas-header flex items-center justify-center py-2 relative border-x ${theme.isShiny ? 'bg-white text-black border-white' : 'bg-black text-white border-black'}`}>
+           <div className="flex items-center gap-2">
+             {weekDays.map((d) => {
+               const isSelected = d.iso === selectedDateISO;
+               const isToday = d.iso === todayISO;
+               const headerIsLight = theme.isShiny; // barra blanca en modo shiny
+               const baseColors = isSelected
+                 ? (headerIsLight ? 'bg-black text-white' : 'bg-white text-black')
+                 : (headerIsLight
+                     ? 'bg-white text-black border border-black/50 hover:bg-black/10'
+                     : 'bg-transparent text-white border border-white/50 hover:bg-white/10');
+               const ring = isToday && !isSelected ? (headerIsLight ? 'ring-2 ring-black/40' : 'ring-2 ring-white/40') : '';
+               return (
+                 <button
+                   key={d.iso}
+                   onClick={() => setSelectedDateISO(d.iso)}
+                   className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${baseColors} ${ring}`}
+                   aria-label={`Ver tareas del ${d.date.toLocaleDateString('es-ES', { weekday: 'long' })}`}
+                 >
+                   {d.letter}
+                 </button>
+               );
+             })}
+           </div>
+         </div>
+       </div>
+
+      {/* Listas de tareas */}
+      <div className="px-4 mt-3">
+        {pendingOverdueRaw.length > 0 && (
+          <div className="mb-3">
+            <h3 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Vencidas</h3>
+            {pendingOverdueRaw.map(t => renderSwipeRow(t, '#FF4D4F'))}
+          </div>
+        )}
+
+        <div className="mb-3">
+          <h3 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">
+            {`Para ${selectedDateISO === todayISO ? 'hoy' : selectedDateObj.toLocaleDateString('es-ES', { weekday: 'long' })}`}
+          </h3>
+          {pendingTodayExactRaw.length > 0 && (
+            pendingTodayExactRaw.map(t => renderSwipeRow(t))
+          )}
         </div>
-      </div>
-      {viewMode === 'tasks' ? (
-        <>
-          {/* Lista de Tareas */}
-          <div className="tasks-list pt-1 mx-auto w-full max-w-xl sm:max-w-2xl px-6 sm:px-8 md:px-10">
-            {pendingTodaysTasks.length > 0 ? (
-              <>
-                {/* Color mapping across combined pending lists from bottom to top */}
-                {(() => {
-                  const total = pendingTodayExact.length + pendingOverdue.length;
-                  return (
-                    <>
-                      {pendingTodayExact.map((t, i) => renderSwipeRow(t, getRainbowColorBottomUp(i, total)))}
-                    </>
-                  );
-                })()}
 
-                {pendingTodayExact.length > 0 && pendingOverdue.length > 0 && (
-                  <div className="my-2 border-t dark:border-white/70 border-transparent" />
-                )}
-
-                {(() => {
-                  const total = pendingTodayExact.length + pendingOverdue.length;
-                  return pendingOverdue.map((t, i) => {
-                    const topIndex = pendingTodayExact.length + i;
-                    return renderSwipeRow(t, getRainbowColorBottomUp(topIndex, total));
-                  });
-                })()}
-              </>
-            ) : null}
-
-            {/* Sección de tareas completadas */}
-            {(completedToday.length > 0) && (
-              <div className="mt-6">
-                <div className="completed-header flex items-center justify-center gap-3 mb-3 text-center">
-                  <CheckCircle size={16} className={theme.isShiny ? 'text-white' : 'text-gray-700'} />
-                  <h3 className={`text-sm font-semibold font-varela ${theme.isShiny ? 'tareas-multicolor' : 'text-gray-700'}`}>
-                    Tareas completadas
-                  </h3>
-                  <span className={`text-xs ${theme.isShiny ? 'text-white' : 'text-gray-500'}`}>({completedToday.length})</span>
-                  {/* Toggle mostrar/ocultar las de hoy */}
-                  <button
-                    className={`completed-toggle-btn shiny-toggle flex items-center space-x-1 text-sm rounded px-2 py-0.5 ${theme.isShiny ? 'text-white hover:text-gray-300' : 'text-gray-600 hover:text-black'}`}
-                    onClick={() => setShowCompletedToday(prev => !prev)}
-                    aria-label={showCompletedToday ? 'Ocultar completadas' : 'Mostrar completadas'}
-                  >
-                    {showCompletedToday ? <EyeOff size={16} className={theme.isShiny ? 'text-white' : ''} /> : <Eye size={16} className={theme.isShiny ? 'text-white' : ''} />}
-                    <span className={theme.isShiny ? 'text-white' : ''}>{showCompletedToday ? 'Ocultar' : 'Ver'}</span>
-                  </button>
-                </div>
-
-                {/* Barra de progreso horizontal bajo el encabezado */}
-                {(() => {
-                  const total = pendingTodaysTasks.length + completedToday.length;
-                  const done = completedToday.length;
-                  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-                  return (
-                    <div className="mb-3">
-                      <div className="w-full h-[4px] bg-neutral-200 dark:bg-white/15 rounded-full overflow-hidden progress-track">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.6 }}
-                          className="h-full bg-black dark:!bg-white progress-fill"
-                        />
-                      </div>
-                      <div className={`mt-1 text-xs text-center ${theme.isShiny ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
-                        {done} de {total}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Completadas de hoy (toggle) */}
-                {completedToday.length > 0 && showCompletedToday && (
-                  <div className="mt-3">
-                    <p className="text-xs text-gray-500 mb-2">Hoy</p>
-                    {(() => {
-                      const sorted = completedToday.slice().sort(sortByCategoryThenTime);
-                      const total = sorted.length;
-                      return sorted.map((t, i) => renderSwipeRow(t, getRainbowColorBottomUp(i, total)));
-                    })()}
-                  </div>
-                )}
+        {/* Mostrar botón de ojo solo si hay tareas completadas */}
+        {(completedToday.length > 0 || completedBeforeToday.length > 0) && (
+          <div className="flex justify-start mb-4">
+            <button
+              onClick={() => setShowCompletedToday(!showCompletedToday)}
+              className="text-gray-600 hover:text-gray-800 transition-colors p-2 rounded-full hover:bg-gray-100"
+            >
+              {showCompletedToday ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        )}
+        {showCompletedToday && (
+          <div className="mt-2">
+            {completedToday.length > 0 && (
+              <div>
+                <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas hoy</h4>
+                {completedToday.map(t => renderSwipeRow(t))}
               </div>
             )}
-            
-            {/* Barra separadora blanca entre tareas y STEEB */}
-            <div className="mt-8 mb-4 mx-auto w-full max-w-md">
-              <div className="h-[2px] bg-white dark:bg-white rounded-full opacity-80" />
-            </div>
+            {completedBeforeToday.length > 0 && (
+              <div className="mt-2">
+                <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas antes</h4>
+                {completedBeforeToday.map(t => renderSwipeRow(t))}
+              </div>
+            )}
           </div>
-        </>
-      ) : (
-        <div className="pt-1 max-w-md mx-auto px-3">
-          <MonthlyCalendar
-            tasks={tasks}
-            onToggleTask={handleToggleTask}
-            onToggleSubtask={handleToggleSubtask}
-          />
-        </div>
+        )}
+      </div>
+
+      {/* Botón flotante para añadir tareas */}
+      <FloatingButtons onAddTask={() => {}} onCreateTask={handleAddTask} />
+      
+      {/* Modales */}
+      <ModalAddTask
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onAddTask={handleAddTask}
+        editingTask={selectedTask || undefined}
+      />
+
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedTask(null);
+        }}
+        onEdit={handleEditTask}
+      />
+
+      {/* Recordatorio diario para revisar tareas de ayer */}
+      {showReminder && yesterdayDate && (
+        <DailyTaskReminderModal
+          tasks={tasks}
+          yesterdayDate={yesterdayDate}
+          onClose={skipReminder}
+          onMarkComplete={markReminderShown}
+        />
       )}
 
-      {/* Floating Buttons */}
-      <FloatingButtons 
-        onAddTask={() => setShowModal(true)}
-        onCreateTask={handleAddTask}
-      />
-
-      {/* Premium badge removed */}
-
-      {/* Modal para Agregar/Editar Tarea */}
-      <AnimatePresence>
-        {showModal && (
-          <TaskCreationCard
-            onCancel={() => {
-              setShowModal(false);
-              setSelectedTask(null);
-            }}
-            onCreate={(title, type, subtasks, scheduledDate, scheduledTime, notes, isPrimary, recurrence) =>
-              handleAddTask(title, type as any, subtasks, scheduledDate, scheduledTime, notes, isPrimary, recurrence)
-            }
-            editingTask={selectedTask as any}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Modal de Configuración de Tareas Diarias */}
-      <DailyTasksConfig
-        isOpen={showConfigModal}
-        onClose={() => setShowConfigModal(false)}
-        onAddTask={handleAddTask}
-      />
-
-      {/* Modal de Detalles de Tarea */}
-      <AnimatePresence>
-        {showDetailModal && selectedTask && (
-          <TaskDetailModal
-            task={selectedTask}
-            isOpen={showDetailModal}
-            onClose={() => setShowDetailModal(false)}
-            onToggle={handleToggleTask}
-            onToggleSubtask={handleToggleSubtask}
-            onEdit={(task) => {
-              setShowDetailModal(false);
-              setShowModal(true);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* App Update Notification */}
-      <AppUpdateNotification
-        isServiceWorkerReady={isServiceWorkerReady}
-        triggerBackup={triggerBackup}
-        exportTasks={() => {
-          // Función placeholder para exportar tareas
-          console.log('Exportar tareas');
-        }}
-      />
-
-      {/* Modal de recordatorio diario */}
-      <DailyTaskReminderModal
-        open={showReminder}
-        onOpenChange={skipReminder}
-        tasks={tasks}
-        yesterdayDate={yesterdayDate}
-        onMarkCompleted={(taskIds, date) => {
-          taskIds.forEach(taskId => {
-            updateTask(taskId, { 
-              completed: true, 
-              completedDate: date 
-            });
-          });
-          markReminderShown();
-          toast({ title: `Marcaste ${taskIds.length} tareas como completadas ayer` });
-        }}
-      />
+      {/* Configuración de tareas diarias (solo cuando se inicia por primera vez) */}
+      {showConfigModal && (
+        <DailyTasksConfig
+          isOpen={true}
+          onClose={() => setShowConfigModal(false)}
+          onSave={(dailyTasks) => {
+            console.log('Configuración de tareas diarias guardada:', dailyTasks);
+            setShowConfigModal(false);
+          }}
+        />
+      )}
       </div>
     </div>
   );

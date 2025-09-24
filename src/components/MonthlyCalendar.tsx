@@ -629,8 +629,6 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                   className="text-center py-12"
                 >
                   <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-500 mb-2">No hay tareas para este día</h3>
-                  <p className="text-sm text-gray-400 mb-6">¡Perfecto momento para agregar una nueva tarea!</p>
                   <motion.button
                     onClick={handleAddTaskOnDate}
                     className="bg-black text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"

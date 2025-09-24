@@ -314,8 +314,9 @@ export const useTaskStore = create<TaskStore>()(
               }));
               
               // Guardar las tareas adicionales en Firebase
+              const userId = auth.currentUser?.uid;
               for (const monthlyTask of monthlyTasks) {
-                FirestoreTaskService.createTask(monthlyTask)
+                FirestoreTaskService.createTask(monthlyTask, userId)
                   .then(() => {
                     console.log('✅ Instancia mensual sincronizada:', monthlyTask.scheduledDate);
                   })
@@ -334,7 +335,8 @@ export const useTaskStore = create<TaskStore>()(
           console.log('💾 Tarea guardada localmente en texto');
           
           // 4. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
-          FirestoreTaskService.createTask(newTask)
+          const userId = auth.currentUser?.uid;
+          FirestoreTaskService.createTask(newTask, userId)
             .then(() => {
               console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
             })
@@ -455,8 +457,11 @@ export const useTaskStore = create<TaskStore>()(
             set({ isLoading: true, error: null });
             console.log('🗑️ Eliminando tarea:', taskToDelete.title);
             
-            // Eliminar de Firestore
-            await FirestoreTaskService.deleteTask(id);
+            // Obtener userId del usuario autenticado
+            const userId = auth.currentUser?.uid;
+            
+            // Eliminar de Firestore con verificación de userId
+            await FirestoreTaskService.deleteTask(id, userId);
             
             // Actualizar estado local
             set(state => ({
@@ -628,10 +633,13 @@ export const useTaskStore = create<TaskStore>()(
           try {
             set({ isLoading: true, error: null, syncStatus: 'syncing' });
             
-            console.log('📥 Cargando tareas desde Firestore');
+            // Obtener userId del usuario autenticado
+            const userId = auth.currentUser?.uid;
             
-            // Cargar desde Firestore
-            const tasks = await FirestoreTaskService.getTasks();
+            console.log('📥 Cargando tareas desde Firestore', userId ? `(userId=${userId})` : '(sin userId)');
+            
+            // Cargar desde Firestore solo las tareas del usuario
+            const tasks = await FirestoreTaskService.getTasks(userId);
             
             set({ 
               tasks: tasks || [],

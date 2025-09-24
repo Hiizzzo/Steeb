@@ -13,45 +13,50 @@ export const useServiceWorkerSync = () => {
 
   // Register and setup service worker
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      const registerSW = async () => {
-        try {
-          const registration = await navigator.serviceWorker.register('/service-worker.js');
-          console.log('✅ Service Worker registrado:', registration.scope);
-          setIsServiceWorkerReady(true);
+    if (!('serviceWorker' in navigator)) return;
 
-          // Listen for updates
-          registration.addEventListener('updatefound', () => {
-            console.log('🔄 Nueva versión de la app detectada');
-            const newWorker = registration.installing;
-            
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'activated') {
-                  console.log('🚀 Nueva versión activada');
-                  // Trigger backup before the new version takes over
-                  triggerBackup();
-                }
-              });
-            }
-          });
-
-          // Handle service worker updates
-          if (registration.waiting) {
-            console.log('🔄 Service Worker esperando activación');
-          }
-
-          if (registration.active) {
-            console.log('✅ Service Worker activo');
-          }
-
-        } catch (error) {
-          console.error('❌ Error al registrar Service Worker:', error);
+    const setupSW = async () => {
+      try {
+        // En desarrollo NO registramos ni usamos el SW desde este hook
+        // (registerServiceWorker.ts ya se encarga de desregistrarlo en dev)
+        if (import.meta.env.DEV) {
+          setIsServiceWorkerReady(false);
+          return;
         }
-      };
 
-      registerSW();
-    }
+        // En producción esperamos a que exista un registro listo
+        const registration = await navigator.serviceWorker.ready;
+        console.log('✅ Service Worker listo:', registration.scope);
+        setIsServiceWorkerReady(true);
+
+        // Escuchar nuevas versiones
+        registration.onupdatefound = () => {
+          console.log('🔄 Nueva versión de la app detectada');
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                console.log('🚀 Nueva versión activada');
+                // Lanzar backup antes de que la nueva versión tome control
+                triggerBackup();
+              }
+            });
+          }
+        };
+
+        if (registration.waiting) {
+          console.log('🔄 Service Worker esperando activación');
+        }
+
+        if (registration.active) {
+          console.log('✅ Service Worker activo');
+        }
+      } catch (error) {
+        console.error('❌ Error al inicializar Service Worker:', error);
+      }
+    };
+
+    setupSW();
   }, []);
 
   // Function to send backup request to service worker

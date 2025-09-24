@@ -742,7 +742,6 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
               isDark ? 'text-gray-400' : 'text-gray-600'
             }`}>
               <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-              <p>No hay tareas para este día</p>
               {onAddTask && (
                 <Button
                   onClick={() => onAddTask(selectedDate.toISOString().split('T')[0])}

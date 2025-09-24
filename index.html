@@ -37,16 +37,7 @@
     <link rel="icon" sizes="512x512" href="/lovable-uploads/te obesrvo.png" />
 
     <!-- Service Worker Registration (solo fuera de desarrollo) -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || /^192\.168\./.test(location.hostname);
-          if (!isLocalhost) {
-            navigator.serviceWorker.register('/service-worker.js');
-          }
-        });
-      }
-    </script>
+    
   </head>
 
   <body>

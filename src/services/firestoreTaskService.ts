@@ -36,19 +36,25 @@ export class FirestoreTaskService {
       const tasksRef = collection(db, TASKS_COLLECTION);
       let q = query(tasksRef, orderBy('createdAt', 'desc'));
       
-      // Si hay userId, filtrar por usuario
+      // Si hay userId, filtrar por usuario (sin orderBy para evitar índice compuesto requerido)
       if (userId) {
-        q = query(tasksRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+        q = query(tasksRef, where('userId', '==', userId));
       }
       
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
+      const items = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
         dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
       } as Task));
+      
+      // Ordenar en cliente si filtramos por usuario
+      if (userId) {
+        items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      }
+      return items;
     }, 'Obtener tareas');
   }
 
@@ -152,13 +158,26 @@ export class FirestoreTaskService {
   }
 
   /**
-   * Eliminar una tarea
-   */
-  static async deleteTask(taskId: string): Promise<void> {
+   * Eliminar una tarea   */
+  static async deleteTask(taskId: string, userId?: string): Promise<void> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
       
       const taskRef = doc(db, TASKS_COLLECTION, taskId);
+      
+      // Verificar que la tarea pertenece al usuario antes de eliminar
+      if (userId) {
+        const taskDoc = await getDoc(taskRef);
+        if (!taskDoc.exists()) {
+          throw new Error('Tarea no encontrada');
+        }
+        
+        const taskData = taskDoc.data();
+        if (taskData.userId !== userId) {
+          throw new Error('No tienes permisos para eliminar esta tarea');
+        }
+      }
+      
       await deleteDoc(taskRef);
     }, 'Eliminar tarea');
   }
@@ -206,19 +225,24 @@ export class FirestoreTaskService {
           tasksRef,
           where('userId', '==', userId),
           where('dueDate', '>=', Timestamp.fromDate(startOfDay)),
-          where('dueDate', '<=', Timestamp.fromDate(endOfDay)),
-          orderBy('dueDate', 'asc')
+          where('dueDate', '<=', Timestamp.fromDate(endOfDay))
         );
       }
       
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
+      const items = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
         dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
       } as Task));
+      
+      // Ordenar en cliente si filtramos por usuario
+      if (userId) {
+        items.sort((a, b) => new Date(a.dueDate || 0).getTime() - new Date(b.dueDate || 0).getTime());
+      }
+      return items;
     }, 'Obtener tareas por fecha');
   }
 
@@ -235,7 +259,8 @@ export class FirestoreTaskService {
     let q = query(tasksRef, orderBy('createdAt', 'desc'));
     
     if (userId) {
-      q = query(tasksRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+      // Evitar orderBy con where para no requerir índice compuesto
+      q = query(tasksRef, where('userId', '==', userId));
     }
     
     return onSnapshot(q, (snapshot) => {
@@ -247,8 +272,13 @@ export class FirestoreTaskService {
         dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
       } as Task));
       
-      console.log('📡 Actualizando tareas en tiempo real:', tasks.length);
-      callback(tasks);
+      // Ordenar en cliente si filtramos por usuario
+      const sortedTasks = userId
+        ? tasks.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        : tasks;
+      
+      console.log('📡 Actualizando tareas en tiempo real:', sortedTasks.length);
+      callback(sortedTasks);
     }, (error) => {
       // Manejar errores de conexión de manera más elegante
       if (error?.message?.includes('ERR_ABORTED') || 

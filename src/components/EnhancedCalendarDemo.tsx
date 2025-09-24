@@ -427,9 +427,7 @@ const EnhancedCalendarDemo: React.FC = () => {
                       <Calendar size={48} className={`mx-auto mb-4 opacity-50 ${
                         isDark ? 'text-gray-600' : 'text-gray-400'
                       }`} />
-                      <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        No hay tareas para este día
-                      </p>
+
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button
                           onClick={() => handleAddTask(selectedDate)}
