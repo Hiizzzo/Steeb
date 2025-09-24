@@ -241,7 +241,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {/* Tarjeta principal */}
       <div 
         ref={cardRef}
-        className={`border border-gray-200 dark:border-black rounded-lg p-4 transition-all duration-600 ease-out transform dark:hover:border-black ${
+        className={`border border-gray-200 dark:border-white rounded-lg p-4 transition-all duration-600 ease-out transform dark:hover:border-white ${
           completed ? 'opacity-40' : 'hover:border-black'
         } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''} ${
           isDeleting 

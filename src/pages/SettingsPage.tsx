@@ -134,15 +134,15 @@ const SettingsPage = () => {
             </div>
             
             <div className="grid grid-cols-1 gap-3">
-              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-gray-600'}`}>
+              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-white'}`}>
                 <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Nombre completo</div>
                 <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>{name || 'No configurado'}</div>
               </div>
-              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-gray-600'}`}>
+              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-white'}`}>
                 <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Apodo</div>
                 <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>{nickname || 'No configurado'}</div>
               </div>
-              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-gray-600'}`}>
+              <div className={`p-3 bg-white dark:bg-gray-800 rounded-lg border ${isShiny ? 'border-white' : 'border-gray-200 dark:border-white'}`}>
                 <div className={`${isShiny ? 'text-white/80' : 'text-xs text-gray-500 dark:text-gray-400'} mb-1`}>Cuenta vinculada</div>
                 <div className="flex items-center justify-between">
                   <div className={`font-medium ${isShiny ? 'text-white' : 'text-black dark:text-white'}`}>

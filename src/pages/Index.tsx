@@ -767,11 +767,11 @@ const Index = () => {
                const isSelected = d.iso === selectedDateISO;
                const isToday = d.iso === todayISO;
                const headerIsLight = theme.isShiny; // barra blanca en modo shiny
-               const baseColors = isSelected
-                 ? (headerIsLight ? 'bg-black text-white' : 'bg-white text-black')
-                 : (headerIsLight
-                     ? 'bg-white text-black border border-black/50 hover:bg-black/10'
-                     : 'bg-transparent text-white border border-white/50 hover:bg-white/10');
+               const baseColors = headerIsLight
+                 ? (isSelected
+                     ? 'bg-black text-white'
+                     : 'bg-white text-black border border-black/50 hover:bg-black/10')
+                 : 'bg-black text-white border border-white/50 hover:bg-black/70';
                const ring = isToday && !isSelected ? (headerIsLight ? 'ring-2 ring-black/40' : 'ring-2 ring-white/40') : '';
                return (
                  <button

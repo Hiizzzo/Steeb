@@ -56,12 +56,6 @@ function tryParseDate(input: string): Date | null {
     const [, y, m, d] = ymdSlash;
     return new Date(Number(y), Number(m) - 1, Number(d));
   }
-  // DD/MM/YYYY
-  const dmy = input.match(/^(\d{1,2})[\/](\d{1,2})[\/](\d{4})$/);
-  if (dmy) {
-    const [, d, m, y] = dmy;
-    return new Date(Number(y), Number(m) - 1, Number(d));
-  }
   // YYYY-MM-DD (ya manejado por Date en la mayoría, pero por si falla en algunos entornos)
   const ymdDash = input.match(/^(\d{4})[-](\d{1,2})[-](\d{1,2})$/);
   if (ymdDash) {
@@ -602,92 +596,74 @@ const MonthlyCalendarPage: React.FC = () => {
 
   // Se deshabilitan gestos de navegación hacia atrás. Solo el botón dedicado permite volver.
 
-  const renderCalendarDay = (day: CalendarDay, index: number) => (
-    <motion.div
-      key={day.dateString}
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        duration: ANIMATION_CONFIG.daySelection,
-        delay: index * 0.01,
-        ease: ANIMATION_CONFIG.easing as any
-      }}
-      className={`
-          relative h-14 sm:h-16 rounded-xl bg-white dark:bg-black
-          ${day.isToday ? 'ring-2 ring-black dark:ring-white' : ''}
-          ${day.isSelected ? 'outline outline-2 outline-black dark:outline-white' : ''}
-          cursor-pointer transition-colors duration-150 hover:bg-neutral-50 dark:hover:bg-white/5
-        `}
-      onClick={() => handleDateSelect(day.dateString)}
-      onMouseEnter={() => setHoveredDate(day.date)}
-      onMouseLeave={() => setHoveredDate(null)}
-    >
-      {/* Número del día */}
-      <div
-        className={`absolute top-1 left-1/2 -translate-x-1/2 text-[18px] sm:text-[20px] tabular-nums
-          ${isShiny ? 'text-black' : (day.isCurrentMonth ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 dark:text-white/60')}
-          ${day.isToday ? 'font-bold' : 'font-semibold'}`}
+  const renderCalendarDay = (day: CalendarDay, index: number) => {
+    return (
+      <motion.div
+        key={day.dateString}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          duration: ANIMATION_CONFIG.daySelection,
+          delay: index * 0.01,
+          ease: ANIMATION_CONFIG.easing as any
+        }}
+        className={`
+            relative h-12 sm:h-14 rounded-full cursor-pointer transition-all duration-150
+            bg-white text-black dark:bg-white dark:text-black
+            ${day.isSelected ? 'border-2 border-black dark:border-white' : 'border border-transparent'}
+            hover:shadow-sm
+          `}
+        onClick={() => handleDateSelect(day.dateString)}
+        onMouseEnter={() => setHoveredDate(day.date)}
+        onMouseLeave={() => setHoveredDate(null)}
       >
-        {day.day}
-      </div>
-
-      {/* Barra de progreso: pegada al número y solo si hay tareas completadas */}
-      {day.completedTasks > 0 && (
-        <div className={`absolute left-2 right-2 top-8 sm:top-10 h-1 rounded-full overflow-hidden 
-          ${day.isCurrentMonth ? 'bg-neutral-200 dark:bg-white/20' : 'bg-neutral-100 dark:bg-white/10'}`}
-        >
-          {(() => {
-            const ratio = day.completedTasks / Math.max(1, day.totalTasks);
-            let width = 0;
-            if (ratio >= 1) {
-              width = 100;
-            } else if (ratio >= 7 / 8) {
-              width = (7 / 8) * 100;
-            } else if (ratio >= 6 / 8) {
-              width = (6 / 8) * 100;
-            } else if (ratio >= 5 / 8) {
-              width = (5 / 8) * 100;
-            } else if (ratio >= 4 / 8) {
-              width = (4 / 8) * 100;
-            } else if (ratio >= 2 / 8) {
-              width = (2 / 8) * 100;
-            } else if (ratio >= 1 / 8) {
-              width = (1 / 8) * 100;
-            } else {
-              width = 0;
-            }
-            return (
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${width}%` }}
-                transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
-                className={`h-full rounded-full bg-black dark:!bg-white`}
-              />
-            );
-          })()}
+        {/* Número del día */}
+        <div className={`absolute inset-0 flex items-center justify-center text-[14px] sm:text-[16px] font-semibold transition-colors text-black dark:text-black ${day.isCurrentMonth ? '' : 'opacity-60'}`}>
+          {day.day}
         </div>
-      )}
-
-      {/* Hover sutil */}
-      <AnimatePresence>
-        {hoveredDate?.toDateString() === day.date.toDateString() && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.06 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 rounded-xl bg-neutral-800"
-          />
+  
+        {/* Barra de progreso: pegada al número y solo si hay tareas completadas */}
+        {day.completedTasks > 0 && (
+          <div className={`absolute left-2 right-2 top-8 sm:top-10 h-1 rounded-full overflow-hidden 
+            ${day.isCurrentMonth ? 'bg-neutral-200 dark:bg-white/20' : 'bg-neutral-100 dark:bg-white/10'}`}
+          >
+            {(() => {
+              const ratio = Math.min(1, day.totalTasks > 0 ? day.completedTasks / day.totalTasks : 0);
+              const width = `${Math.round(ratio * 100)}%`;
+              return (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width }}
+                  transition={{ duration: ANIMATION_CONFIG.taskIndicator, ease: ANIMATION_CONFIG.easing as any }}
+                  className="h-full rounded-full bg-black dark:!bg-white"
+                />
+              );
+            })()}
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
-  );
+  
+        {/* Hover sutil */}
+        <AnimatePresence>
+          {hoveredDate?.toDateString() === day.date.toDateString() && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.06 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 rounded-xl bg-neutral-800"
+            />
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  };
 
-  return (<div
-      className="min-h-screen bg-white dark:bg-black p-2 pt-1"
-      style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}
-    >
+  return (
+      <div
+        className="min-h-screen bg-white dark:bg-black p-2 pt-1"
+        style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}
+      >
       {/* Header con navegación */}
-      <div className="max-w-[430px] mx-auto relative">
+      <div className="max-w-[400px] mx-auto relative">
         {/* Header: Avatar a la izquierda y globo de consejo a la derecha */}
         <div className="flex items-start mt-6 mb-2 gap-3">
           <div className="shrink-0">
@@ -698,7 +674,7 @@ const MonthlyCalendarPage: React.FC = () => {
             />
           </div>
           <motion.div 
-            className="relative flex-1 max-w-[calc(100%-110px)] bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2 mr-4 mt-2 text-sm leading-snug text-black dark:text-white shadow-sm shiny-steeb-dialog"
+            className="relative flex-1 max-w-[calc(100%-110px)] bg-white dark:bg-black border border-white dark:border-white rounded-2xl px-3 py-2 mr-4 mt-2 text-sm leading-snug text-black dark:text-white shadow-sm shiny-steeb-dialog"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -748,10 +724,8 @@ const MonthlyCalendarPage: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className={`text-2xl font-bold ${
-                  isShiny ? 'text-black' : 'text-black dark:text-white'
-                }`}
-              >
+                className={`text-2xl font-bold text-black dark:text-black`}
+               >
                 {capitalize(currentDate.toLocaleDateString('es-ES', { 
                   month: 'long', 
                   year: 'numeric' 
@@ -764,7 +738,7 @@ const MonthlyCalendarPage: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.2 }}
-                  className="mt-2 px-3 py-1.5 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg max-w-xs"
+                  className="mt-2 px-3 py-1.5 bg-white dark:bg-black border border-white dark:border-white rounded-lg max-w-xs"
                 >
                   <div className="flex items-center space-x-2">
                     <Trophy className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
@@ -788,17 +762,27 @@ const MonthlyCalendarPage: React.FC = () => {
 
           {/* Días de la semana (LUN-DOM) */}
           <div className="grid grid-cols-7 gap-[6px] mb-2">
-            {['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'].map((day, index) => (
-              <motion.div
-                key={day}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="text-center text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 py-1"
-              >
-                {day}
-              </motion.div>
-            ))}
+            {['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'].map((day, index) => {
+              const today = new Date();
+              const currentDayIndex = (today.getDay() + 6) % 7; // Convertir domingo=0 a lunes=0
+              const isToday = index === currentDayIndex;
+              
+              return (
+                <motion.div
+                  key={day}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`text-center text-xs sm:text-sm font-semibold py-2 rounded-full transition-all duration-200 ${
+                    isToday 
+                      ? 'text-black bg-gray-200 dark:bg-white dark:text-black scale-110 shadow-lg' 
+                      : 'text-black bg-gray-100 dark:text-gray-300 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {day}
+                </motion.div>
+              );
+            })}
           </div>
 
           {/* Días del calendario */}

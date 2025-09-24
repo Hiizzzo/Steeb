@@ -361,7 +361,7 @@ const CompletedTasksCalendar: React.FC<CompletedTasksCalendarProps> = ({ tasks }
                 aspect-square p-1 text-center relative rounded-lg transition-all duration-200 border
                 ${day.isCurrentMonth ? 'opacity-100' : 'opacity-40'}
                 ${day.isToday ? 'ring-2 ring-white' : ''}
-                ${selectedDate === day.date ? 'ring-2 ring-gray-500' : ''}
+                ${selectedDate === day.date ? 'ring-2 ring-white' : ''}
                 ${day.completionCount > 0 ? 'cursor-pointer hover:scale-105' : 'cursor-default'}
                 ${day.intensityClass}
                 touch-manipulation select-none

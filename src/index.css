@@ -290,7 +290,17 @@
   /* Dark mode overrides for common utility classes without changing component code */
   .dark .bg-white:not(.task-checkbox-button):not(.task-creation-modal):not(.task-creation-modal *) { @apply bg-black; }
   .dark .text-black:not(.task-creation-modal):not(.task-creation-modal *) { @apply text-white; }
-  .dark .border-gray-200 { @apply border-gray-700; }
+  /* Dark mode: force all gray borders to pure white */
+  .dark .border-gray-50,
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-gray-300,
+  .dark .border-gray-400,
+  .dark .border-gray-500,
+  .dark .border-gray-600,
+  .dark .border-gray-700,
+  .dark .border-gray-800,
+  .dark .border-gray-900 { border-color: #FFFFFF !important; }
   .dark .text-gray-900 { @apply text-gray-100; }
   .dark .text-gray-800 { @apply text-gray-200; }
   .dark .text-gray-700 { @apply text-gray-300; }
@@ -2126,12 +2136,31 @@
 /* Calendar inner texts in Shiny: ensure white text, black bg, no grays */
 .shiny .shiny-calendar-card .text-black { color: #fff !important; }
 .shiny .shiny-calendar-card .hover\:bg-gray-100 { background: transparent !important; }
-.shiny .shiny-calendar-card .text-gray-400, 
-.shiny .shiny-calendar-card .text-gray-500, 
+.shiny .shiny-calendar-card .text-gray-400,
+.shiny .shiny-calendar-card .text-gray-500,
 .shiny .shiny-calendar-card .text-gray-600 { color: #fff !important; opacity: 0.8; }
+.shiny .shiny-calendar-card .text-gray-700 { color: #fff !important; }
+.shiny .shiny-calendar-card .dark\:text-gray-300 { color: #fff !important; }
+.shiny .shiny-calendar-card .bg-gray-100 { background-color: #333 !important; }
+.shiny .shiny-calendar-card .bg-gray-800 { background-color: #fff !important; }
+.shiny .shiny-calendar-card .dark\:bg-gray-700 { background-color: #444 !important; }
+.shiny .shiny-calendar-card .dark\:bg-white { background-color: #000 !important; }
+/* Shiny overrides aligned with white borders in dark mode */
+  .shiny .shiny-calendar-card .border-gray-300 { border-color: #FFFFFF !important; }
+  .shiny .shiny-calendar-card .border-gray-600 { border-color: #FFFFFF !important; }
+  .shiny .shiny-calendar-card .dark\:border-gray-600 { border-color: #FFFFFF !important; }
+  .shiny .shiny-calendar-card .dark\:border-gray-300 { border-color: #FFFFFF !important; }
 .shiny .shiny-calendar-card .ring-black { --tw-ring-color: #fff !important; }
 .shiny .shiny-calendar-card .bg-black { background-color: #000 !important; }
 .shiny .shiny-calendar-card .text-white { color: #fff !important; }
+
+/* Forzar círculos negros con texto blanco en todos los modos */
+.shiny-calendar-card .bg-black { background-color: #000 !important; }
+.shiny-calendar-card .dark\:bg-black { background-color: #000 !important; }
+.shiny-calendar-card .text-white { color: #fff !important; }
+.shiny-calendar-card .dark\:text-white { color: #fff !important; }
+.shiny-calendar-card .border-black { border-color: #000 !important; }
+.shiny-calendar-card .dark\:border-black { border-color: #000 !important; }
 
 /* Hide any decorative divider under the header in Shiny */
 .shiny .tareas-header .shiny-divider-bottom {

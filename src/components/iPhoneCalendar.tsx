@@ -378,7 +378,7 @@ const IPhoneCalendar: React.FC<iPhoneCalendarProps> = ({
                 : (isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50')
               }
               ${calendarDay.isSelected 
-                ? (isDark ? 'ring-2 ring-gray-400' : 'ring-2 ring-blue-500') 
+                ? (isDark ? 'ring-2 ring-white' : 'ring-2 ring-blue-500') 
                 : ''
               }
               ${hoveredDate?.toDateString() === calendarDay.date.toDateString() 
