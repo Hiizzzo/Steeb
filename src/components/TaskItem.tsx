@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Timer, CheckCircle, Circle, Code, Book, Dumbbell, Coffee, Target, Star, Zap, Trophy, Trash2, FileText } from 'lucide-react';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 export interface Task {
   id: string;
@@ -94,6 +95,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const currentX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
+  const { triggerVibration, playTaskCompleteSound } = useSoundEffects();
 
   // Track Shiny theme to render special checkbox visuals only in Shiny
   const [isShiny, setIsShiny] = useState<boolean>(() =>
@@ -110,10 +112,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
   // Función para manejar la vibración y animación de destello
   const triggerCompletionEffects = () => {
-    // Vibración del dispositivo
-    if (navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]); // Patrón de vibración: vibra-pausa-vibra
-    }
+    // Usar el hook de sonidos y vibración
+    triggerVibration();
+    playTaskCompleteSound();
     
     // Animación de destello
     setIsFlashing(true);

@@ -54,6 +54,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   
   // const { playTaskDeleteSound } = useSoundEffects(); // Ya no se usa
   const { isDark, isShiny } = useTheme();
+  const { triggerVibration, playTaskCompleteSound } = useSoundEffects();
   const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000');
 
   const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
@@ -109,6 +110,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleCheckboxToggle = () => {
+    if (!completed) {
+      triggerVibration();
+      playTaskCompleteSound();
+    }
     onToggle(id);
   };
 
