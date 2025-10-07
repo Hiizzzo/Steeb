@@ -448,37 +448,44 @@ export const useTaskStore = create<TaskStore>()(
         },
 
         deleteTask: async (id) => {
+          const taskToDelete = get().tasks.find(task => task.id === id);
+          if (!taskToDelete) {
+            console.warn('Task not found when trying to delete:', id);
+            return;
+          }
+
+          console.log('Deleting task (optimistic):', taskToDelete.title);
+
+          set(state => ({
+            tasks: state.tasks.filter(task => task.id !== id),
+            selectedTaskIds: state.selectedTaskIds.filter(taskId => taskId !== id),
+            error: null
+          }));
+
+          get().calculateStats();
+
           try {
-            const taskToDelete = get().tasks.find(task => task.id === id);
-            if (!taskToDelete) {
-              throw new Error('Task not found');
-            }
-            
-            set({ isLoading: true, error: null });
-            console.log('🗑️ Eliminando tarea:', taskToDelete.title);
-            
-            // Obtener userId del usuario autenticado
-            const userId = auth.currentUser?.uid;
-            
-            // Eliminar de Firestore con verificación de userId
+            const snapshot = get().tasks;
+            localStorageService.saveTasks(snapshot);
+          } catch (storageError) {
+            console.warn('Could not persist tasks locally after delete:', storageError);
+          }
+
+          const userId = auth.currentUser?.uid;
+
+          try {
             await FirestoreTaskService.deleteTask(id, userId);
-            
-            // Actualizar estado local
-            set(state => ({
-              tasks: state.tasks.filter(task => task.id !== id),
-              selectedTaskIds: state.selectedTaskIds.filter(taskId => taskId !== id),
-              isLoading: false,
-              error: null
-            }));
-            
-            get().calculateStats();
-            console.log('✅ Tarea eliminada exitosamente de Firestore');
+            console.log('Task deleted from Firestore');
           } catch (error) {
-            console.error('❌ Error al eliminar tarea:', error);
-            set({ 
-              isLoading: false,
-              error: error instanceof Error ? error.message : 'Error al eliminar la tarea'
-            });
+            console.error('Error deleting task from Firestore:', error);
+            set(state => ({
+              error: error instanceof Error ? error.message : 'Error al eliminar la tarea',
+              syncStatus: {
+                ...state.syncStatus,
+                hasError: true,
+                pendingChanges: (state.syncStatus?.pendingChanges ?? 0) + 1
+              }
+            }));
           }
         },
 

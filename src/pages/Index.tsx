@@ -128,12 +128,19 @@ const Index = () => {
     if (offset > SWIPE_THRESHOLD) {
       // Activar animación de eliminación
       setIsDeleting(prev => ({ ...prev, [id]: true }));
-      
-      // Sin sonido al eliminar - solo animación
-      
+
       // Eliminar después de la animación (300ms)
       setTimeout(() => {
         handleDeleteTask(id);
+
+        // Limpiar el estado local del swipe para esta fila
+        setRowOffsetById(prev => {
+          if (!(id in prev)) return prev;
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+
         setIsDeleting(prev => ({ ...prev, [id]: false }));
       }, 300);
     } else {
