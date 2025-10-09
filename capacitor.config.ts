@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.steeb.app',
+  appId: 'com.santyy.steeb',
   appName: 'steve-the-taskmaster',
   webDir: 'dist',
   plugins: {

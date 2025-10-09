@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.steeb.app"
+    namespace "com.santyy.steeb"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.steeb.app"
+        applicationId "com.santyy.steeb"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 4          // <-- le subís +1
@@ -53,7 +53,7 @@ try {
 android {
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.steeb.app"
+        applicationId = "com.santyy.steeb"
         minSdk = 24
         targetSdk = 35
         versionCode = 5

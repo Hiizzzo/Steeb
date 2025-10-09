@@ -1,4 +1,4 @@
-package com.steeb.app;
+package com.santyy.steeb;
 
 import com.getcapacitor.BridgeActivity;
 
