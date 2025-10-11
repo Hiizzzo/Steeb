@@ -14,8 +14,7 @@
         "npm_config_audit": "false"
       },
       "ios": {
-        "simulator": true,
-        "bundleIdentifier": "com.santyy.steeb"
+        "simulator": true
       }
     },
     "preview": {
@@ -27,8 +26,7 @@
         "npm_config_audit": "false"
       },
       "ios": {
-        "simulator": false,
-        "bundleIdentifier": "com.santyy.steeb"
+        "simulator": false
       }
     },
     "production": {
@@ -43,7 +41,6 @@
       },
       "ios": {
         "simulator": false,
-        "bundleIdentifier": "com.santyy.steeb",
         "buildConfiguration": "Release"
       }
     }

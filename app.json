@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "STEEB - Task Manager",
-    "slug": "steeb",
+    "slug": "steeb_ai_gemini_ollama",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./public/icon-512.png",
