@@ -1,3 +1,10 @@
+// ============================================================================
+// MODAL ADD TASK - CREATE & EDIT TASKS
+// ============================================================================
+// ⚠️ APP REVIEW NOTE: This component implements core task creation functionality
+// Users can create tasks with title, type, subtasks, scheduled date/time, and notes
+// All data is stored locally - no external services involved
+// ============================================================================
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

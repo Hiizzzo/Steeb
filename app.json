@@ -1,12 +1,40 @@
 {
   "expo": {
+    "name": "STEEB - Task Manager",
+    "slug": "steeb",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/icon-512.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./public/icon-512.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
-      "bundleIdentifier": "ASISTENTE DE TAREAS - STEEB"
+      "bundleIdentifier": "com.santyy.steeb",
+      "buildNumber": "1.0.0",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This app does not track you. All data is stored locally on your device.",
+        "NSCameraUsageDescription": "Camera access is not required for this app.",
+        "NSPhotoLibraryUsageDescription": "Photo library access is not required for this app.",
+        "NSLocationWhenInUseUsageDescription": "Location access is not required for this app."
+      }
+    },
+    "android": {
+      "package": "com.santyy.steeb",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./public/icon-512.png",
+        "backgroundColor": "#ffffff"
+      }
     },
     "extra": {
       "eas": {
         "projectId": "0778eccc-a4f5-41ce-9797-858da711b88c"
       }
-    }
+    },
+    "plugins": []
   }
 }

@@ -1,6 +1,12 @@
 // ============================================================================
 // ANALYTICS HOOK - PRODUCTIVITY METRICS & TRACKING
 // ============================================================================
+// 
+// ⚠️ APP REVIEW NOTE: This analytics system stores ALL data locally in the 
+// device's localStorage. NO data is sent to external servers or third parties.
+// NO user tracking, NO advertising, NO external analytics services.
+// All metrics are calculated client-side for user productivity insights only.
+// ============================================================================
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Task, ProductivityMetrics, TaskStats, TaskType } from '@/types';

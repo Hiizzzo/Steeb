@@ -1,0 +1,10 @@
+{
+  "servers": [
+    {
+      "name": "steeb-local-mcp",
+      "url": "http://localhost:3001",
+      "authentication": "none",
+      "allowLocalContextAccess": true
+    }
+  ]
+}

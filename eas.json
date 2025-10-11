@@ -1,21 +1,60 @@
 {
   "cli": {
-    "version": ">= 16.19.3",
+    "version": ">= 12.6.0",
     "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "CI": "1",
+        "HUSKY": "0",
+        "npm_config_fund": "false",
+        "npm_config_audit": "false"
+      },
+      "ios": {
+        "simulator": true,
+        "bundleIdentifier": "com.santyy.steeb"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "CI": "1",
+        "HUSKY": "0",
+        "npm_config_fund": "false",
+        "npm_config_audit": "false"
+      },
+      "ios": {
+        "simulator": false,
+        "bundleIdentifier": "com.santyy.steeb"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "CI": "1",
+        "HUSKY": "0",
+        "EXPO_NO_TELEMETRY": "1",
+        "npm_config_fund": "false",
+        "npm_config_audit": "false",
+        "SKIP_NATIVE_POSTINSTALL": "1"
+      },
+      "ios": {
+        "simulator": false,
+        "bundleIdentifier": "com.santyy.steeb",
+        "buildConfiguration": "Release"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "tu-apple-id@email.com",
+        "ascAppId": "tu-app-id-de-app-store-connect",
+        "appleTeamId": "tu-team-id"
+      }
+    }
   }
 }

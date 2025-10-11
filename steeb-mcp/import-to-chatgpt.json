@@ -1,0 +1,173 @@
+{
+  "schema_version": "1.0",
+  "integration_type": "mcp_server",
+  "name": "STEBE Productivity App",
+  "description": "Servidor MCP local para acceder al código y contexto de la aplicación STEBE",
+  "icon": "🚀",
+  "server": {
+    "url": "http://localhost:3001",
+    "protocol": "http",
+    "port": 3001,
+    "host": "localhost"
+  },
+  "authentication": {
+    "type": "none",
+    "required": false
+  },
+  "trust": {
+    "level": "trusted",
+    "reason": "Servidor local read-only que solo lee archivos del proyecto",
+    "permissions": [
+      "read_files",
+      "list_directories", 
+      "search_code",
+      "analyze_components"
+    ]
+  },
+  "capabilities": {
+    "resources": {
+      "enabled": true,
+      "endpoints": [
+        {
+          "uri": "stebe://app/architecture",
+          "name": "Arquitectura de la App",
+          "description": "Estructura y stack tecnológico de STEBE"
+        },
+        {
+          "uri": "stebe://app/components",
+          "name": "Componentes React",
+          "description": "Lista de todos los componentes de la aplicación"
+        },
+        {
+          "uri": "stebe://app/stores",
+          "name": "Zustand Stores",
+          "description": "Estado global de la aplicación"
+        },
+        {
+          "uri": "stebe://app/services",
+          "name": "Servicios",
+          "description": "Servicios de Firebase y API"
+        },
+        {
+          "uri": "stebe://app/types",
+          "name": "TypeScript Types",
+          "description": "Definiciones de tipos"
+        },
+        {
+          "uri": "stebe://docs/all",
+          "name": "Documentación",
+          "description": "Toda la documentación del proyecto"
+        }
+      ]
+    },
+    "tools": {
+      "enabled": true,
+      "available": [
+        {
+          "name": "read_file",
+          "description": "Lee el contenido de cualquier archivo del proyecto",
+          "parameters": {
+            "path": "Ruta relativa del archivo (ej: src/components/TaskList.tsx)"
+          }
+        },
+        {
+          "name": "list_directory",
+          "description": "Lista archivos y carpetas en un directorio",
+          "parameters": {
+            "path": "Ruta del directorio (ej: src/components)"
+          }
+        },
+        {
+          "name": "search_code",
+          "description": "Busca texto o patrones en el código",
+          "parameters": {
+            "query": "Texto a buscar",
+            "filePattern": "Patrón de archivos (ej: *.tsx, *.ts)"
+          }
+        },
+        {
+          "name": "get_component_info",
+          "description": "Obtiene información detallada de un componente React",
+          "parameters": {
+            "componentName": "Nombre del componente (ej: TaskList)"
+          }
+        },
+        {
+          "name": "analyze_issue",
+          "description": "Analiza un problema o error en la aplicación",
+          "parameters": {
+            "description": "Descripción del problema",
+            "context": "Contexto adicional (componente, archivo, etc.)"
+          }
+        }
+      ]
+    },
+    "prompts": {
+      "enabled": true,
+      "available": [
+        {
+          "name": "debug_component",
+          "description": "Ayuda a debuggear un componente específico",
+          "example": "Debug el componente TaskCard que no muestra fechas"
+        },
+        {
+          "name": "suggest_improvement",
+          "description": "Sugiere mejoras para una funcionalidad",
+          "example": "Sugiere mejoras para el sistema de calendario"
+        },
+        {
+          "name": "explain_code",
+          "description": "Explica cómo funciona una parte del código",
+          "example": "Explica cómo funciona la autenticación con Firebase"
+        }
+      ]
+    }
+  },
+  "health_check": {
+    "endpoint": "/health",
+    "url": "http://localhost:3001/health",
+    "expected_status": 200
+  },
+  "documentation": {
+    "quick_start": "INICIO_RAPIDO_MCP.md",
+    "full_guide": "GUIA_CONECTAR_CHATGPT_STEBE.md",
+    "technical_docs": "steeb-mcp/README.md"
+  },
+  "setup_instructions": [
+    "1. Abre una terminal en la carpeta steeb-mcp",
+    "2. Ejecuta: npm install (solo la primera vez)",
+    "3. Ejecuta: npm start",
+    "4. Verifica que funcione: http://localhost:3001/health",
+    "5. En ChatGPT: Settings → Integrations → Add MCP Server",
+    "6. URL: http://localhost:3001",
+    "7. Marca 'I trust this application'",
+    "8. ¡Listo! Empieza a chatear con contexto completo de STEBE"
+  ],
+  "example_prompts": [
+    "¿Qué componentes tiene mi app STEBE?",
+    "Muéstrame el código del componente TaskList",
+    "Busca dónde se usa Firebase en el proyecto",
+    "Explícame la arquitectura de STEBE",
+    "Analiza por qué las tareas no se guardan",
+    "¿Cómo puedo optimizar el rendimiento del calendario?",
+    "Genera tests para el componente AddTaskForm",
+    "Ayúdame a refactorizar el componente Calendar"
+  ],
+  "metadata": {
+    "version": "2.0.0",
+    "author": "STEBE Team",
+    "created": "2025-01-10",
+    "last_updated": "2025-01-10",
+    "license": "MIT",
+    "repository": "local",
+    "tags": [
+      "productivity",
+      "task-management",
+      "calendar",
+      "react",
+      "typescript",
+      "firebase",
+      "ai-integration"
+    ]
+  }
+}

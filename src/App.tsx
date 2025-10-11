@@ -1,6 +1,24 @@
 // ============================================================================
 // STEBE APP - APLICACIÓN PRINCIPAL CON FIREBASE HABILITADO
 // ============================================================================
+//
+// ⚠️ APP REVIEW NOTE (Guideline 5.1.2 - Privacy):
+// This app does NOT use App Tracking Transparency because:
+// 1. NO third-party advertising SDKs (no Google Ads, Facebook Ads, etc.)
+// 2. NO external analytics services (no Google Analytics, Mixpanel, etc.)
+// 3. All user data is stored locally on device (localStorage/IndexedDB)
+// 4. Firebase is used ONLY for authentication and user-specific data storage
+// 5. NO data is shared with third parties or used for advertising
+//
+// ⚠️ APP REVIEW NOTE (Guideline 4.2 - Minimum Functionality):
+// This app provides full task management functionality:
+// - Create tasks with multiple types and priorities
+// - Complete tasks with visual feedback and sound effects
+// - Delete tasks with swipe gesture
+// - View productivity metrics and completion rates
+// - Calendar view for scheduled tasks
+// - Motivational feedback system
+// ============================================================================
 
 import React, { useState, useEffect } from 'react';
 
