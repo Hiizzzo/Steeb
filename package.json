@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "yarn@1.22.22",
   "engines": {
-    "node": ">=18.18.0 <=20.x",
+    "node": ">=18.18.0 <=22.x",
     "npm": ">=9.0.0"
   },
   "scripts": {
