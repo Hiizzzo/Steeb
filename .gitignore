@@ -27,3 +27,5 @@ dist-ssr
 # iOS Firebase config (keep local, do not commit)
 GoogleService-Info.plist
 ios-config/
+package-lock.json
+yarn-error.log

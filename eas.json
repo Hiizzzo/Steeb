@@ -1,57 +1,29 @@
 {
-  "cli": {
-    "version": ">= 12.6.0",
-    "appVersionSource": "remote"
+  "cli": { 
+    "version": ">= 11.0.0", 
+    "appVersionSource": "local" 
   },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "env": {
-        "CI": "1",
-        "HUSKY": "0",
-        "npm_config_fund": "false",
-        "npm_config_audit": "false"
-      },
-      "ios": {
-        "simulator": true
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "env": {
-        "CI": "1",
-        "HUSKY": "0",
-        "npm_config_fund": "false",
-        "npm_config_audit": "false"
-      },
-      "ios": {
-        "simulator": false
-      }
-    },
     "production": {
+      "developmentClient": false,
+      "distribution": "store",
       "autoIncrement": true,
-      "env": {
-        "CI": "1",
-        "HUSKY": "0",
-        "EXPO_NO_TELEMETRY": "1",
-        "npm_config_fund": "false",
-        "npm_config_audit": "false",
-        "SKIP_NATIVE_POSTINSTALL": "1"
+      "ios": { 
+        "resourceClass": "m-medium",
+        "node": "20.11.1"
       },
-      "ios": {
-        "simulator": false,
-        "buildConfiguration": "Release"
+      "env": { 
+        "NODE_VERSION": "20.11.1", 
+        "EXPO_USE_YARN": "true",
+        "YARN_ENABLE_IMMUTABLE_INSTALLS": "false"
       }
     }
   },
-  "submit": {
-    "production": {
-      "ios": {
-        "appleId": "tu-apple-id@email.com",
-        "ascAppId": "tu-app-id-de-app-store-connect",
-        "appleTeamId": "tu-team-id"
-      }
-    }
+  "submit": { 
+    "production": { 
+      "ios": { 
+        "ascAppId": "6752629210" 
+      } 
+    } 
   }
 }

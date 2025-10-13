@@ -2,7 +2,7 @@
   "expo": {
     "name": "STEEB - Task Manager",
     "slug": "steeb_ai_gemini_ollama",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./public/icon-512.png",
     "userInterfaceStyle": "automatic",
@@ -13,8 +13,9 @@
     },
     "ios": {
       "bundleIdentifier": "com.santyy.steeb",
-      "buildNumber": "1.0.0",
+      "buildNumber": "2",
       "supportsTablet": true,
+      "newArchEnabled": false,
       "infoPlist": {
         "NSUserTrackingUsageDescription": "This app does NOT track users. No data is collected for advertising or tracking purposes. All data is stored locally on your device only.",
         "NSCameraUsageDescription": "Camera access is not required for this app.",

@@ -3,7 +3,7 @@
   "private": true,
   "version": "8.5.0",
   "type": "module",
-  "packageManager": "npm@10.7.0",
+  "packageManager": "yarn@1.22.22",
   "engines": {
     "node": ">=18.18.0 <=20.x",
     "npm": ">=9.0.0"
