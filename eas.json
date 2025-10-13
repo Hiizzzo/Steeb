@@ -8,12 +8,13 @@
       "developmentClient": false,
       "distribution": "store",
       "autoIncrement": true,
-      "ios": { 
+      "ios": {
         "resourceClass": "m-medium",
-        "node": "20.11.1"
+        "node": "20.11.1",
+        "buildConfiguration": "Release"
       },
-      "env": { 
-        "NODE_VERSION": "20.11.1", 
+      "env": {
+        "NODE_VERSION": "20.11.1",
         "EXPO_USE_YARN": "true",
         "YARN_ENABLE_IMMUTABLE_INSTALLS": "false"
       }
