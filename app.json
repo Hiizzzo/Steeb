@@ -46,8 +46,6 @@
         "projectId": "0778eccc-a4f5-41ce-9797-858da711b88c"
       }
     },
-    "plugins": [
-      "@capacitor/core"
-    ]
+    "plugins": []
   }
 }
