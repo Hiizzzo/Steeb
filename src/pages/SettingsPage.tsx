@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings, Globe, Bell, User, LogOut } from 'lucide-react';
+import { ArrowLeft, Settings, Globe, Bell, User, LogOut, Info } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/useTheme';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -189,6 +189,35 @@ const SettingsPage = () => {
             </button>
           </div>
         </div>
+      </motion.div>
+
+      {/* Acerca de */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
+        className="mb-8"
+      >
+        <button
+          onClick={() => navigate('/about')}
+          className={`w-full p-4 rounded-lg border transition-all hover:shadow-md ${
+            isShiny
+              ? 'bg-white/10 border-white/20 hover:bg-white/20'
+              : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Info className={`w-5 h-5 ${isShiny ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`} />
+            <div className="flex-1 text-left">
+              <div className={`font-medium ${isShiny ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                Acerca de STEEB
+              </div>
+              <div className={`text-sm ${isShiny ? 'text-white/60' : 'text-gray-500 dark:text-gray-500'}`}>
+                Información de la app y política de privacidad
+              </div>
+            </div>
+          </div>
+        </button>
       </motion.div>
 
       {/* Fin: configuraciones */}

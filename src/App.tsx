@@ -29,6 +29,7 @@ import { motion } from 'framer-motion';
 import Index from "./pages/Index";
 import MonthlyCalendarPage from "./pages/MonthlyCalendarPage";
 import SettingsPage from "./pages/SettingsPage";
+import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import ProductivityStatsPage from "./pages/ProductivityStatsPage";
@@ -89,6 +90,7 @@ const AppContent = () => {
         <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
         <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
