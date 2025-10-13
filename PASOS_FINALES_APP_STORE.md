@@ -26,9 +26,20 @@ He resuelto AMBOS problemas del rechazo de Apple:
   ```
 
 ### 2. Construir y Subir la App
+
+**Opción A: Script Automático (Recomendado)**
 ```bash
-# 1. Instalar dependencias
-npm install
+# Para Windows
+.\build-ios-fixed.ps1
+
+# Para Mac/Linux
+./build-ios-fixed.sh
+```
+
+**Opción B: Manual**
+```bash
+# 1. Instalar dependencias (ignorando versión de Node)
+npm install --ignore-engines
 
 # 2. Construir para producción
 npm run build
@@ -39,6 +50,11 @@ npx cap sync ios
 # 4. Abrir Xcode
 npx cap open ios
 ```
+
+**Si hay errores de Node.js:**
+- El proyecto requiere Node 18-20 pero tienes Node 22
+- Usa `--ignore-engines` para evitar el error
+- O usa Node Version Manager: `nvm use 20`
 
 ### 3. En Xcode
 - [ ] **Verificar que no hay errores de compilación**
