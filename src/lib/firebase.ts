@@ -10,7 +10,8 @@ const fallbackCfg = {
   storageBucket: 'steeb-b3489.firebasestorage.app',
   messagingSenderId: '293062715609',
   appId: '1:293062715609:web:25e679164f01e6f10b36c8',
-  measurementId: 'G-FH663ZE04Y',
+  // Analytics desactivado para cumplir con App Store Connect
+  // measurementId: 'G-FH663ZE04Y',
 };
 
 const cfg = {
@@ -20,7 +21,8 @@ const cfg = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || fallbackCfg.storageBucket,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || fallbackCfg.messagingSenderId,
   appId: import.meta.env.VITE_FIREBASE_APP_ID || fallbackCfg.appId,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || fallbackCfg.measurementId,
+  // Analytics desactivado para cumplir con App Store Connect
+  // measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || fallbackCfg.measurementId,
 };
 
 // FIREBASE ENABLED FOR PRODUCTION

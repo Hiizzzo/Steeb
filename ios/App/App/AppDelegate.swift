@@ -8,6 +8,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        // Configurar la ventana principal para Capacitor
+        self.window = UIWindow(frame: UIScreen.main.bounds)
+
+        // Crear el main storyboard y cargar el initial view controller
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let viewController = storyboard.instantiateInitialViewController()
+
+        self.window?.rootViewController = viewController
+        self.window?.makeKeyAndVisible()
+
         return true
     }
 

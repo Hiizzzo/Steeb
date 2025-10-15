@@ -4,10 +4,11 @@
     "slug": "steeb_ai_gemini_ollama",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./public/icon-512.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
     "splash": {
-      "image": "./public/icon-512.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -15,8 +16,6 @@
       "bundleIdentifier": "com.santyy.steeb",
       "buildNumber": "2",
       "supportsTablet": true,
-      "newArchEnabled": false,
-  
       "infoPlist": {
         "NSUserTrackingUsageDescription": "This app does NOT track users. No data is collected for advertising or tracking purposes. All data is stored locally on your device only.",
         "NSCameraUsageDescription": "Camera access is not required for this app.",
@@ -38,18 +37,21 @@
       "package": "com.santyy.steeb",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./public/icon-512.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     },
-    "extra": {
-      "eas": {
-        "projectId": "0778eccc-a4f5-41ce-9797-858da711b88c"
-      }
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router"
     ],
-    "scheme": "steeb"
+    "scheme": "steeb",
+    "extra": {
+      "eas": {
+        "projectId": "0778eccc-a4f5-41ce-9797-858da711b88c"
+      }
+    }
   }
 }

@@ -26,6 +26,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
+import { AppTrackingTransparency } from 'capacitor-plugin-app-tracking-transparency';
 import Index from "./pages/Index";
 import MonthlyCalendarPage from "./pages/MonthlyCalendarPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -61,6 +63,22 @@ const AppContent = () => {
   useTextSize();
 
   useEffect(() => {
+    // Solicitar permiso de App Tracking Transparency en iOS
+    const requestTrackingPermission = async () => {
+      if (Capacitor.getPlatform() === 'ios') {
+        try {
+          const response = await AppTrackingTransparency.requestPermission();
+          console.log('🔒 ATT Status:', response.status);
+
+          // Guardar el estado del permiso para referencia futura
+          localStorage.setItem('att-status', response.status);
+        } catch (error) {
+          console.log('❌ Error requesting ATT permission:', error);
+          localStorage.setItem('att-status', 'denied');
+        }
+      }
+    };
+
     // Simular tiempo de carga de 3 segundos
     const timer = setTimeout(() => {
       setIsAppLoading(false);
@@ -68,6 +86,9 @@ const AppContent = () => {
 
     // Inicializar el gestor de tareas recurrentes
     initializeRecurrenceManager();
+
+    // Solicitar permiso ATT después de un pequeño retraso
+    setTimeout(requestTrackingPermission, 1000);
 
     return () => clearTimeout(timer);
   }, []);
