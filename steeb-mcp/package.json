@@ -1,0 +1,32 @@
+{
+  "name": "stebe-mcp-server",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Model Context Protocol server for STEBE productivity app - ChatGPT integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:http": "USE_HTTPS=false node server.js",
+    "dev": "node --watch server.js",
+    "generate-cert": "node generate-cert-simple.js",
+    "test": "node test-connection.js",
+    "test-connection": "node test-connection.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "chatgpt",
+    "stebe",
+    "productivity"
+  ],
+  "author": "STEBE Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,119 @@
+name: iOS Simulator Build (Capacitor)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'ios/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
+      - '.github/workflows/ios-simulator-build.yml'
+
+jobs:
+  build-ios-simulator:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure @capacitor/ios is installed
+        run: |
+          npm ls @capacitor/ios || npm install @capacitor/ios@^6 --no-save
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods --no-document
+
+      - name: Add iOS platform (if missing) and sync
+        run: |
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Verify iOS project exists
+        run: |
+          echo "Listing ios/" && ls -la ios || true
+          echo "Listing ios/App/" && ls -la ios/App || true
+          echo "Listing ios/App/App/" && ls -la ios/App/App || true
+          if [ ! -d "ios/App" ] || [ ! -e "ios/App/App.xcodeproj" ] && [ ! -e "ios/App/App.xcworkspace" ]; then
+            echo "Xcode project/workspace not found after cap sync. Failing early." >&2
+            exit 1
+          fi
+
+      - name: Restore GoogleService-Info.plist from secret (optional)
+        env:
+          FIREBASE_PLIST_BASE64: ${{ secrets.FIREBASE_PLIST_BASE64 }}
+        run: |
+          if [ -n "${FIREBASE_PLIST_BASE64}" ]; then
+            mkdir -p ios/App/App
+            echo "$FIREBASE_PLIST_BASE64" | base64 --decode > ios/App/App/GoogleService-Info.plist
+            ls -la ios/App/App
+          else
+            echo "FIREBASE_PLIST_BASE64 not set; skipping plist restore"
+          fi
+
+      - name: Configure iOS URL Scheme from GoogleService-Info.plist (optional)
+        env:
+          FIREBASE_PLIST_BASE64: ${{ secrets.FIREBASE_PLIST_BASE64 }}
+        run: |
+          if [ -n "${FIREBASE_PLIST_BASE64}" ]; then
+            PLIST=ios/App/App/GoogleService-Info.plist
+            INFO=ios/App/App/Info.plist
+            if [ -f "$PLIST" ] && [ -f "$INFO" ]; then
+              RCI=$(/usr/libexec/PlistBuddy -c "Print :REVERSED_CLIENT_ID" "$PLIST" || true)
+              if [ -n "$RCI" ]; then
+                # Ensure CFBundleURLTypes exists
+                /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" "$INFO" 2>/dev/null || true
+                # Find if scheme already present
+                EXISTS=$( /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$INFO" 2>/dev/null | grep -c "$RCI" || true )
+                if [ "$EXISTS" = "0" ]; then
+                  /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" "$INFO" 2>/dev/null || true
+                  /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$INFO" 2>/dev/null || true
+                  /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string $RCI" "$INFO" 2>/dev/null || true
+                fi
+              fi
+            fi
+          else
+            echo "FIREBASE_PLIST_BASE64 not set; skipping URL scheme configuration"
+          fi
+
+      - name: Pod install
+        working-directory: ios/App
+        run: pod install --repo-update
+
+      - name: Build for iOS Simulator (no signing)
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 14' \
+            build | xcpretty || exit ${PIPESTATUS[0]}
+        env:
+          NSUnbufferedIO: 'YES'
+
+      - name: Upload DerivedData as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-build-products
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/**/Build/Products/**
+            ios/App/Pods/Pods.xcodeproj
+          if-no-files-found: warn

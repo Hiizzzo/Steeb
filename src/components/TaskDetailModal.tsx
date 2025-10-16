@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { X, Calendar, Clock, CheckCircle, Circle, Settings } from 'lucide-react';
+import { X, Calendar, Clock, CheckCircle, Heart, Settings } from 'lucide-react';
+import ShapeIcon from "./ShapeIcon";
 
 interface SubTask {
   id: string;
@@ -12,7 +13,7 @@ interface SubTask {
 interface Task {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation';
+  type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra';
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -50,29 +51,55 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     });
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeLabel = (type: Task['type'] | 'personal' | 'work' | 'meditation') => {
     switch (type) {
-      case 'personal':
-        return 'bg-blue-100 text-blue-800';
-      case 'work':
-        return 'bg-green-100 text-green-800';
-      case 'meditation':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'productividad': return 'Productividad';
+      case 'creatividad': return 'Creatividad';
+      case 'aprendizaje': return 'Aprendizaje';
+      case 'organizacion': return 'Organización';
+      case 'salud': return 'Salud';
+      case 'social': return 'Social';
+      case 'entretenimiento': return 'Entretenimiento';
+      case 'extra': return 'Extra';
+      case 'personal': return 'Personal';
+      case 'work': return 'Trabajo';
+      case 'meditation': return 'Meditación';
+      default: return String(type);
     }
   };
 
-  const getTypeLabel = (type: string) => {
+  const getTypeIcon = (type: Task['type']) => {
+    const isShiny = document.documentElement.classList.contains('shiny');
+    
+    // Función para obtener el color específico del icono
+    const getIconColor = () => {
+      if (isShiny) {
+        switch (type) {
+          case 'productividad':
+            return '#FF0088'; // Rosa
+          case 'salud':
+            return '#8800FF'; // Violeta
+          case 'social':
+            return '#4444FF'; // Azul
+          default:
+            return '#FFFFFF';
+        }
+      }
+      return '#000000'; // Negro puro para mejor contraste en modo claro
+    };
+    
+    const iconColor = getIconColor();
+    
     switch (type) {
-      case 'personal':
-        return 'Personal';
-      case 'work':
-        return 'Trabajo';
-      case 'meditation':
-        return 'Meditación';
-      default:
-        return type;
+      case 'productividad':   return <ShapeIcon variant="square" className="w-6 h-6 mr-1" title="Cuadrado" color={iconColor} />;
+      case 'creatividad':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Creatividad" color={iconColor} />;
+      case 'salud':           return <ShapeIcon variant="heart" className="w-6 h-6 mr-1" title="Salud" color={iconColor} />;
+      case 'organizacion':    return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1" title="Diamante" color={iconColor} />;
+      case 'social':          return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Social" color={iconColor} />;
+      case 'aprendizaje':     return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Aprendizaje" color={iconColor} />;
+      case 'entretenimiento': return <ShapeIcon variant="triangle" className="w-6 h-6 mr-1" title="Entretenimiento" color={iconColor} />;
+      case 'extra':           return <ShapeIcon variant="diamond" className="w-6 h-6 mr-1" title="Diamante" color={iconColor} />;
+      default:                return null;
     }
   };
 
@@ -90,7 +117,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {task.title}
               </h2>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black border border-gray-300`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-100 border border-gray-300 flex items-center ${
+                  task.type === 'productividad' ? 'text-[#FF0088]' :
+                  task.type === 'salud' ? 'text-[#8800FF]' :
+                  task.type === 'social' ? 'text-[#4444FF]' : 'text-black'
+                }`}>
+                  {getTypeIcon(task.type)}
                   {getTypeLabel(task.type)}
                 </span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -104,22 +136,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             </div>
             <div className="flex items-center space-x-2">
               {onEdit && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(task)}
-                  className="p-2 hover:bg-gray-100 rounded-full text-black"
-                  title="Editar tarea"
-                >
+                <Button variant="ghost" size="sm" onClick={() => onEdit(task)} className="p-2 hover:bg-gray-100 rounded-full text-black" title="Editar tarea">
                   <Settings size={18} />
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full text-black"
-              >
+              <Button variant="ghost" size="sm" onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-black">
                 <X size={20} />
               </Button>
             </div>
@@ -177,11 +198,9 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     onClick={() => onToggleSubtask?.(task.id, subtask.id)}
                   >
                     {subtask.completed ? (
-                      <div className="w-5 h-5 bg-black border-2 border-black rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
+                      <Heart size={18} className="text-black" fill="currentColor" />
                     ) : (
-                      <Circle size={20} className="text-gray-400" />
+                      <Heart size={18} className="text-gray-400" />
                     )}
                     <span className={`flex-1 ${
                       subtask.completed 
@@ -197,26 +216,19 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           )}
 
           {/* Acciones */}
-          <div className="flex space-x-3">
-            <Button
-              onClick={() => {
-                onToggle(task.id);
-                onClose();
-              }}
-              className={`flex-1 ${
-                task.completed 
-                  ? 'bg-gray-100 hover:bg-gray-200 text-black border-2 border-gray-300' 
-                  : 'bg-black hover:bg-gray-800 text-white border-2 border-black'
-              }`}
-            >
-              {task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="px-6 bg-white hover:bg-gray-100 text-black border-2 border-gray-300"
-            >
-              Cerrar
+          <div className="flex justify-end space-x-2">
+            <Button variant={task.completed ? 'default' : 'outline'} onClick={() => onToggle(task.id)} className={`flex items-center ${task.completed ? 'bg-black text-white' : ''}`}>
+              {task.completed ? (
+                <>
+                  <CheckCircle className="mr-2" size={18} />
+                  Marcar como pendiente
+                </>
+              ) : (
+                <>
+                  <Heart className="mr-2" size={18} />
+                  Marcar como completada
+                </>
+              )}
             </Button>
           </div>
         </div>

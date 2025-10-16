@@ -1,0 +1,69 @@
+{
+  "name": "STEBE Productivity App",
+  "description": "Servidor MCP para acceder al contexto completo de la aplicación STEBE - Productividad con IA",
+  "version": "2.0.0",
+  "mcp_version": "1.0",
+  "server": {
+    "url": "http://localhost:3001",
+    "protocol": "http",
+    "authentication": "none"
+  },
+  "capabilities": {
+    "resources": true,
+    "tools": true,
+    "prompts": true
+  },
+  "endpoints": {
+    "base": "http://localhost:3001",
+    "resources": "/mcp/resources",
+    "tools": "/mcp/tools",
+    "prompts": "/mcp/prompts",
+    "health": "/health"
+  },
+  "instructions": {
+    "setup": [
+      "1. Asegúrate de que Node.js esté instalado (v18+)",
+      "2. Navega a la carpeta steeb-mcp",
+      "3. Ejecuta: npm install",
+      "4. Inicia el servidor: npm start",
+      "5. Verifica que esté corriendo: http://localhost:3001/health"
+    ],
+    "usage": [
+      "Puedes pedirle a ChatGPT que:",
+      "- Lea archivos del proyecto",
+      "- Busque código específico",
+      "- Analice componentes React",
+      "- Revise la arquitectura",
+      "- Debuggee problemas",
+      "- Sugiera mejoras"
+    ]
+  },
+  "examples": [
+    {
+      "prompt": "¿Qué componentes tiene la app STEBE?",
+      "action": "Usa el recurso stebe://app/components para listar todos los componentes"
+    },
+    {
+      "prompt": "Muéstrame el código del componente TaskList",
+      "action": "Usa la herramienta get_component_info con componentName: 'TaskList'"
+    },
+    {
+      "prompt": "Busca dónde se usa Firebase en el proyecto",
+      "action": "Usa la herramienta search_code con query: 'Firebase' y filePattern: '*.ts'"
+    },
+    {
+      "prompt": "Explícame la arquitectura de STEBE",
+      "action": "Usa el recurso stebe://app/architecture"
+    }
+  ],
+  "trust_settings": {
+    "required": true,
+    "reason": "El servidor MCP necesita acceso a archivos locales para leer el código del proyecto",
+    "permissions": [
+      "read_files",
+      "list_directories",
+      "search_code"
+    ],
+    "note": "El servidor es read-only, no modifica archivos"
+  }
+}

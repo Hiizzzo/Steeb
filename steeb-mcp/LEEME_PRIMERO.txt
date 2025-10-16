@@ -1,0 +1,134 @@
+╔════════════════════════════════════════════════════════════╗
+║  🚀 STEBE MCP SERVER - Conectar ChatGPT con tu App        ║
+╚════════════════════════════════════════════════════════════╝
+
+¿QUÉ ES ESTO?
+─────────────
+Este servidor MCP permite que ChatGPT acceda al código completo 
+de tu aplicación STEBE y te ayude con debugging, mejoras, 
+explicaciones y mucho más.
+
+
+INICIO RÁPIDO (3 PASOS)
+───────────────────────
+
+1. INICIAR EL SERVIDOR
+   
+   Opción A (Fácil):
+   → Doble clic en: start-for-chatgpt.bat
+   
+   Opción B (Terminal):
+   → cd steeb-mcp
+   → npm install  (solo la primera vez)
+   → npm start
+
+
+2. CONFIGURAR CHATGPT
+
+   ChatGPT Desktop:
+   → Settings → Integrations
+   → Add MCP Server
+   → URL: http://localhost:3001
+   → Marca "I trust this application" ✅
+   
+   ChatGPT Web:
+   → Instala extensión MCP Client
+   → Configura: http://localhost:3001
+
+
+3. PROBAR LA CONEXIÓN
+
+   Pregúntale a ChatGPT:
+   "Lista los componentes de mi app STEBE"
+   
+   Si funciona, verás la lista real de componentes.
+
+
+EJEMPLOS DE USO
+───────────────
+
+Debugging:
+→ "Analiza el componente TaskCard y dime por qué no funciona"
+
+Buscar código:
+→ "Busca dónde se usa Firebase en el proyecto"
+
+Explicaciones:
+→ "Explícame cómo funciona el sistema de autenticación"
+
+Mejoras:
+→ "¿Cómo puedo optimizar el rendimiento del calendario?"
+
+
+VERIFICAR QUE FUNCIONA
+──────────────────────
+
+1. Abre tu navegador
+2. Ve a: http://localhost:3001/health
+3. Deberías ver: {"status": "healthy", ...}
+
+O ejecuta el test automático:
+→ npm test
+
+
+ARCHIVOS IMPORTANTES
+────────────────────
+
+📄 LEEME_PRIMERO.txt (este archivo)
+   → Inicio rápido
+
+📄 README.md
+   → Documentación técnica completa
+
+📄 chatgpt-config.json
+   → Configuración para importar en ChatGPT
+
+📄 import-to-chatgpt.json
+   → Archivo de configuración detallado
+
+📄 start-for-chatgpt.bat
+   → Script de inicio automático
+
+📄 test-connection.js
+   → Test de conexión automático
+
+
+SOLUCIÓN DE PROBLEMAS
+─────────────────────
+
+❌ El servidor no inicia
+   → Verifica Node.js: node --version (debe ser v18+)
+   → Instala dependencias: npm install
+
+❌ ChatGPT no se conecta
+   → Verifica: http://localhost:3001/health
+   → Marca "I trust this application" en ChatGPT
+   → Reinicia ChatGPT Desktop
+
+❌ Puerto 3001 ocupado
+   → Cambia el puerto en server.js
+   → const PORT = process.env.PORT || 3002;
+
+
+DOCUMENTACIÓN COMPLETA
+──────────────────────
+
+Ver en la raíz del proyecto:
+→ GUIA_CONECTAR_CHATGPT_STEBE.md (Guía completa)
+→ INICIO_RAPIDO_MCP.md (Inicio rápido)
+
+
+SOPORTE
+───────
+
+Si tienes problemas:
+1. Revisa la documentación completa
+2. Ejecuta: npm test
+3. Verifica los logs del servidor
+
+
+╔════════════════════════════════════════════════════════════╗
+║  ✅ ¡Listo! Ahora ChatGPT tiene acceso a tu app STEBE     ║
+╚════════════════════════════════════════════════════════════╝
+
+Tu esfuerzo es tu mejor inversión 💪

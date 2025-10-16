@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -45,7 +46,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
           placeholder="¿Qué tarea tienes que hacer?"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="steve-border"
+          className="steve-border cursor-visible"
         />
       </div>
       
@@ -54,7 +55,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
           placeholder="Descripción (opcional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="steve-border"
+          className="steve-border cursor-visible"
         />
       </div>
       
@@ -65,15 +66,15 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask }) => {
           value={targetTime}
           onChange={(e) => setTargetTime(e.target.value)}
           min="1"
-          className="steve-border"
+          className="steve-border cursor-visible"
         />
       </div>
       
       <Button 
         type="submit" 
-        className="w-full bg-steve-black text-steve-white hover:bg-steve-gray-dark steve-shadow"
+        className="w-12 h-12 rounded-full bg-steve-black text-steve-white hover:bg-steve-gray-dark steve-shadow flex items-center justify-center"
       >
-        Agregar Tarea
+        <Plus size={18} />
       </Button>
     </form>
   );

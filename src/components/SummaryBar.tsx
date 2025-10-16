@@ -49,7 +49,7 @@ const SummaryBar: React.FC<SummaryBarProps> = ({ totalTasks, completedTasks, pen
           <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center mx-auto mb-1">
             <CheckCircle size={16} className="text-green-600" />
           </div>
-          <p className="text-xs font-bold text-black">{completedTasks} Hechas</p>
+          <p className="text-xs font-bold text-black">{completedTasks} de {totalTasks}</p>
         </div>
         
         {/* Tareas pendientes */}

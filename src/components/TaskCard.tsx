@@ -1,7 +1,11 @@
 
-import React, { useState, useRef } from 'react';
-import { Pencil, Calendar, ShoppingCart, CheckCircle, Circle, Trash2, Clock, FileText } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { Pencil, Calendar, ShoppingCart, CheckCircle, Heart, Trash2, Clock, FileText, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSoundEffects } from '../hooks/useSoundEffects';
+import { TaskType } from '@/types';
+import ShapeIcon from './ShapeIcon';
+import { useTheme } from '@/hooks/useTheme';
 
 interface SubTask {
   id: string;
@@ -12,7 +16,7 @@ interface SubTask {
 interface TaskCardProps {
   id: string;
   title: string;
-  type: 'personal' | 'work' | 'meditation';
+  type: TaskType;
   completed: boolean;
   subtasks?: SubTask[];
   scheduledDate?: string;
@@ -29,23 +33,29 @@ const TaskCard: React.FC<TaskCardProps> = ({
   title, 
   type, 
   completed, 
+  scheduledTime, 
   subtasks, 
-  scheduledDate,
-  scheduledTime,
-  notes,
+  notes, 
   onToggle, 
   onToggleSubtask, 
-  onDelete,
+  onDelete, 
   onShowDetail 
 }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const cardRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
   const currentX = useRef(0);
-  const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
+  
+  // const { playTaskDeleteSound } = useSoundEffects(); // Ya no se usa
+  const { isDark, isShiny } = useTheme();
+  const { triggerVibration, playTaskCompleteSound } = useSoundEffects();
+  const shapeColor = isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000');
 
   const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
   const DELETE_THRESHOLD = 120; // Distancia para mostrar el botón de eliminar
@@ -53,14 +63,24 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   const getTypeIcon = () => {
     switch (type) {
-      case 'personal':
-        return <ShoppingCart size={20} className="text-black" />;
-      case 'work':
-        return <Pencil size={20} className="text-black" />;
-      case 'meditation':
-        return <Calendar size={20} className="text-black" />;
+      case 'productividad':
+        return <ShapeIcon variant="square" className="w-8 h-8" title="Trabajo" color={shapeColor} />;
+      case 'creatividad':
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Creatividad" color={shapeColor} />;
+      case 'salud':
+        return <ShapeIcon variant="heart" className="w-8 h-8" title="Salud" color={shapeColor} />;
+      case 'organizacion':
+        return <ShapeIcon variant="diamond" className="w-8 h-8" title="Organización" color={shapeColor} />;
+      case 'social':
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Social" color={shapeColor} />;
+      case 'aprendizaje':
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Aprendizaje" color={shapeColor} />;
+      case 'entretenimiento':
+        return <ShapeIcon variant="triangle" className="w-8 h-8" title="Entretenimiento" color={shapeColor} />;
+      case 'extra':
+        return <ShapeIcon variant="diamond" className="w-8 h-8" title="Extra" color={shapeColor} />;
       default:
-        return <Pencil size={20} className="text-black" />;
+        return <div className="w-5 h-5 border" style={{ borderColor: shapeColor }} />;
     }
   };
 
@@ -89,14 +109,20 @@ const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
-  const handleCheckboxToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isDragging && swipeOffset === 0) {
-      onToggle(id);
+  const handleCheckboxToggle = () => {
+    if (!completed) {
+      triggerVibration();
+      playTaskCompleteSound();
     }
+    onToggle(id);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // No iniciar drag si se hace touch en el checkbox
+    if ((e.target as HTMLElement).closest('.task-checkbox-button')) {
+      return;
+    }
+    
     startX.current = e.touches[0].clientX;
     currentX.current = e.touches[0].clientX;
     setIsDragging(false);
@@ -109,12 +135,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
     currentX.current = e.touches[0].clientX;
     const deltaX = startX.current - currentX.current;
     
-    if (deltaX > 10) {
+    if (Math.abs(deltaX) > 10) {
       setIsDragging(true);
       e.preventDefault();
       cancelLongPress(); // Cancelar long press si se está deslizando
       
-      // Solo permitir deslizamiento hacia la izquierda
       if (deltaX > 0) {
         const newOffset = Math.min(deltaX, 150);
         setSwipeOffset(newOffset);
@@ -128,8 +153,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
     cancelLongPress();
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
-      // Si el deslizamiento supera el umbral, eliminar la tarea
-      onDelete(id);
+      // Iniciar animación de eliminación
+      setIsDeleting(true);
+      // Sin sonido al eliminar - solo animación
+      
+      // Esperar a que termine la animación antes de eliminar
+      setTimeout(() => {
+        onDelete(id);
+      }, 600);
     } else {
       // Si no, volver a la posición original
       setSwipeOffset(0);
@@ -145,6 +176,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const handleMouseStart = (e: React.MouseEvent) => {
+    // No iniciar drag si se hace click en el checkbox
+    if ((e.target as HTMLElement).closest('.task-checkbox-button')) {
+      return;
+    }
+    
     startX.current = e.clientX;
     currentX.current = e.clientX;
     setIsDragging(false);
@@ -157,7 +193,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     currentX.current = e.clientX;
     const deltaX = startX.current - currentX.current;
     
-    if (deltaX > 10) {
+    if (Math.abs(deltaX) > 10) {
       setIsDragging(true);
       e.preventDefault();
       cancelLongPress(); // Cancelar long press si se está deslizando
@@ -175,7 +211,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
     cancelLongPress();
     
     if (swipeOffset > SWIPE_THRESHOLD && onDelete) {
-      onDelete(id);
+      // Iniciar animación de eliminación
+      setIsDeleting(true);
+      // Sin sonido al eliminar - solo animación
+      
+      // Esperar a que termine la animación antes de eliminar
+      setTimeout(() => {
+        onDelete(id);
+      }, 600);
     } else {
       setSwipeOffset(0);
       setShowDeleteButton(false);
@@ -190,25 +233,32 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <div className="relative mx-4 mb-3">
-      {/* Fondo negro de eliminación */}
+    <div className="relative mb-3">
+      {/* Fondo de eliminación - color blanco con icono negro */}
       <div 
-        className={`absolute inset-0 bg-black rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-white rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
           showDeleteButton ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <Trash2 size={24} className="text-white" />
+        <Trash2 size={24} className="text-black" />
       </div>
       
       {/* Tarjeta principal */}
       <div 
         ref={cardRef}
-        className={`bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 ease-out transform ${
+        className={`border border-gray-200 dark:border-white rounded-lg p-4 transition-all duration-600 ease-out transform dark:hover:border-white ${
           completed ? 'opacity-40' : 'hover:border-black'
-        } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''}`}
+        } ${onShowDetail && !isDragging ? 'cursor-pointer' : ''} ${
+          isDeleting 
+            ? 'bg-black border-black animate-pulse' 
+            : 'bg-white dark:bg-black'
+        }`}
         style={{
-          transform: `translateX(-${swipeOffset}px)`,
-          userSelect: isDragging ? 'none' : 'auto'
+          transform: `translateX(-${swipeOffset}px) ${isDeleting ? 'scale(0.95)' : 'scale(1)'}`,
+          userSelect: isDragging ? 'none' : 'auto',
+          transition: isDeleting 
+            ? 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' 
+            : 'all 0.2s ease-out'
         }}
         onClick={onShowDetail ? handleToggle : undefined}
         onTouchStart={handleTouchStart}
@@ -224,29 +274,45 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-center space-x-3 flex-1">
             {/* Icono del tipo */}
             <div className={`transition-all duration-300 ${completed ? 'opacity-60' : ''}`}>
-              {getTypeIcon()}
+              <div className="task-shape-border rounded-xl">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                  {getTypeIcon()}
+                </div>
+              </div>
             </div>
             
             {/* Texto de la tarea y hora */}
-            <div className="flex-1">
+            <div className="flex-1 mr-4 ml-6">
               <span 
-                className={`text-lg font-medium transition-all duration-300 ${
-                  completed 
-                    ? 'line-through text-gray-400' 
-                    : 'text-black'
-                }`}
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                className={`text-lg font-normal transition-all duration-300 ${
+                  isDeleting
+                    ? 'text-white'
+                    : completed 
+                      ? 'line-through text-gray-400' 
+                      : 'text-black dark:text-white'
+                }`} style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui, -apple-system, sans-serif' }}
               >
-                {title}
+                {title.trim() || 'Tarea sin título'}
               </span>
               
               {/* Mostrar hora si está disponible */}
               {scheduledTime && (
                 <div className="flex items-center mt-1 space-x-1">
-                  <Clock size={14} className={`${completed ? 'text-gray-400' : 'text-gray-500'}`} />
+                  <Clock size={14} className={`${
+                    isDeleting 
+                      ? 'text-white' 
+                      : completed 
+                        ? 'text-gray-400' 
+                        : 'text-gray-500'
+                  }`} />
                   <span 
-                    className={`text-sm ${completed ? 'text-gray-400' : 'text-gray-500'}`}
-                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                    className={`text-sm font-varela ${
+                      isDeleting 
+                        ? 'text-white' 
+                        : completed 
+                          ? 'text-gray-400' 
+                          : 'text-gray-500'
+                    }`}
                   >
                     {scheduledTime}
                   </span>
@@ -257,13 +323,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
           
           {/* Checkbox - solo mostrar si no hay subtareas */}
           {(!subtasks || subtasks.length === 0) && (
-            <div className="ml-3" onClick={handleCheckboxToggle}>
+            <div 
+              className="ml-3 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              onClick={handleCheckboxToggle}
+            >
               {completed ? (
-                <div className="w-6 h-6 bg-black border-2 border-black rounded-full flex items-center justify-center cursor-pointer">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
-                </div>
+                <div className="task-checkbox-button completed w-6 h-6 rounded-full cursor-pointer transition-all duration-200"></div>
               ) : (
-                <Circle size={24} className="text-gray-300 hover:text-black transition-colors cursor-pointer" />
+                <div className="task-checkbox-button w-6 h-6 rounded-full cursor-pointer transition-all duration-200"></div>
               )}
             </div>
           )}
@@ -296,8 +363,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                       subtask.completed 
                         ? 'line-through text-gray-400' 
                         : 'text-black'
-                    }`}
-                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                    } font-varela`}
                   >
                     {subtask.title}
                   </span>
@@ -309,10 +375,16 @@ const TaskCard: React.FC<TaskCardProps> = ({
         
         {/* Etiqueta de notas */}
         {notes && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 mt-3 rounded-r">
+          <div className="bg-gray-200 dark:bg-gray-300 border-l-4 border-gray-300 dark:border-gray-400 p-2 mt-3 rounded-r">
             <div className="flex items-center">
-              <FileText size={14} className="text-yellow-600 mr-2 flex-shrink-0" />
-              <p className="text-xs text-yellow-800 line-clamp-2">
+              <FileText
+                size={14}
+                className="mr-2 flex-shrink-0 !text-black dark:!text-black"
+              />
+              <p
+                className="text-xs line-clamp-2 !text-black dark:!text-black"
+                style={{ color: '#000' }}
+              >
                 {notes.length > 80 ? `${notes.substring(0, 80)}...` : notes}
               </p>
             </div>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "169523533903",
+    "project_id": "steeboriginal",
+    "storage_bucket": "steeboriginal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:169523533903:android:e570f5febf936e68aab23a",
+        "android_client_info": {
+          "package_name": "com.santyy.steeb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBK5ZvLacIcP1PTKOJJZue1PoMyQrUtRLw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

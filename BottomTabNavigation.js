@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-const BottomTabNavigation = ({ onTasksPress, onAddPress, onProgressPress }) => {
+const BottomTabNavigation = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress }) => {
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
@@ -26,6 +26,8 @@ const BottomTabNavigation = ({ onTasksPress, onAddPress, onProgressPress }) => {
         <TouchableOpacity
           style={[styles.tabButton, styles.centerButton]}
           onPress={onAddPress}
+          onLongPress={onAddLongPress}
+          delayLongPress={300}
           activeOpacity={0.7}
         >
           <Ionicons name="add" size={28} color="#FFFFFF" />

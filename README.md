@@ -1,154 +1,157 @@
-# Barra de Navegación Inferior - React Native
+# 📊 Productivity Stats Dashboard
 
-Este proyecto contiene componentes para crear una barra de navegación inferior con botones circulares negros y iconos blancos, siguiendo el diseño mostrado en las imágenes de referencia.
+Una vista móvil responsiva de estadísticas de productividad con diseño minimalista en blanco y negro, inspirada en el estilo Stebe.
 
-## Archivos Incluidos
+## ✨ Características
 
-- `BottomTabNavigation.js` - Componente principal usando Expo Vector Icons
-- `BottomTabNavigationSimple.js` - Versión alternativa sin dependencias externas
-- `ExampleUsage.js` - Ejemplo de implementación
-- `README.md` - Documentación
+- **Diseño minimalista**: Paleta de colores blanco y negro con toques de gris
+- **Responsive**: Optimizado para dispositivos móviles
+- **Animaciones suaves**: Animaciones CSS elegantes y profesionales
+- **Componentes modulares**: Versión HTML y React disponibles
+- **Tipografía moderna**: Fuente Inter para máxima legibilidad
 
-## Instalación
+## 🎨 Componentes Incluidos
 
-### Opción 1: Con Expo Vector Icons (Recomendado)
+### 1. Header con Stebe Character
+- Personaje Stebe dibujado en SVG
+- Texto motivacional: "Tu esfuerzo es tu mejor inversión"
+- Animaciones de entrada desde izquierda y derecha
 
-Si usas Expo:
+### 2. KPI Cards
+- **Tasks Completadas**: 12/20 con barra de progreso animada
+- **Streak**: 3-Day con ícono de medalla
+- **Time Spent**: 4h 30m
+
+### 3. Weekly Activity Chart
+- Gráfico de línea SVG con animación de dibujo
+- Punto activo con animación pulse
+- Grilla de fondo sutil
+
+### 4. Task Statistics
+- Gráfico donut con 59% de completación
+- Animación de dibujo circular
+- Barra de progreso horizontal
+
+### 5. Consistency Streak
+- Barras verticales para cada día de la semana
+- Animación secuencial de crecimiento
+- Etiquetas de días
+
+## 🚀 Uso
+
+### Versión HTML
+Simplemente abre el archivo `productivity-stats.html` en tu navegador:
+
 ```bash
-npx expo install @expo/vector-icons
+open productivity-stats.html
 ```
 
-Si usas React Native CLI:
+### Versión React
+
+1. **Instala las dependencias**:
 ```bash
-npm install react-native-vector-icons
-# Seguir las instrucciones de configuración específicas para iOS/Android
+npm install react react-dom
 ```
 
-### Opción 2: Sin dependencias externas
+2. **Importa el componente**:
+```jsx
+import ProductivityStats from './ProductivityStats';
+import './ProductivityStats.css';
 
-Usa el archivo `BottomTabNavigationSimple.js` que no requiere instalaciones adicionales.
-
-## Uso
-
-### Implementación Básica
-
-```javascript
-import React from 'react';
-import { View } from 'react-native';
-import BottomTabNavigation from './BottomTabNavigation';
-// o import BottomTabNavigationSimple from './BottomTabNavigationSimple';
-
-const App = () => {
-  const handleTasksPress = () => {
-    console.log('Navegando a TAREAS');
-    // Implementar navegación a pantalla de tareas
-  };
-
-  const handleAddPress = () => {
-    console.log('Navegando a AGREGAR');
-    // Implementar navegación o modal para agregar
-  };
-
-  const handleProgressPress = () => {
-    console.log('Navegando a PROGRESO');
-    // Implementar navegación a pantalla de progreso
-  };
-
+function App() {
   return (
-    <View style={{ flex: 1 }}>
-      {/* Tu contenido aquí */}
-      
-      <BottomTabNavigation
-        onTasksPress={handleTasksPress}
-        onAddPress={handleAddPress}
-        onProgressPress={handleProgressPress}
-      />
-    </View>
+    <div className="App">
+      <ProductivityStats />
+    </div>
   );
-};
-
-export default App;
+}
 ```
 
-## Características
-
-### Diseño
-- ✅ Botones circulares negros con iconos blancos
-- ✅ Botón central (AGREGAR) ligeramente más grande
-- ✅ Sombras y elevación para efecto visual
-- ✅ Posicionamiento absoluto en la parte inferior
-- ✅ Responsive al ancho de pantalla
-
-### Funcionalidad
-- ✅ Tres botones: TAREAS (✓), AGREGAR (+), PROGRESO (📊)
-- ✅ Props para manejar eventos de cada botón
-- ✅ Efectos de toque con `activeOpacity`
-- ✅ Compatible con navegación React Navigation
-
-### Iconos Incluidos
-- **TAREAS**: Ícono de check/marca de verificación
-- **AGREGAR**: Ícono de plus/suma
-- **PROGRESO**: Ícono de barras de gráfico/estadísticas
-
-## Personalización
-
-### Cambiar colores
-```javascript
-// En los estilos del componente
-tabButton: {
-  backgroundColor: '#000000', // Cambiar color de fondo
-  // ...otros estilos
-},
-
-// Para los iconos (en versión Expo)
-<Ionicons name="checkmark" size={24} color="#FFFFFF" />
-```
-
-### Cambiar tamaños
-```javascript
-tabButton: {
-  width: 60,      // Cambiar ancho
-  height: 60,     // Cambiar alto
-  borderRadius: 30, // Mantener la mitad del width/height para círculo perfecto
-},
-```
-
-### Cambiar posición
-```javascript
-container: {
-  bottom: 30, // Cambiar distancia desde la parte inferior
-  // ...otros estilos
-},
-```
-
-## Integración con React Navigation
-
-```javascript
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-
-const Stack = createStackNavigator();
-
-const handleTasksPress = () => {
-  navigation.navigate('TasksScreen');
-};
-
-const handleAddPress = () => {
-  navigation.navigate('AddScreen');
-};
-
-const handleProgressPress = () => {
-  navigation.navigate('ProgressScreen');
+3. **Personaliza los datos**:
+```jsx
+// Puedes modificar los valores en el componente
+const kpiData = {
+  tasksCompleted: "15-20",
+  streak: "5-Day",
+  timeSpent: "6h 15m"
 };
 ```
 
-## Compatibilidad
+## 🎯 Animaciones Incluidas
 
-- ✅ React Native 0.60+
-- ✅ Expo SDK 40+
-- ✅ iOS y Android
-- ✅ TypeScript (con tipados apropiados)
+- **fadeInLeft/Right**: Entrada del header
+- **fadeInUp**: Entrada escalonada de las KPI cards
+- **progressGrow**: Crecimiento de barras de progreso
+- **drawLine**: Dibujo de línea del gráfico semanal
+- **drawDonut**: Dibujo del gráfico circular
+- **growUp**: Crecimiento de barras de consistencia
+- **pulse**: Pulsación del punto activo en el gráfico
 
-## Soporte
+## 📱 Responsive Breakpoints
 
-Para dudas o problemas, revisa la documentación de React Native o Expo según corresponda.
+- **400px**: Diseño móvil principal
+- **375px**: Ajustes para móviles pequeños
+- **320px**: Grilla de una columna para pantallas muy pequeñas
+
+## 🛠️ Personalización
+
+### Colores
+```css
+:root {
+  --primary-black: #000000;
+  --background-white: #ffffff;
+  --text-gray: #666666;
+  --border-gray: #e5e5e5;
+}
+```
+
+### Tipografía
+```css
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+```
+
+### Timing de Animaciones
+Las animaciones están configuradas con delays específicos para crear una secuencia fluida:
+- Header: 0.2s - 0.4s
+- KPI Cards: 0.6s - 1.0s
+- Charts: 1.6s - 4.0s
+
+## 📁 Estructura de Archivos
+
+```
+├── productivity-stats.html     # Versión HTML standalone
+├── ProductivityStats.jsx       # Componente React principal
+├── ProductivityStats.css       # Estilos CSS
+├── App.jsx                     # Ejemplo de uso
+├── App.css                     # Estilos del contenedor
+└── README.md                   # Documentación
+```
+
+## 🎨 Estilo Stebe
+
+El diseño sigue los principios del estilo Stebe:
+- **Minimalismo**: Sin elementos innecesarios
+- **Claridad**: Jerarquía visual clara
+- **Motivación**: Mensajes positivos y alentadores
+- **Profesionalismo**: Diseño limpio y moderno
+- **Funcionalidad**: Cada elemento tiene un propósito
+
+## 🔧 Tecnologías
+
+- **HTML5**: Estructura semántica
+- **CSS3**: Animaciones y diseño responsive
+- **SVG**: Gráficos vectoriales escalables
+- **React**: Componentes modulares (opcional)
+- **Inter Font**: Tipografía moderna
+
+## 💡 Próximas Mejoras
+
+- [ ] Integración con datos en tiempo real
+- [ ] Temas personalizables
+- [ ] Más tipos de gráficos
+- [ ] Exportación de métricas
+- [ ] Modo oscuro
+
+---
+
+**¡Tu esfuerzo es tu mejor inversión!** 💪

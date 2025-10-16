@@ -14,7 +14,7 @@ interface SubTask {
 interface DailyTasksConfigProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (title: string, type: 'personal' | 'work' | 'meditation', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
+  onAddTask: (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string) => void;
 }
 
 const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, onAddTask }) => {
@@ -71,8 +71,7 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
     const updatedTasks = customTasks.filter((_, i) => i !== index);
     saveCustomTasks(updatedTasks);
     toast({
-      title: "Steve dice:",
-      description: "¡Tarea eliminada! Tu lista está más limpia ahora.",
+      title: "Tu tarea se ha eliminado correctamente",
     });
   };
 
@@ -93,22 +92,20 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
 
       onAddTask(
         task.title,
-        task.type,
+        'productividad', // Mapear a un tipo válido
         subtasks.length > 0 ? subtasks : undefined,
         new Date().toISOString().split('T')[0],
         task.scheduledTime,
         undefined
       );
 
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Eliminado delay innecesario para creación instantánea
     }
 
-    setTimeout(() => {
-      toast({
-        title: "¡Steve dice:",
-        description: `¡Listo! He añadido ${customTasks.length} tareas personalizadas. ¡Tú eres increíble! 🚀`,
-      });
-    }, 500);
+    toast({
+      title: "¡Steve dice:",
+      description: `¡Listo! He añadido ${customTasks.length} tareas personalizadas. ¡Tú eres increíble! 🚀`,
+    });
 
     onClose();
   };
@@ -140,9 +137,9 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
           </h2>
           <button
             onClick={handleAddAllCustomTasks}
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
           >
-            Añadir Todas
+            <Plus size={16} />
           </button>
         </div>
 
@@ -156,10 +153,9 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
             <div className="flex space-x-2 mb-4">
               <Button
                 onClick={() => setShowAddForm(true)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="w-10 h-10 bg-blue-600 hover:bg-blue-700 flex items-center justify-center rounded-full"
               >
-                <Plus size={16} className="mr-2" />
-                Nueva Tarea
+                <Plus size={16} />
               </Button>
               <Button
                 onClick={resetToDefault}
@@ -198,10 +194,9 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
                 <div className="flex space-x-2">
                   <Button
                     onClick={handleAddCustomTask}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="w-10 h-10 bg-green-600 hover:bg-green-700 flex items-center justify-center rounded-full"
                   >
-                    <Save size={16} className="mr-2" />
-                    Guardar
+                    <Save size={16} />
                   </Button>
                   <Button
                     onClick={() => {
@@ -227,7 +222,7 @@ const DailyTasksConfig: React.FC<DailyTasksConfigProps> = ({ isOpen, onClose, on
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       task.type === 'work' ? 'bg-blue-100 text-blue-800' :
                       task.type === 'personal' ? 'bg-green-100 text-green-800' :
-                      'bg-purple-100 text-purple-800'
+                      'bg-gray-100 text-gray-800'
                     }`}>
                       {task.type}
                     </span>

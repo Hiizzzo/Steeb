@@ -1,0 +1,9 @@
+{
+  "servers": [
+    {
+      "name": "steeb-local-mcp",
+      "url": "http://localhost:3001",
+      "description": "Servidor MCP local para el proyecto STEEB"
+    }
+  ]
+}

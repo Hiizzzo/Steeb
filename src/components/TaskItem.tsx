@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Timer, CheckCircle, Circle, Code, Book, Dumbbell, Coffee, Target, Star, Zap, Trophy, Trash2, FileText } from 'lucide-react';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 export interface Task {
   id: string;
@@ -30,7 +31,7 @@ const getTaskVisuals = (category?: string) => {
     case 'work':
       return {
         icon: Code,
-        bgGradient: 'from-blue-500 to-purple-600',
+        bgGradient: 'from-blue-500 to-white',
         bgLight: 'bg-blue-50',
         iconBg: 'bg-blue-500',
         textColor: 'text-blue-600'
@@ -62,10 +63,10 @@ const getTaskVisuals = (category?: string) => {
     case 'project':
       return {
         icon: Target,
-        bgGradient: 'from-purple-500 to-indigo-600',
-        bgLight: 'bg-purple-50',
-        iconBg: 'bg-purple-500',
-        textColor: 'text-purple-600'
+        bgGradient: 'from-white to-gray-200',
+        bgLight: 'bg-gray-50',
+        iconBg: 'bg-white',
+        textColor: 'text-gray-800'
       };
     default:
       return {
@@ -89,13 +90,41 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
   const startX = useRef(0);
   const currentX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
+  const { triggerVibration, playTaskCompleteSound } = useSoundEffects();
 
-  const SWIPE_THRESHOLD = 80; // Distancia mínima para activar la eliminación
-  const DELETE_THRESHOLD = 120; // Distancia para mostrar el botón de eliminar
+  // Track Shiny theme to render special checkbox visuals only in Shiny
+  const [isShiny, setIsShiny] = useState<boolean>(() =>
+    typeof document !== 'undefined' ? document.documentElement.classList.contains('shiny') : false
+  );
+  React.useEffect(() => {
+    const el = document.documentElement;
+    const update = () => setIsShiny(el.classList.contains('shiny'));
+    update();
+    const obs = new MutationObserver(update);
+    obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+
+  // Función para manejar la vibración y animación de destello
+  const triggerCompletionEffects = () => {
+    // Usar el hook de sonidos y vibración
+    triggerVibration();
+    playTaskCompleteSound();
+    
+    // Animación de destello
+    setIsFlashing(true);
+    setTimeout(() => {
+      setIsFlashing(false);
+    }, 600); // Duración del destello
+  };
+
+  const SWIPE_THRESHOLD = 30; // Distancia mínima para activar la eliminación
+  const DELETE_THRESHOLD = 50; // Distancia para mostrar el botón de eliminar
   const LONG_PRESS_DURATION = 800; // Duración del long press en milisegundos
 
   const visuals = getTaskVisuals(task.category);
@@ -211,7 +240,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     <div className={cn('relative mb-3', className)}>
       {/* Fondo rojo de eliminación */}
       <div 
-        className={`absolute inset-0 bg-red-500 rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-black dark:bg-white rounded-lg flex items-center justify-end pr-6 transition-opacity duration-200 ${
           showDeleteButton ? 'opacity-100' : 'opacity-0'
         }`}
       >
@@ -222,12 +251,13 @@ const TaskItem: React.FC<TaskItemProps> = ({
       <Card 
         ref={cardRef}
         className={cn(
-          'relative overflow-hidden p-0 transition-all border-2 hover:shadow-lg transform hover:scale-[1.02]', 
-          task.completed ? 'opacity-70 border-gray-300' : 'border-gray-200 hover:border-gray-300'
+          'relative overflow-hidden p-0 transition-all border-2 hover:shadow-lg transform hover:scale-[1.02] dark:!border-white', 
+          task.completed ? 'opacity-70 border-gray-300' : 'border-gray-200 hover:border-gray-300',
+          isFlashing ? 'flash-animation' : ''
         )}
         style={{
           transform: `translateX(-${swipeOffset}px)`,
-          userSelect: isDragging ? 'none' : 'auto'
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -244,36 +274,60 @@ const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3 flex-1">
               {/* Icono personalizado de la categoría */}
-              <div className={cn(
-                'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mt-1',
-                visuals.iconBg,
-                task.completed ? 'opacity-60' : ''
-              )}>
-                <IconComponent size={20} className="text-white" />
+              <div
+                className={cn(
+                  'flex-shrink-0 mt-1 task-shape-border rounded-xl',
+                  task.completed ? 'opacity-60' : ''
+                )}
+              >
+                <div
+                  className={cn(
+                    'w-10 h-10 rounded-lg flex items-center justify-center',
+                    visuals.iconBg
+                  )}
+                >
+                  <IconComponent size={20} className="text-white" />
+                </div>
               </div>
               
               {/* Checkbox de completado */}
               <button 
-                onClick={() => !isDragging && swipeOffset === 0 && onComplete(task.id)}
-                className="mt-2 hover:scale-110 transition-transform"
+                onClick={() => {
+                  if (!isDragging && swipeOffset === 0) {
+                    if (!task.completed) {
+                      triggerCompletionEffects();
+                    }
+                    onComplete(task.id);
+                  }
+                }}
+                className="mt-1 hover:scale-110 transition-transform task-check"
+                aria-label={task.completed ? 'Marcar como no completada' : 'Marcar como completada'}
               >
                 {task.completed ? (
-                  <CheckCircle size={20} className="text-green-500" />
+                  isShiny ? (
+                    <CheckCircle size={28} className="text-white" />
+                  ) : (
+                    <CheckCircle size={28} className="text-green-500" />
+                  )
                 ) : (
-                  <Circle size={20} className="text-gray-400 hover:text-gray-600" />
+                  isShiny ? (
+                    <Circle size={28} className="text-white" />
+                  ) : (
+                    <Circle size={28} className="text-gray-400 hover:text-gray-600" />
+                  )
                 )}
               </button>
               
               <div className={cn('transition-all flex-1', task.completed ? 'opacity-60 line-through' : '')}>
-                <h3 className="font-bold text-gray-800 mb-1">{task.title}</h3>
+                <h3 className="font-semibold text-gray-800 mb-1 text-sm">{task.title}</h3>
                 {task.description && (
-                  <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+                  <p className="text-xs text-gray-600 mb-2">{task.description}</p>
                 )}
                 
                 {/* Badge de categoría */}
                 {task.category && (
                   <span className={cn(
-                    'inline-block px-2 py-1 rounded-full text-xs font-medium mb-2',
+                    'inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-2',
                     visuals.bgLight,
                     visuals.textColor
                   )}>
@@ -303,10 +357,12 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     {task.actualTime && (
                       <div className="flex items-center">
                         {task.actualTime > task.targetTime ? (
-                          <>
-                            <Zap size={12} className="mr-1 text-orange-500" />
-                            <span className="text-orange-600">
-                              +{task.actualTime - task.targetTime} min extra
+                                                    <>
+                             <Zap size={12} className="mr-1 text-orange-500" />
+                             <span className="text-orange-600 inline-flex items-center">
+                              +{task.actualTime - task.targetTime} min
+                              <img src="/lovable-uploads/lightbulb-icon.svg" alt="Extra" className="w-3 h-3 mx-1" />
+                              extra
                             </span>
                           </>
                         ) : (
