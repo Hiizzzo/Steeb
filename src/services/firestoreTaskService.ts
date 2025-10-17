@@ -2,23 +2,24 @@
 // FIRESTORE TASK SERVICE - DIRECT FIREBASE CONNECTION
 // ============================================================================
 
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
   onSnapshot,
   Timestamp,
-  writeBatch
+  writeBatch,
+  serverTimestamp
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { Task } from '@/types';
 import { handleFirebaseOperation } from '@/lib/firebaseErrorHandler';
 
@@ -32,15 +33,13 @@ export class FirestoreTaskService {
   static async getTasks(userId?: string): Promise<Task[]> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
+
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error('Necesitás iniciar sesión');
+
       const tasksRef = collection(db, TASKS_COLLECTION);
-      let q = query(tasksRef, orderBy('createdAt', 'desc'));
-      
-      // Si hay userId, filtrar por usuario (sin orderBy para evitar índice compuesto requerido)
-      if (userId) {
-        q = query(tasksRef, where('userId', '==', userId));
-      }
-      
+      const q = query(tasksRef, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'));
+
       const snapshot = await getDocs(q);
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -49,11 +48,7 @@ export class FirestoreTaskService {
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
         dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
       } as Task));
-      
-      // Ordenar en cliente si filtramos por usuario
-      if (userId) {
-        items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-      }
+
       return items;
     }, 'Obtener tareas');
   }
@@ -84,28 +79,30 @@ export class FirestoreTaskService {
   /**
    * Crear una nueva tarea
    */
-  static async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>, userId?: string): Promise<Task> {
+  static async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
-      const now = Timestamp.now();
+
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error('Necesitás iniciar sesión');
+
       const newTask = {
         ...taskData,
-        userId: userId || 'anonymous',
-        createdAt: now,
-        updatedAt: now,
+        ownerUid: uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         dueDate: taskData.dueDate ? Timestamp.fromDate(new Date(taskData.dueDate)) : null,
       };
-      
+
       const tasksRef = collection(db, TASKS_COLLECTION);
       const docRef = await addDoc(tasksRef, newTask);
-      
+
       return {
         id: docRef.id,
         ...taskData,
-        userId: userId || 'anonymous',
-        createdAt: now.toDate().toISOString(),
-        updatedAt: now.toDate().toISOString(),
+        ownerUid: uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       } as Task;
     }, 'Crear tarea');
   }
@@ -116,39 +113,46 @@ export class FirestoreTaskService {
   static async updateTask(taskId: string, updates: Partial<Task>): Promise<Task> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
+
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error('Necesitás iniciar sesión');
+
       const taskRef = doc(db, TASKS_COLLECTION, taskId);
+
+      // Remover ownerUid si viene en los updates para no modificarlo
+      const { ownerUid, ...safeUpdates } = updates;
+
       const updateData = {
-        ...updates,
-        updatedAt: Timestamp.now(),
-        dueDate: updates.dueDate ? Timestamp.fromDate(new Date(updates.dueDate)) : undefined,
+        ...safeUpdates,
+        updatedAt: serverTimestamp(),
+        dueDate: safeUpdates.dueDate ? Timestamp.fromDate(new Date(safeUpdates.dueDate)) : undefined,
       };
-      
+
       // Remover campos undefined
       Object.keys(updateData).forEach(key => {
         if (updateData[key as keyof typeof updateData] === undefined) {
           delete updateData[key as keyof typeof updateData];
         }
       });
-      
+
       try {
         await updateDoc(taskRef, updateData);
-        
+
         // Obtener la tarea actualizada
         const updatedTask = await this.getTask(taskId);
         if (!updatedTask) throw new Error('No se pudo obtener la tarea actualizada');
-        
+
         return updatedTask;
       } catch (error: any) {
         // Manejar errores de red específicos sin interrumpir la UI
-        if (error?.message?.includes('ERR_ABORTED') || 
+        if (error?.message?.includes('ERR_ABORTED') ||
             error?.message?.includes('net::ERR_') ||
             error?.code === 'cancelled') {
           console.warn('⚠️ Operación cancelada o error de red, continuando...', error.message);
           // Retornar una tarea simulada para no interrumpir la UI
           return {
             id: taskId,
-            ...updates,
+            ...safeUpdates,
             updatedAt: new Date().toISOString()
           } as Task;
         }
@@ -158,26 +162,28 @@ export class FirestoreTaskService {
   }
 
   /**
-   * Eliminar una tarea   */
-  static async deleteTask(taskId: string, userId?: string): Promise<void> {
+   * Eliminar una tarea
+   */
+  static async deleteTask(taskId: string): Promise<void> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
+
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error('Necesitás iniciar sesión');
+
       const taskRef = doc(db, TASKS_COLLECTION, taskId);
-      
+
       // Verificar que la tarea pertenece al usuario antes de eliminar
-      if (userId) {
-        const taskDoc = await getDoc(taskRef);
-        if (!taskDoc.exists()) {
-          throw new Error('Tarea no encontrada');
-        }
-        
-        const taskData = taskDoc.data();
-        if (taskData.userId !== userId) {
-          throw new Error('No tienes permisos para eliminar esta tarea');
-        }
+      const taskDoc = await getDoc(taskRef);
+      if (!taskDoc.exists()) {
+        throw new Error('Tarea no encontrada');
       }
-      
+
+      const taskData = taskDoc.data();
+      if (taskData.ownerUid !== uid) {
+        throw new Error('No tienes permisos para eliminar esta tarea');
+      }
+
       await deleteDoc(taskRef);
     }, 'Eliminar tarea');
   }
@@ -202,33 +208,28 @@ export class FirestoreTaskService {
   /**
    * Obtener tareas por fecha
    */
-  static async getTasksForDate(date: string, userId?: string): Promise<Task[]> {
+  static async getTasksForDate(date: string): Promise<Task[]> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
+
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error('Necesitás iniciar sesión');
+
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
-      
+
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      
+
       const tasksRef = collection(db, TASKS_COLLECTION);
-      let q = query(
+      const q = query(
         tasksRef,
+        where('ownerUid', '==', uid),
         where('dueDate', '>=', Timestamp.fromDate(startOfDay)),
         where('dueDate', '<=', Timestamp.fromDate(endOfDay)),
         orderBy('dueDate', 'asc')
       );
-      
-      if (userId) {
-        q = query(
-          tasksRef,
-          where('userId', '==', userId),
-          where('dueDate', '>=', Timestamp.fromDate(startOfDay)),
-          where('dueDate', '<=', Timestamp.fromDate(endOfDay))
-        );
-      }
-      
+
       const snapshot = await getDocs(q);
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -237,11 +238,7 @@ export class FirestoreTaskService {
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
         dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
       } as Task));
-      
-      // Ordenar en cliente si filtramos por usuario
-      if (userId) {
-        items.sort((a, b) => new Date(a.dueDate || 0).getTime() - new Date(b.dueDate || 0).getTime());
-      }
+
       return items;
     }, 'Obtener tareas por fecha');
   }
@@ -254,15 +251,17 @@ export class FirestoreTaskService {
       console.error('Firestore no está inicializado');
       return () => {};
     }
-    
-    const tasksRef = collection(db, TASKS_COLLECTION);
-    let q = query(tasksRef, orderBy('createdAt', 'desc'));
-    
-    if (userId) {
-      // Evitar orderBy con where para no requerir índice compuesto
-      q = query(tasksRef, where('userId', '==', userId));
+
+    const uid = auth.currentUser?.uid;
+    if (!uid) {
+      console.error('Necesitás iniciar sesión');
+      callback([]);
+      return () => {};
     }
-    
+
+    const tasksRef = collection(db, TASKS_COLLECTION);
+    const q = query(tasksRef, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'));
+
     return onSnapshot(q, (snapshot) => {
       const tasks = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -271,17 +270,12 @@ export class FirestoreTaskService {
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
         dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
       } as Task));
-      
-      // Ordenar en cliente si filtramos por usuario
-      const sortedTasks = userId
-        ? tasks.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        : tasks;
-      
-      console.log('📡 Actualizando tareas en tiempo real:', sortedTasks.length);
-      callback(sortedTasks);
+
+      console.log('📡 Actualizando tareas en tiempo real:', tasks.length);
+      callback(tasks);
     }, (error) => {
       // Manejar errores de conexión de manera más elegante
-      if (error?.message?.includes('ERR_ABORTED') || 
+      if (error?.message?.includes('ERR_ABORTED') ||
           error?.message?.includes('net::ERR_') ||
           error?.code === 'cancelled' ||
           error?.code === 'unavailable') {

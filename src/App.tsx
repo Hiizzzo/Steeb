@@ -43,6 +43,14 @@ import { useTextSize } from "./hooks/useTextSize";
 import { initializeRecurrenceManager } from "./utils/recurrenceManager";
 import { AuthProvider } from "./hooks/useAuth";
 
+// ⚠️ TEMPORAL: Import para backfill - ELIMINAR DESPUÉS DE USAR
+// ============================================================================
+// Este import es TEMPORAL y debe ser eliminado después de ejecutar el backfill
+// ============================================================================
+const AdminBackfillScreen = import.meta.env.DEV || import.meta.env.VITE_ADMIN_MODE === 'true'
+  ? React.lazy(() => import('./screens/admin/AdminBackfillScreen'))
+  : null;
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
@@ -112,6 +120,23 @@ const AppContent = () => {
         <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/about" element={<AboutPage />} />
+
+        {/* ⚠️ TEMPORAL: Ruta de admin para backfill - ELIMINAR DESPUÉS DE USAR */}
+        {/* ============================================================================
+        * Esta ruta es TEMPORAL y debe ser eliminada después de ejecutar el backfill
+        * Solo está disponible en desarrollo o si ADMIN_MODE=true
+        * ============================================================================ */}
+        {AdminBackfillScreen && (
+          <Route
+            path="/admin/backfill"
+            element={
+              <React.Suspense fallback={<div>Cargando...</div>}>
+                <AdminBackfillScreen />
+              </React.Suspense>
+            }
+          />
+        )}
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

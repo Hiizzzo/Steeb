@@ -147,7 +147,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const result = await getRedirectResult(auth);
         if (result?.user) {
           // Asegurar documento de usuario en Firestore
-          const ref = doc(db, 'users', result.user.uid);
+          const uid = result.user.uid;
+          const ref = doc(db, 'users', uid);
           const snap = await getDoc(ref);
           if (!snap.exists()) {
             await setDoc(ref, {
@@ -156,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               nickname: '',
               avatar: result.user.photoURL,
               provider: 'google',
+              ownerUid: uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
             });
@@ -196,7 +198,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const credential = GoogleAuthProvider.credential(idToken);
           const resCred = await signInWithCredential(auth, credential);
           // Ensure user doc exists
-          const ref = doc(db, 'users', resCred.user.uid);
+          const uid = resCred.user.uid;
+          const ref = doc(db, 'users', uid);
           const snap = await getDoc(ref);
           if (!snap.exists()) {
             await setDoc(ref, {
@@ -205,6 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               nickname: '',
               avatar: resCred.user.photoURL,
               provider: 'google',
+              ownerUid: uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
             });
@@ -223,7 +227,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // En web, usar popup
     const res = await signInWithPopup(auth, googleProvider);
     // Ensure user doc exists
-    const ref = doc(db, 'users', res.user.uid);
+    const uid = res.user.uid;
+    const ref = doc(db, 'users', uid);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
       await setDoc(ref, {
@@ -232,6 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         nickname: '',
         avatar: res.user.photoURL,
         provider: 'google',
+        ownerUid: uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -241,7 +247,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, name: string, nickname: string) => {
     ensureConfigured();
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const ref = doc(db, 'users', cred.user.uid);
+    const uid = cred.user.uid;
+    const ref = doc(db, 'users', uid);
     try {
       await setDoc(ref, {
         email,
@@ -249,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         nickname,
         avatar: cred.user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
         provider: 'manual',
+        ownerUid: uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -279,6 +287,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (async () => {
       try {
         const ref = doc(db, 'users', uid);
+        // No permitir modificar ownerUid en actualizaciones
         await updateDoc(ref, { name, nickname, updatedAt: serverTimestamp() });
       } catch (e) {
         // Si falla, mantén el estado local; se puede reintentar luego
@@ -335,7 +344,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Refrescar estado de usuario y asegurar doc en Firestore
     const refreshed = auth.currentUser as FirebaseUser;
-    const ref = doc(db, 'users', refreshed.uid);
+    const uid = refreshed.uid;
+    const ref = doc(db, 'users', uid);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
       await setDoc(ref, {
@@ -344,6 +354,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         nickname: '',
         avatar: refreshed.photoURL,
         provider: 'google',
+        ownerUid: uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

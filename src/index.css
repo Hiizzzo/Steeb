@@ -1,9 +1,11 @@
 
+@reference "tailwindcss";
+
 /* stylelint-disable */
 /* Importar protección para tema shiny */
 @import './styles/shiny-protection.css';
 
-/* Tailwind directives - these are valid but may show as errors in some editors */
+/* Tailwind directives - standard syntax */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -123,18 +125,20 @@
 @layer base {
   /* stylelint-disable-next-line at-rule-no-unknown */
   * {
-    @apply border-border;
+    @apply border-[hsl(var(--border))];
   }
 
   /* stylelint-disable-next-line at-rule-no-unknown */
   body {
-    @apply bg-steve-white text-steve-black;
+    background-color: #FFFFFF;
+    color: #000000;
     font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
   /* stylelint-disable-next-line at-rule-no-unknown */
   .dark body {
-    @apply bg-steve-black text-steve-white;
+    background-color: #000000;
+    color: #FFFFFF;
   }
   
   /* Esconde el scrollbar para móviles */
@@ -247,13 +251,55 @@
 }
 
 @layer utilities {
+  /* Steve colors - Custom utilities */
+  .bg-steve-white {
+    background-color: #FFFFFF;
+  }
+
+  .bg-steve-black {
+    background-color: #000000;
+  }
+
+  .bg-steve-gray-light {
+    background-color: #F3F3F3;
+  }
+
+  .bg-steve-gray-dark {
+    background-color: #222222;
+  }
+
+  .text-steve-white {
+    color: #FFFFFF;
+  }
+
+  .text-steve-black {
+    color: #000000;
+  }
+
+  .text-steve-gray-light {
+    color: #F3F3F3;
+  }
+
+  .text-steve-gray-dark {
+    color: #222222;
+  }
+
+  .border-steve-white {
+    border-color: #FFFFFF;
+  }
+
+  .border-steve-black {
+    border-color: #000000;
+  }
+
   .steve-shadow {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* stylelint-disable-next-line at-rule-no-unknown */
   .steve-border {
-    @apply border border-gray-200 rounded-lg;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
   }
 
   /* Clase específica para asegurar visibilidad del cursor */
