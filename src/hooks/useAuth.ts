@@ -15,6 +15,8 @@ import {
   signInWithCredential,
   GoogleAuthProvider,
   sendEmailVerification,
+  setPersistence,
+  browserLocalPersistence,
   User as FirebaseUser,
 } from 'firebase/auth';
 import {
@@ -74,6 +76,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { setupRealtimeListener, loadTasks } = useTaskStore();
+
+  // Configurar persistencia local al iniciar
+  useEffect(() => {
+    const configurePersistence = async () => {
+      if (!isFirebaseConfigured) return;
+      
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        console.log('🔄 Persistencia local configurada correctamente');
+      } catch (error) {
+        console.warn('⚠️ Error configurando persistencia:', error);
+      }
+    };
+
+    configurePersistence();
+  }, []);
 
   useEffect(() => {
     let unsubscribeTaskListener: (() => void) | null = null;
@@ -182,6 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     ensureConfigured();
+    
     // En plataformas nativas (Capacitor Android/iOS), intentar flujo nativo
     if (Capacitor.isNativePlatform()) {
       try {
@@ -215,15 +234,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           return;
         }
-        // Si el plugin no está disponible, caemos a redirect (puede fallar en iOS WebView)
+        
+        // Para iOS, si el plugin no está disponible, usar redirect con configuración específica
+        if (Capacitor.getPlatform() === 'ios') {
+          console.log('🍎 iOS: Usando signInWithRedirect para Google Auth');
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        }
+        
+        // Para Android, intentar redirect como fallback
+        console.log('🤖 Android: Usando signInWithRedirect como fallback');
         await signInWithRedirect(auth, googleProvider);
         return;
-      } catch (e) {
-        // Último recurso en nativo: intentar redirect
-        await signInWithRedirect(auth, googleProvider);
-        return;
+      } catch (error) {
+        console.error('❌ Error en autenticación nativa:', error);
+        
+        // Para iOS, mostrar error específico y sugerir solución
+        if (Capacitor.getPlatform() === 'ios') {
+          throw new Error('Para usar Google Sign-In en iOS, instala el plugin de Google Sign-In nativo. Mientras tanto, usa Email/Contraseña.');
+        }
+        
+        // Último recurso: intentar redirect
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectError) {
+          throw new Error('No se pudo autenticar con Google. Por favor, usa Email/Contraseña.');
+        }
       }
     }
+    
     // En web, usar popup
     const res = await signInWithPopup(auth, googleProvider);
     // Ensure user doc exists

@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Clock, Pointer, Repeat } from 'lucide-react';
 import ShapeIcon from "./ShapeIcon";
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
 import type { RecurrenceRule, RecurrenceFrequency } from '@/types';
 
 // Íconos simples para los tipos de tarea
@@ -72,6 +73,7 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<string>('');
   const { playButtonClickSound } = useSoundEffects();
   const { toast } = useToast();
+  const { isAuthenticated, user } = useAuth();
 
   // Pre-llenar campos cuando se está editando una tarea
   useEffect(() => {
@@ -114,6 +116,16 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
   }, [editingTask]);
 
   const handleCreate = () => {
+    // Verificar autenticación antes de crear tareas
+    if (!isAuthenticated || !user) {
+      toast({
+        title: "Se requiere autenticación",
+        description: "Debes iniciar sesión para crear tareas",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (title.trim()) {
       console.log('📝 TaskCreationCard: Iniciando creación de tarea...');
       console.log('📝 Datos de la tarea:', { 

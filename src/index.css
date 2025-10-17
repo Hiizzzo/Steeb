@@ -1,14 +1,13 @@
 
-@reference "tailwindcss";
-
-/* stylelint-disable */
-/* Importar protección para tema shiny */
 @import './styles/shiny-protection.css';
+@reference "tailwindcss";
 
 /* Tailwind directives - standard syntax */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* stylelint-disable */
 /* stylelint-enable */
 
 @layer base {

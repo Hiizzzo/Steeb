@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
 import geminiService from '@/services/geminiService';
 
 import { dailyTasks, DailyTask } from '@/data/dailyTasks';
@@ -57,6 +58,7 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
   const [subtasks, setSubtasks] = useState<string[]>(['']);
   const { toast } = useToast();
   const { isDark } = useTheme();
+  const { isAuthenticated, user } = useAuth();
   const [isAddingDaily, setIsAddingDaily] = useState(false);
   const [currentTasks, setCurrentTasks] = useState<DailyTask[]>(dailyTasks);
   const [aiMode, setAiMode] = useState(false);
@@ -130,6 +132,16 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
   }, [isOpen, editingTask]);
 
   const handleAddDailyTasks = async () => {
+    // Verificar autenticación antes de crear tareas
+    if (!isAuthenticated || !user) {
+      toast({
+        title: "Se requiere autenticación",
+        description: "Debes iniciar sesión para crear tareas",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsAddingDaily(true);
     
     // Mensaje inicial de Steve
@@ -174,6 +186,16 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
   };
 
   const handleSubmit = () => {
+    // Verificar autenticación antes de crear tareas
+    if (!isAuthenticated || !user) {
+      toast({
+        title: "Se requiere autenticación",
+        description: "Debes iniciar sesión para crear tareas",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (title.trim()) {
       const validSubtasks = subtasks
         .filter(s => s.trim())
@@ -189,9 +211,9 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
       const taskType = 'productividad'; // Usar tipo por defecto
       
       onAddTask(
-        title.trim(), 
+        title.trim(),
         taskType,
-        validSubtasks.length > 0 ? validSubtasks : undefined, 
+        validSubtasks.length > 0 ? validSubtasks : undefined,
         scheduledDate,
         hasTime ? selectedTime : undefined,
         notes.trim() || undefined
@@ -215,6 +237,16 @@ const ModalAddTask: React.FC<ModalAddTaskProps> = ({ isOpen, onClose, onAddTask,
   };
 
   const handleGenerateWithAI = async () => {
+    // Verificar autenticación antes de crear tareas
+    if (!isAuthenticated || !user) {
+      toast({
+        title: "Se requiere autenticación",
+        description: "Debes iniciar sesión para crear tareas con IA",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!aiPrompt.trim()) {
       toast({
         title: "Escribe algo primero",

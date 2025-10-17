@@ -60,8 +60,15 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
       setTimeout(() => {
         setMode('onboarding');
       }, 300);
-    } catch (err) {
-      setError('Error al iniciar sesión con Google');
+    } catch (err: any) {
+      console.error('❌ Error en Google Login:', err);
+      
+      // Mensaje específico para iOS
+      if (isNative && err?.message?.includes('iOS')) {
+        setError('En iOS, instala el plugin de Google Sign-In nativo o usa Email/Contraseña');
+      } else {
+        setError(err?.message || 'Error al iniciar sesión con Google');
+      }
       setIsLoading(false);
     }
     // El loading se mantiene hasta que la transición termine
@@ -209,7 +216,12 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
             {isNative && !hasNativeGoogle && (
               <div className="text-sm text-gray-600 dark:text-gray-300 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
-                En la app iOS usa Email/Contraseña por ahora. Para Google en iOS, instala y configura el plugin nativo y reinicia la app.
+                <p className="font-medium mb-1">📱 Autenticación en dispositivos nativos:</p>
+                <ul className="text-xs space-y-1">
+                  <li>• <strong>iOS:</strong> Usa Email/Contraseña o instala el plugin de Google Sign-In nativo</li>
+                  <li>• <strong>Android:</strong> Usa Email/Contraseña si el plugin de Google no está disponible</li>
+                  <li>• <strong>Web:</strong> Google Sign-In disponible automáticamente</li>
+                </ul>
               </div>
             )}
 

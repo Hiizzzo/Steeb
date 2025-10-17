@@ -16,6 +16,7 @@
       "buildNumber": "2",
       "supportsTablet": true,
       "newArchEnabled": false,
+      "runtimeVersion": "expo-runtime-1.0.0",
   
       "infoPlist": {
         "NSUserTrackingUsageDescription": "This app does NOT track users. No data is collected for advertising or tracking purposes. All data is stored locally on your device only.",
@@ -48,8 +49,21 @@
       }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/fonts/SpaceMono-Regular.ttf"]
+        }
+      ]
     ],
-    "scheme": "steeb"
+    "scheme": "steeb",
+    "owner": "santyy",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0778eccc-a4f5-41ce-9797-858da711b88c"
+    }
   }
 }

@@ -21,8 +21,7 @@ const cfg = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || fallbackCfg.storageBucket,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || fallbackCfg.messagingSenderId,
   appId: import.meta.env.VITE_FIREBASE_APP_ID || fallbackCfg.appId,
-  // Analytics desactivado para cumplir con App Store Connect
-  // measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || fallbackCfg.measurementId,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || undefined,
 };
 
 // FIREBASE ENABLED FOR PRODUCTION
