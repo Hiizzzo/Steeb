@@ -51,9 +51,9 @@ const ThemeToggle = () => {
 					title="Tema Shiny desbloqueado ✨"
 				>
 					<div className={`w-4 h-4 rounded-full transition-transform duration-200 ${
-						isShiny 
-							? 'bg-white transform translate-x-6 shadow-md' 
-							: 'bg-white transform translate-x-0.5'
+						isShiny
+							? 'bg-white transform translate-x-6 shadow-md'
+							: 'bg-white transform translate-x-0'
 					}`} />
 				</button>
 			)}
@@ -61,9 +61,11 @@ const ThemeToggle = () => {
 			{/* Switch normal para light/dark */}
 			<Switch
 				className={`scale-125 origin-top-right ${
-					isShiny 
-						? 'data-[state=checked]:bg-white data-[state=unchecked]:bg-white [&>span]:bg-black data-[state=checked]:[&>span]:bg-black data-[state=unchecked]:[&>span]:bg-black' 
-						: ''
+					isShiny
+						? 'data-[state=checked]:bg-white data-[state=unchecked]:bg-white [&>span]:bg-black data-[state=checked]:[&>span]:bg-black data-[state=unchecked]:[&>span]:bg-black'
+						: !isDark && !isShiny
+							? 'data-[state=checked]:bg-black data-[state=unchecked]:bg-black [&>span]:bg-white data-[state=checked]:[&>span]:bg-white data-[state=unchecked]:[&>span]:bg-white'
+							: ''
 				}`}
 				checked={isDark}
 			onCheckedChange={(checked) => {

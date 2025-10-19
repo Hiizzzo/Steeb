@@ -1,12 +1,12 @@
-
 # 🚀 GUÍA COMPLETA - BUILD iOS CON EAS PARA STEEB
 
 ## 📋 Requisitos Previos ✅
 
-1. **Cuenta de EAS configurada** ✓
+1. **Cuenta de EAS configurada** (owner: santyy.benitezz) ✓
 2. **App Store Connect configurado** (ASC App ID: 6752629210) ✓
 3. **Variables de entorno configuradas** ✓
 4. **Autenticación Firebase implementada** ✓
+5. **Owner del proyecto corregido** ✓
 
 ## 🔧 Configuración Implementada
 
@@ -86,6 +86,9 @@ npx eas build --platform ios --profile production --non-interactive
 ### Error: "Build fallido por dependencias"
 **Solución**: Ejecuta `npm install --legacy-peer-deps`
 
+### Error: "Owner del proyecto no coincide"
+**Solución**: Verifica que el campo "owner" en app.json coincida con el owner de EAS
+
 ### Error: "Firebase no configurado"
 **Solución**: Verifica variables de entorno en `.env`
 
@@ -93,3 +96,23 @@ npx eas build --platform ios --profile production --non-interactive
 
 Si encuentras errores durante el build:
 1. Revisa el log de build en EAS
+2. Verifica que todas las variables de entorno estén configuradas
+3. Asegúrate de tener conexión a internet estable
+
+## ✅ Checklist Final
+
+- [ ] Variables de entorno configuradas
+- [ ] Dependencias instaladas con `--legacy-peer-deps`
+- [ ] Build ejecutado sin errores
+- [ ] .ipa descargado exitosamente
+- [ ] App probada en TestFlight
+- [ ] Funcionalidad de autenticación verificada
+- [ ] Creación de tareas protege correctamente
+
+---
+
+**🎉 ¡Listo para subir a App Store!**
+
+Una vez que el .ipa esté probado y aprobado, puedes subirlo a App Store Connect usando:
+```bash
+npx eas submit --platform ios --profile production

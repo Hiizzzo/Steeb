@@ -180,7 +180,7 @@ const Index = () => {
           <Trash2 className="w-5 h-5 text-black dark:text-white" />
         </div>
 
-        <div className={`flex items-center gap-3 px-1.5 py-2 rounded-lg mb-2 transition-all duration-600 ${
+        <div className={`flex items-center gap-3 px-1.5 py-2 rounded-lg transition-all duration-600 ${
           isTaskDeleting 
             ? 'bg-black dark:bg-white animate-pulse' 
             : ''
@@ -225,11 +225,11 @@ const Index = () => {
               console.log('CHECKBOX CLICKED!', task.id);
               handleToggleTask(task.id);
             }}
-            className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed bg-green-500 border-green-500 dark:!bg-white dark:!border-white' : 'border-black dark:border-white'}`}
+            className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed !bg-transparent !border-black dark:!bg-transparent dark:!border-white' : '!bg-white !border-black dark:border-white'}`}
             style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
           >
-            {task.completed && <Check size={16} className="text-white dark:text-white" />}
-          </button>
+            {task.completed && <Check size={16} className="text-transparent dark:text-transparent" />}
+                      </button>
         </div>
       </div>
     );
@@ -740,16 +740,16 @@ const Index = () => {
 
   return (
           <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
-      
+
       {/* STEEB en esquina superior izquierda + burbuja de diálogo */}
-      <div className="absolute top-4 left-4 z-20 mr-24 flex items-start gap-2 max-w-[70%] sm:max-w-[80%]">
+      <div className="absolute top-2 left-4 z-0 mr-24 flex items-start gap-2 max-w-[70%] sm:max-w-[80%] mb-8">
         <img 
           src="/lovable-uploads/te obesrvo.png"
           alt="STEEB" 
           className="w-24 h-24 sm:w-20 sm:h-20 object-contain bg-transparent rounded-none shadow-none"
         />
         <div className="relative">
-          <div className="steeb-bubble rounded-xl px-3 py-2 max-w-[280px]">
+          <div className="steeb-bubble rounded-xl px-3 py-2 max-w-[280px] mb-4">
             <div className="text-xs font-bold mb-0.5">
               STEEB
             </div>
@@ -759,38 +759,31 @@ const Index = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Contenido principal */}
       <div className="relative z-10">
-      
+
       {/* Espaciado superior para no tapar la lista con el avatar + burbuja */}
       <div className="pt-24 mb-1" />
       {/* Título principal */}
       {/* Título principal */}
        <div className="pt-6 mb-2">
-         <div className={`tareas-header flex items-center justify-center py-2 relative border-x ${theme.isShiny ? 'bg-white text-black border-white' : 'bg-black text-white border-black'}`}>
-           <div className="flex items-center gap-2">
-             {weekDays.map((d) => {
-               const isSelected = d.iso === selectedDateISO;
-               const isToday = d.iso === todayISO;
-               const headerIsLight = theme.isShiny; // barra blanca en modo shiny
-               const baseColors = headerIsLight
-                 ? (isSelected
-                     ? 'bg-black text-white'
-                     : 'bg-white text-black border border-black/50 hover:bg-black/10')
-                 : 'bg-black text-white border border-white/50 hover:bg-black/70';
-               const ring = isToday && !isSelected ? (headerIsLight ? 'ring-2 ring-black/40' : 'ring-2 ring-white/40') : '';
+         <div className={`tareas-header flex items-center justify-center py-1 relative -mx-4 rounded-none ${theme.isShiny ? 'bg-white text-black' : 'bg-black text-white'}`} style={{ borderRadius: '0 !important', overflow: 'visible !important', border: 'none !important' }}>
+           <div className="flex items-center justify-center flex-1">
+             {(() => {
+               const today = new Date();
+               const dayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
+               const dayName = dayNames[today.getDay()];
+               const headerIsLight = theme.isShiny;
+
                return (
-                 <button
-                   key={d.iso}
-                   onClick={() => setSelectedDateISO(d.iso)}
-                   className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${baseColors} ${ring}`}
-                   aria-label={`Ver tareas del ${d.date.toLocaleDateString('es-ES', { weekday: 'long' })}`}
-                 >
-                   {d.letter}
-                 </button>
+                 <h1 className={`text-lg font-normal tracking-wide ${
+                   headerIsLight ? 'text-black' : 'text-white'
+                 }`} style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '500' }}>
+                   {dayName}
+                 </h1>
                );
-             })}
+             })()}
            </div>
          </div>
        </div>
@@ -818,7 +811,7 @@ const Index = () => {
           <div className="flex justify-start mb-4">
             <button
               onClick={() => setShowCompletedToday(!showCompletedToday)}
-              className="text-gray-600 hover:text-gray-800 transition-colors p-2 rounded-full hover:bg-gray-100"
+              className="text-gray-500 bg-transparent hover:bg-transparent p-0 border-none transition-colors"
             >
               {showCompletedToday ? (
                 <EyeOff className="w-5 h-5" />

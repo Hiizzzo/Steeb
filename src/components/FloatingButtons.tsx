@@ -13,7 +13,7 @@ interface FloatingButtonsProps {
 
 const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTask }) => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { currentTheme } = useTheme();
   const [shinyEnabled, setShinyEnabled] = useState<boolean>(false);
   const [isLongPressed, setIsLongPressed] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -32,7 +32,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     e.stopPropagation();
 
     // Usar tema real para elegir variante
-    const isDark = theme === 'dark' || document.documentElement.classList.contains('dark') || document.documentElement.classList.contains('shiny');
+    const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark') || document.documentElement.classList.contains('shiny');
     setMenuVariant(isDark ? 'dark' : 'light');
 
     hasLongPressTriggered.current = false;
@@ -217,7 +217,13 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
             onTouchEnd={handleTouchEnd}
             onTouchCancel={handleTouchCancel}
             onContextMenu={handleContextMenu}
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 bg-black dark:!bg-white pointer-events-auto touch-button no-select shiny-fab"
+            className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 pointer-events-auto touch-button no-select shiny-fab ${
+              currentTheme === 'light'
+                ? 'bg-black border-black text-white'
+                : currentTheme === 'dark'
+                  ? 'bg-white border-white text-black'
+                  : 'bg-black border-black text-white'
+            }`}
             style={{ 
               touchAction: 'none',
               userSelect: 'none',
@@ -268,7 +274,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   exit={{ scale: 0, rotate: -180 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
-                  <Plus size={28} className="text-white dark:!text-black" strokeWidth={3} />
+                  <Plus size={28} className={`${currentTheme === 'light' ? 'text-white' : currentTheme === 'dark' ? 'text-black' : 'text-white'}`} strokeWidth={3} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -335,7 +341,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     <button
                       aria-label="Calendario"
                       onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
-                      className="absolute pointer-events-auto"
+                      className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
@@ -348,7 +354,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     <button
                       aria-label="Configuración"
                       onClick={() => { setShowCalendarMenu(false); navigate('/settings'); }}
-                      className="absolute pointer-events-auto"
+                      className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
@@ -361,7 +367,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     <button
                       aria-label="Estadísticas"
                       onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
-                      className="absolute pointer-events-auto"
+                      className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
@@ -384,7 +390,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     <button
                       aria-label="Calendario"
                       onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
-                      className="absolute pointer-events-auto"
+                      className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
@@ -397,7 +403,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     <button
                       aria-label="Configuración"
                       onClick={() => { setShowCalendarMenu(false); navigate('/settings'); }}
-                      className="absolute pointer-events-auto"
+                      className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}
@@ -410,7 +416,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     <button
                       aria-label="Estadísticas"
                       onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
-                      className="absolute pointer-events-auto"
+                      className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                       onTouchStart={(e) => e.stopPropagation()}

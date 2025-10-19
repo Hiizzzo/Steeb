@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useToast } from '@/components/ui/use-toast';
-import { Calendar, Clock, Pointer, Repeat } from 'lucide-react';
+import { Calendar, Clock, Pointer, Repeat, X } from 'lucide-react';
 import ShapeIcon from "./ShapeIcon";
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
@@ -245,38 +245,26 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className="task-creation-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
     >
-      <div className={`task-creation-modal w-full max-w-md rounded-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden ${
-        currentTheme === 'light' ? 'bg-white' : 'bg-black border border-white'
-      } shiny-task-card`}>
+      <div className={`task-creation-modal w-full max-w-md rounded-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden bg-white border-2 border-black shiny-task-card`}>
         {/* Header */}
-        <div className={`flex items-center justify-between px-6 py-4 border-b ${
-          currentTheme === 'light' ? 'border-gray-100' : 'border-gray-500'
-        } task-card-header`}>
+        <div className={`flex items-start justify-between px-4 py-4 border-b-2 border-black task-card-header`}>
           <button
             onClick={onCancel}
-            className={`transition-colors font-medium ${
-              currentTheme === 'light' ? 'text-black hover:text-gray-600' : 'text-white hover:text-gray-300'
-            }`}
+            className="transition-colors flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-white hover:bg-gray-100"
           >
-            Cancelar
+            <X size={24} strokeWidth={2} className="text-black" />
           </button>
-          
-          <button
-            onClick={handleCreate}
-            className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
-              currentTheme === 'light' 
-                ? 'bg-white text-black border border-black hover:bg-gray-100' 
-                : 'bg-gray-700 text-white border border-gray-600 hover:bg-gray-600'
-            }`}
-          >
-            <Pointer size={20} strokeWidth={2} />
-          </button>
-          
+
           <button
             onClick={handleCreate}
             className={`transition-colors font-bold text-lg ${
-              currentTheme === 'light' ? 'text-black hover:text-gray-600' : 'text-white hover:text-gray-300'
+              currentTheme === 'light' ? 'text-black hover:text-black' : 'text-white hover:text-white'
             }`}
+            style={{
+              background: 'none !important',
+              border: 'none !important',
+              boxShadow: 'none !important'
+            }}
           >
             Crear
           </button>
@@ -300,10 +288,18 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Nombre de la tarea"
               className={`w-full text-xl border-none outline-none bg-transparent pr-6 ${
-                currentTheme === 'light' 
-                  ? 'text-black placeholder-gray-400' 
+                currentTheme === 'light'
+                  ? 'text-black placeholder-gray-400'
                   : 'text-white placeholder-gray-500'
               }`}
+              style={{
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none'
+              }}
               autoFocus
             />
           </div>
@@ -315,10 +311,18 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas"
               className={`w-full text-base border-none outline-none bg-transparent resize-none min-h-[44px] ${
-                currentTheme === 'light' 
-                  ? 'text-gray-600 placeholder-gray-400' 
+                currentTheme === 'light'
+                  ? 'text-gray-600 placeholder-gray-400'
                   : 'text-gray-300 placeholder-gray-500'
               }`}
+              style={{
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none'
+              }}
             />
           </div>
 
@@ -328,27 +332,27 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
         {/* Footer */}
         <div className="flex relative">
           {/* Date Section */}
-          <button 
+          <button
             onClick={() => setShowDatePicker(!showDatePicker)}
             aria-label="Fecha"
             title={selectedDate ? selectedDate.toLocaleDateString() : 'Seleccionar fecha'}
-            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors ${
-              currentTheme === 'light' 
-                ? 'text-black hover:text-black hover:bg-white' 
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors border-r-2 border-black ${
+              currentTheme === 'light'
+                ? 'bg-white text-black hover:bg-gray-100'
                 : 'text-white hover:text-white hover:bg-gray-700'
             }`}
           >
             <Calendar size={28} />
           </button>
-          
+
           {/* Repeat Section */}
-          <button 
+          <button
             onClick={() => setShowRepeatPicker(!showRepeatPicker)}
             aria-label="Repetir"
             title={recurrenceDaysOfWeek.length === 0 ? 'Configurar repetición' : ['D','L','M','M','J','V','S'].filter((_, idx) => recurrenceDaysOfWeek.includes(idx)).join(' ')}
-            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors ${
-              currentTheme === 'light' 
-                ? 'text-black hover:text-black hover:bg-white' 
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors border-r-2 border-black ${
+              currentTheme === 'light'
+                ? 'bg-white text-black hover:bg-gray-100'
                 : 'text-white hover:text-white hover:bg-gray-700'
             }`}
           >
@@ -356,30 +360,30 @@ const TaskCreationCard: React.FC<TaskCreationCardProps> = ({ onCancel, onCreate,
           </button>
 
           {/* Time Section */}
-          <button 
+          <button
             onClick={() => setShowTimePicker(!showTimePicker)}
             aria-label="Hora"
             title={selectedTime || 'Seleccionar hora'}
-            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors ${
-              currentTheme === 'light' 
-                ? 'text-black hover:text-black hover:bg-white' 
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors border-r-2 border-black ${
+              currentTheme === 'light'
+                ? 'bg-white text-black hover:bg-gray-100'
                 : 'text-white hover:text-white hover:bg-gray-700'
             }`}
           >
             <Clock size={28} />
           </button>
-          
+
           {/* Divider removed to make buttons seamless */}
-          
+
           {/* Tag Section */}
-          <button 
+          <button
             onClick={() => setShowTagPicker(!showTagPicker)}
             aria-label="Categoría"
             title={getTagLabel(selectedTag)}
-            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 rounded-none transition-colors ${
-              currentTheme === 'light' 
-                ? 'bg-white text-black hover:bg-gray-100' 
-                : 'bg-gray-800 text-white hover:bg-gray-700'
+            className={`shiny-footer-btn is-multi flex-1 flex items-center justify-center h-16 transition-colors ${
+              currentTheme === 'light'
+                ? 'bg-white text-black hover:bg-gray-100'
+                : 'text-white hover:text-white hover:bg-gray-700'
             }`}
           >
             {getTagIcon(selectedTag, true)}

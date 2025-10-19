@@ -129,8 +129,8 @@
 
   /* stylelint-disable-next-line at-rule-no-unknown */
   body {
-    background-color: #FFFFFF;
-    color: #000000;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
     font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
@@ -332,9 +332,33 @@
   }
 
   /* stylelint-disable at-rule-no-unknown */
+  /* Light mode (not dark, not shiny): ensure proper contrast */
+  body:not(.dark):not(.shiny) .text-black {
+    color: #000000 !important;
+  }
+
+  /* Light mode: force task cards background to pure white */
+  body:not(.dark):not(.shiny) .bg-gray-50,
+  body:not(.dark):not(.shiny) .bg-gray-100 {
+    background-color: #FFFFFF !important;
+  }
+
+  /* Light mode: force swipe background to white */
+  body:not(.dark):not(.shiny) .bg-white {
+    background-color: #FFFFFF !important;
+  }
+
+  
+  /* Redondear bordes del tareas-header en todos los modos */
+  .tareas-header {
+    border-radius: 9999px !important;
+    overflow: hidden !important;
+  }
+
   /* Dark mode overrides for common utility classes without changing component code */
   .dark .bg-white:not(.task-checkbox-button):not(.task-creation-modal):not(.task-creation-modal *) { @apply bg-black; }
   .dark .text-black:not(.task-creation-modal):not(.task-creation-modal *) { @apply text-white; }
+  
   /* Dark mode: force all gray borders to pure white */
   .dark .border-gray-50,
   .dark .border-gray-100,
@@ -1040,7 +1064,8 @@
   box-shadow: none !important;
   color: #ffffff !important;
   position: relative;
-  overflow: hidden; /* Para que el pseudo no se desborde si es necesario */
+  overflow: hidden !important; /* Para que el pseudo no se desborde si es necesario */
+  border-radius: 9999px !important; /* Mantener bordes redondeados en modo Shiny */
 }
 .shiny .tareas-header::before {
   content: "" !important;
