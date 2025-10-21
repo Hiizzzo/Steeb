@@ -17,7 +17,6 @@
       "supportsTablet": true,
       "newArchEnabled": false,
       "runtimeVersion": "expo-runtime-1.0.0",
-  
       "infoPlist": {
         "NSUserTrackingUsageDescription": "This app does NOT track users. No data is collected for advertising or tracking purposes. All data is stored locally on your device only.",
         "NSCameraUsageDescription": "Camera access is not required for this app.",
@@ -26,11 +25,15 @@
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
-            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
-            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "C617.1"
+            ]
           }
         ]
       }
@@ -43,27 +46,27 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "extra": {
-      "eas": {
-        "projectId": "0778eccc-a4f5-41ce-9797-858da711b88c"
-      }
-    },
     "plugins": [
       "expo-router",
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/SpaceMono-Regular.ttf"]
+          "fonts": [
+            "./assets/fonts/SpaceMono-Regular.ttf"
+          ]
         }
       ]
     ],
     "scheme": "steeb",
-    "owner": "santyy.benitezz",
+    "owner": "bbtricksz",
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
-    "updates": {
-      "url": "https://u.expo.dev/0778eccc-a4f5-41ce-9797-858da711b88c"
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8a6c7125-0dfc-4611-80c8-61d05b39c6d5"
+      }
     }
   }
 }
