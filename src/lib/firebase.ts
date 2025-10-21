@@ -4,14 +4,13 @@ import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { handleFirebaseOperation } from './firebaseErrorHandler';
 
 const fallbackCfg = {
-  apiKey: 'AIzaSyBVP5QdGUTyas4Pqh5_HSktQx91iDn3G4E',
-  authDomain: 'steeb-b3489.firebaseapp.com',
-  projectId: 'steeb-b3489',
-  storageBucket: 'steeb-b3489.firebasestorage.app',
-  messagingSenderId: '293062715609',
-  appId: '1:293062715609:web:25e679164f01e6f10b36c8',
-  // Analytics desactivado para cumplir con App Store Connect
-  // measurementId: 'G-FH663ZE04Y',
+  apiKey: 'AIzaSyBK5ZvLacIcP1PTKOJJZue1PoMyQrUtRLw',
+  authDomain: 'steeboriginal.firebaseapp.com',
+  projectId: 'steeboriginal',
+  storageBucket: 'steeboriginal.firebasestorage.app',
+  messagingSenderId: '169523533903',
+  appId: '1:169523533903:web:daa8f32c4e1c3b98aab23a',
+  measurementId: 'G-Z5GNT5NXSP',
 };
 
 const cfg = {

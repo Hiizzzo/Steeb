@@ -1,5 +1,5 @@
 // ============================================================================
-// STEBE MCP SERVER - Model Context Protocol for ChatGPT Integration
+// STEBE MCP SERVER - Model Context Protocol for ChatGPT + Claude Code Integration
 // ============================================================================
 
 import express from "express";
@@ -32,12 +32,13 @@ const DOCS_PATH = path.join(PROJECT_ROOT, 'docs');
 app.get("/", (req, res) => {
   res.json({
     name: "stebe-mcp-server",
-    version: "2.0.0",
-    description: "Model Context Protocol server for STEBE productivity app",
+    version: "2.1.0",
+    description: "Model Context Protocol server for STEBE productivity app - Claude Code + ChatGPT integration",
     capabilities: {
       resources: true,
       tools: true,
-      prompts: true
+      prompts: true,
+      contextSize: 7
     },
     endpoints: {
       resources: "/mcp/resources",
@@ -628,7 +629,8 @@ server.listen(PORT, () => {
 ╔════════════════════════════════════════════════════════════╗
 ║  🚀 STEBE MCP Server                                       ║
 ║  📡 Running on ${protocol}://localhost:${PORT}${protocol === 'http' ? '                      ' : '                     '}║
-║  🔗 Ready for ChatGPT integration                          ║
+║  🔗 Ready for ChatGPT + Claude Code integration            ║
+║  🎯 Context Size: 7                                        ║
 ╚════════════════════════════════════════════════════════════╝
 
 ${protocol === 'https' ? '🔒 Servidor seguro (HTTPS)\n' : '⚠️  Servidor sin cifrado (HTTP) - Solo para desarrollo\n'}

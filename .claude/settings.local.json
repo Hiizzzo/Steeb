@@ -7,9 +7,24 @@
       "Bash(git add:*)",
       "Bash(npm run dev:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm start)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(npx expo-doctor)",
+      "Bash(npm search:*)",
+      "Bash(npx expo install:*)",
+      "Bash(eas build:*)",
+      "Bash(npx expo start:*)",
+      "Bash(npx expo prebuild:*)",
+      "Bash(git rm:*)",
+      "Bash(npx expo config:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "steeb-mcp"
+  ]
 }

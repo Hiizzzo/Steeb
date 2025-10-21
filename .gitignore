@@ -27,5 +27,14 @@ dist-ssr
 # iOS Firebase config (keep local, do not commit)
 GoogleService-Info.plist
 ios-config/
-package-lock.json
+
+# Expo development server state
+.expose/
+.expo/
+
+# Lock files
 yarn-error.log
+
+# Native folders (Expo managed workflow)
+ios/
+android/
