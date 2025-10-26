@@ -81,8 +81,12 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     if (!longPressed && !showCalendarMenu) {
       setShowTaskModal(true);
     }
-    setIsLongPressed(false);
-    setShowCalendar(false);
+    // Solo resetear isLongPressed y showCalendar si el menú no está activo
+    if (!showCalendarMenu) {
+      setIsLongPressed(false);
+      setShowCalendar(false);
+      hasLongPressTriggered.current = false;
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -106,12 +110,8 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     }
     document.body.style.userSelect = '';
     document.body.style.webkitUserSelect = '';
-    setIsLongPressed(false);
-    setShowCalendar(false);
-    hasLongPressTriggered.current = false;
-    if (!showCalendarMenu) {
-      setShowCalendarMenu(false);
-    }
+    // Resetear todos los estados siempre al salir del botón
+    resetMenuStates();
   };
 
   const handleTouchCancel = (e: React.TouchEvent) => {
@@ -166,10 +166,20 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     });
   };
 
+  // Función centralizada para resetear estados del menú
+  const resetMenuStates = () => {
+    setIsLongPressed(false);
+    setShowCalendar(false);
+    setShowCalendarMenu(false);
+    hasLongPressTriggered.current = false;
+  };
+
   // Cerrar con Esc
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowCalendarMenu(false);
+      if (e.key === 'Escape') {
+        resetMenuStates();
+      }
     };
     if (showCalendarMenu) window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -181,7 +191,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
     const handleDocumentDown = (e: Event) => {
       const root = menuRootRef.current;
       if (root && !root.contains(e.target as Node)) {
-        setShowCalendarMenu(false);
+        resetMenuStates();
       }
     };
     document.addEventListener('pointerdown', handleDocumentDown, { capture: true });
@@ -218,20 +228,25 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
             onTouchCancel={handleTouchCancel}
             onContextMenu={handleContextMenu}
             className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 hover:-translate-y-1 pointer-events-auto touch-button no-select shiny-fab ${
-              currentTheme === 'light'
-                ? 'bg-black border-black text-white'
-                : currentTheme === 'dark'
-                  ? 'bg-white border-white text-black'
-                  : 'bg-black border-black text-white'
+              (() => {
+                const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark');
+                const isLight = currentTheme === 'light' || (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('shiny'));
+                return isLight ? 'bg-black text-white border-transparent' : isDark ? '!bg-white text-black border-white' : '!bg-white text-white border-transparent';
+              })()
             }`}
-            style={{ 
+            style={{
               touchAction: 'none',
               userSelect: 'none',
               WebkitUserSelect: 'none',
               MozUserSelect: 'none',
               msUserSelect: 'none',
               WebkitTouchCallout: 'none',
-              WebkitTapHighlightColor: 'transparent'
+              WebkitTapHighlightColor: 'transparent',
+              ...(currentTheme === 'dark' && {
+                borderColor: 'white !important',
+                borderWidth: '4px !important',
+                borderStyle: 'solid !important'
+              })
             }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
@@ -274,7 +289,13 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   exit={{ scale: 0, rotate: -180 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
-                  <Plus size={28} className={`${currentTheme === 'light' ? 'text-white' : currentTheme === 'dark' ? 'text-black' : 'text-white'}`} strokeWidth={3} />
+                  <Plus size={28} className={
+                  (() => {
+                    const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark');
+                    const isLight = currentTheme === 'light' || (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('shiny'));
+                    return isLight ? 'text-white' : isDark ? '!text-black' : 'text-white';
+                  })()
+                } strokeWidth={3} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -300,10 +321,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] pointer-events-auto"
-            onClick={() => setShowCalendarMenu(false)}
-            onPointerDown={() => setShowCalendarMenu(false)}
-            onMouseDown={() => setShowCalendarMenu(false)}
-            onTouchStart={() => setShowCalendarMenu(false)}
+            onClick={resetMenuStates}
+            onPointerDown={resetMenuStates}
+            onMouseDown={resetMenuStates}
+            onTouchStart={resetMenuStates}
             role="button"
             tabIndex={-1}
           >
@@ -312,10 +333,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               animate={{ opacity: 0.55 }}
               exit={{ opacity: 0 }}
               className={`${menuVariant === 'dark' ? 'bg-black' : 'bg-white'} absolute inset-0 z-[1]`}
-              onClick={() => setShowCalendarMenu(false)}
-              onPointerDown={() => setShowCalendarMenu(false)}
-              onMouseDown={() => setShowCalendarMenu(false)}
-              onTouchStart={() => setShowCalendarMenu(false)}
+              onClick={resetMenuStates}
+              onPointerDown={resetMenuStates}
+              onMouseDown={resetMenuStates}
+              onTouchStart={resetMenuStates}
             />
 
             <motion.div
@@ -340,7 +361,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón arriba - Calendario (layout polar) */}
                     <button
                       aria-label="Calendario"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
+                      onClick={() => { resetMenuStates(); navigate('/monthly-calendar'); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -353,7 +374,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-izquierda - Configuración (layout polar) */}
                     <button
                       aria-label="Configuración"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/settings'); }}
+                      onClick={() => { resetMenuStates(); navigate('/settings'); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -366,7 +387,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-derecha - Estadísticas (layout polar) */}
                     <button
                       aria-label="Estadísticas"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
+                      onClick={() => { resetMenuStates(); navigate('/productivity-stats'); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -389,7 +410,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón arriba - Calendario */}
                     <button
                       aria-label="Calendario"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/monthly-calendar'); }}
+                      onClick={() => { resetMenuStates(); navigate('/monthly-calendar'); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -402,7 +423,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-izquierda - Configuración */}
                     <button
                       aria-label="Configuración"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/settings'); }}
+                      onClick={() => { resetMenuStates(); navigate('/settings'); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -415,7 +436,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-derecha - Estadísticas */}
                     <button
                       aria-label="Estadísticas"
-                      onClick={() => { setShowCalendarMenu(false); navigate('/productivity-stats'); }}
+                      onClick={() => { resetMenuStates(); navigate('/productivity-stats'); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}

@@ -225,10 +225,10 @@ const Index = () => {
               console.log('CHECKBOX CLICKED!', task.id);
               handleToggleTask(task.id);
             }}
-            className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed !bg-transparent !border-black dark:!bg-transparent dark:!border-white' : '!bg-white !border-black dark:border-white'}`}
+            className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed !bg-black !border-black dark:!bg-transparent dark:!border-white' : '!bg-white !border-black dark:border-white'}`}
             style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
           >
-            {task.completed && <Check size={16} className="text-transparent dark:text-transparent" />}
+            {/* task.completed && <Check size={16} className="text-transparent dark:text-transparent" /> */}
                       </button>
         </div>
       </div>
@@ -768,7 +768,7 @@ const Index = () => {
       {/* Título principal */}
       {/* Título principal */}
        <div className="pt-6 mb-2">
-         <div className={`tareas-header flex items-center justify-center py-1 relative -mx-4 rounded-none ${theme.isShiny ? 'bg-white text-black' : 'bg-black text-white'}`} style={{ borderRadius: '0 !important', overflow: 'visible !important', border: 'none !important' }}>
+         <div className={`tareas-header flex items-center justify-center py-1 relative left-1/2 right-1/2 -mx-[50vw] w-screen ${theme.isShiny ? 'bg-white text-black' : 'bg-black text-white'}`} style={{ borderRadius: '0 !important', borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important', WebkitBorderRadius: '0 !important', mozBorderRadius: '0 !important', msBorderRadius: '0 !important', OBorderRadius: '0 !important', KhtmlBorderRadius: '0 !important', clipPath: 'none !important', borderRadius: '0 !important' }}>
            <div className="flex items-center justify-center flex-1">
              {(() => {
                const today = new Date();

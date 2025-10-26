@@ -1,5 +1,6 @@
 
 @import './styles/shiny-protection.css';
+@import './index-dark-borders.css';
 @reference "tailwindcss";
 
 /* Tailwind directives - standard syntax */
@@ -351,7 +352,7 @@
   
   /* Redondear bordes del tareas-header en todos los modos */
   .tareas-header {
-    border-radius: 9999px !important;
+    border-radius: 0px !important;
     overflow: hidden !important;
   }
 
