@@ -262,7 +262,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               }
               if (type === 'salud') {
                 // Salud: patrón de puntos/círculos
-                return `radial-gradient(circle, ${color} 2px, transparent 2px)`;
+                return `radial-gradient(circle, ${color} 4px, transparent 4px)`;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
