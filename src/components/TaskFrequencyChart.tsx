@@ -112,8 +112,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       }
       if (type === 'salud') {
         if (isShiny) return '#8800FF';
-        // Patrón de puntos/círculos para Salud
-        return `radial-gradient(circle, #000000 2px, transparent 2px)`;
+        // Patrón de puntos/círculos grandes para Salud
+        return `radial-gradient(circle, #000000 4px, transparent 4px)`;
       }
       if (index === 1) {
         return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
@@ -138,13 +138,13 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
           <div className="w-6 h-6 relative">
             <svg viewBox="0 0 24 24" className="w-full h-full" className="border-2 border-black dark:border-white">
               <defs>
-                <pattern id={`heart-pattern-${index}`} x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+                <pattern id={`heart-pattern-${index}`} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
                   {isShiny ? (
-                    <rect width="6" height="6" fill={pattern} />
+                    <rect width="10" height="10" fill={pattern} />
                   ) : (
                     <>
-                      <rect width="6" height="6" fill="#FFFFFF" />
-                      <circle cx="3" cy="3" r="2" fill="#000000" />
+                      <rect width="10" height="10" fill="#FFFFFF" />
+                      <circle cx="5" cy="5" r="3.5" fill="#000000" />
                     </>
                   )}
                 </pattern>
@@ -254,8 +254,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 `;
               }
               if (type === 'salud') {
-                // Salud: patrón de puntos/círculos
-                return `radial-gradient(circle, ${color} 2px, transparent 2px)`;
+                // Salud: patrón de puntos/círculos grandes
+                return `radial-gradient(circle, ${color} 4px, transparent 4px)`;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
@@ -274,7 +274,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 style={{
                   width: `${item.percentage}%`,
                   backgroundImage: isShiny ? 'none' : getLinePattern(index, item.type),
-                  backgroundSize: item.type === 'social' && !isShiny ? '24px 24px' : (item.type === 'salud' && !isShiny ? '12px 12px' : undefined),
+                  backgroundSize: item.type === 'social' && !isShiny ? '24px 24px' : (item.type === 'salud' && !isShiny ? '20px 20px' : undefined),
                   backgroundPosition: item.type === 'social' && !isShiny ? '0 0, 0 12px, 12px -12px, -12px 0px' : undefined,
                   backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#FFFFFF' : '#FFFFFF') : undefined, // Fondo blanco para Salud (puntos negros)
                   borderRight: index < frequencyData.length - 1 ? `2px solid ${dividerColor}` : 'none',
@@ -342,10 +342,10 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   };
                 }
                 if (type === 'salud') {
-                  // Patrón de puntos/círculos para salud
+                  // Patrón de puntos/círculos grandes para salud
                   return {
-                    backgroundImage: `radial-gradient(circle, ${color} 2px, transparent 2px)`,
-                    backgroundSize: '12px 12px',
+                    backgroundImage: `radial-gradient(circle, ${color} 4px, transparent 4px)`,
+                    backgroundSize: '20px 20px',
                     backgroundColor: '#FFFFFF'
                   };
                 }
