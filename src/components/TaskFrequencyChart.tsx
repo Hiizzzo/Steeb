@@ -249,27 +249,27 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
             
             const getLinePattern = (index: number, type: string) => {
               // Personalizar por tipo para distinguir Social vs Salud
-              // Social: tablero de ajedrez grande, Salud: líneas diagonales diferentes, otros mantienen lógica por índice
-              const color = '#000000'; // Siempre negro en modo white y dark
+              // Patrones negros en light mode, blancos en dark mode para visibilidad
+              const patternColor = isDark ? '#FFFFFF' : '#000000';
               if (type === 'social') {
                 // Patrón de ajedrez grande (12px por cuadrado)
                 return `
-                  linear-gradient(45deg, ${color} 25%, transparent 25%),
-                  linear-gradient(-45deg, ${color} 25%, transparent 25%),
-                  linear-gradient(45deg, transparent 75%, ${color} 75%),
-                  linear-gradient(-45deg, transparent 75%, ${color} 75%)
+                  linear-gradient(45deg, ${patternColor} 25%, transparent 25%),
+                  linear-gradient(-45deg, ${patternColor} 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, ${patternColor} 75%),
+                  linear-gradient(-45deg, transparent 75%, ${patternColor} 75%)
                 `;
               }
               if (type === 'salud') {
                 // Salud: patrón de puntos/círculos
-                return `radial-gradient(circle, ${color} 4px, transparent 4px)`;
+                return `radial-gradient(circle, ${patternColor} 4px, transparent 4px)`;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
-                return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
+                return `repeating-linear-gradient(45deg, ${patternColor}, ${patternColor} 3px, transparent 3px, transparent 8px)`;
               } else if (index === 2) {
                 // Tercera: horizontales
-                return `repeating-linear-gradient(0deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)`;
+                return `repeating-linear-gradient(0deg, ${patternColor}, ${patternColor} 2px, transparent 2px, transparent 6px)`;
               }
               return undefined;
             };
