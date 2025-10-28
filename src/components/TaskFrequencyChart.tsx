@@ -112,13 +112,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       }
       if (type === 'salud') {
         if (isShiny) return '#8800FF';
-        return `repeating-linear-gradient(
-          -45deg,
-          transparent 0px,
-          transparent 2px,
-          #000000 2px,
-          #000000 4px
-        )`; // Salud: líneas diagonales invertidas (opuestas a social)
+        // Patrón de puntos/círculos para Salud
+        return `radial-gradient(circle, #000000 2px, transparent 2px)`;
       }
       if (index === 1) {
         return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
@@ -143,14 +138,13 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
           <div className="w-6 h-6 relative">
             <svg viewBox="0 0 24 24" className="w-full h-full" className="border-2 border-black dark:border-white">
               <defs>
-                <pattern id={`heart-pattern-${index}`} x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                <pattern id={`heart-pattern-${index}`} x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
                   {isShiny ? (
-                    <rect width="8" height="8" fill={pattern} />
+                    <rect width="6" height="6" fill={pattern} />
                   ) : (
                     <>
-                      <rect width="8" height="8" fill="transparent" />
-                      <line x1="0" y1="0" x2="8" y2="8" stroke={isDark ? '#ffffff' : '#000000'} strokeWidth="1.5" />
-                      <line x1="2" y1="0" x2="8" y2="6" stroke={isDark ? '#ffffff' : '#000000'} strokeWidth="1" />
+                      <rect width="6" height="6" fill="#FFFFFF" />
+                      <circle cx="3" cy="3" r="2" fill="#000000" />
                     </>
                   )}
                 </pattern>
@@ -260,14 +254,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 `;
               }
               if (type === 'salud') {
-                // Salud: líneas diagonales invertidas (opuestas a social)
-                return `repeating-linear-gradient(
-                  -45deg,
-                  transparent 0px,
-                  transparent 2px,
-                  ${color} 2px,
-                  ${color} 4px
-                )`;
+                // Salud: patrón de puntos/círculos
+                return `radial-gradient(circle, ${color} 2px, transparent 2px)`;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
@@ -286,9 +274,9 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 style={{
                   width: `${item.percentage}%`,
                   backgroundImage: isShiny ? 'none' : getLinePattern(index, item.type),
-                  backgroundSize: item.type === 'social' && !isShiny ? '24px 24px' : undefined,
+                  backgroundSize: item.type === 'social' && !isShiny ? '24px 24px' : (item.type === 'salud' && !isShiny ? '12px 12px' : undefined),
                   backgroundPosition: item.type === 'social' && !isShiny ? '0 0, 0 12px, 12px -12px, -12px 0px' : undefined,
-                  backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#000000' : '#000000') : undefined, // Fondo negro para Salud
+                  backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#FFFFFF' : '#FFFFFF') : undefined, // Fondo blanco para Salud (puntos negros)
                   borderRight: index < frequencyData.length - 1 ? `2px solid ${dividerColor}` : 'none',
                   ...getShinyBackground(index, item.type)
                 }}
@@ -354,28 +342,11 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   };
                 }
                 if (type === 'salud') {
-                  // Patrón cuadriculado para salud
+                  // Patrón de puntos/círculos para salud
                   return {
-                    backgroundImage: `
-                      repeating-linear-gradient(
-                        0deg,
-                        transparent 0px,
-                        transparent 8px,
-                        ${color} 8px,
-                        ${color} 9px,
-                        transparent 9px,
-                        transparent 17px
-                      ),
-                      repeating-linear-gradient(
-                        90deg,
-                        transparent 0px,
-                        transparent 8px,
-                        ${color} 8px,
-                        ${color} 9px,
-                        transparent 9px,
-                        transparent 17px
-                      )
-                    `
+                    backgroundImage: `radial-gradient(circle, ${color} 2px, transparent 2px)`,
+                    backgroundSize: '12px 12px',
+                    backgroundColor: '#FFFFFF'
                   };
                 }
                 if (index === 1) {
