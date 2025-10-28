@@ -169,15 +169,15 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
           <div className="w-6 h-6 relative">
             <svg viewBox="0 0 24 24" className="w-full h-full">
               <defs>
-                <pattern id={`triangle-pattern-${index}`} x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+                <pattern id={`triangle-pattern-${index}`} x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
                   {isShiny ? (
-                    <rect width="6" height="6" fill={pattern} />
+                    <rect width="12" height="12" fill={pattern} />
                   ) : (
                     <>
-                      <rect x="0" y="0" width="3" height="3" fill="#000000" />
-                      <rect x="3" y="0" width="3" height="3" fill="#FFFFFF" />
-                      <rect x="0" y="3" width="3" height="3" fill="#FFFFFF" />
-                      <rect x="3" y="3" width="3" height="3" fill="#000000" />
+                      <rect x="0" y="0" width="6" height="6" fill="#000000" />
+                      <rect x="6" y="0" width="6" height="6" fill="#FFFFFF" />
+                      <rect x="0" y="6" width="6" height="6" fill="#FFFFFF" />
+                      <rect x="6" y="6" width="6" height="6" fill="#000000" />
                     </>
                   )}
                 </pattern>
