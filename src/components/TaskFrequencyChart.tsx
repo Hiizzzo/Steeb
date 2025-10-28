@@ -215,10 +215,10 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       </div>
       
       {/* Barra horizontal con patrones de líneas */}
-      <div className={`mb-3 rounded-lg overflow-hidden ${
+      <div className={`mb-3 rounded-lg ${
         isShiny ? 'border-2 border-black' : (isDark ? 'border-2 border-white' : 'border-2 border-black')
       }`}>
-        <div className={`w-full h-16 flex ${
+        <div className={`w-full h-16 flex rounded-lg overflow-hidden ${
           isShiny ? '' : (isDark ? 'bg-black' : 'bg-white')
         }`}>
           {frequencyData.map((item, index) => {
