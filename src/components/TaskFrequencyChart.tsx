@@ -130,8 +130,11 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       case 'productividad':
         return (
           <div
-            className="w-6 h-6 border-2 border-black dark:border-white"
-            style={{ background: isShiny ? pattern : pattern }}
+            className="w-6 h-6"
+            style={{ 
+              background: isShiny ? pattern : pattern,
+              border: `2px solid ${isDark ? '#FFFFFF' : '#000000'}`
+            }}
           />
         );
       case 'salud':
