@@ -249,27 +249,28 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
             
             const getLinePattern = (index: number, type: string) => {
               // Personalizar por tipo para distinguir Social vs Salud
-              // Social: tablero de ajedrez grande, Salud: líneas diagonales diferentes, otros mantienen lógica por índice
-              const linePatternColor = isDark ? '#FFFFFF' : '#000000';
+              // En dark mode: patrones blancos, en light mode: patrones negros
+              const patternColor = isDark ? '#FFFFFF' : '#000000';
+              
               if (type === 'social') {
                 // Patrón de ajedrez grande (12px por cuadrado)
                 return `
-                  linear-gradient(45deg, ${linePatternColor} 25%, transparent 25%),
-                  linear-gradient(-45deg, ${linePatternColor} 25%, transparent 25%),
-                  linear-gradient(45deg, transparent 75%, ${linePatternColor} 75%),
-                  linear-gradient(-45deg, transparent 75%, ${linePatternColor} 75%)
+                  linear-gradient(45deg, ${patternColor} 25%, transparent 25%),
+                  linear-gradient(-45deg, ${patternColor} 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, ${patternColor} 75%),
+                  linear-gradient(-45deg, transparent 75%, ${patternColor} 75%)
                 `;
               }
               if (type === 'salud') {
-                // Salud: patrón de puntos/círculos grandes
-                return `radial-gradient(circle, ${linePatternColor} 4px, transparent 4px)`;
+                // Salud: patrón de puntos/círculos
+                return `radial-gradient(circle, ${patternColor} 2px, transparent 2px)`;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
-                return `repeating-linear-gradient(45deg, ${linePatternColor}, ${linePatternColor} 3px, transparent 3px, transparent 8px)`;
+                return `repeating-linear-gradient(45deg, ${patternColor}, ${patternColor} 3px, transparent 3px, transparent 8px)`;
               } else if (index === 2) {
                 // Tercera: horizontales
-                return `repeating-linear-gradient(0deg, ${linePatternColor}, ${linePatternColor} 2px, transparent 2px, transparent 6px)`;
+                return `repeating-linear-gradient(0deg, ${patternColor}, ${patternColor} 2px, transparent 2px, transparent 6px)`;
               }
               return undefined;
             };
@@ -283,7 +284,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   backgroundImage: isShiny ? 'none' : getLinePattern(index, item.type),
                   backgroundSize: item.type === 'social' && !isShiny ? '24px 24px' : (item.type === 'salud' && !isShiny ? '20px 20px' : undefined),
                   backgroundPosition: item.type === 'social' && !isShiny ? '0 0, 0 12px, 12px -12px, -12px 0px' : undefined,
-                  backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#000000' : '#FFFFFF') : undefined, // Fondo según tema para Salud
+                  backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#FFFFFF' : '#FFFFFF') : undefined, // Fondo blanco para puntos negros
                   borderRight: index < frequencyData.length - 1 ? `2px solid ${dividerColor}` : 'none',
                   ...getShinyBackground(index, item.type)
                 }}
