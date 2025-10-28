@@ -212,9 +212,11 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       </div>
       
       {/* Barra horizontal con patrones de líneas */}
-      <div className="mb-3">
-        <div className={`w-full h-16 rounded-lg overflow-hidden border-2 flex ${
-          isShiny ? 'border-black' : (isDark ? 'border-white bg-black' : 'border-black bg-white')
+      <div className={`mb-3 border-2 rounded-lg overflow-hidden ${
+        isShiny ? 'border-black' : (isDark ? 'border-white' : 'border-black')
+      }`}>
+        <div className={`w-full h-16 flex ${
+          isShiny ? '' : (isDark ? 'bg-black' : 'bg-white')
         }`}>
           {frequencyData.map((item, index) => {
             // Diferentes patrones de líneas para cada segmento
@@ -293,8 +295,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
             );
           })}
         </div>
-        
-        </div>
+      </div>
       
       {/* Leyenda con patrones de líneas */}
       {frequencyData.length > 0 && (
