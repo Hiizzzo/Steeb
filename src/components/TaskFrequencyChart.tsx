@@ -248,9 +248,10 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
             
             const getLinePattern = (index: number, type: string) => {
               // Personalizar por tipo para distinguir Social vs Salud
-              // Social: 45deg, Salud: líneas diagonales diferentes, otros mantienen lógica por índice
+              // Social: tablero de ajedrez grande, Salud: líneas diagonales diferentes, otros mantienen lógica por índice
               const color = '#000000'; // Siempre negro en modo white y dark
               if (type === 'social') {
+                // Patrón de ajedrez grande (12px por cuadrado)
                 return `
                   linear-gradient(45deg, ${color} 25%, transparent 25%),
                   linear-gradient(-45deg, ${color} 25%, transparent 25%),
@@ -285,8 +286,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 style={{
                   width: `${item.percentage}%`,
                   backgroundImage: isShiny ? 'none' : getLinePattern(index, item.type),
-                  backgroundSize: item.type === 'social' && !isShiny ? '6px 6px' : undefined,
-                  backgroundPosition: item.type === 'social' && !isShiny ? '0 0, 0 3px, 3px -3px, -3px 0px' : undefined,
+                  backgroundSize: item.type === 'social' && !isShiny ? '24px 24px' : undefined,
+                  backgroundPosition: item.type === 'social' && !isShiny ? '0 0, 0 12px, 12px -12px, -12px 0px' : undefined,
                   backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#000000' : '#000000') : undefined, // Fondo negro para Salud
                   borderRight: index < frequencyData.length - 1 ? `2px solid ${dividerColor}` : 'none',
                   ...getShinyBackground(index, item.type)
@@ -340,7 +341,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 // Comportamiento para modos normal y oscuro - patrones dentro de la caja
                 const color = '#000000'; // Siempre negro en modo white y dark
                 if (type === 'social') {
-                  // Patrón de tablero de ajedrez (checkerboard) para social
+                  // Patrón de tablero de ajedrez grande (checkerboard) para social
                   return {
                     backgroundImage: `
                       linear-gradient(45deg, ${color} 25%, transparent 25%),
@@ -348,8 +349,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                       linear-gradient(45deg, transparent 75%, ${color} 75%),
                       linear-gradient(-45deg, transparent 75%, ${color} 75%)
                     `,
-                    backgroundSize: '6px 6px',
-                    backgroundPosition: '0 0, 0 3px, 3px -3px, -3px 0px'
+                    backgroundSize: '24px 24px',
+                    backgroundPosition: '0 0, 0 12px, 12px -12px, -12px 0px'
                   };
                 }
                 if (type === 'salud') {
