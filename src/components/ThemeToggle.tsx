@@ -60,13 +60,7 @@ const ThemeToggle = () => {
 			
 			{/* Switch normal para light/dark */}
 			<Switch
-				className={`scale-125 origin-top-right ${
-					isShiny
-						? 'data-[state=checked]:bg-white data-[state=unchecked]:bg-white [&>span]:bg-black data-[state=checked]:[&>span]:bg-black data-[state=unchecked]:[&>span]:bg-black'
-						: !isDark && !isShiny
-							? 'data-[state=checked]:bg-black data-[state=unchecked]:bg-black [&>span]:bg-white data-[state=checked]:[&>span]:bg-white data-[state=unchecked]:[&>span]:bg-white'
-							: ''
-				}`}
+				className={`scale-125 origin-top-right [&>span]:bg-black dark:[&>span]:bg-white`}
 				checked={isDark}
 			onCheckedChange={(checked) => {
 				// Cambiar directamente entre light y dark

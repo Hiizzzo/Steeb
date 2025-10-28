@@ -10,7 +10,7 @@
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.bbtricksz.steeb",
+      "bundleIdentifier": "com.steeb.app",
       "supportsTablet": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -24,6 +24,9 @@
       "eas": {
         "projectId": "6ad4fd87-41b5-4e4a-81e7-b97478dcbbd4"
       }
+    },
+    "android": {
+      "package": "com.bbtricksz.steeb"
     }
   }
 }

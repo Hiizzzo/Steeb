@@ -289,13 +289,27 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   exit={{ scale: 0, rotate: -180 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
-                  <Plus size={28} className={
-                  (() => {
-                    const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark');
-                    const isLight = currentTheme === 'light' || (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('shiny'));
-                    return isLight ? 'text-white' : isDark ? '!text-black' : 'text-white';
-                  })()
-                } strokeWidth={3} />
+                  <Plus
+                    size={28}
+                    strokeWidth={3}
+                    style={{
+                      color: (() => {
+                        const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark');
+                        const isLight = currentTheme === 'light' || (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('shiny'));
+                        return isLight ? '#FFFFFF' : isDark ? '#000000' : '#FFFFFF';
+                      })(),
+                      stroke: (() => {
+                        const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark');
+                        const isLight = currentTheme === 'light' || (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('shiny'));
+                        return isLight ? '#FFFFFF' : isDark ? '#000000' : '#FFFFFF';
+                      })(),
+                      fill: (() => {
+                        const isDark = currentTheme === 'dark' || document.documentElement.classList.contains('dark');
+                        const isLight = currentTheme === 'light' || (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('shiny'));
+                        return isLight ? '#FFFFFF' : isDark ? '#000000' : '#FFFFFF';
+                      })()
+                    }}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

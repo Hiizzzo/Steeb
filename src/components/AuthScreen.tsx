@@ -164,34 +164,84 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
   if (mode === 'welcome') {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-4">
-        <motion.div 
-          className="max-w-md w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 text-center"
+      <div className="auth-welcome-container min-h-screen bg-white dark:bg-black flex flex-col items-center justify-center p-4" style={{ fontFamily: 'Inter, Poppins, system-ui, -apple-system, sans-serif' }}>
+        {/* Halo de gradiente detrás de Steeb - Efecto Shiny */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div
+            className="auth-halo w-96 h-96 rounded-full opacity-20 blur-3xl"
+            style={{
+              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(139, 92, 246, 0.3) 25%, rgba(236, 72, 153, 0.3) 50%, rgba(59, 130, 246, 0.3) 75%, rgba(139, 92, 246, 0.3) 100%)',
+              animation: 'gradientFloat 8s ease-in-out infinite',
+            }}
+          />
+        </div>
+
+        <motion.div
+          className="auth-card max-w-md w-full bg-white/80 dark:bg-black/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 text-center border border-gray-100/50 dark:border-gray-800/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="mb-8">
-            <img 
-              src="/lovable-uploads/ChatGPT Image Aug 28, 2025, 12_08_57 AM.png" 
-              alt="STEEB" 
-              className="w-24 h-24 mx-auto rounded-2xl mb-4"
-            />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              ¡Bienvenido a STEEB!
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              Hola soy steeb y te voy ayudar a que realizes tus tareas.
-            </p>
+          {/* Personaje Steeb centrado con burbuja de diálogo */}
+          <div className="relative mb-8">
+            {/* Burbuja de diálogo de Steeb */}
+            <motion.div
+              className="auth-speech-bubble absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 rounded-2xl px-4 py-2 shadow-lg border border-gray-200 dark:border-gray-700 z-10"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                ¡Hola! Soy Steeb y te voy a ayudar a cumplir tus metas
+              </p>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white dark:bg-gray-900 rotate-45 border-r border-b border-gray-200 dark:border-gray-700"></div>
+            </motion.div>
+
+            {/* Avatar de Steeb */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="relative"
+            >
+              <img
+                src="/lovable-uploads/te obesrvo.png"
+                alt="STEEB"
+                className="auth-avatar w-32 h-32 mx-auto rounded-full object-cover shadow-lg border-4 border-white dark:border-gray-800"
+              />
+              {/* Pequeño anillo brillante alrededor del avatar */}
+              <div className="auth-avatar-ring absolute inset-0 rounded-full border-2 border-gradient-to-r from-blue-400 to-purple-400 opacity-50"></div>
+            </motion.div>
           </div>
 
-          <div className="space-y-4">
+          {/* Título y subtítulo */}
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+          >
+            <h1 className="auth-title text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              ¡Bienvenido a STEEB!
+            </h1>
+            <p className="auth-subtitle text-gray-600 dark:text-gray-300 text-lg">
+              Tu compañero para superar la procrastinación
+            </p>
+          </motion.div>
+
+          {/* Botones de autenticación */}
+          <motion.div
+            className="space-y-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+          >
             {(!isNative || hasNativeGoogle) && (
               <>
                 <button
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-3 p-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="auth-button-google w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
@@ -203,20 +253,22 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
                   )}
-                  {isLoading ? 'Autenticando...' : 'Continuar con Google'}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {isLoading ? 'Autenticando...' : 'Continuar con Google'}
+                  </span>
                 </button>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600"></div>
-                  <span className="text-gray-500 dark:text-gray-400 text-sm">o</span>
-                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600"></div>
+                <div className="flex items-center gap-3 my-6">
+                  <div className="auth-divider flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600"></div>
+                  <span className="auth-divider-text text-gray-500 dark:text-gray-400 text-sm font-medium">o</span>
+                  <div className="auth-divider flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600"></div>
                 </div>
               </>
             )}
 
             {isNative && !hasNativeGoogle && (
-              <div className="text-sm text-gray-600 dark:text-gray-300 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
-                <p className="font-medium mb-1">📱 Autenticación en dispositivos nativos:</p>
+              <div className="text-sm text-gray-600 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-200 dark:border-blue-800">
+                <p className="font-medium mb-2">📱 Autenticación en dispositivos nativos:</p>
                 <ul className="text-xs space-y-1">
                   <li>• <strong>iOS:</strong> Usa Email/Contraseña o instala el plugin de Google Sign-In nativo</li>
                   <li>• <strong>Android:</strong> Usa Email/Contraseña si el plugin de Google no está disponible</li>
@@ -227,20 +279,28 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
             <button
               onClick={() => setMode('login')}
-              className="w-full bg-black text-white dark:bg-white dark:text-black py-3 px-4 rounded-xl font-medium hover:bg-gray-900 dark:hover:bg-gray-200 transition-colors"
+              className="auth-button-primary w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-4 px-6 rounded-2xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-200 shadow-md hover:shadow-lg"
             >
-              Iniciar Sesión
+              Iniciar sesión
             </button>
 
             <button
               onClick={() => setMode('register')}
-              className="w-full bg-transparent border-2 border-black text-black dark:border-white dark:text-white py-3 px-4 rounded-xl font-medium hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              className="auth-button-secondary w-full bg-transparent border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-4 px-6 rounded-2xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-200"
             >
-              Crear Cuenta
+              Crear cuenta
             </button>
-            
+          </motion.div>
 
-          </div>
+          {/* Mantra inspirador */}
+          <motion.p
+            className="auth-mantra mt-8 text-gray-500 dark:text-gray-400 text-sm font-medium italic"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.4 }}
+          >
+            "Dejá de pensar, hacelo."
+          </motion.p>
         </motion.div>
       </div>
     );

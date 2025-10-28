@@ -137,8 +137,15 @@
   }
   /* stylelint-disable-next-line at-rule-no-unknown */
   .dark body {
-    background-color: #000000;
-    color: #FFFFFF;
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Ensure all root elements in dark mode have pure black background */
+  .dark html,
+  .dark #root,
+  .dark .min-h-screen {
+    background-color: #000000 !important;
   }
   
   /* Esconde el scrollbar para móviles */
@@ -356,11 +363,21 @@
     overflow: hidden !important;
   }
 
-  /* Dark mode overrides for common utility classes without changing component code */
-  .dark .bg-white:not(.task-checkbox-button):not(.task-creation-modal):not(.task-creation-modal *) { @apply bg-black; }
-  .dark .text-black:not(.task-creation-modal):not(.task-creation-modal *) { @apply text-white; }
-  
-  /* Dark mode: force all gray borders to pure white */
+  /* Dark mode overrides for common utility classes - preserve critical components */
+  .dark .bg-white:not(.task-checkbox-button):not(.task-creation-modal):not(.task-creation-modal *):not(.steeb-bubble):not([class*="steve-avatar"]):not(.shiny-fab):not([class*="floating"]) { background-color: #000000 !important; }
+  .dark .text-black:not(.task-creation-modal):not(.task-creation-modal *) { color: #FFFFFF !important; }
+
+  /* Force pure black backgrounds in dark mode for any remaining elements */
+  .dark .bg-gray-50,
+  .dark .bg-gray-100,
+  .dark .bg-gray-200,
+  .dark .bg-gray-300,
+  .dark .bg-gray-900,
+  .dark .bg-gray-800 {
+    background-color: #000000 !important;
+  }
+
+  /* Force pure white borders in dark mode for consistency */
   .dark .border-gray-50,
   .dark .border-gray-100,
   .dark .border-gray-200,
@@ -370,20 +387,39 @@
   .dark .border-gray-600,
   .dark .border-gray-700,
   .dark .border-gray-800,
-  .dark .border-gray-900 { border-color: #FFFFFF !important; }
-  .dark .text-gray-900 { @apply text-gray-100; }
-  .dark .text-gray-800 { @apply text-gray-200; }
-  .dark .text-gray-700 { @apply text-gray-300; }
-  .dark .text-gray-600 { @apply text-gray-300; }
-  .dark .bg-gray-100 { @apply bg-gray-900; }
-  .dark .bg-gray-50 { @apply bg-gray-900; }
-  .dark .hover\:bg-gray-50:hover { @apply bg-gray-800; }
+  .dark .border-gray-900 {
+    border-color: #FFFFFF !important;
+  }
+  
+  /* Dark mode: force all remaining gray elements to pure black/white */
+  .dark .text-gray-900 { color: #FFFFFF !important; }
+  .dark .text-gray-800 { color: #FFFFFF !important; }
+  .dark .text-gray-700 { color: #FFFFFF !important; }
+  .dark .text-gray-600 { color: #FFFFFF !important; }
+  .dark .bg-gray-100 { background-color: #000000 !important; }
+  .dark .bg-gray-50 { background-color: #000000 !important; }
+  .dark .hover\:bg-gray-50:hover { background-color: #000000 !important; }
   /* stylelint-enable at-rule-no-unknown */
   .dark .hover\:bg-black\/5:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
 
   /* Exception: keep the TAREAS header white with black text in dark mode */
   .dark .tareas-header { background-color: #ffffff !important; color: #000000 !important; }
   .dark .tareas-header h1 { color: #000000 !important; }
+
+  /* Dark mode: force backgrounds to pure black, but preserve critical elements */
+  .dark .min-h-screen {
+    background-color: #000000 !important;
+  }
+
+  /* Force black backgrounds for common containers in dark mode */
+  .dark .bg-gray-50,
+  .dark .bg-gray-100,
+  .dark .bg-gray-200,
+  .dark .bg-gray-300,
+  .dark .bg-gray-900,
+  .dark .bg-gray-800 {
+    background-color: #000000 !important;
+  }
 
   /* Tema Shiny - Colores Elegantes y Modernos */
   .shiny {
@@ -1904,16 +1940,385 @@
   pointer-events: none;
 }
 
-/* Black/Dark version: solid white border, no rainbow */
+/* Dark mode: STEEB speech bubble - simplified for visibility */
 .dark .steeb-bubble {
-  display: block !important;
+  background: #000000 !important;
+  color: #ffffff !important;
   border: 2px solid #ffffff !important;
   border-radius: 12px !important;
+}
+.dark .steeb-bubble div,
+.dark .steeb-bubble p,
+.dark .steeb-bubble span {
+  color: #ffffff !important;
+  background: transparent !important;
 }
 .dark .steeb-bubble::before,
 .dark .steeb-bubble::after {
   display: none !important;
   content: none !important;
+}
+
+/* Dark mode: Ensure SteveAvatar (STEEB icon) is visible */
+.dark [class*="steve-avatar"],
+.dark [class*="SteveAvatar"] {
+  background: transparent !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 50% !important;
+}
+.dark [class*="steve-avatar"] img,
+.dark [class*="SteveAvatar"] img {
+  opacity: 1 !important;
+  filter: brightness(1) !important;
+}
+
+/* Dark mode: Ensure Floating Action Button (FAB) is visible - MAXIMUM PRIORITY */
+.dark .shiny-fab,
+html.dark .shiny-fab,
+.dark button.shiny-fab,
+.dark .fixed.bottom-8.left-0.right-0 .flex button,
+.dark [class*="shiny-fab"],
+.dark .fixed.bottom-8 button:not([class*="calendar"]) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 3px solid #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 0 0 3px #000000, 0 0 0 6px #ffffff !important;
+}
+
+/* Dark mode: Override any inline styles or other rules */
+.dark .shiny-fab[style*="background"],
+.dark .shiny-fab[style*="bg"] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+.dark .shiny-fab svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+  fill: #000000 !important;
+}
+
+/* Dark mode: Plus sign in FAB - black on white background */
+.dark .shiny-fab svg.lucide-plus,
+.dark .shiny-fab svg path,
+.dark .shiny-fab svg line {
+  color: #000000 !important;
+  stroke: #000000 !important;
+  fill: #000000 !important;
+}
+
+.dark .shiny-fab::before {
+  display: none !important;
+}
+
+/* Dark mode: SPECIFIC fix for floating action button only */
+.dark .fixed.bottom-8 button.w-16.h-16.rounded-full,
+.dark .fixed.bottom-8 button.w-20.h-20.rounded-full {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border: 3px solid #ffffff !important;
+  box-shadow: 0 0 0 2px #000000, 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+
+/* Dark mode: Force Plus icon to be BLACK and VISIBLE - SPECIFIC SELECTORS */
+.dark .fixed.bottom-8 button svg.lucide-plus,
+.dark .fixed.bottom-8 button svg.lucide-plus *,
+.dark .fixed.bottom-8 button svg path[d*="M12 5v14"],
+.dark .fixed.bottom-8 button svg line[d*="M5 12h14"] {
+  stroke: #000000 !important;
+  color: #000000 !important;
+  fill: #000000 !important;
+  filter: brightness(0) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  stroke-width: 3 !important;
+}
+
+/* Dark mode: Preserve eye and checkbox icons - DO NOT override */
+.dark button svg.lucide-eye,
+.dark button svg.lucide-eye-off,
+.dark .task-checkbox-button svg,
+.dark .task-checkbox-button svg * {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+  fill: none !important;
+}
+
+/* Theme toggle switches: Now handled in switch.tsx - always black with white thumb */
+
+/* Dark mode: CRITICAL - Fix floating menu icons visibility */
+.dark .absolute.-top-\[140px\] svg,
+.dark .absolute.-top-\[140px\] button svg,
+.dark [class*="floating-border"] svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Dark mode: Override any inline color on floating menu icons */
+.dark .absolute.-top-\[140px\] svg[style*="color"],
+.dark .absolute.-top-\[140px\] button svg[style*="color"],
+.dark [class*="floating-border"] svg[style*="color"] {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Dark mode: Ensure all interactive elements are visible */
+.dark button {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+}
+.dark button:hover {
+  background-color: #333333 !important;
+}
+.dark button svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Dark mode: Task cards visibility */
+.dark .task-card,
+.dark [class*="task"] {
+  background-color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+}
+.dark .task-card *,
+.dark [class*="task"] * {
+  color: inherit !important;
+}
+
+/* Dark mode: Remove borders from task shapes */
+.dark .steeb-stroke {
+  display: none !important;
+}
+
+/* Dark mode: Remove borders from all SVG paths in task shapes */
+.dark .task-shape-wrapper svg path,
+.dark .task-shape-wrapper svg circle,
+.dark .task-shape-wrapper svg g {
+  stroke: none !important;
+}
+
+/* Dark mode: Remove ALL possible borders from task shapes - SUPER AGGRESSIVE */
+.dark .task-shape-wrapper svg * {
+  stroke: none !important;
+  stroke-width: 0 !important;
+  border: none !important;
+  outline: none !important;
+  filter: none !important;
+}
+
+/* Dark mode: Remove borders from ALL shapes everywhere - EMERGENCY FIX */
+.dark svg {
+  stroke: none !important;
+  stroke-width: 0 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Dark mode: Remove borders from ALL geometric shapes */
+.dark .shape-circle,
+.dark .shape-square,
+.dark .shape-triangle,
+.dark .shape-diamond,
+.dark .shape-heart,
+.dark .shape-hexagon,
+.dark .shape-spade,
+.dark .shape-club {
+  stroke: none !important;
+  stroke-width: 0 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Dark mode: Remove borders from ALL task shape wrappers */
+.dark .task-shape-wrapper,
+.dark .task-shape-wrapper *,
+.dark [class*="shape-icon"],
+.dark [class*="ShapeIcon"],
+.dark [class*="shape-icon"] *,
+.dark [class*="ShapeIcon"] * {
+  stroke: none !important;
+  stroke-width: 0 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Dark mode: Remove borders from ShapeIcon component specifically */
+.dark [class*="shape-icon"] svg *,
+.dark [class*="ShapeIcon"] svg * {
+  stroke: none !important;
+  stroke-width: 0 !important;
+}
+
+/* Dark mode: Remove gradient strokes from task shapes */
+.dark .task-shape-wrapper svg [stroke*="url"],
+.dark [class*="shape-icon"] svg [stroke*="url"],
+.dark [class*="ShapeIcon"] svg [stroke*="url"] {
+  stroke: none !important;
+}
+
+/* Dark mode: Remove borders from task text */
+.dark .task-title,
+.dark .task-title *,
+.dark [class*="task"] h1,
+.dark [class*="task"] h2,
+.dark [class*="task"] h3,
+.dark [class*="task"] p,
+.dark [class*="task"] span {
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
+  text-stroke: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Dark mode: Checkboxes - circle black background */
+.dark .task-checkbox-button:not(.completed) {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Dark mode: Completed checkboxes - white background with black check */
+.dark .task-checkbox-button.completed {
+  background-color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+.dark .task-checkbox-button.completed svg,
+.dark .task-checkbox-button.completed .lucide-check {
+  color: #000000 !important;
+  stroke: #000000 !important;
+  fill: #000000 !important;
+}
+
+/* Dark mode: Links and clickable text */
+.dark a,
+.dark [role="button"],
+.dark .cursor-pointer {
+  color: #ffffff !important;
+}
+.dark a:hover,
+.dark [role="button"]:hover,
+.dark .cursor-pointer:hover {
+  color: #cccccc !important;
+}
+
+/* Eye icon - black in light mode, white in dark mode */
+button svg.lucide-eye,
+button svg.lucide-eye-off {
+  color: #000000 !important;
+  stroke: #000000 !important;
+  fill: none !important;
+}
+
+/* Dark mode: Eye icon - white borders, no button border - PROPER SHAPE */
+.dark .text-gray-500 svg.lucide-eye,
+.dark .text-gray-500 svg.lucide-eye-off,
+.dark button svg.lucide-eye,
+.dark button svg.lucide-eye-off,
+.dark div button svg.lucide-eye,
+.dark div button svg.lucide-eye-off,
+.dark [class*="cursor-pointer"] svg.lucide-eye,
+.dark [class*="cursor-pointer"] svg.lucide-eye-off {
+  color: #ffffff !important;
+  fill: none !important;
+  stroke: #ffffff !important;
+  stroke-width: 2 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark mode: Force white borders on ALL eye icons - NO BUTTON BORDER */
+.dark svg.lucide-eye,
+.dark svg.lucide-eye-off {
+  color: #ffffff !important;
+  fill: none !important;
+  stroke: #ffffff !important;
+  stroke-width: 2 !important;
+}
+
+/* Dark mode: Remove borders from button containing eye icon - SUPER AGGRESSIVE */
+.dark button svg.lucide-eye,
+.dark button svg.lucide-eye-off,
+.dark .text-gray-500 button,
+.dark button:has(svg.lucide-eye),
+.dark button:has(svg.lucide-eye-off) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+/* Dark mode: Target the specific button container */
+.dark .flex.justify-start.mb-4 button,
+.dark div button svg.lucide-eye,
+.dark div button svg.lucide-eye-off {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark mode: Cross (X) buttons - white color - SUPER AGGRESSIVE */
+.dark button svg.lucide-x,
+.dark button svg[class*="x"],
+.dark button svg[class*="close"],
+.dark button svg[class*="X"],
+.dark button svg[class*="Close"],
+.dark button svg,
+.dark button svg *,
+.dark [class*="button"] svg,
+.dark [class*="modal"] button svg,
+.dark [class*="dialog"] button svg,
+.dark button svg path,
+.dark button svg line,
+.dark button svg polyline,
+.dark button svg g {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+
+/* Dark mode: Force ALL SVG icons in buttons to be white - WITH FILL */
+.dark button svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.dark button svg * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Dark mode: Cross specifically - solid white fill - TARGETING text-gray-500 */
+.dark .text-gray-500 svg.lucide-x,
+.dark .text-gray-500 svg[class*="x"],
+.dark .text-gray-500 svg[class*="close"],
+.dark button svg.lucide-x,
+.dark button svg[class*="x"],
+.dark button svg[class*="close"] {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.dark .text-gray-500 svg.lucide-x *,
+.dark .text-gray-500 svg[class*="x"] *,
+.dark .text-gray-500 svg[class*="close"] *,
+.dark button svg.lucide-x *,
+.dark button svg[class*="x"] *,
+.dark button svg[class*="close"] * {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* Estilos específicos para ProductivityStats en versión shiny - igual a versión blanca */
@@ -2263,4 +2668,51 @@
   mix-blend-mode: screen;
   animation: shine-sweep 3s linear infinite; /* gentle sweep */
   pointer-events: none;
+}
+
+/* ===================================================== */
+/* ALANS TECHNICAL FIX: X icons visibility in dark mode */
+/* ===================================================== */
+
+/* Dark mode: Fix X Circle/X icons specifically - HIGH SPECIFICITY */
+.dark button[data-state="closed"] svg,
+.dark button[variant="ghost"] svg,
+.dark .inline-flex.items-center.justify-center.whitespace-nowrap.rounded-md.text-sm.font-medium.transition-colors svg,
+.dark button[class*="ghost"] svg,
+.dark button[class*="variant"] svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Dark mode: Target Lucide XCircle and X icons specifically */
+.dark .lucide-x-circle,
+.dark .lucide-x,
+.dark svg[viewBox="0 0 24 24"] g[stroke*="current"],
+.dark button svg:not(.lucide-eye):not(.lucide-eye-off) {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Dark mode: Maximum specificity for X icons in all contexts - FINAL SOLUTION */
+html.dark button svg.lucide-x-circle,
+html.dark button svg.lucide-x,
+html.dark .dark button svg[class*="x"],
+html.dark .dark button svg[class*="X"],
+.dark button svg[viewBox*="24"] path[d*="M18 6L6 18M6 6l12 12"] {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+  stroke-width: 2 !important;
+}
+
+/* Dark mode: Ultra-specific targeting for XCircle and close buttons */
+.dark .bg-transparent.hover\:bg-gray-100 svg,
+.dark .hover\:bg-gray-100 button svg,
+.dark [data-radix-collection-item] svg.lucide-x,
+.dark .absolute.top-2.right-2 button svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
 }
