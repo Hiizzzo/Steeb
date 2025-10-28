@@ -196,14 +196,16 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       isShiny ? 'bg-black border-2 border-white' : 'bg-white dark:bg-black border-2 border-black dark:border-white'
     }`}>
       {/* Título con información de tareas */}
-      <div className="text-center mb-6 bg-black pt-2 pb-2 -mx-2 -my-2">
+      <div className={`text-center mb-6 pt-2 pb-2 -mx-2 -my-2 ${
+        isShiny ? 'bg-black' : (isDark ? 'bg-white' : 'bg-black')
+      }`}>
         <h2 className={`text-xl font-bold mb-2 ${
-          isShiny ? 'text-black' : 'text-white'
+          isShiny ? 'text-black' : (isDark ? 'text-black' : 'text-white')
         }`}>
           Tipo de tareas más completadas
         </h2>
         <p className={`text-sm ${
-          isShiny ? 'text-black' : 'text-white'
+          isShiny ? 'text-black' : (isDark ? 'text-black' : 'text-white')
         }`}>
           Basado en {frequencyData.reduce((total, item) => total + item.count, 0)} de {tasks.length} tareas completadas
         </p>
@@ -211,7 +213,9 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       
       {/* Barra horizontal con patrones de líneas */}
       <div className="mb-3">
-        <div className="w-full h-16 rounded-lg overflow-hidden border-2 border-black flex">
+        <div className={`w-full h-16 rounded-lg overflow-hidden border-2 flex ${
+          isShiny ? 'border-black' : (isDark ? 'border-white bg-black' : 'border-black bg-white')
+        }`}>
           {frequencyData.map((item, index) => {
             // Diferentes patrones de líneas para cada segmento
             const getPattern = (index: number) => {
