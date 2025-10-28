@@ -88,7 +88,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
   const levels = ['Muy alta', 'Alta', 'Media', 'Baja', 'Muy baja'];
   
   const getTaskShapeWithPattern = (type: string, index: number) => {
-    const color = '#000000'; // Siempre negro en modo white y dark
+    const patternColor = isDark ? '#FFFFFF' : '#000000'; // Color del patrón según tema
+    const bgColor = isDark ? '#000000' : '#FFFFFF'; // Color de fondo según tema
 
     // Obtener el patrón para este tipo
     const getPatternForType = (type: string, index: number) => {
@@ -104,23 +105,23 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       if (type === 'social') {
         if (isShiny) return '#4444FF';
         return `
-          linear-gradient(45deg, #000000 25%, transparent 25%),
-          linear-gradient(-45deg, #000000 25%, transparent 25%),
-          linear-gradient(45deg, transparent 75%, #000000 75%),
-          linear-gradient(-45deg, transparent 75%, #000000 75%)
+          linear-gradient(45deg, ${patternColor} 25%, transparent 25%),
+          linear-gradient(-45deg, ${patternColor} 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, ${patternColor} 75%),
+          linear-gradient(-45deg, transparent 75%, ${patternColor} 75%)
         `;
       }
       if (type === 'salud') {
         if (isShiny) return '#8800FF';
         // Patrón de puntos/círculos grandes para Salud
-        return `radial-gradient(circle, #000000 4px, transparent 4px)`;
+        return `radial-gradient(circle, ${patternColor} 4px, transparent 4px)`;
       }
       if (index === 1) {
-        return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
+        return `repeating-linear-gradient(45deg, ${patternColor}, ${patternColor} 3px, transparent 3px, transparent 8px)`;
       } else if (index === 2) {
-        return `repeating-linear-gradient(0deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)`;
+        return `repeating-linear-gradient(0deg, ${patternColor}, ${patternColor} 2px, transparent 2px, transparent 6px)`;
       }
-      return color; // Sólido para la más frecuente
+      return patternColor; // Sólido para la más frecuente
     };
 
     const pattern = getPatternForType(type, index);
@@ -143,8 +144,8 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                     <rect width="10" height="10" fill={pattern} />
                   ) : (
                     <>
-                      <rect width="10" height="10" fill="#FFFFFF" />
-                      <circle cx="5" cy="5" r="3.5" fill="#000000" />
+                      <rect width="10" height="10" fill={isDark ? '#000000' : '#FFFFFF'} />
+                      <circle cx="5" cy="5" r="3.5" fill={isDark ? '#FFFFFF' : '#000000'} />
                     </>
                   )}
                 </pattern>
@@ -168,10 +169,10 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                     <rect width="12" height="12" fill={pattern} />
                   ) : (
                     <>
-                      <rect x="0" y="0" width="6" height="6" fill="#000000" />
-                      <rect x="6" y="0" width="6" height="6" fill="#FFFFFF" />
-                      <rect x="0" y="6" width="6" height="6" fill="#FFFFFF" />
-                      <rect x="6" y="6" width="6" height="6" fill="#000000" />
+                      <rect x="0" y="0" width="6" height="6" fill={isDark ? '#FFFFFF' : '#000000'} />
+                      <rect x="6" y="0" width="6" height="6" fill={isDark ? '#000000' : '#FFFFFF'} />
+                      <rect x="0" y="6" width="6" height="6" fill={isDark ? '#000000' : '#FFFFFF'} />
+                      <rect x="6" y="6" width="6" height="6" fill={isDark ? '#FFFFFF' : '#000000'} />
                     </>
                   )}
                 </pattern>
@@ -243,26 +244,26 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
             const getLinePattern = (index: number, type: string) => {
               // Personalizar por tipo para distinguir Social vs Salud
               // Social: tablero de ajedrez grande, Salud: líneas diagonales diferentes, otros mantienen lógica por índice
-              const color = '#000000'; // Siempre negro en modo white y dark
+              const linePatternColor = isDark ? '#FFFFFF' : '#000000';
               if (type === 'social') {
                 // Patrón de ajedrez grande (12px por cuadrado)
                 return `
-                  linear-gradient(45deg, ${color} 25%, transparent 25%),
-                  linear-gradient(-45deg, ${color} 25%, transparent 25%),
-                  linear-gradient(45deg, transparent 75%, ${color} 75%),
-                  linear-gradient(-45deg, transparent 75%, ${color} 75%)
+                  linear-gradient(45deg, ${linePatternColor} 25%, transparent 25%),
+                  linear-gradient(-45deg, ${linePatternColor} 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, ${linePatternColor} 75%),
+                  linear-gradient(-45deg, transparent 75%, ${linePatternColor} 75%)
                 `;
               }
               if (type === 'salud') {
                 // Salud: patrón de puntos/círculos grandes
-                return `radial-gradient(circle, ${color} 4px, transparent 4px)`;
+                return `radial-gradient(circle, ${linePatternColor} 4px, transparent 4px)`;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
-                return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
+                return `repeating-linear-gradient(45deg, ${linePatternColor}, ${linePatternColor} 3px, transparent 3px, transparent 8px)`;
               } else if (index === 2) {
                 // Tercera: horizontales
-                return `repeating-linear-gradient(0deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)`;
+                return `repeating-linear-gradient(0deg, ${linePatternColor}, ${linePatternColor} 2px, transparent 2px, transparent 6px)`;
               }
               return undefined;
             };
@@ -276,7 +277,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   backgroundImage: isShiny ? 'none' : getLinePattern(index, item.type),
                   backgroundSize: item.type === 'social' && !isShiny ? '24px 24px' : (item.type === 'salud' && !isShiny ? '20px 20px' : undefined),
                   backgroundPosition: item.type === 'social' && !isShiny ? '0 0, 0 12px, 12px -12px, -12px 0px' : undefined,
-                  backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#FFFFFF' : '#FFFFFF') : undefined, // Fondo blanco para Salud (puntos negros)
+                  backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#000000' : '#FFFFFF') : undefined, // Fondo según tema para Salud
                   borderRight: index < frequencyData.length - 1 ? `2px solid ${dividerColor}` : 'none',
                   ...getShinyBackground(index, item.type)
                 }}
@@ -327,35 +328,37 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 }
 
                 // Comportamiento para modos normal y oscuro - patrones dentro de la caja
-                const color = '#000000'; // Siempre negro en modo white y dark
+                const legendPatternColor = isDark ? '#FFFFFF' : '#000000';
+                const legendBgColor = isDark ? '#000000' : '#FFFFFF';
                 if (type === 'social') {
                   // Patrón de tablero de ajedrez grande (checkerboard) para social
                   return {
                     backgroundImage: `
-                      linear-gradient(45deg, ${color} 25%, transparent 25%),
-                      linear-gradient(-45deg, ${color} 25%, transparent 25%),
-                      linear-gradient(45deg, transparent 75%, ${color} 75%),
-                      linear-gradient(-45deg, transparent 75%, ${color} 75%)
+                      linear-gradient(45deg, ${legendPatternColor} 25%, transparent 25%),
+                      linear-gradient(-45deg, ${legendPatternColor} 25%, transparent 25%),
+                      linear-gradient(45deg, transparent 75%, ${legendPatternColor} 75%),
+                      linear-gradient(-45deg, transparent 75%, ${legendPatternColor} 75%)
                     `,
                     backgroundSize: '24px 24px',
-                    backgroundPosition: '0 0, 0 12px, 12px -12px, -12px 0px'
+                    backgroundPosition: '0 0, 0 12px, 12px -12px, -12px 0px',
+                    backgroundColor: legendBgColor
                   };
                 }
                 if (type === 'salud') {
                   // Patrón de puntos/círculos grandes para salud
                   return {
-                    backgroundImage: `radial-gradient(circle, ${color} 4px, transparent 4px)`,
+                    backgroundImage: `radial-gradient(circle, ${legendPatternColor} 4px, transparent 4px)`,
                     backgroundSize: '20px 20px',
-                    backgroundColor: '#FFFFFF'
+                    backgroundColor: legendBgColor
                   };
                 }
                 if (index === 1) {
-                  return { backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)` };
+                  return { backgroundImage: `repeating-linear-gradient(45deg, ${legendPatternColor}, ${legendPatternColor} 3px, transparent 3px, transparent 8px)`, backgroundColor: legendBgColor };
                 } else if (index === 2) {
-                  return { backgroundImage: `repeating-linear-gradient(0deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };
+                  return { backgroundImage: `repeating-linear-gradient(0deg, ${legendPatternColor}, ${legendPatternColor} 2px, transparent 2px, transparent 6px)`, backgroundColor: legendBgColor };
                 }
                 // La más frecuente (index 0) - sólido
-                return { backgroundColor: color };
+                return { backgroundColor: legendPatternColor };
               };
               
               return (
