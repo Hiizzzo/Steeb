@@ -87,49 +87,107 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
   
   const levels = ['Muy alta', 'Alta', 'Media', 'Baja', 'Muy baja'];
   
-  const getTaskShape = (type: string) => {
-    // Color dinámico de la forma:
-    // - Versión blanca (no-shiny): negro en modo claro y blanco en modo oscuro
-    // - Versión shiny: colores vibrantes por categoría
-    const getShapeColor = (t: string) => {
+  const getTaskShapeWithPattern = (type: string, index: number) => {
+    const color = '#000000'; // Siempre negro en modo white y dark
+
+    // Obtener el patrón para este tipo
+    const getPatternForType = (type: string, index: number) => {
       if (isShiny) {
-        switch (t) {
-          case 'productividad':
-            return '#FF1493'; // Rosa más fuerte para cuadrado
-          case 'salud':
-            return '#00BFFF'; // Celeste más fuerte para corazón
-          case 'social':
-            return '#FFD700'; // Amarillo para triángulo
-          default:
-            return '#FFFFFF';
+        switch (type) {
+          case 'productividad': return '#FF0088';
+          case 'salud': return '#8800FF';
+          case 'social': return '#4444FF';
+          default: return '#FFFFFF';
         }
       }
-      return isDark ? '#FFFFFF' : '#000000';
+
+      if (type === 'social') {
+        if (isShiny) return '#4444FF';
+        return `
+          linear-gradient(45deg, #000000 25%, transparent 25%),
+          linear-gradient(-45deg, #000000 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #000000 75%),
+          linear-gradient(-45deg, transparent 75%, #000000 75%)
+        `;
+      }
+      if (type === 'salud') {
+        if (isShiny) return '#8800FF';
+        return `repeating-linear-gradient(
+          -45deg,
+          transparent 0px,
+          transparent 2px,
+          #000000 2px,
+          #000000 4px
+        )`; // Salud: líneas diagonales invertidas (opuestas a social)
+      }
+      if (index === 1) {
+        return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
+      } else if (index === 2) {
+        return `repeating-linear-gradient(0deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)`;
+      }
+      return color; // Sólido para la más frecuente
     };
 
-    const color = getShapeColor(type);
+    const pattern = getPatternForType(type, index);
 
     switch (type) {
       case 'productividad':
         return (
-          <div 
-            className="w-4 h-4 mr-2 flex-shrink-0" 
-            style={{ backgroundColor: color }}
+          <div
+            className="w-6 h-6 border-2 border-black dark:border-white"
+            style={{ background: isShiny ? pattern : pattern }}
           />
         );
       case 'salud':
         return (
-          <div className="w-6 h-6 mr-2 flex-shrink-0 relative">
-            <svg viewBox="0 0 24 24" className="w-full h-full" fill={color}>
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          <div className="w-6 h-6 relative">
+            <svg viewBox="0 0 24 24" className="w-full h-full" className="border-2 border-black dark:border-white">
+              <defs>
+                <pattern id={`heart-pattern-${index}`} x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                  {isShiny ? (
+                    <rect width="8" height="8" fill={pattern} />
+                  ) : (
+                    <>
+                      <rect width="8" height="8" fill="transparent" />
+                      <line x1="0" y1="0" x2="8" y2="8" stroke={isDark ? '#ffffff' : '#000000'} strokeWidth="1.5" />
+                      <line x1="2" y1="0" x2="8" y2="6" stroke={isDark ? '#ffffff' : '#000000'} strokeWidth="1" />
+                    </>
+                  )}
+                </pattern>
+              </defs>
+              <path
+                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                fill={`url(#heart-pattern-${index})`}
+                stroke={isShiny ? '#FFFFFF' : '#000000'}
+                strokeWidth="2"
+              />
             </svg>
           </div>
         );
       case 'social':
         return (
-          <div className="w-6 h-6 mr-2 flex-shrink-0 relative">
-            <svg viewBox="0 0 24 24" className="w-full h-full" fill={color}>
-              <path d="M12 2 L22 20 L2 20 Z"/>
+          <div className="w-6 h-6 relative">
+            <svg viewBox="0 0 24 24" className="w-full h-full">
+              <defs>
+                <pattern id={`triangle-pattern-${index}`} x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+                  {isShiny ? (
+                    <rect width="6" height="6" fill={pattern} />
+                  ) : (
+                    <>
+                      <rect x="0" y="0" width="3" height="3" fill="#000000" />
+                      <rect x="3" y="0" width="3" height="3" fill="#FFFFFF" />
+                      <rect x="0" y="3" width="3" height="3" fill="#FFFFFF" />
+                      <rect x="3" y="3" width="3" height="3" fill="#000000" />
+                    </>
+                  )}
+                </pattern>
+              </defs>
+              <path
+                d="M12 2 L22 20 L2 20 Z"
+                fill={`url(#triangle-pattern-${index})`}
+                stroke={isShiny ? '#FFFFFF' : '#000000'} // Siempre negro excepto shiny
+                strokeWidth="2"
+              />
             </svg>
           </div>
         );
@@ -139,26 +197,26 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
   };
   
   return (
-    <div className={`w-full p-6 rounded-lg shiny-stats-chart-card ${
+    <div className={`w-full p-2 rounded-lg shiny-stats-chart-card border-2 border-black overflow-hidden -ml-4 mr-auto ${
       isShiny ? 'bg-black border border-white' : 'bg-white dark:bg-black'
     }`}>
       {/* Título con información de tareas */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-6 bg-black pt-2 pb-2 -mx-2 -my-2">
         <h2 className={`text-xl font-bold mb-2 ${
-          isShiny ? 'text-black' : 'text-black dark:text-white'
+          isShiny ? 'text-black' : 'text-white'
         }`}>
           Tipo de tareas más completadas
         </h2>
         <p className={`text-sm ${
-          isShiny ? 'text-black' : 'text-gray-600 dark:text-gray-400'
+          isShiny ? 'text-black' : 'text-white'
         }`}>
           Basado en {frequencyData.reduce((total, item) => total + item.count, 0)} de {tasks.length} tareas completadas
         </p>
       </div>
       
       {/* Barra horizontal con patrones de líneas */}
-      <div className="mb-6">
-        <div className="w-full h-16 rounded-lg overflow-hidden border-2 border-black dark:border-white flex">
+      <div className="mb-3">
+        <div className="w-full h-16 rounded-lg overflow-hidden border-2 border-black flex">
           {frequencyData.map((item, index) => {
             // Diferentes patrones de líneas para cada segmento
             const getPattern = (index: number) => {
@@ -178,7 +236,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               }
             };
             
-            const dividerColor = isShiny ? '#000000' : (isDark ? '#ffffff' : '#000000');
+            const dividerColor = isShiny ? '#000000' : '#000000'; // Siempre negro excepto shiny
             
             const getShinyBackground = (index: number, type: string) => {
               if (isShiny) {
@@ -190,33 +248,25 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
             
             const getLinePattern = (index: number, type: string) => {
               // Personalizar por tipo para distinguir Social vs Salud
-              // Social: 45deg, Salud: -45deg, otros mantienen lógica por índice
-              const color = isDark ? '#ffffff' : '#000000';
+              // Social: 45deg, Salud: líneas diagonales diferentes, otros mantienen lógica por índice
+              const color = '#000000'; // Siempre negro en modo white y dark
               if (type === 'social') {
-                return `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)`;
+                return `
+                  linear-gradient(45deg, ${color} 25%, transparent 25%),
+                  linear-gradient(-45deg, ${color} 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, ${color} 75%),
+                  linear-gradient(-45deg, transparent 75%, ${color} 75%)
+                `;
               }
               if (type === 'salud') {
-                // Patrón cuadriculado para salud
-                return `
-                  repeating-linear-gradient(
-                    0deg,
-                    transparent 0px,
-                    transparent 8px,
-                    ${color} 8px,
-                    ${color} 9px,
-                    transparent 9px,
-                    transparent 17px
-                  ),
-                  repeating-linear-gradient(
-                    90deg,
-                    transparent 0px,
-                    transparent 8px,
-                    ${color} 8px,
-                    ${color} 9px,
-                    transparent 9px,
-                    transparent 17px
-                  )
-                `;
+                // Salud: líneas diagonales invertidas (opuestas a social)
+                return `repeating-linear-gradient(
+                  -45deg,
+                  transparent 0px,
+                  transparent 2px,
+                  ${color} 2px,
+                  ${color} 4px
+                )`;
               }
               if (index === 1) {
                 // Segunda: diagonales estándar
@@ -232,9 +282,12 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               <motion.div
                 key={item.type}
                 className={`flex items-center justify-center relative ${getPattern(index)}`}
-                style={{ 
+                style={{
                   width: `${item.percentage}%`,
                   backgroundImage: isShiny ? 'none' : getLinePattern(index, item.type),
+                  backgroundSize: item.type === 'social' && !isShiny ? '6px 6px' : undefined,
+                  backgroundPosition: item.type === 'social' && !isShiny ? '0 0, 0 3px, 3px -3px, -3px 0px' : undefined,
+                  backgroundColor: (item.type === 'salud' && !isShiny) ? (isDark ? '#000000' : '#000000') : undefined, // Fondo negro para Salud
                   borderRight: index < frequencyData.length - 1 ? `2px solid ${dividerColor}` : 'none',
                   ...getShinyBackground(index, item.type)
                 }}
@@ -242,61 +295,12 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ duration: 0.8, delay: index * 0.2 }}
               >
-                {/* Indicador para el más frecuente - sin animación molesta */}
-                {item.isTop && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      isShiny ? 'border-white bg-white shadow-lg' : (isDark ? 'border-white bg-white' : 'border-black bg-black')
-                    }`} />
-                  </div>
-                )}
               </motion.div>
             );
           })}
         </div>
         
-        {/* Etiquetas de los 3 tipos */}
-        <div className="flex mt-4">
-          {frequencyData.map((item, index) => {
-            // Definir colores específicos para cada categoría
-            const getCategoryColor = (type: string) => {
-                if (isShiny) {
-                  switch (type) {
-                    case 'productividad': return '#FF0088'; // Rosa
-                    case 'salud': return '#8800FF'; // Violeta
-                    case 'social': return '#4444FF'; // Azul
-                    default: return '#FFFFFF'; // Blanco por defecto en shiny
-                  }
-                } else {
-                  // En modo no-shiny (versión blanca), todos los textos son negros
-                  return isDark ? '#FFFFFF' : '#000000';
-                }
-              };
-              
-
-            
-            return (
-              <div 
-                key={item.type} 
-                className="text-center px-1 flex flex-col items-center"
-                style={{ width: `${item.percentage}%` }}
-              >
-                <div className="flex items-center justify-center mb-1">
-                  {getTaskShape(item.type)}
-                </div>
-                <span 
-                  className={`text-sm ${
-                    item.isTop ? 'font-bold' : 'font-medium'
-                  }`}
-                  style={{ color: (isShiny ? '#000000' : (isDark ? '#FFFFFF' : '#000000')) }}
-                >
-                  {item.label}
-                </span>
-              </div>
-            );
-          })}
         </div>
-      </div>
       
       {/* Leyenda con patrones de líneas */}
       {frequencyData.length > 0 && (
@@ -322,48 +326,64 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
               };
               
               const getPatternStyle = (index: number, type: string) => {
-                // Solo aplicar colores específicos en modo shiny
+                // Aplicar patrones directamente en las cajas de la leyenda
                 if (isShiny) {
-                  // En Shiny, caja de leyenda blanca
-                  return { backgroundColor: '#FFFFFF' };
+                  // En Shiny, usar colores sólidos para las cajas
+                  switch (type) {
+                    case 'productividad': return { backgroundColor: '#FF0088' };
+                    case 'salud': return { backgroundColor: '#8800FF' };
+                    case 'social': return { backgroundColor: '#4444FF' };
+                    default: return { backgroundColor: '#FFFFFF' };
+                  }
                 }
-                
-                // Comportamiento original para modos normal y oscuro
-                const color = isDark ? '#ffffff' : '#000000';
+
+                // Comportamiento para modos normal y oscuro - patrones dentro de la caja
+                const color = '#000000'; // Siempre negro en modo white y dark
                 if (type === 'social') {
-                  return { backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };
+                  // Patrón de tablero de ajedrez (checkerboard) para social
+                  return {
+                    backgroundImage: `
+                      linear-gradient(45deg, ${color} 25%, transparent 25%),
+                      linear-gradient(-45deg, ${color} 25%, transparent 25%),
+                      linear-gradient(45deg, transparent 75%, ${color} 75%),
+                      linear-gradient(-45deg, transparent 75%, ${color} 75%)
+                    `,
+                    backgroundSize: '6px 6px',
+                    backgroundPosition: '0 0, 0 3px, 3px -3px, -3px 0px'
+                  };
                 }
                 if (type === 'salud') {
-                  // Patrón cuadriculado para salud en la leyenda
-                  return { 
+                  // Patrón cuadriculado para salud
+                  return {
                     backgroundImage: `
                       repeating-linear-gradient(
                         0deg,
                         transparent 0px,
-                        transparent 5px,
-                        ${color} 5px,
-                        ${color} 6px,
-                        transparent 6px,
-                        transparent 11px
+                        transparent 8px,
+                        ${color} 8px,
+                        ${color} 9px,
+                        transparent 9px,
+                        transparent 17px
                       ),
                       repeating-linear-gradient(
                         90deg,
                         transparent 0px,
-                        transparent 5px,
-                        ${color} 5px,
-                        ${color} 6px,
-                        transparent 6px,
-                        transparent 11px
+                        transparent 8px,
+                        ${color} 8px,
+                        ${color} 9px,
+                        transparent 9px,
+                        transparent 17px
                       )
                     `
                   };
                 }
                 if (index === 1) {
-                  return { backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };
+                  return { backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 3px, transparent 3px, transparent 8px)` };
                 } else if (index === 2) {
-                  return { backgroundImage: `repeating-linear-gradient(0deg, ${color}, ${color} 2px, transparent 2px, transparent 5px)` };
+                  return { backgroundImage: `repeating-linear-gradient(0deg, ${color}, ${color} 2px, transparent 2px, transparent 6px)` };
                 }
-                return {};
+                // La más frecuente (index 0) - sólido
+                return { backgroundColor: color };
               };
               
               return (
@@ -374,15 +394,13 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <div 
-                    className={`w-5 h-5 ${isShiny ? 'rounded-sm border-2 border-white' : 'border-2 border-black dark:border-white'} ${getPatternBox(index)}`}
-                    style={getPatternStyle(index, item.type)}
-                  />
-                  {getTaskShape(item.type)}
-                  <span 
+                  <div className="relative w-6 h-6 mr-2 flex-shrink-0">
+                    {getTaskShapeWithPattern(item.type, index)}
+                  </div>
+                  <span
                     className={`text-sm ${item.isTop ? 'font-bold' : 'font-medium'}`}
-                    style={{ 
-                      color: isShiny ? '#000000' : (isDark ? '#ffffff' : '#000000')
+                    style={{
+                      color: isShiny ? '#000000' : '#000000' // Siempre negro excepto shiny
                     }}
                   >
                     {item.label}
