@@ -219,7 +219,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       <div className={`mb-3 rounded-lg ${
         isShiny ? 'border-2 border-black' : (isDark ? 'border-2 border-white' : 'border-2 border-black')
       }`}
-      style={{ border: isDark ? '2px solid #FFFFFF' : undefined }}>
+      style={{ border: isDark ? '3px solid #FFFFFF' : '3px solid #000000' }}>
         <div className={`w-full h-16 flex rounded-lg overflow-hidden ${
           isShiny ? '' : (isDark ? 'bg-black' : 'bg-white')
         }`}>
