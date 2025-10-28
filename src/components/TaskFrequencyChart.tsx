@@ -204,13 +204,13 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
     }}>
       {/* Título con información de tareas */}
       <div className={`text-center mb-6 pt-2 pb-2 -mx-2 -my-2 ${
-        isShiny ? 'bg-black' : (isDark ? 'bg-white' : 'bg-black')
+        isShiny ? 'bg-black' : (isDark ? 'bg-black' : 'bg-black')
       }`}
-      style={{ backgroundColor: isShiny ? '#000000' : (isDark ? '#FFFFFF' : '#000000') }}>
-        <h2 style={{ color: '#000000' }} className="text-xl font-bold mb-2">
+      style={{ backgroundColor: isShiny ? '#000000' : (isDark ? '#000000' : '#000000') }}>
+        <h2 style={{ color: isDark ? '#FFFFFF' : '#FFFFFF' }} className="text-xl font-bold mb-2">
           Tipo de tareas más completadas
         </h2>
-        <p style={{ color: '#000000' }} className="text-sm">
+        <p style={{ color: isDark ? '#FFFFFF' : '#FFFFFF' }} className="text-sm">
           Basado en {frequencyData.reduce((total, item) => total + item.count, 0)} de {tasks.length} tareas completadas
         </p>
       </div>
