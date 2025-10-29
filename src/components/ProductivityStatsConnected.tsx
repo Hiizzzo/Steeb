@@ -67,7 +67,7 @@ const CentralStatsChart: React.FC<{
   const isShiny = document.documentElement.classList.contains('shiny');
   const axisStyle = { fontSize: 12, fill: isShiny ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#111111') } as const;
   const gridStroke = isShiny ? '#333333' : (isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb');
-  const commonChartProps = { margin: { top: 10, right: 8, bottom: 0, left: 0 } } as const;
+  const commonChartProps = { margin: { top: 10, right: 0, bottom: 0, left: 0 } } as const;
   
   const rainbowColors = [
     '#FF0088', // Rosa vibrante
@@ -79,22 +79,21 @@ const CentralStatsChart: React.FC<{
     if (isShiny) {
       return rainbowColors[index % rainbowColors.length];
     }
-    return isCurrent ? (isDark ? '#ffffff' : '#000000') : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)');
+    return isCurrent ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#333333' : 'rgba(0,0,0,0.6)');
   };
 
   return (
-         <div className={`w-full ${period === 'year' ? 'h-72 -mx-4' : 'h-56'}`}>
+         <div className={`w-full ${period === 'year' ? 'h-72' : 'h-56'}`}>
       <ResponsiveContainer width="100%" height="100%">
         {period === 'week' ? (
-          <BarChart data={weekData} {...commonChartProps} barCategoryGap="30%" barGap={4}>
+          <BarChart data={weekData} {...commonChartProps} barCategoryGap="10%" barGap={2}>
             <CartesianGrid stroke={gridStroke} vertical={false} />
             <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
             <Bar
               dataKey="value"
-              radius={[2, 2, 0, 0]}
-              barSize={24}
+              radius={[0, 0, 0, 0]}
               onClick={(data) => {
                 const payload = (data as any)?.payload;
                 if (payload?.iso && onSelectDay) onSelectDay(payload.iso);
@@ -113,7 +112,7 @@ const CentralStatsChart: React.FC<{
             <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
-            <Bar dataKey="value" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} barSize={28}>
+            <Bar dataKey="value" radius={[0, 0, 0, 0]} isAnimationActive animationDuration={200} barSize={28}>
               <LabelList dataKey="value" position="top" formatter={(v: number) => (v > 0 ? v : '')} style={{ fill: axisStyle.fill, fontSize: 11 }} />
               {monthData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={getBarColor(index)} />
@@ -121,9 +120,9 @@ const CentralStatsChart: React.FC<{
             </Bar>
           </BarChart>
                  ) : (
-           <BarChart 
-             data={yearData} 
-             margin={{ top: 10, right: 12, bottom: 40, left: 8 }}
+           <BarChart
+             data={yearData}
+             margin={{ top: 10, right: 0, bottom: 40, left: 0 }}
              barCategoryGap="35%"
              barGap={8}
            >
@@ -141,7 +140,7 @@ const CentralStatsChart: React.FC<{
              />
              <YAxis tick={axisStyle} axisLine={false} tickLine={false} allowDecimals={false} />
              <Tooltip cursor={{ fill: 'rgba(229,231,235,0.6)' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
-             <Bar dataKey="value" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={200} barSize={20}>
+             <Bar dataKey="value" radius={[0, 0, 0, 0]} isAnimationActive animationDuration={200} barSize={20}>
                <LabelList dataKey="value" position="top" formatter={(v: number) => (v > 0 ? v : '')} style={{ fill: axisStyle.fill, fontSize: 11 }} />
                {yearData.map((entry, index) => (
                  <Cell
@@ -377,11 +376,11 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
 
   return (
     <div className={`productivity-stats ${period === 'year' ? 'max-w-2xl' : 'max-w-md'} mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20`}>
-      <h1 className="mt-0 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase text-black">ESTADÍSTICAS</h1>
+      <h1 className="mt-0 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase text-black mx-auto">ESTADÍSTICAS</h1>
 
       {/* Objetivo del mes (solo input y checkbox, sin etiquetas adicionales) */}
       <div className="mt-4">
-        <div className="w-full border border-black dark:border-white rounded-xl p-3 bg-white dark:bg-black text-white stats-border">
+        <div className="w-full rounded-xl p-3 bg-white dark:bg-black text-white stats-border">
           <div className="flex items-start gap-3">
             <Pin className="w-5 h-5 mt-1" />
             <div className="flex-1 grid grid-cols-[1fr_auto] gap-x-3 items-start">
@@ -431,7 +430,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="relative bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                className="relative bg-white dark:bg-black rounded-lg overflow-hidden"
               >
                 {/* Contenido principal */}
                 <motion.div
@@ -501,9 +500,9 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
 
       <div className="mt-10 flex items-center justify-center">
         <div className={`flex w-full max-w-sm rounded-full overflow-hidden shiny-period-buttons ${
-          currentTheme === 'shiny' 
-            ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1' 
-            : 'border border-black dark:border-white'
+          currentTheme === 'shiny'
+            ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1'
+            : ''
         }`}>
           <div className={currentTheme === 'shiny' ? 'flex w-full rounded-full overflow-hidden bg-white dark:bg-black' : 'flex w-full'}>
           {([
@@ -519,7 +518,11 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 key={it.key}
                 onClick={() => setPeriod(it.key)}
                 className={`flex-1 py-3 text-sm font-semibold transition-colors`}
-                style={{ backgroundColor: bg, color: fg }}
+                style={{ 
+                  backgroundColor: bg, 
+                  color: fg,
+                  border: '2px solid #000000'
+                }}
                 aria-pressed={period === it.key}
               >
                 {it.label}
