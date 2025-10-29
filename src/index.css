@@ -1510,6 +1510,13 @@
   pointer-events: none;
 }
 
+/* Dark mode: DISABLE pseudo-elements that interfere with chart visibility */
+.dark .productivity-stats::before,
+.dark .productivity-stats::after {
+  display: none !important;
+  content: none !important;
+}
+
 /* Tarjetas de estadísticas con bordes multicolor */
 .shiny .productivity-stats > div:not(.mt-10):not(.mt-8):not(.mt-4) {
   position: relative;
@@ -1572,6 +1579,13 @@
 .shiny .productivity-stats .sm\:text-xl {
   color: #000000 !important;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+/* Dark mode: REMOVE text shadows that interfere with visibility */
+.dark .productivity-stats * {
+  text-shadow: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
 /* Título ESTADÍSTICAS con efecto arcoíris */
@@ -2046,33 +2060,15 @@ html.dark .shiny-fab,
 
 /* Theme toggle switches: Now handled in switch.tsx - always black with white thumb */
 
-/* Dark mode: CRITICAL - Fix floating menu icons visibility */
-.dark .absolute.-top-\[140px\] svg,
-.dark .absolute.-top-\[140px\] button svg,
-.dark [class*="floating-border"] svg {
-  stroke: #ffffff !important;
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Dark mode: Override any inline color on floating menu icons */
-.dark .absolute.-top-\[140px\] svg[style*="color"],
-.dark .absolute.-top-\[140px\] button svg[style*="color"],
-.dark [class*="floating-border"] svg[style*="color"] {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  fill: #ffffff !important;
-}
+/* Dark mode: Floating menu icons - Use natural Lucide rendering */
 
 /* Dark mode: Ensure all interactive elements are visible */
-.dark button {
+.dark button:not([class*="period"]):not(.shiny-period-buttons *) {
   background-color: #000000 !important;
   color: #ffffff !important;
   border: 1px solid #ffffff !important;
 }
-.dark button:hover {
+.dark button:hover:not([class*="period"]):not(.shiny-period-buttons *) {
   background-color: #333333 !important;
 }
 .dark button svg {
@@ -2715,4 +2711,17 @@ html.dark .dark button svg[class*="X"],
   color: #ffffff !important;
   stroke: #ffffff !important;
   fill: #ffffff !important;
+}
+
+/* Remove stroke from SVG icons in dark mode floating menu */
+.dark .absolute.-top-\[140px\] button svg,
+.dark .floating-border button svg {
+  stroke: none !important;
+  stroke-width: 0 !important;
+}
+
+/* Ensure fill is set to white for the icons */
+.dark .absolute.-top-\[140px\] button svg {
+  fill: #ffffff !important;
+  stroke: none !important;
 }
