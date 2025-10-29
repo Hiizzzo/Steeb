@@ -399,7 +399,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                   el.style.height = Math.min(el.scrollHeight, maxHeightPx) + 'px';
                 }}
                 placeholder="Escribe tu objetivo..."
-                className="col-start-1 bg-transparent outline-none resize-none overflow-hidden text-base sm:text-lg font-medium text-black dark:text-white placeholder-gray-400 leading-snug"
+                className="col-start-1 bg-transparent outline-none resize-none overflow-hidden text-base sm:text-xl text-center text-black dark:text-white placeholder-gray-400 leading-snug border-2 border-black dark:border-white rounded-lg px-4 goal-input"
               />
                              <button
                  onClick={(e) => {
@@ -499,10 +499,10 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       </AnimatePresence>
 
       <div className="mt-10 flex items-center justify-center">
-        <div className={`flex w-full max-w-sm shiny-period-buttons border-2 border-black rounded-full ${
+        <div className={`flex w-full max-w-sm shiny-period-buttons rounded-full ${
           currentTheme === 'shiny'
             ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1 overflow-hidden'
-            : ''
+            : isDark ? 'bg-white border-2 border-white' : 'border-2 border-black'
         }`}>
           <div className={`flex w-full rounded-full overflow-hidden ${currentTheme === 'shiny' ? 'bg-white dark:bg-black' : 'bg-transparent'}`}>
           {([
@@ -525,12 +525,15 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 onClick={() => setPeriod(it.key)}
                 className={`flex-1 py-3 text-sm font-semibold transition-colors`}
                 style={{ 
-                  backgroundColor: bg, 
+                  backgroundColor: bg,
                   color: fg,
-                  borderRight: (isLast || isDark) ? 'none' : '2px solid #000000',
+                  borderRight: (isLast || isDark) ? 'none' : '2px solid #FFFFFF',
                   border: 'none',
                   outline: 'none',
-                  borderRadius: isFirst ? '9999px 0 0 9999px' : (isLast ? '0 9999px 9999px 0' : '0')
+                  borderRadius: isFirst ? '9999px 0 0 9999px' : (isLast ? '0 9999px 9999px 0' : '0'),
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  appearance: 'none'
                 }}
                 aria-pressed={period === it.key}
               >
