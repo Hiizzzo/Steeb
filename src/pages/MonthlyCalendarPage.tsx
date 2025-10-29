@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Home, Trash2, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Trash2, Check } from 'lucide-react';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import SwipeNavigationIndicator from '@/components/SwipeNavigationIndicator';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/components/ui/use-toast';
@@ -104,6 +106,14 @@ const MonthlyCalendarPage: React.FC = () => {
   const { name, nickname } = useUserProfile();
   const isMobile = useIsMobile();
   const isShiny = document.documentElement.classList.contains('shiny');
+
+  // Sistema de navegación por swipe
+  const { SwipeHandler, isSwiping, swipeProgress } = useSwipeNavigation({
+    direction: 'left',
+    threshold: 80,
+    duration: 500,
+    enableMouse: true // Habilitado para PC
+  });
   
   const { 
     tasks, 
@@ -658,6 +668,7 @@ const MonthlyCalendarPage: React.FC = () => {
   };
 
   return (
+    <SwipeHandler>
       <div
         className="min-h-screen bg-white dark:bg-black p-2 pt-1"
         style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}
@@ -665,7 +676,7 @@ const MonthlyCalendarPage: React.FC = () => {
       {/* Header con navegación */}
       <div className="max-w-[400px] mx-auto relative">
         {/* Header: Avatar a la izquierda y globo de consejo a la derecha */}
-        <div className="flex items-start mt-6 mb-2 gap-3">
+        <div className="flex items-start mt-6 mb-6 gap-3">
           <div className="shrink-0">
             <img
               src="/lovable-uploads/icono de la app.png"
@@ -673,7 +684,7 @@ const MonthlyCalendarPage: React.FC = () => {
               className="w-24 h-24 rounded-2xl"
             />
           </div>
-          <motion.div 
+          <motion.div
             className="relative flex-1 max-w-[calc(100%-110px)] bg-white dark:bg-black border border-white dark:border-white rounded-2xl px-3 py-2 mr-4 mt-2 text-sm leading-snug text-black dark:text-white shadow-sm shiny-steeb-dialog"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -684,23 +695,8 @@ const MonthlyCalendarPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* 2 círculos bajo STEEB: izquierda (Home) + derecha (actual) */}
-        <div className="flex items-center justify-center gap-4 my-1">
-          {/* Casa: navega al inicio con mini animación */}
-          <motion.button
-            onClick={() => navigate('/')}
-            aria-label="Ir al inicio"
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-              isShiny 
-                ? 'shiny-home-button bg-black text-white border-none' 
-                : 'border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
-            }`}
-            whileTap={{ scale: 0.85 }}
-            whileHover={{ scale: 1.08 }}
-          >
-            <Home className="w-4 h-4" />
-          </motion.button>
-          {/* Indicador de página actual (calendario) */}
+        {/* Indicador de página actual (calendario) */}
+        <div className="flex items-center justify-center my-1">
           <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
         </div>
 
@@ -711,11 +707,11 @@ const MonthlyCalendarPage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <motion.button
               onClick={prevMonth}
-              className="p-2 rounded-full hover:bg-black/5 transition-colors"
+              className="p-2 rounded-full bg-white border-2 border-black hover:bg-white focus:bg-white active:bg-white transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-6 h-6 text-black" />
             </motion.button>
 
             <div className="flex flex-col items-center">
@@ -752,11 +748,11 @@ const MonthlyCalendarPage: React.FC = () => {
 
             <motion.button
               onClick={nextMonth}
-              className="p-2 rounded-full hover:bg-black/5 transition-colors"
+              className="p-2 rounded-full bg-white border-2 border-black hover:bg-white focus:bg-white active:bg-white transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-6 h-6 text-black" />
             </motion.button>
           </div>
 
@@ -1008,8 +1004,15 @@ const MonthlyCalendarPage: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Indicador de navegación por swipe */}
+        <SwipeNavigationIndicator
+          isVisible={isSwiping}
+          progress={swipeProgress}
+          direction="left"
+        />
       </div>
-    </div>
+    </SwipeHandler>
   );
 };
 

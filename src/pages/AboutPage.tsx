@@ -1,12 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, Smartphone, Star, Heart, Mail, Github } from 'lucide-react';
+import { Shield, Smartphone, Star, Heart, Mail, Github } from 'lucide-react';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import SwipeNavigationIndicator from '@/components/SwipeNavigationIndicator';
 import { useTheme } from '../hooks/useTheme';
 
 const AboutPage = () => {
   const navigate = useNavigate();
   const { isShiny } = useTheme();
+
+  // Sistema de navegación por swipe
+  const { SwipeHandler, isSwiping, swipeProgress } = useSwipeNavigation({
+    direction: 'left',
+    threshold: 80,
+    duration: 500,
+    enableMouse: true, // Habilitado para PC
+    onSwipe: () => navigate('/settings') // About vuelve a settings, no al inicio
+  });
 
   const features = [
     {
@@ -36,26 +47,13 @@ const AboutPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
-      <div className="max-w-md mx-auto px-6 pt-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <motion.button
-            aria-label="Volver"
-            onClick={handleBack}
-            className={`flex items-center justify-center w-9 h-9 rounded-full shadow-sm hover:shadow-md transition-all duration-200 ${
-              isShiny 
-                ? 'bg-white text-black border-2 border-white' 
-                : 'bg-white text-black border border-black dark:bg-white dark:text-black dark:border dark:border-white'
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </motion.button>
-          <h1 className={`text-2xl font-bold ${isShiny ? 'tareas-multicolor' : ''}`}>Acerca de STEEB</h1>
-          <div className="w-9 h-9" />
-        </div>
+    <SwipeHandler>
+      <div className="min-h-screen bg-white dark:bg-black">
+        <div className="max-w-md mx-auto px-6 pt-4">
+          {/* Header simplificado */}
+          <div className="flex items-center justify-center mb-8">
+            <h1 className={`text-2xl font-bold ${isShiny ? 'tareas-multicolor' : ''}`}>Acerca de STEEB</h1>
+          </div>
 
         {/* App Info */}
         <motion.div
@@ -181,8 +179,15 @@ const AboutPage = () => {
           <p>Hecho con ❤️ para ayudarte a ser más productivo</p>
           <p className="mt-1">© 2025 STEEB. Todos los derechos reservados.</p>
         </motion.div>
+
+        {/* Indicador de navegación por swipe */}
+        <SwipeNavigationIndicator
+          isVisible={isSwiping}
+          progress={swipeProgress}
+          direction="left"
+        />
       </div>
-    </div>
+    </SwipeHandler>
   );
 };
 

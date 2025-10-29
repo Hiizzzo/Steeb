@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings, Globe, Bell, User, LogOut, Info } from 'lucide-react';
+import { Settings, Globe, Bell, User, LogOut, Info } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/useTheme';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import SwipeNavigationIndicator from '@/components/SwipeNavigationIndicator';
 import LocalStoragePanel from '@/components/LocalStoragePanel';
 import EditProfileModal from '@/components/EditProfileModal';
 
@@ -18,6 +20,14 @@ const SettingsPage = () => {
   const { user, linkGoogleAccount } = useAuth();
   const isGoogleLinked = user?.provider === 'google';
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+
+  // Sistema de navegación por swipe
+  const { SwipeHandler, isSwiping, swipeProgress } = useSwipeNavigation({
+    direction: 'left',
+    threshold: 80,
+    duration: 500,
+    enableMouse: true // Habilitado para PC
+  });
 
   const handleClearProfile = () => {
     clearProfile();
@@ -49,18 +59,14 @@ const SettingsPage = () => {
   // Solo se mantiene el selector de idioma
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-4 pb-20 overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <button
-          onClick={() => navigate('/')}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-2xl font-bold">{t('settings')}</h1>
-        <Settings className="w-6 h-6" />
-      </div>
+    <SwipeHandler>
+      <div className="max-w-md mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-4 pb-20 overflow-y-auto">
+        {/* Header simplificado */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="w-6 h-6" /> {/* Espacio placeholder para mantener alineación */}
+          <h1 className="text-2xl font-bold">{t('settings')}</h1>
+          <Settings className="w-6 h-6" />
+        </div>
       {/* Único ajuste disponible: Idioma */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -223,11 +229,19 @@ const SettingsPage = () => {
       {/* Fin: configuraciones */}
       
       {/* Modal de Editar Perfil */}
-      <EditProfileModal 
+      <EditProfileModal
         isOpen={isEditProfileModalOpen}
         onClose={() => setIsEditProfileModalOpen(false)}
       />
+
+      {/* Indicador de navegación por swipe */}
+      <SwipeNavigationIndicator
+        isVisible={isSwiping}
+        progress={swipeProgress}
+        direction="left"
+      />
     </div>
+    </SwipeHandler>
   );
 };
 

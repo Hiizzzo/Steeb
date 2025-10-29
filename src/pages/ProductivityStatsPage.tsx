@@ -5,7 +5,8 @@ import TaskCreationCard from '@/components/TaskCreationCard';
 import { useTaskStore } from '@/store/useTaskStore';
 import { RecurrenceRule } from '@/types';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import SwipeNavigationIndicator from '@/components/SwipeNavigationIndicator';
 import { useTheme } from '@/hooks/useTheme';
 
 const ProductivityStatsPage: React.FC = () => {
@@ -14,8 +15,16 @@ const ProductivityStatsPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentTheme } = useTheme();
 
+  // Sistema de navegación por swipe
+  const { SwipeHandler, isSwiping, swipeProgress } = useSwipeNavigation({
+    direction: 'left',
+    threshold: 50, // Más sensible - distancia reducida
+    duration: 800,  // Más tiempo permitido
+    enableMouse: true // Habilitado explícitamente para PC
+  });
+
   const handleBack = () => {
-    navigate('/monthly-calendar');
+    navigate('/');
   };
 
   const handleAddTask = async (
@@ -45,51 +54,45 @@ const ProductivityStatsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
-             {/* Header más alto y botón sin texto */}
-      <div className="max-w-md mx-auto px-6 pt-4">
-        <div className="flex items-center justify-between">
-          <motion.button
-            aria-label="Volver"
-            onClick={handleBack}
-            className={`flex items-center justify-center w-9 h-9 rounded-full shadow-sm hover:shadow-md transition-all duration-200 ${
-              currentTheme === 'shiny' 
-                ? 'bg-white text-black border-2 border-white' 
-                : 'bg-white text-black border border-black dark:bg-white dark:text-black dark:border dark:border-white'
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </motion.button>
-          {/* Versión de la app removida de esta vista */}
+    <SwipeHandler>
+      <div className="min-h-screen bg-white dark:bg-black">
+        {/* Header simplificado sin botón de volver */}
+        <div className="max-w-md mx-auto px-6 pt-4">
+          <div className="flex items-center justify-center">
+            <h1 className="text-xl font-bold text-black dark:text-white">Estadísticas de Productividad</h1>
+          </div>
         </div>
-      </div>
 
-      <ProductivityStatsConnected onAddTask={() => setShowModal(true)} />
+        <ProductivityStatsConnected onAddTask={() => setShowModal(true)} />
 
-
-
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          >
+        <AnimatePresence>
+          {showModal && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', duration: 0.5 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             >
-              <TaskCreationCard onCancel={() => setShowModal(false)} onCreate={handleAddTask} />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', duration: 0.5 }}
+              >
+                <TaskCreationCard onCancel={() => setShowModal(false)} onCreate={handleAddTask} />
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          )}
+        </AnimatePresence>
+
+        {/* Indicador de navegación por swipe */}
+        <SwipeNavigationIndicator
+          isVisible={isSwiping}
+          progress={swipeProgress}
+          direction="left"
+        />
+      </div>
+    </SwipeHandler>
   );
 };
 
