@@ -365,7 +365,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                 {menuVariant === 'dark' ? (
                   // Círculo único negro con 3 opciones internas (móvil), sin textos
                   <div
-                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-black text-white flex items-center justify-center shadow-xl pointer-events-auto floating-border"
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-black text-white shadow-xl pointer-events-auto floating-border"
                     style={{
                       border: '4px solid #ffffff'
                     }}
@@ -417,7 +417,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                 ) : (
                   // Variante blanca: círculo único blanco con borde negro e iconos negros (igual al dark pero invertido)
                   <div
-                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white text-black flex items-center justify-center shadow-xl pointer-events-auto floating-border"
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white text-black shadow-xl pointer-events-auto floating-border"
                     style={{
                       border: '3px solid #000000'
                     }}
