@@ -527,7 +527,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 style={{ 
                   backgroundColor: bg, 
                   color: fg,
-                  borderRight: (isLast || isDark) ? 'none' : '2px solid #000000',
+                  borderRight: isLast ? 'none' : '2px solid #000000',
                   border: 'none',
                   outline: 'none',
                   borderRadius: isFirst ? '9999px 0 0 9999px' : (isLast ? '0 9999px 9999px 0' : '0')
