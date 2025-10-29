@@ -352,16 +352,6 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               onMouseDown={resetMenuStates}
               onTouchStart={resetMenuStates}
             />
-            
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                clipPath: 'circle(200px at center)',
-                pointerEvents: 'none',
-                zIndex: 0
-              }}
-            />
 
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
