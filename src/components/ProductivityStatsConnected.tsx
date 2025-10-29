@@ -521,7 +521,8 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 style={{ 
                   backgroundColor: bg, 
                   color: fg,
-                  border: '2px solid #000000'
+                  border: '2px solid #000000',
+                  borderRadius: '8px'
                 }}
                 aria-pressed={period === it.key}
               >
