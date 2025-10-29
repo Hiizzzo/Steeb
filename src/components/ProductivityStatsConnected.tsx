@@ -504,7 +504,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
             ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1'
             : ''
         }`}>
-          <div className={currentTheme === 'shiny' ? 'flex w-full rounded-full overflow-hidden bg-white dark:bg-black' : 'flex w-full'}>
+          <div className={`flex w-full rounded-full overflow-hidden ${currentTheme === 'shiny' ? 'bg-white dark:bg-black' : 'bg-transparent'}`}>
           {([
             { key: 'week', label: 'Semana' },
             { key: 'month', label: 'Mes' },
