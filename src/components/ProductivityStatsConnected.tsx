@@ -499,9 +499,9 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       </AnimatePresence>
 
       <div className="mt-10 flex items-center justify-center">
-        <div className={`flex w-full max-w-sm overflow-hidden shiny-period-buttons border-2 border-black rounded-full ${
+        <div className={`flex w-full max-w-sm shiny-period-buttons border-2 border-black rounded-full ${
           currentTheme === 'shiny'
-            ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1'
+            ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1 overflow-hidden'
             : ''
         }`}>
           <div className={`flex w-full rounded-full overflow-hidden ${currentTheme === 'shiny' ? 'bg-white dark:bg-black' : 'bg-transparent'}`}>
