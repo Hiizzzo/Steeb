@@ -2747,3 +2747,14 @@ html.dark .dark button svg[class*="X"],
   border: 2px solid #ffffff !important;
   border-color: #ffffff !important;
 }
+
+/* Completed goal card with strong black border */
+.completed-goal-card {
+  border: 2px solid #000000 !important;
+  border-color: #000000 !important;
+}
+
+.dark .completed-goal-card {
+  border: 2px solid #ffffff !important;
+  border-color: #ffffff !important;
+}
