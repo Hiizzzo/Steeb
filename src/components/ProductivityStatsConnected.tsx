@@ -511,8 +511,12 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
             { key: 'year', label: 'Año' },
           ] as { key: Period; label: string }[]).map((it) => {
             const selected = period === it.key;
-            const bg = selected ? '#000000' : '#ffffff';
-            const fg = selected ? '#ffffff' : '#000000';
+            const bg = isDark 
+              ? (selected ? '#ffffff' : '#000000')
+              : (selected ? '#000000' : '#ffffff');
+            const fg = isDark
+              ? (selected ? '#000000' : '#ffffff')
+              : (selected ? '#ffffff' : '#000000');
             return (
               <button
                 key={it.key}
