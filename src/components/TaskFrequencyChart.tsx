@@ -196,7 +196,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
   
   return (
     <div className={`w-full p-2 rounded-lg shiny-stats-chart-card -ml-4 mr-auto ${
-      isShiny ? 'bg-black' : (isDark ? 'bg-white' : 'bg-white')
+      isShiny ? 'bg-black' : (isDark ? 'bg-black' : 'bg-white')
     }`}
     style={{
       border: `4px solid ${isShiny ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#000000')}`,
