@@ -434,7 +434,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
               >
                 {/* Contenido principal */}
                 <motion.div
-                  className="p-2 text-sm"
+                  className="px-3 py-1 text-sm"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.2}
@@ -450,12 +450,12 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                   }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="flex-1 text-center">
                       <p className="text-black dark:text-white font-medium line-clamp-2">{goal.text}</p>
-                      <p className="text-gray-500 dark:text-gray-400 mt-1">{goal.month}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{goal.month}</p>
                     </div>
-                    <CheckCircle className="w-5 h-5 text-black dark:text-white ml-2 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-black dark:text-white flex-shrink-0" />
                   </div>
                 </motion.div>
 
