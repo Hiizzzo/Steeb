@@ -517,6 +517,8 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
             const fg = isDark
               ? (selected ? '#000000' : '#ffffff')
               : (selected ? '#ffffff' : '#000000');
+            const isFirst = it.key === 'week';
+            const isLast = it.key === 'year';
             return (
               <button
                 key={it.key}
@@ -525,9 +527,10 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 style={{ 
                   backgroundColor: bg, 
                   color: fg,
-                  borderRight: '2px solid #000000',
+                  borderRight: isLast ? 'none' : '2px solid #000000',
                   border: 'none',
-                  outline: 'none'
+                  outline: 'none',
+                  borderRadius: isFirst ? '9999px 0 0 9999px' : (isLast ? '0 9999px 9999px 0' : '0')
                 }}
                 aria-pressed={period === it.key}
               >
