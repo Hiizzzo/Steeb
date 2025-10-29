@@ -352,6 +352,16 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
               onMouseDown={resetMenuStates}
               onTouchStart={resetMenuStates}
             />
+            
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                clipPath: 'circle(200px at center)',
+                pointerEvents: 'none',
+                zIndex: 0
+              }}
+            />
 
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -365,7 +375,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                 {menuVariant === 'dark' ? (
                   // Círculo único negro con 3 opciones internas (móvil), sin textos
                   <div
-                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-white bg-black text-white flex items-center justify-center shadow-xl pointer-events-auto floating-border"
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-black text-white flex items-center justify-center shadow-xl pointer-events-auto floating-border"
+                    style={{
+                      border: '4px solid #ffffff'
+                    }}
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
@@ -375,7 +388,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón arriba - Calendario (layout polar) */}
                     <button
                       aria-label="Calendario"
-                      onClick={() => { resetMenuStates(); navigate('/monthly-calendar'); }}
+                      onClick={() => { navigate('/monthly-calendar'); setTimeout(() => resetMenuStates(), 0); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -388,7 +401,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-izquierda - Configuración (layout polar) */}
                     <button
                       aria-label="Configuración"
-                      onClick={() => { resetMenuStates(); navigate('/settings'); }}
+                      onClick={() => { navigate('/settings'); setTimeout(() => resetMenuStates(), 0); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -401,7 +414,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-derecha - Estadísticas (layout polar) */}
                     <button
                       aria-label="Estadísticas"
-                      onClick={() => { resetMenuStates(); navigate('/productivity-stats'); }}
+                      onClick={() => { navigate('/productivity-stats'); setTimeout(() => resetMenuStates(), 0); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -414,7 +427,10 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                 ) : (
                   // Variante blanca: círculo único blanco con borde negro e iconos negros (igual al dark pero invertido)
                   <div
-                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full border-2 border-black bg-white text-black flex items-center justify-center shadow-xl pointer-events-auto floating-border"
+                    className="absolute -top-[140px] -left-[70px] w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white text-black flex items-center justify-center shadow-xl pointer-events-auto floating-border"
+                    style={{
+                      border: '3px solid #000000'
+                    }}
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
@@ -424,7 +440,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón arriba - Calendario */}
                     <button
                       aria-label="Calendario"
-                      onClick={() => { resetMenuStates(); navigate('/monthly-calendar'); }}
+                      onClick={() => { navigate('/monthly-calendar'); setTimeout(() => resetMenuStates(), 0); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -437,7 +453,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-izquierda - Configuración */}
                     <button
                       aria-label="Configuración"
-                      onClick={() => { resetMenuStates(); navigate('/settings'); }}
+                      onClick={() => { navigate('/settings'); setTimeout(() => resetMenuStates(), 0); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
@@ -450,7 +466,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                     {/* Botón abajo-derecha - Estadísticas */}
                     <button
                       aria-label="Estadísticas"
-                      onClick={() => { resetMenuStates(); navigate('/productivity-stats'); }}
+                      onClick={() => { navigate('/productivity-stats'); setTimeout(() => resetMenuStates(), 0); }}
                       className="absolute pointer-events-auto border-none bg-transparent"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
