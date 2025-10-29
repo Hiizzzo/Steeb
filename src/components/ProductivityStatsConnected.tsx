@@ -525,11 +525,11 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 onClick={() => setPeriod(it.key)}
                 className={`flex-1 py-3 text-sm font-semibold transition-colors`}
                 style={{ 
-                  backgroundColor: `${bg} !important`, 
-                  color: `${fg} !important`,
+                  backgroundColor: bg, 
+                  color: fg,
                   borderRight: (isLast || isDark) ? 'none' : '2px solid #000000',
-                  border: 'none !important',
-                  outline: 'none !important',
+                  border: 'none',
+                  outline: 'none',
                   borderRadius: isFirst ? '9999px 0 0 9999px' : (isLast ? '0 9999px 9999px 0' : '0')
                 }}
                 aria-pressed={period === it.key}
