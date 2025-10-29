@@ -2713,15 +2713,9 @@ html.dark .dark button svg[class*="X"],
   fill: #ffffff !important;
 }
 
-/* Remove borders/outlines from SVG icons in dark mode floating menu */
+/* Remove stroke from SVG icons in dark mode floating menu */
 .dark .absolute.-top-\[140px\] button svg,
 .dark .floating-border button svg {
-  stroke: none !important;
-  stroke-width: 0 !important;
-  filter: drop-shadow(none) !important;
-}
-
-.dark .absolute.-top-\[140px\] button svg * {
   stroke: none !important;
   stroke-width: 0 !important;
 }
@@ -2729,4 +2723,5 @@ html.dark .dark button svg[class*="X"],
 /* Ensure fill is set to white for the icons */
 .dark .absolute.-top-\[140px\] button svg {
   fill: #ffffff !important;
+  stroke: none !important;
 }
