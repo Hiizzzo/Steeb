@@ -1279,16 +1279,6 @@
   fill: #000000 !important;
 }
 
-/* Dark mode: Hide white rect backgrounds from lucide-react SVG icons in floating menu */
-.dark .floating-border button svg rect,
-.dark .absolute.-top-\[140px\] button svg rect {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
 /* Hide any decorative divider under the header in Shiny */
 .shiny .tareas-header .shiny-divider-bottom {
   display: none !important;
@@ -2723,12 +2713,11 @@ html.dark .dark button svg[class*="X"],
   fill: #ffffff !important;
 }
 
-/* Make SVG icon rect backgrounds invisible in dark mode floating menu */
+/* Change SVG icon borders to black in dark mode floating menu */
 .dark .absolute.-top-\[140px\] button svg rect,
 .dark .floating-border button svg rect {
-  fill: none !important;
-  stroke: none !important;
-  stroke-width: 0 !important;
+  stroke: #000000 !important;
+  stroke-width: 1.5 !important;
 }
 
 /* Ensure fill is set to white for the icons */
