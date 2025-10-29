@@ -385,7 +385,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(75deg) translateY(-115%) rotate(-75deg)' }}
                     >
-                      <Calendar size={36} color="#FFFFFF" />
+                      <Calendar size={36} color="#FFFFFF" strokeWidth={1.5} />
                     </button>
 
                     {/* Botón abajo-izquierda - Configuración (layout polar) */}
@@ -398,7 +398,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(195deg) translateY(-115%) rotate(-195deg)' }}
                     >
-                      <Settings size={34} color="#FFFFFF" />
+                      <Settings size={34} color="#FFFFFF" strokeWidth={1.5} />
                     </button>
 
                     {/* Botón abajo-derecha - Estadísticas (layout polar) */}
@@ -411,7 +411,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(315deg) translateY(-115%) rotate(-315deg)' }}
                     >
-                      <BarChart2 size={34} color="#FFFFFF" />
+                      <BarChart2 size={34} color="#FFFFFF" strokeWidth={1.5} />
                     </button>
                   </div>
                 ) : (
@@ -437,7 +437,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(75deg) translateY(-115%) rotate(-75deg)' }}
                     >
-                      <Calendar size={36} color="#000000" />
+                      <Calendar size={36} color="#000000" strokeWidth={1.5} />
                     </button>
 
                     {/* Botón abajo-izquierda - Configuración */}
@@ -450,7 +450,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(195deg) translateY(-115%) rotate(-195deg)' }}
                     >
-                      <Settings size={34} color="#000000" />
+                      <Settings size={34} color="#000000" strokeWidth={1.5} />
                     </button>
 
                     {/* Botón abajo-derecha - Estadísticas */}
@@ -463,7 +463,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(315deg) translateY(-115%) rotate(-315deg)' }}
                     >
-                      <BarChart2 size={34} color="#000000" />
+                      <BarChart2 size={34} color="#000000" strokeWidth={1.5} />
                     </button>
                   </div>
                 )}
