@@ -2713,11 +2713,19 @@ html.dark .dark button svg[class*="X"],
   fill: #ffffff !important;
 }
 
-/* Change SVG icon borders to black in dark mode floating menu */
+/* Hide rect backgrounds in dark mode floating menu - only show icon paths */
 .dark .absolute.-top-\[140px\] button svg rect,
 .dark .floating-border button svg rect {
-  stroke: #000000 !important;
-  stroke-width: 1.5 !important;
+  fill: none !important;
+  stroke: none !important;
+  stroke-width: 0 !important;
+}
+
+/* Ensure paths and other elements are white for visibility */
+.dark .absolute.-top-\[140px\] button svg path,
+.dark .floating-border button svg path {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* Ensure fill is set to white for the icons */
