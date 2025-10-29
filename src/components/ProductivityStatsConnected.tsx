@@ -423,7 +423,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       {completedGoals.length > 0 && (
         <div className="mt-4">
           <h3 className="text-sm font-medium text-center mb-3 text-black dark:text-white">Objetivos Completados</h3>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
+          <div className="space-y-2 max-h-24 overflow-y-auto">
             {completedGoals.slice().reverse().map((goal, index) => (
               <motion.div
                 key={index}
@@ -434,7 +434,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
               >
                 {/* Contenido principal */}
                 <motion.div
-                  className="p-3 text-xs"
+                  className="p-2 text-sm"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.2}
@@ -455,7 +455,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                       <p className="text-black dark:text-white font-medium line-clamp-2">{goal.text}</p>
                       <p className="text-gray-500 dark:text-gray-400 mt-1">{goal.month}</p>
                     </div>
-                    <CheckCircle className="w-4 h-4 text-black dark:text-white ml-2 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-black dark:text-white ml-2 flex-shrink-0" />
                   </div>
                 </motion.div>
 
