@@ -391,7 +391,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
                   >
                     {item.label}
                   </span>
-                  <span className={`text-xs ${isShiny ? 'text-black' : 'text-gray-600 dark:text-gray-400'}`}>
+                  <span className={`text-xs ${isShiny ? 'text-black' : 'text-black'}`}>
                     {labels[index]} ({item.count} tareas, {item.percentage.toFixed(1)}%)
                   </span>
                 </motion.div>
