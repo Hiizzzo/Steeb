@@ -499,9 +499,9 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
       </AnimatePresence>
 
       <div className="mt-10 flex items-center justify-center">
-        <div className={`flex w-full max-w-sm rounded-full overflow-hidden shiny-period-buttons ${
+        <div className={`flex w-full max-w-sm overflow-hidden shiny-period-buttons border-2 border-black ${
           currentTheme === 'shiny'
-            ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1'
+            ? 'rounded-full border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1'
             : ''
         }`}>
           <div className={currentTheme === 'shiny' ? 'flex w-full rounded-full overflow-hidden bg-white dark:bg-black' : 'flex w-full'}>
@@ -521,7 +521,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 style={{ 
                   backgroundColor: bg, 
                   color: fg,
-                  border: '2px solid #000000'
+                  borderRight: '1px solid #000000'
                 }}
                 aria-pressed={period === it.key}
               >
