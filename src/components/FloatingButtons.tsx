@@ -261,7 +261,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                   className="relative"
                 >
-                  <Calendar size={28} className="text-white dark:!text-black sm:w-8 sm:h-8" strokeWidth={3} />
+                  <Calendar size={28} className="text-white dark:text-white sm:w-8 sm:h-8" strokeWidth={2} />
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 1, repeat: Infinity }}
@@ -385,7 +385,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(75deg) translateY(-115%) rotate(-75deg)' }}
                     >
-                      <Calendar size={36} color="#FFFFFF" strokeWidth={1.5} />
+                      <Calendar size={40} color="#FFFFFF" strokeWidth={1.5} />
                     </button>
 
                     {/* Botón abajo-izquierda - Configuración (layout polar) */}
@@ -398,7 +398,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(195deg) translateY(-115%) rotate(-195deg)' }}
                     >
-                      <Settings size={34} color="#FFFFFF" strokeWidth={1.5} />
+                      <Settings size={36} color="#FFFFFF" strokeWidth={1.5} />
                     </button>
 
                     {/* Botón abajo-derecha - Estadísticas (layout polar) */}
@@ -411,8 +411,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(315deg) translateY(-115%) rotate(-315deg)' }}
                     >
-                      <BarChart2 size={34} color="#FFFFFF" strokeWidth={1.5} />
+                      <BarChart2 size={36} color="#FFFFFF" strokeWidth={1.5} />
                     </button>
+
                   </div>
                 ) : (
                   // Variante blanca: círculo único blanco con borde negro e iconos negros (igual al dark pero invertido)
@@ -437,7 +438,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(75deg) translateY(-115%) rotate(-75deg)' }}
                     >
-                      <Calendar size={36} color="#000000" strokeWidth={2.5} />
+                      <Calendar size={40} color="#000000" strokeWidth={2.5} />
                     </button>
 
                     {/* Botón abajo-izquierda - Configuración */}
@@ -450,7 +451,7 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(195deg) translateY(-115%) rotate(-195deg)' }}
                     >
-                      <Settings size={34} color="#000000" strokeWidth={2.5} />
+                      <Settings size={36} color="#000000" strokeWidth={2.5} />
                     </button>
 
                     {/* Botón abajo-derecha - Estadísticas */}
@@ -463,8 +464,9 @@ const FloatingButtons: React.FC<FloatingButtonsProps> = ({ onAddTask, onCreateTa
                       onTouchStart={(e) => e.stopPropagation()}
                       style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(315deg) translateY(-115%) rotate(-315deg)' }}
                     >
-                      <BarChart2 size={34} color="#000000" strokeWidth={2.5} />
+                      <BarChart2 size={36} color="#000000" strokeWidth={2.5} />
                     </button>
+
                   </div>
                 )}
               </div>

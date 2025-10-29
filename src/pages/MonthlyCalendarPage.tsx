@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Trash2, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, CheckCircle, Plus, Flame, Trophy, Trash2, Check, ArrowLeft } from 'lucide-react';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import SwipeNavigationIndicator from '@/components/SwipeNavigationIndicator';
 
@@ -675,6 +675,17 @@ const MonthlyCalendarPage: React.FC = () => {
       >
       {/* Header con navegación */}
       <div className="max-w-[400px] mx-auto relative">
+        {/* Botón para ir atrás */}
+        <div className="flex items-center justify-start mb-4 mt-4">
+          <button
+            onClick={() => navigate('/')}
+            className="hover:opacity-70 transition-opacity"
+            aria-label="Volver"
+          >
+            <ArrowLeft size={24} className="text-black dark:text-white shiny:text-white" />
+          </button>
+        </div>
+
         {/* Header: Avatar a la izquierda y globo de consejo a la derecha */}
         <div className="flex items-start mt-6 mb-6 gap-3">
           <div className="shrink-0">
@@ -1011,6 +1022,7 @@ const MonthlyCalendarPage: React.FC = () => {
           progress={swipeProgress}
           direction="left"
         />
+      </div>
       </div>
     </SwipeHandler>
   );

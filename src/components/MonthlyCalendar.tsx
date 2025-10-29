@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Flame, CheckCircle, Calendar, Trophy, Plus, ArrowLeft, Clock, MapPin, Trash2, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flame, CheckCircle, CalendarDays, Trophy, Plus, ArrowLeft, Clock, MapPin, Trash2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '@/store/useTaskStore';
 import ShapeIcon from './ShapeIcon';
@@ -628,7 +628,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   className="text-center py-12"
                 >
-                  <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-4" strokeWidth={1.5} />
                   <motion.button
                     onClick={handleAddTaskOnDate}
                     className="bg-black text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"

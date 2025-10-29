@@ -186,6 +186,7 @@ const AboutPage = () => {
           progress={swipeProgress}
           direction="left"
         />
+        </div>
       </div>
     </SwipeHandler>
   );

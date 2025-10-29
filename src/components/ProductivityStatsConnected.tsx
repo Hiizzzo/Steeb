@@ -15,7 +15,8 @@ import {
   LabelList,
   Cell,
 } from 'recharts';
-import { Pin, CheckCircle } from 'lucide-react';
+import { Pin, CheckCircle, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import TaskFrequencyChart from './TaskFrequencyChart';
 
 type Period = 'week' | 'month' | 'year';
@@ -157,6 +158,7 @@ const CentralStatsChart: React.FC<{
 };
 
 const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = () => {
+  const navigate = useNavigate();
   const tasks = useTaskStore((s) => s.tasks);
   const [period, setPeriod] = useState<Period>('week');
   const today = new Date();
@@ -376,11 +378,20 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
 
   return (
     <div className={`productivity-stats ${period === 'year' ? 'max-w-2xl' : 'max-w-md'} mx-auto min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 pt-2 pb-20`}>
-      <h1 className="mt-0 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase text-black mx-auto">ESTADÍSTICAS</h1>
+      <div className="flex items-center justify-start mb-4">
+        <button
+          onClick={() => navigate('/')}
+          className="hover:opacity-70 transition-opacity"
+          aria-label="Volver"
+        >
+          <ArrowLeft size={24} className="text-black dark:text-white shiny:text-white" />
+        </button>
+      </div>
+      <h1 className="mt-8 text-center text-2xl sm:text-4xl font-extrabold tracking-wider uppercase text-black mx-auto">ESTADÍSTICAS</h1>
 
       {/* Objetivo del mes (solo input y checkbox, sin etiquetas adicionales) */}
       <div className="mt-4">
-        <div className="w-full rounded-xl p-3 bg-white dark:bg-black text-white stats-border border-2 border-black dark:border-white monthly-goal-container">
+        <div className="w-full rounded-xl p-3 bg-white dark:bg-black text-white stats-border monthly-goal-container">
           <div className="flex items-start gap-3">
             <Pin className="w-5 h-5 mt-1" />
             <div className="flex-1 grid grid-cols-[1fr_auto] gap-x-3 items-start">
@@ -399,7 +410,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                   el.style.height = Math.min(el.scrollHeight, maxHeightPx) + 'px';
                 }}
                 placeholder="Escribe tu objetivo..."
-                className="col-start-1 bg-transparent outline-none resize-none overflow-hidden text-base sm:text-xl text-center text-black dark:text-white placeholder-gray-400 leading-snug border-2 border-black dark:border-white rounded-lg px-4 goal-input"
+                className="col-start-1 bg-transparent outline-none resize-none overflow-hidden text-base sm:text-xl text-center text-black dark:text-white placeholder-gray-400 leading-snug rounded-lg px-4 goal-input"
               />
                              <button
                  onClick={(e) => {
@@ -430,7 +441,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="relative bg-white dark:bg-black rounded-lg overflow-hidden border-2 border-black dark:border-white completed-goal-card"
+                className="relative bg-white dark:bg-black rounded-lg overflow-hidden completed-goal-card"
               >
                 {/* Contenido principal */}
                 <motion.div
@@ -502,7 +513,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
         <div className={`flex w-full max-w-sm shiny-period-buttons rounded-full ${
           currentTheme === 'shiny'
             ? 'border-4 border-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1 overflow-hidden'
-            : isDark ? 'bg-white border-2 border-white' : 'border-2 border-black'
+            : isDark ? 'bg-white' : ''
         }`}>
           <div className={`flex w-full rounded-full overflow-hidden ${currentTheme === 'shiny' ? 'bg-white dark:bg-black' : 'bg-transparent'}`}>
           {([

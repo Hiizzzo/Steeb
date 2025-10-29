@@ -56,12 +56,7 @@ const ProductivityStatsPage: React.FC = () => {
   return (
     <SwipeHandler>
       <div className="min-h-screen bg-white dark:bg-black">
-        {/* Header simplificado sin botón de volver */}
-        <div className="max-w-md mx-auto px-6 pt-4">
-          <div className="flex items-center justify-center">
-            <h1 className="text-xl font-bold text-black dark:text-white">Estadísticas de Productividad</h1>
-          </div>
-        </div>
+
 
         <ProductivityStatsConnected onAddTask={() => setShowModal(true)} />
 
