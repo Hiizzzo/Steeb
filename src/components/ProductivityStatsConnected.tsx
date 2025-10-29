@@ -380,7 +380,7 @@ const ProductivityStatsConnected: React.FC<ProductivityStatsConnectedProps> = ()
 
       {/* Objetivo del mes (solo input y checkbox, sin etiquetas adicionales) */}
       <div className="mt-4">
-        <div className="w-full rounded-xl p-3 bg-white dark:bg-black text-white stats-border">
+        <div className="w-full rounded-xl p-3 bg-white dark:bg-black text-white stats-border border-2 border-black dark:border-white monthly-goal-container">
           <div className="flex items-start gap-3">
             <Pin className="w-5 h-5 mt-1" />
             <div className="flex-1 grid grid-cols-[1fr_auto] gap-x-3 items-start">
