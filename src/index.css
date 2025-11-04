@@ -8,6 +8,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* RESET CSS FUNDAMENTAL - Eliminar todos los márgenes del HTML */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100%;
+  height: 100%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 /* stylelint-disable */
 /* stylelint-enable */
 

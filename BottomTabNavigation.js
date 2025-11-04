@@ -9,37 +9,41 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-const BottomTabNavigation = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress }) => {
+const BottomTabNavigation = ({ onTasksPress, onAddPress, onProgressPress, onAddLongPress, theme = 'dark' }) => {
+  // Determinar color de íconos según el tema
+  const iconColor = theme === 'dark' ? '#FFFFFF' : '#000000';
+  const buttonBgColor = theme === 'dark' ? '#FFFFFF' : '#000000';
+
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
         {/* Botón TAREAS (Check) */}
         <TouchableOpacity
-          style={styles.tabButton}
+          style={[styles.tabButton, { backgroundColor: buttonBgColor }]}
           onPress={onTasksPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+          <Ionicons name="checkmark" size={24} color={iconColor} />
         </TouchableOpacity>
 
         {/* Botón AGREGAR (Plus) - Más grande y centrado */}
         <TouchableOpacity
-          style={[styles.tabButton, styles.centerButton]}
+          style={[styles.tabButton, styles.centerButton, { backgroundColor: buttonBgColor }]}
           onPress={onAddPress}
           onLongPress={onAddLongPress}
           delayLongPress={300}
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={28} color="#FFFFFF" />
+          <Ionicons name="add" size={28} color={iconColor} />
         </TouchableOpacity>
 
         {/* Botón PROGRESO (Chart/Stats) */}
         <TouchableOpacity
-          style={styles.tabButton}
+          style={[styles.tabButton, { backgroundColor: buttonBgColor }]}
           onPress={onProgressPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="stats-chart" size={24} color="#FFFFFF" />
+          <Ionicons name="stats-chart" size={24} color={iconColor} />
         </TouchableOpacity>
       </View>
     </View>
@@ -68,7 +72,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8,

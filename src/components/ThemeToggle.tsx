@@ -29,7 +29,18 @@ const ThemeToggle = () => {
 	const isShiny = currentTheme === "shiny";
 
 	return (
-		<div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+		<div className="fixed top-6 right-4 z-[60] flex gap-2">
+			{/* Switch normal para light/dark - al costado de STEEB */}
+			<Switch
+				className={`scale-125 origin-top-right [&>span]:bg-black [&>span[data-state="checked"]]:bg-black border-2 border-white [&>span[data-state="checked"]]:border-white bg-white [&>span]:border-white data-[state="checked"]:bg-white`}
+				checked={isDark}
+			onCheckedChange={(checked) => {
+				// Cambiar directamente entre light y dark
+				toggleTheme(checked ? "dark" : "light");
+			}}
+				aria-label="Toggle theme"
+			/>
+
 			{/* Indicador de versión DARK */}
 			{userCredits.hasDarkVersion && (
 				<div className="flex items-center gap-2 bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
@@ -43,8 +54,8 @@ const ThemeToggle = () => {
 				<button
 					onClick={() => toggleTheme('shiny')}
 					className={`w-12 h-6 rounded-full border-2 transition-all duration-200 ${
-						isShiny 
-							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 border-white shadow-lg' 
+						isShiny
+							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 border-white shadow-lg'
 							: 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-purple-400'
 					}`}
 					aria-label="Activar tema Shiny"
@@ -57,17 +68,6 @@ const ThemeToggle = () => {
 					}`} />
 				</button>
 			)}
-			
-			{/* Switch normal para light/dark */}
-			<Switch
-				className={`scale-125 origin-top-right [&>span]:bg-black dark:[&>span]:bg-white`}
-				checked={isDark}
-			onCheckedChange={(checked) => {
-				// Cambiar directamente entre light y dark
-				toggleTheme(checked ? "dark" : "light");
-			}}
-				aria-label="Toggle theme"
-			/>
 			
 			{/* Modal del juego de adivinanza */}
 			<ShinyGreetingModal

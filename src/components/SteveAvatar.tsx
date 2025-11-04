@@ -23,7 +23,7 @@ const SteveAvatar: React.FC<SteveAvatarProps> = ({
   
   const animations = animate ? 'animate-bounce-light' : '';
 
-  const fallbackImage = '/lovable-uploads/steve-thumbs-up-icon.png';
+  const fallbackImage = '/lovable-uploads/teobservo.png';
   const [avatarSrc, setAvatarSrc] = useState<string>(() => {
     if (typeof window === 'undefined') return fallbackImage;
     return localStorage.getItem('stebe-top-left-image') || fallbackImage;
@@ -39,12 +39,14 @@ const SteveAvatar: React.FC<SteveAvatarProps> = ({
   }, []);
   
   return (
-    <div className={cn('flex items-center justify-start', sizeClasses[size], animations, className)}>
-      <img 
-        src={avatarSrc}
-        alt="Steve Avatar" 
-        className="w-full h-full rounded-full object-cover flex-shrink-0"
-      />
+    <div className={cn('flex items-center justify-center', sizeClasses[size], animations, className)}>
+      <div className="relative w-full h-full">
+        <img
+          src={avatarSrc}
+          alt="Steeb"
+          className="w-full h-full object-cover flex-shrink-0"
+        />
+        </div>
     </div>
   );
 };

@@ -12,9 +12,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { notificationService } from '@/services/notificationService';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
+import SteebChatAI from '@/components/SteebChatAI';
 import { Eye, EyeOff, CheckCircle, Trash2, Check } from 'lucide-react';
 
 import TaskDetailModal from '@/components/TaskDetailModal';
+import SteveAvatar from '@/components/SteveAvatar';
 
 import AppUpdateNotification from '@/components/AppUpdateNotification';
 
@@ -669,124 +671,41 @@ const Index = () => {
 
 
 
-  // Día de la semana (p.ej., "Viernes") y saludo de STEEB
+  // Día de la semana (p.ej., "Viernes")
   const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
   const isMobile = useIsMobile();
 
-  // Detectar primer mensaje del día (mostrar al menos una vez por sesión)
-  const [isFirstOfDay, setIsFirstOfDay] = useState(false);
-  useEffect(() => {
-    const todayKey = new Date().toISOString().split('T')[0];
-    const last = localStorage.getItem('stebe-last-greeting-date');
-    const sessionLast = sessionStorage.getItem('stebe-session-greet');
-
-    const isFirstThisCalendarDay = last !== todayKey;
-    const isFirstThisSession = sessionLast !== todayKey;
-
-    if (isFirstThisCalendarDay || isFirstThisSession) {
-      setIsFirstOfDay(true);
-      localStorage.setItem('stebe-last-greeting-date', todayKey);
-      sessionStorage.setItem('stebe-session-greet', todayKey);
-    } else {
-      setIsFirstOfDay(false);
-    }
-  }, []);
-
-  const steebGreeting = useMemo(() => {
-    // Frase temática según el día (corta y divertida/seria)
-    const daySpecials: Record<string, string[]> = {
-      'Lunes': ['Lunes sin excusas', 'Lunes de arranque'],
-      'Martes': ['Martes de lasaña', 'Martes con ritmo'],
-      'Miércoles': ['Miércoles ninja', 'Miércoles a tope'],
-      'Jueves': ['Jueves de foco', 'Jueves productivo'],
-      'Viernes': ['Viernes con power', 'Viernes de cierre'],
-      'Sábado': ['Sábado tranqui', 'Sábado efectivo'],
-      'Domingo': ['Domingo zen', 'Domingo ligero'],
-    };
-    const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-
-    if (isFirstOfDay) {
-      // Primer saludo del día
-      if (isMobile) {
-        // Muy corto (<=8 palabras) e incluye el día
-        const tag = pick(daySpecials[dayName] || [dayName]);
-        // Ej: "Martes de lasaña. A darle."
-        return `${tag}. A darle.`;
-      }
-      // Desktop: un poco más descriptivo
-      const tag = pick(daySpecials[dayName] || [dayName]);
-      return `${dayName}. ${tag}. Empecemos con algo corto y sumemos momentum.`;
-    }
-
-    if (isMobile) {
-      // Frases super cortas (<= 8 palabras) para burbuja en móviles
-      const shortPhrases = [
-        'Una cosa rápida. Marcamos check.',
-        'Algo simple hoy. Avanzá ya.',
-        'Empezá pequeño. Acción ahora.',
-        'Vamos con foco. Ahora.',
-      ];
-      const picked = shortPhrases[Math.floor(Math.random() * shortPhrases.length)];
-      return `${dayName}. ${picked}`;
-    }
-    const phrases = [
-      `${dayName}. Día perfecto para arrancar algo corto y ganar momentum.`,
-      `${dayName}. Hagamos una cosita rápida y marcamos check.`,
-      `${dayName}. Elegí algo simple, 5-10 min, y avanzamos juntos.`,
-      `${dayName}. Empezá pequeño: una mini-tarea y después vemos la siguiente.`,
-    ];
-    return `${phrases[Math.floor(Math.random() * phrases.length)]}`;
-  }, [dayName, isMobile, isFirstOfDay]);
-
+  
+  
   return (
-          <div className="min-h-screen pb-6 relative bg-white dark:bg-black" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif' }}>
+          <div className="h-screen pb-6 relative bg-white dark:bg-black m-0 p-0" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif', marginTop: '0', paddingTop: '0' }}>
 
-      {/* STEEB en esquina superior izquierda + burbuja de diálogo */}
-      <div className="absolute top-2 left-4 z-0 mr-24 flex items-start gap-2 max-w-[70%] sm:max-w-[80%] mb-8">
-        <img 
-          src="/lovable-uploads/te obesrvo.png"
-          alt="STEEB" 
-          className="w-24 h-24 sm:w-20 sm:h-20 object-contain bg-transparent rounded-none shadow-none"
-        />
-        <div className="relative">
-          <div className="steeb-bubble rounded-xl px-3 py-2 max-w-[280px] mb-4">
-            <div className="text-xs font-bold mb-0.5">
-              STEEB
+      {/* Header STEEB en la raíz del HTML - arriba de todo */}
+      <div className="pb-0.5 fixed top-0 left-0 right-0 z-50" style={{ marginTop: '0', paddingTop: '0' }}>
+        <div className={`tareas-header flex items-center justify-center py-0 relative w-screen ${theme.isShiny ? 'bg-white text-black' : 'bg-black text-white'}`} style={{ marginTop: '0', paddingTop: '0', borderRadius: '0 !important', borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important', WebkitBorderRadius: '0 !important', mozBorderRadius: '0 !important', msBorderRadius: '0 !important', OBorderRadius: '0 !important', KhtmlBorderRadius: '0 !important', clipPath: 'none !important', borderRadius: '0 !important', zIndex: '50' }}>
+          <div className="flex items-center justify-center flex-1 px-4 w-full">
+            {/* ÍCONO STEEB - IZQUIERDA */}
+            <div className="w-32 h-32 mr-1 flex items-center justify-center flex-shrink-0">
+              <img src="/lovable-uploads/steeboriginal.png" alt="Steeb" className="w-full h-full object-contain rounded-full" style={{
+                filter: theme.isShiny ? 'none' : 'none',
+                opacity: 1,
+                backgroundColor: 'transparent'
+              }} />
             </div>
-            <p className="text-sm leading-snug">
-              {steebGreeting}
-            </p>
+
+            {/* TEXTO FIJO "STEEB" - MÁS CERCA DEL ÍCONO */}
+            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '16px' }}>
+              STEEB
+            </h1>
+
+            {/* ESPACIO SIMÉTRICO DERECHO */}
+            <div className="w-8 h-8 ml-auto flex-shrink-0"></div>
           </div>
         </div>
       </div>
 
       {/* Contenido principal */}
-      <div className="relative z-10">
-
-      {/* Espaciado superior para no tapar la lista con el avatar + burbuja */}
-      <div className="pt-24 mb-1" />
-      {/* Título principal */}
-      {/* Título principal */}
-       <div className="pt-6 mb-2">
-         <div className={`tareas-header flex items-center justify-center py-1 relative left-1/2 right-1/2 -mx-[50vw] w-screen ${theme.isShiny ? 'bg-white text-black' : 'bg-black text-white'}`} style={{ borderRadius: '0 !important', borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important', WebkitBorderRadius: '0 !important', mozBorderRadius: '0 !important', msBorderRadius: '0 !important', OBorderRadius: '0 !important', KhtmlBorderRadius: '0 !important', clipPath: 'none !important', borderRadius: '0 !important' }}>
-           <div className="flex items-center justify-center flex-1">
-             {(() => {
-               const today = new Date();
-               const dayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
-               const dayName = dayNames[today.getDay()];
-               const headerIsLight = theme.isShiny;
-
-               return (
-                 <h1 className={`text-lg font-normal tracking-wide ${
-                   headerIsLight ? 'text-black' : 'text-white'
-                 }`} style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '500' }}>
-                   {dayName}
-                 </h1>
-               );
-             })()}
-           </div>
-         </div>
-       </div>
+      <div className="relative z-10 mt-0.5 pt-0">
 
       {/* Listas de tareas */}
       <div className="px-4 mt-3">
@@ -797,15 +716,8 @@ const Index = () => {
           </div>
         )}
 
-        <div className="mb-3">
-          <h3 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">
-            {`Para ${selectedDateISO === todayISO ? 'hoy' : selectedDateObj.toLocaleDateString('es-ES', { weekday: 'long' })}`}
-          </h3>
-          {pendingTodayExactRaw.length > 0 && (
-            pendingTodayExactRaw.map(t => renderSwipeRow(t))
-          )}
-        </div>
-
+        
+        
         {/* Mostrar botón de ojo solo si hay tareas completadas */}
         {(completedToday.length > 0 || completedBeforeToday.length > 0) && (
           <div className="flex justify-start mb-4">
@@ -837,11 +749,10 @@ const Index = () => {
             )}
           </div>
         )}
-      </div>
 
-      {/* Botón flotante para añadir tareas */}
-      <FloatingButtons onAddTask={() => {}} onCreateTask={handleAddTask} />
-      
+            </div>
+
+
       {/* Modales */}
       <ModalAddTask
         isOpen={showModal}
@@ -881,6 +792,11 @@ const Index = () => {
           }}
         />
       )}
+      </div>
+
+      {/* Chat STEEB Permanente - ocupa todo el ancho y alto de la pantalla */}
+      <div className="fixed top-32 left-0 right-0 bottom-0 z-40">
+        <SteebChatAI />
       </div>
     </div>
   );
