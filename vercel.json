@@ -1,4 +1,10 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "vite",
+  "env": {
+    "VITE_API_URL": "@vite-api-url"
+  },
   "headers": [
     {
       "source": "/(.*)",
@@ -6,8 +12,22 @@
         {
           "key": "Content-Security-Policy",
           "value": "frame-ancestors 'self' https://chat.openai.com https://*.openai.com;"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
