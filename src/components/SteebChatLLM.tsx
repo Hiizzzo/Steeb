@@ -496,14 +496,11 @@ const SteebChatLLM: React.FC = () => {
         {showSideTasks && (
           <div className="w-1/2 bg-white dark:bg-black flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b-2 border-black dark:border-white flex items-start justify-between">
-              <div>
-                <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pendiente</p>
-              </div>
+            <div className="p-6 border-b-2 border-black dark:border-white flex items-center justify-between">
+              <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
               <button
                 onClick={() => setShowSideTasks(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+                className="p-1 hover:opacity-70 transition-opacity"
               >
                 <X className="w-5 h-5 text-black dark:text-white" />
               </button>
