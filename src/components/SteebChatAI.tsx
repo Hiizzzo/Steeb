@@ -409,7 +409,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Preguntale a Steeb AI sobre tus tareas o motivación..."
+              placeholder="Habla con Steeb"
               className="flex-1 px-4 py-3 bg-white dark:bg-black border border-black dark:border-white rounded-full text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
             />
             <button
