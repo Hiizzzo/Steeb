@@ -135,13 +135,7 @@ const SteebChatLLM: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
 
     // Detectar comando especial (funciona sin LLM inicializado)
-    const normalizedMessage = message.trim().toUpperCase();
-    console.log('🔍 Mensaje recibido:', JSON.stringify(message));
-    console.log('🔍 Mensaje normalizado:', JSON.stringify(normalizedMessage));
-    console.log('🔍 ¿Es TAREAS?', normalizedMessage === 'TAREAS');
-    
-    if (normalizedMessage === 'TAREAS') {
-      console.log('✅ Comando TAREAS detectado');
+    if (message.trim().toUpperCase() === 'TAREAS') {
       setShowSideTasks(true);
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
@@ -153,7 +147,6 @@ const SteebChatLLM: React.FC = () => {
       setMessages(prev => [...prev, aiMessage]);
       return;
     }
-    console.log('❌ No es comando TAREAS, enviando al LLM');
 
     // Para otros mensajes, se requiere LLM inicializado
     if (!isInitialized) return;
