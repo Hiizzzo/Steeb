@@ -437,16 +437,6 @@ const SteebChatLLM: React.FC = () => {
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
                   {message.content}
                 </p>
-                {message.isCommandResponse && (
-                  <button
-                    onClick={() => {
-                      document.dispatchEvent(new CustomEvent('steeb-open-tasks'));
-                    }}
-                    className="mt-3 w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-colors"
-                  >
-                    📋 Abrir Mis Tareas
-                  </button>
-                )}
                 <div className={`text-xs mt-2 ${
                   message.role === 'assistant' ? 'text-gray-300 dark:text-gray-700' : 'text-gray-500 dark:text-gray-400'
                 }`}>

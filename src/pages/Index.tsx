@@ -257,17 +257,6 @@ const Index = () => {
     console.log('🔍 Index.tsx: Is loading:', isPersistenceLoading);
   }, [tasks, isPersistenceLoading]);
 
-  // Escuchar evento desde Steeb Chat para abrir tareas
-  useEffect(() => {
-    const handleSteebOpenTasks = () => {
-      setViewMode('tasks');
-      setShowCompletedToday(false);
-    };
-
-    document.addEventListener('steeb-open-tasks', handleSteebOpenTasks);
-    return () => document.removeEventListener('steeb-open-tasks', handleSteebOpenTasks);
-  }, []);
-
   // Hook para sincronización con Service Worker
   const { 
     isServiceWorkerReady, 
