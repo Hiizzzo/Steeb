@@ -119,7 +119,7 @@ const SteebChatLLM: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !isInitialized) return;
+    if (!inputMessage.trim()) return;
 
     const message = inputMessage.trim();
     setInputMessage('');
@@ -132,11 +132,9 @@ const SteebChatLLM: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setIsTyping(true);
 
-    // Detectar comando especial
+    // Detectar comando especial (funciona sin LLM inicializado)
     if (message.toUpperCase() === 'TAREAS POR MENSAJE A STEEB') {
-      setIsTyping(false);
       const taskContext = getTaskContext();
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
@@ -148,6 +146,11 @@ const SteebChatLLM: React.FC = () => {
       setMessages(prev => [...prev, aiMessage]);
       return;
     }
+
+    // Para otros mensajes, se requiere LLM inicializado
+    if (!isInitialized) return;
+
+    setIsTyping(true);
 
     try {
       const taskContext = getTaskContext();
