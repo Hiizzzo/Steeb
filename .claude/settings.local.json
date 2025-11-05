@@ -43,7 +43,14 @@
       "Bash(\"C:/Users/Santiago/AppData/Local/Android/Sdk/build-tools/34.0.0/aapt.exe\" version)",
       "Bash(start dist/index.html)",
       "Bash(zip:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(npx claude-code-templates@latest:*)",
+      "Bash(python init_skill.py steeb-task-debugger --path ../skills:*)",
+      "Bash(python:*)",
+      "Bash(git init:*)",
+      "Bash(gh repo create:*)",
+      "Bash(chcp:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

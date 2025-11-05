@@ -227,6 +227,7 @@ export const useTaskStore = create<TaskStore>()(
           }
 
           // Crear tarea localmente de forma inmediata (UI optimista)
+          const userId = auth.currentUser?.uid;
           const newTask: Task = {
             id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             title: taskData.title.trim(),
@@ -235,6 +236,7 @@ export const useTaskStore = create<TaskStore>()(
             status: taskData.status || 'pending',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            ...(userId && { userId }), // Agregar userId si está disponible
             // Solo incluir campos opcionales si tienen valores válidos
             ...(taskData.description && { description: taskData.description }),
             ...(taskData.subgroup && { subgroup: taskData.subgroup }),
@@ -335,8 +337,8 @@ export const useTaskStore = create<TaskStore>()(
           console.log('💾 Tarea guardada localmente en texto');
           
           // 4. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
-          const userId = auth.currentUser?.uid;
-          FirestoreTaskService.createTask(newTask, userId)
+          if (userId) {
+            FirestoreTaskService.createTask(newTask, userId)
             .then(() => {
               console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
             })
@@ -348,102 +350,117 @@ export const useTaskStore = create<TaskStore>()(
                 error: 'Tarea creada localmente. Error de sincronización: ' + (error instanceof Error ? error.message : 'Error desconocido')
               }));
             });
+          }
         },
 
         updateTask: async (id, updates) => {
+          const previousTask = get().tasks.find(task => task.id === id);
+          if (!previousTask) {
+            console.error('❌ Tarea no encontrada para updateTask:', id);
+            throw new Error('Tarea no encontrada');
+          }
+
+          console.log('📝 Actualizando tarea:', id, 'Updates:', Object.keys(updates));
+
+          // Validar que haya cambios reales
+          const hasRealChanges = Object.keys(updates).some(key => {
+            const prevValue = previousTask[key as keyof Task];
+            const newValue = updates[key as keyof Task];
+            return prevValue !== newValue;
+          });
+
+          if (!hasRealChanges) {
+            console.log('ℹ️ No hay cambios reales para actualizar');
+            return;
+          }
+
           try {
-            const previousTask = get().tasks.find(task => task.id === id);
-            if (!previousTask) {
-              throw new Error('Tarea no encontrada');
-            }
-            
-            console.log('📝 Actualizando tarea:', id);
-            
-            // 1. ACTUALIZAR UI INMEDIATAMENTE (actualización optimista)
+            // 1. ACTUALIZACIÓN OPTIMISTA LOCAL INMEDIATA
             const updatedTask = {
               ...previousTask,
               ...updates,
               updatedAt: new Date().toISOString()
             };
-            
+
             set(state => ({
               tasks: state.tasks.map(task => task.id === id ? updatedTask : task),
               error: null
             }));
-            
-            // 2. SINCRONIZAR CON FIRESTORE EN SEGUNDO PLANO
-            try {
-              // Filtrar campos que no deben enviarse a Firestore
-              const { id: _omitId, createdAt: _omitCreatedAt, updatedAt: _omitUpdatedAt, userId: _omitUserId, ...firestoreUpdates } = (updates || {}) as any;
-              await FirestoreTaskService.updateTask(id, firestoreUpdates);
-              console.log('✅ Tarea sincronizada con Firestore:', id);
-            } catch (firestoreError) {
-              console.error('❌ Error sincronizando con Firestore:', firestoreError);
-              // Revertir cambios locales si falla Firestore
-              set(state => ({
-                tasks: state.tasks.map(task => task.id === id ? previousTask : task),
-                error: 'Error al sincronizar cambios'
-              }));
-              throw firestoreError;
-            }
-            
-            // Verificar si se marcó como completada y tiene recurrencia
-            if (updates.completed === true && previousTask.recurrence && previousTask.scheduledDate) {
-              console.log('🔄 Tarea recurrente completada, generando siguiente ocurrencia:', previousTask.title);
-              
-              // Usar la fecha de completado si está disponible, sino usar la fecha programada original
-              const baseDate = updates.completedDate ? updates.completedDate.split('T')[0] : previousTask.scheduledDate;
-              const nextDate = computeNextOccurrenceDate(baseDate, previousTask.recurrence);
-              
-              if (nextDate) {
-                console.log('📅 Creando siguiente ocurrencia para:', nextDate);
-                
-                // Verificar si ya existe una tarea para esa fecha
-                const existingTask = get().tasks.find(t => 
-                  t.title === previousTask.title &&
-                  t.type === previousTask.type &&
-                  t.scheduledDate === nextDate &&
-                  !t.completed
-                );
-                
-                if (!existingTask) {
-                  const resetSubtasks = previousTask.subtasks?.map(st => ({ 
-                    ...st, 
-                    completed: false,
-                    id: `subtask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                  })) || undefined;
-                  
-                  await get().addTask({
-                    title: previousTask.title,
-                    type: previousTask.type,
-                    subgroup: previousTask.subgroup,
-                    status: 'pending',
-                    completed: false,
-                    scheduledDate: nextDate,
-                    scheduledTime: previousTask.scheduledTime,
-                    notes: previousTask.notes,
-                    tags: previousTask.tags,
-                    subtasks: resetSubtasks,
-                    recurrence: previousTask.recurrence,
-                    priority: previousTask.priority,
-                    estimatedDuration: previousTask.estimatedDuration,
-                  } as any);
-                  
-                  console.log('✨ Nueva ocurrencia creada para:', nextDate);
-                } else {
-                  console.log('ℹ️ Ya existe una tarea para la fecha:', nextDate);
-                }
-              }
-            }
-            
+
             get().calculateStats();
-            console.log('✅ Tarea actualizada exitosamente en Firestore');
+            console.log('✅ Estado local actualizado optimistamente');
+
+            // 2. SINCRONIZACIÓN CON FIRESTORE (si hay usuario)
+            const userId = auth.currentUser?.uid;
+            if (userId) {
+              try {
+                // Filtrar campos que no deben enviarse a Firestore
+                const { id: _omitId, createdAt: _omitCreatedAt, updatedAt: _omitUpdatedAt, userId: _omitUserId, ...firestoreUpdates } = (updates || {}) as any;
+
+                await FirestoreTaskService.updateTask(id, firestoreUpdates);
+                console.log('✅ Sincronización con Firestore exitosa');
+
+                // Verificar si se marcó como completada y tiene recurrencia
+                if (updates.completed === true && previousTask.recurrence && previousTask.scheduledDate) {
+                  console.log('🔄 Tarea recurrente completada, generando siguiente ocurrencia:', previousTask.title);
+
+                  const baseDate = updates.completedDate ? updates.completedDate.split('T')[0] : previousTask.scheduledDate;
+                  const nextDate = computeNextOccurrenceDate(baseDate, previousTask.recurrence);
+
+                  if (nextDate) {
+                    console.log('📅 Creando siguiente ocurrencia para:', nextDate);
+
+                    const existingTask = get().tasks.find(t =>
+                      t.title === previousTask.title &&
+                      t.type === previousTask.type &&
+                      t.scheduledDate === nextDate &&
+                      !t.completed
+                    );
+
+                    if (!existingTask) {
+                      const resetSubtasks = previousTask.subtasks?.map(st => ({
+                        ...st,
+                        completed: false,
+                        id: `subtask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                      })) || undefined;
+
+                      await get().addTask({
+                        title: previousTask.title,
+                        type: previousTask.type,
+                        subgroup: previousTask.subgroup,
+                        status: 'pending',
+                        completed: false,
+                        scheduledDate: nextDate,
+                        scheduledTime: previousTask.scheduledTime,
+                        notes: previousTask.notes,
+                        tags: previousTask.tags,
+                        subtasks: resetSubtasks,
+                        recurrence: previousTask.recurrence,
+                        priority: previousTask.priority,
+                        estimatedDuration: previousTask.estimatedDuration,
+                      } as any);
+
+                      console.log('✨ Nueva ocurrencia creada para:', nextDate);
+                    } else {
+                      console.log('ℹ️ Ya existe una tarea para la fecha:', nextDate);
+                    }
+                  }
+                }
+
+              } catch (firestoreError) {
+                console.warn('⚠️ Error sincronizando con Firestore (cambio local mantenido):', firestoreError.message);
+                // No revertimos cambios locales, el usuario quiere que la tarea se actualice
+              }
+            } else {
+              console.log('📱 Modo offline - Cambio guardado localmente');
+            }
+
           } catch (error) {
-            console.error('❌ Error al actualizar tarea:', error);
-            set({ 
-              isLoading: false,
+            console.error('❌ Error crítico en updateTask:', error);
+            set({
               error: error instanceof Error ? error.message : 'Error al actualizar la tarea'
             });
+            throw error;
           }
         },
 
@@ -546,16 +563,65 @@ export const useTaskStore = create<TaskStore>()(
         // ========== TASK STATUS OPERATIONS ==========
 
         toggleTask: async (id) => {
-          const task = get().tasks.find(t => t.id === id);
-          if (!task) return;
-          
-          const willComplete = !task.completed;
-          await get().updateTask(id, {
-            completed: willComplete,
-            status: willComplete ? 'completed' : 'pending',
-            completedDate: willComplete ? new Date().toISOString() : undefined,
-          });
-          // La lógica de recurrencia se maneja automáticamente en updateTask
+          const currentTask = get().tasks.find(t => t.id === id);
+          if (!currentTask) {
+            console.error('❌ Tarea no encontrada para toggle:', id);
+            throw new Error('Tarea no encontrada');
+          }
+
+          const willComplete = !currentTask.completed;
+          const previousState = { ...currentTask };
+
+          try {
+            console.log('🔄 Toggle task:', currentTask.title, `${previousState.completed} → ${willComplete}`);
+
+            // Actualización optimista local inmediata
+            set(state => ({
+              tasks: state.tasks.map(t =>
+                t.id === id
+                  ? {
+                      ...t,
+                      completed: willComplete,
+                      status: willComplete ? 'completed' : 'pending',
+                      completedDate: willComplete ? new Date().toISOString() : t.completedDate,
+                      updatedAt: new Date().toISOString()
+                    }
+                  : t
+              )
+            }));
+
+            get().calculateStats();
+            console.log('✅ Estado local actualizado:', currentTask.title, '→', willComplete);
+
+            // Sincronización con Firestore si hay usuario
+            const userId = auth.currentUser?.uid;
+            if (userId) {
+              try {
+                await FirestoreTaskService.updateTask(id, {
+                  completed: willComplete,
+                  status: willComplete ? 'completed' : 'pending',
+                  completedDate: willComplete ? new Date().toISOString() : undefined,
+                });
+                console.log('✅ Sincronización exitosa con Firestore');
+              } catch (firestoreError) {
+                console.warn('⚠️ Error de sincronización (cambio local mantenido):', firestoreError.message);
+                // El cambio local se mantiene aunque falle Firestore
+              }
+            } else {
+              console.log('📱 Modo offline - Cambio guardado localmente');
+            }
+
+          } catch (error) {
+            // Revertir estado local si algo falla gravemente
+            console.error('❌ Error crítico en toggleTask - Revirtiendo estado:', error);
+            set(state => ({
+              tasks: state.tasks.map(t =>
+                t.id === id ? previousState : t
+              )
+            }));
+            get().calculateStats();
+            throw error; // Re-lanzar para que el componente maneje el error
+          }
         },
 
         completeTask: async (id) => {
@@ -639,28 +705,49 @@ export const useTaskStore = create<TaskStore>()(
         loadTasks: async () => {
           try {
             set({ isLoading: true, error: null, syncStatus: 'syncing' });
-            
+
             // Obtener userId del usuario autenticado
             const userId = auth.currentUser?.uid;
-            
-            console.log('📥 Cargando tareas desde Firestore', userId ? `(userId=${userId})` : '(sin userId)');
-            
-            // Cargar desde Firestore solo las tareas del usuario
-            const tasks = await FirestoreTaskService.getTasks(userId);
-            
-            set({ 
-              tasks: tasks || [],
-              isLoading: false,
-              lastSync: new Date().toISOString(),
-              syncStatus: 'synced',
-              error: null
-            });
-            
-            get().calculateStats();
-            console.log('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
+
+            console.log('📥 Intentando cargar tareas desde Firestore', userId ? `(userId=${userId})` : '(sin userId)');
+
+            if (!userId) {
+              console.log('📱 Modo offline - Cargando tareas desde almacenamiento local');
+              get().loadTasksFromLocal();
+              set({
+                isLoading: false,
+                syncStatus: 'offline',
+                error: null
+              });
+              return;
+            }
+
+            try {
+              // Cargar desde Firestore solo las tareas del usuario
+              const tasks = await FirestoreTaskService.getTasks(userId);
+
+              set({
+                tasks: tasks || [],
+                isLoading: false,
+                lastSync: new Date().toISOString(),
+                syncStatus: 'synced',
+                error: null
+              });
+
+              get().calculateStats();
+              console.log('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
+            } catch (firestoreError) {
+              console.warn('⚠️ Error con Firestore, usando almacenamiento local:', firestoreError);
+              get().loadTasksFromLocal();
+              set({
+                isLoading: false,
+                syncStatus: 'offline',
+                error: null
+              });
+            }
           } catch (error) {
-            console.error('❌ Error cargando tareas:', error);
-            set({ 
+            console.error('❌ Error general cargando tareas:', error);
+            set({
               isLoading: false,
               error: error instanceof Error ? error.message : 'Error al cargar las tareas',
               syncStatus: 'error'
@@ -670,15 +757,26 @@ export const useTaskStore = create<TaskStore>()(
 
         // Nueva función para configurar listeners en tiempo real con Firestore
         setupRealtimeListener: (userId?: string) => {
-          console.log('🔄 Configurando listener en tiempo real con Firestore', userId ? `(userId=${userId})` : '(sin userId)');
-          
-          const unsubscribe = FirestoreTaskService.subscribeToTasks(userId, (tasks) => {
-            console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
-            set({ tasks });
-            get().calculateStats();
-          });
-          
-          return unsubscribe;
+          if (!userId) {
+            console.log('📱 Modo offline - Sin listener en tiempo real');
+            return () => {};
+          }
+
+          console.log('🔄 Intentando configurar listener con Firestore (userId=${userId})');
+
+          try {
+            const unsubscribe = FirestoreTaskService.subscribeToTasks(userId, (tasks) => {
+              console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
+              set({ tasks });
+              get().calculateStats();
+            });
+
+            console.log('✅ Listener en tiempo real configurado');
+            return unsubscribe;
+          } catch (error) {
+            console.warn('⚠️ Error configurando listener, usando modo offline:', error);
+            return () => {};
+          }
         },
 
         loadTasksInRange: async (startDate, endDate) => {

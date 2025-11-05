@@ -164,21 +164,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const result = await getRedirectResult(auth);
         if (result?.user) {
-          // Asegurar documento de usuario en Firestore
+          // Asegurar documento de usuario en Firestore solo si hay permisos
           const uid = result.user.uid;
-          const ref = doc(db, 'users', uid);
-          const snap = await getDoc(ref);
-          if (!snap.exists()) {
-            await setDoc(ref, {
-              email: result.user.email,
-              name: '',
-              nickname: '',
-              avatar: result.user.photoURL,
-              provider: 'google',
-              ownerUid: uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp(),
-            });
+          try {
+            const ref = doc(db, 'users', uid);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) {
+              await setDoc(ref, {
+                email: result.user.email,
+                name: '',
+                nickname: '',
+                avatar: result.user.photoURL,
+                provider: 'google',
+                ownerUid: uid,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+              });
+            }
+          } catch (firestoreError) {
+            console.warn('⚠️ Error creando documento de usuario, continuando offline:', firestoreError);
           }
         }
       } catch (e) {

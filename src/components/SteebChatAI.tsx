@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, X } from 'lucide-react';
+import { ArrowUp, X, Check, Trash2 } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import minimaxDirectService from '@/services/minimaxDirectService';
+import { dailySummaryService } from '@/services/dailySummaryService';
 
 interface ChatMessage {
   id: string;
@@ -35,7 +36,7 @@ const SteebChatAI: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showSideTasks, setShowSideTasks] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { tasks } = useTaskStore();
+  const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
 
   // Inicializar MINIMAX Direct Service al cargar
   useEffect(() => {
@@ -47,6 +48,42 @@ const SteebChatAI: React.FC = () => {
     };
     initMinimax();
   }, []);
+
+  // Manejar resumen diario
+  useEffect(() => {
+    const checkAndSaveDailySummary = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const lastSummaryDate = localStorage.getItem('steeb_last_summary_date');
+      
+      // Si ya se guardó un resumen hoy, no hacer nada
+      if (lastSummaryDate === today) return;
+      
+      // Si hay un resumen del día anterior, guardarlo
+      if (lastSummaryDate) {
+        const keyMessages = messages
+          .filter(m => m.role === 'user')
+          .slice(-10)
+          .map(m => m.content.substring(0, 50)); // Primeros 50 caracteres
+        
+        const completedTasks = tasks.filter(t => t.completed).length;
+        const pendingTasks = tasks.filter(t => !t.completed).length;
+        
+        await dailySummaryService.saveDailySummary(
+          `Progreso: ${completedTasks} tareas completadas, ${pendingTasks} pendientes`,
+          completedTasks,
+          pendingTasks,
+          keyMessages as string[]
+        ).catch(err => console.error('Error guardando resumen:', err));
+      }
+      
+      // Marcar que ya procesamos hoy
+      localStorage.setItem('steeb_last_summary_date', today);
+    };
+    
+    if (messages.length > 0) {
+      checkAndSaveDailySummary();
+    }
+  }, [messages, tasks]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -65,23 +102,32 @@ const SteebChatAI: React.FC = () => {
 
     return {
       pending: pendingTasks.length,
-      pendingList: pendingTasks.slice(0, 3).map(t => t.title),
+      pendingList: pendingTasks.slice(0, 5).map(t => t.title),
+      allPendingTasks: pendingTasks.map(t => t.title),
       completedToday: completedToday.length,
+      completedTodayList: completedToday.map(t => t.title),
       hasTasks: tasks.length > 0
     };
   };
 
-  const generateSteebPrompt = (userMessage: string): string => {
+  const generateSteebPrompt = async (userMessage: string): Promise<string> => {
     const taskContext = getTaskContext();
+    
+    // Obtener contexto de días anteriores
+    const previousDaysContext = await dailySummaryService.getContextFromPreviousDays(3);
+    
+    const taskInfo = `TAREAS: ${taskContext.pending} pendientes. Hoy: ${taskContext.completedToday} hechas.${previousDaysContext ? `\n${previousDaysContext}` : ''}`;
+    
+    return `${taskInfo}
 
-    return `Contexto de Santy:
-- Tareas pendientes: ${taskContext.pending}
-- Completadas hoy: ${taskContext.completedToday}
-${taskContext.pending > 0 ? `- Lista: ${taskContext.pendingList.join(', ')}` : ''}
+"${userMessage}"
 
-Mensaje de Santy: "${userMessage}"
-
-Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menciona tareas, recuérdale cuáles son. Separa mensajes con saltos de línea.`;
+STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
+- Sé directo
+- Sin explicaciones largas
+- Una frase nada más
+- Si hay tareas: mantra "una de una"
+- SIN INSULTOS`;
   };
 
   const handleSendMessage = async () => {
@@ -113,38 +159,28 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
       return;
     }
 
-    // Detectar comando para crear tarea: "steeb crea tarea de (texto)"
-    const taskRegex = /steeb\s+crea\s+tarea\s+de\s+(.+)/i;
+    // Detectar comando para crear tarea: "crea tarea (texto)"
+    const taskRegex = /crea\s+tarea\s+(.+)/i;
     const taskMatch = message.match(taskRegex);
     if (taskMatch) {
       const taskTitle = taskMatch[1].trim();
-      try {
-        await addTask({
-          title: taskTitle,
-          completed: false,
-          type: 'extra',
-          category: 'extra'
-        });
-        const aiMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: `✅ Tarea "${taskTitle}" creada exitosamente`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, aiMessage]);
-        setShowSideTasks(true);
-        return;
-      } catch (error) {
-        console.error('Error creating task:', error);
-        const errorMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: `❌ Error al crear la tarea`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMessage]);
-        return;
-      }
+      // NO esperar - crear tarea en background, mostrar confirmación instantáneamente
+      addTask({
+        title: taskTitle,
+        completed: false,
+        type: 'extra',
+        status: 'pending'
+      }).catch(err => console.error('Error sincronizando tarea:', err));
+      
+      const aiMessage: ChatMessage = {
+        id: `msg_${Date.now() + 1}`,
+        role: 'assistant',
+        content: `✅ "${taskTitle}" creada`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      setShowSideTasks(true);
+      return;
     }
 
     setIsTyping(true);
@@ -155,10 +191,16 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
         await minimaxDirectService.initialize();
       }
 
-      const steebPrompt = generateSteebPrompt(message);
-      
+      const steebPrompt = await generateSteebPrompt(message);
+
+      // Debug: mostrar el prompt en consola
+      console.log('🔥 Steeb Prompt:', steebPrompt);
+
       // Usar MINIMAX M2 Direct Service
       const response = await minimaxDirectService.sendMessage(steebPrompt);
+
+      // Debug: mostrar respuesta de la API
+      console.log('💬 API Response:', response);
 
       // Dividir respuesta en máximo 2 mensajes
       const responseLines = response.split('\n').filter(line => line.trim().length > 0);
@@ -287,13 +329,13 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
 
     // Default intelligent responses
     const defaultResponses = [
-      'Dejá de pensar, hacelo. La acción es el único idioma que entiende el éxito.',
-      'El momento perfecto es ahora. No existe el "mañana" para los triunfadores.',
-      'Cada tarea que completás es una victoria contra la procrastinación. Ganá hoy.',
-      'La excelencia no es un acto, es un hábito. Construilo ahora.',
-      'Los exitosos no esperan el momento perfecto. Crean el momento perfecto actuando.',
-      'Tu futuro yo te agradece cada tarea que completás hoy. No lo defraudes.',
-      'La diferencia entre el sueño y la realidad se llama acción. ¿Cuál vas a usar hoy?'
+      'Hacelo ahora y después nos preocupamos.',
+      'Empezá por la más fácil y sigamos.',
+      'Una por una, no hay otro secreto.',
+      '¿Y si empezamos ya y vemos qué pasa?',
+      'Hoy es buen día para terminar estas cosas.',
+      'Vamos, son apenas 10 minutos de foco.',
+      'Después de esto seguimos con lo nuestro.'
     ];
 
     return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
@@ -320,10 +362,10 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
     }
 
     const fallbacks = [
-      'Dejá de pensar, hacelo. La acción es el único idioma que entiende el éxito.',
-      'El momento perfecto es ahora. No existe el "mañana" para los triunfadores.',
-      'Cada tarea que completás es una victoria contra la procrastinación. Ganá hoy.',
-      'La excelencia no es un acto, es un hábito. Construilo ahora.'
+      'Hacelo ahora y listo, seguimos.',
+      'Empezá, después vemos el resto.',
+      'Una a la vez, así se va.',
+      'Vamos, terminemos esto rápidamente.'
     ];
 
     return fallbacks[Math.floor(Math.random() * fallbacks.length)];
@@ -417,7 +459,8 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
               {tasks.filter(t => !t.completed).map((task) => (
                     <div
                       key={task.id}
-                      className="group p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border-l-4 border-green-500 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all hover:shadow-md"
+                      className="group p-4 bg-white dark:bg-gray-950 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all hover:shadow-md"
+                      style={{ borderLeft: '4px solid black' }}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -427,6 +470,84 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 uppercase tracking-wider">
                             {task.category || 'Sin categoría'}
                           </p>
+                        </div>
+                        <div className="flex items-center space-x-2 ml-3">
+                          <button
+                            onClick={async (e) => {
+                              if (!task) return;
+
+                              try {
+                                // Deshabilitar botón temporalmente para evitar múltiples clicks
+                                const button = e.currentTarget as HTMLButtonElement;
+                                const originalBg = button.style.backgroundColor;
+                                button.disabled = true;
+                                button.style.opacity = '0.5';
+
+                                await toggleTask(task.id);
+
+                                // Feedback visual exitoso
+                                button.style.backgroundColor = '#10b981';
+                                setTimeout(() => {
+                                  button.style.opacity = '1';
+                                  button.style.backgroundColor = originalBg;
+                                  button.disabled = false;
+                                }, 300);
+
+                              } catch (error) {
+                                console.error('❌ Error al completar tarea:', error);
+
+                                // Feedback visual de error
+                                const button = e.currentTarget as HTMLButtonElement;
+                                button.style.backgroundColor = '#ef4444';
+                                button.disabled = false;
+                                button.style.opacity = '1';
+
+                                // Mostrar mensaje amigable al usuario (solo si es un error real)
+                                setTimeout(() => {
+                                  button.style.backgroundColor = '';
+                                }, 1500);
+                              }
+                            }}
+                            className="flex-shrink-0 w-5 h-5 rounded-full bg-white hover:bg-white transition-all duration-200"
+                            style={{ border: '2px solid black' }}
+                            title="Completar tarea"
+                          >
+                          </button>
+                          <button
+                            onClick={async (e) => {
+                              if (!task) return;
+
+                              try {
+                                const confirmMessage = `¿Estás seguro de que querés eliminar "${task.title}"?`;
+                                if (!window.confirm(confirmMessage)) return;
+
+                                // Deshabilitar botón temporalmente
+                                const button = e.currentTarget as HTMLButtonElement;
+                                button.disabled = true;
+                                button.style.opacity = '0.5';
+
+                                await deleteTask(task.id);
+                                console.log(`✅ Tarea eliminada exitosamente: ${task.title}`);
+
+                              } catch (error) {
+                                console.error('❌ Error al eliminar tarea:', error);
+
+                                // Feedback visual de error
+                                const button = e.currentTarget as HTMLButtonElement;
+                                button.style.backgroundColor = '#dc2626';
+                                button.disabled = false;
+                                button.style.opacity = '1';
+
+                                setTimeout(() => {
+                                  button.style.backgroundColor = '';
+                                }, 1500);
+                              }
+                            }}
+                            className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 hover:bg-red-200 transition-all duration-200 flex items-center justify-center group/delete"
+                            title="Eliminar tarea"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-600 group-hover/delete:text-red-800" />
+                          </button>
                         </div>
                       </div>
                     </div>

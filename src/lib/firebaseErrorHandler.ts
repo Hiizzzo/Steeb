@@ -13,6 +13,9 @@ const DEVELOPMENT_SAFE_ERRORS = [
   'firestore/deadline-exceeded',
   'firestore/cancelled',
   'storage/retry-limit-exceeded',
+  'permission-denied',
+  'unauthenticated',
+  'permission-denied',
 ];
 
 /**
@@ -25,6 +28,11 @@ const NETWORK_ERROR_PATTERNS = [
   'Failed to fetch',
   'NetworkError',
   'fetch is not defined',
+  'Missing or insufficient permissions',
+  'Cloud warning: operations require authentication',
+  'Actualizar tarea failed (offline mode)',
+  'failed (offline mode)',
+  'permission-denied',
 ];
 
 /**
