@@ -10,19 +10,26 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 def analyze_steeb_issues() -> Dict[str, Any]:
-    """Analyze STEEB issues from GitHub API (public access)"""
+    """Analyze STEEB issues from GitHub API with authentication"""
 
-    # GitHub API for public issues
+    # GitHub API for private repository with authentication
     url = "https://api.github.com/repos/Hiizzzo/stebe/issues"
+    pulls_url = "https://api.github.com/repos/Hiizzzo/stebe/pulls"
+    headers = {
+        "Authorization": "token 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",
+        "Accept": "application/vnd.github.v3+json"
+    }
 
     try:
-        print("[STEEB] Analizando issues de STEEB desde GitHub...")
+        print("[STEEB] Analizando issues y Pull Requests de STEEB desde GitHub...")
 
-        # Get all issues (GitHub API allows 30 per request without authentication)
+        # Get all issues (with authentication allows 5000 per hour)
         all_issues = []
+        all_pulls = []
         page = 1
         per_page = 100
 
+        # First, get actual issues
         while True:
             params = {
                 'state': 'all',
@@ -32,39 +39,78 @@ def analyze_steeb_issues() -> Dict[str, Any]:
                 'direction': 'desc'
             }
 
-            response = requests.get(url, params=params, timeout=30)
+            response = requests.get(url, params=params, headers=headers, timeout=30)
             response.raise_for_status()
 
             issues = response.json()
             if not issues:
                 break
 
-            all_issues.extend(issues)
-            print(f"[STEEB] Pagina {page}: {len(issues)} issues")
+            # Filter out pull requests, keep only issues
+            actual_issues = [issue for issue in issues if 'pull_request' not in issue]
+
+            if actual_issues:
+                all_issues.extend(actual_issues)
+                print(f"[STEEB] Issues - Pagina {page}: {len(actual_issues)} issues (filtrados de {len(issues)} total)")
+
             page += 1
 
-            # Evitar rate limiting
+            # Evitar rate limiting y detener si no hay más resultados
             if len(issues) < per_page:
                 break
 
-        if not all_issues:
+        # Then, get pull requests (they often represent issues/feature requests)
+        page = 1
+        while True:
+            params = {
+                'state': 'all',
+                'per_page': per_page,
+                'page': page,
+                'sort': 'created',
+                'direction': 'desc'
+            }
+
+            response = requests.get(pulls_url, params=params, headers=headers, timeout=30)
+            response.raise_for_status()
+
+            pulls = response.json()
+            if not pulls:
+                break
+
+            all_pulls.extend(pulls)
+            print(f"[STEEB] Pull Requests - Pagina {page}: {len(pulls)} PRs")
+            page += 1
+
+            # Evitar rate limiting y detener si no hay más resultados
+            if len(pulls) < per_page:
+                break
+
+        # Combine issues and pulls for analysis
+        all_items = all_issues + all_pulls
+        print(f"[STEEB] Total encontrados: {len(all_issues)} issues + {len(all_pulls)} Pull Requests = {len(all_items)} items")
+
+        if not all_items:
             return {
                 'total_issues': 0,
                 'open_issues': 0,
                 'closed_issues': 0,
-                'error': 'No issues found or repository not accessible'
+                'pull_requests': 0,
+                'error': 'No issues or pull requests found'
             }
 
-        # Analyze issues
-        open_issues = [issue for issue in all_issues if issue['state'] == 'open']
-        closed_issues = [issue for issue in all_issues if issue['state'] == 'closed']
+        # Analyze issues and pull requests
+        open_items = [item for item in all_items if item['state'] == 'open']
+        closed_items = [item for item in all_items if item['state'] == 'closed']
+        pull_requests_count = len(all_pulls)
 
         # Extract data
         analysis = {
             'total_issues': len(all_issues),
-            'open_issues': len(open_issues),
-            'closed_issues': len(closed_issues),
-            'resolution_rate': (len(closed_issues) / len(all_issues)) * 100,
+            'pull_requests': pull_requests_count,
+            'total_items': len(all_items),
+            'open_issues': len(open_items),
+            'closed_issues': len(closed_items),
+            'resolution_rate': (len(closed_items) / len(all_items)) * 100,
             'labels': {},
             'assignees': {},
             'authors': {},
@@ -81,10 +127,10 @@ def analyze_steeb_issues() -> Dict[str, Any]:
             'issues_summary': []
         }
 
-        # Process each issue
-        for issue in all_issues:
+        # Process each item (issue or pull request)
+        for item in all_items:
             # Labels
-            for label in issue.get('labels', []):
+            for label in item.get('labels', []):
                 label_name = label['name']
                 analysis['labels'][label_name] = analysis['labels'].get(label_name, 0) + 1
 
@@ -99,8 +145,9 @@ def analyze_steeb_issues() -> Dict[str, Any]:
                     analysis['severity']['low'] += 1
 
             # Categories
-            title_lower = issue['title'].lower()
-            body_lower = issue.get('body', '').lower()
+            title_lower = item.get('title', '').lower()
+            body_content = item.get('body', '')
+            body_lower = body_content.lower() if body_content else ''
             content = f"{title_lower} {body_lower}"
 
             if any(keyword in content for keyword in ['bug', 'error', 'crash']):
@@ -117,61 +164,68 @@ def analyze_steeb_issues() -> Dict[str, Any]:
                 analysis['categories']['authentication'] = analysis['categories'].get('authentication', 0) + 1
 
             # Assignees
-            for assignee in issue.get('assignees', []):
+            for assignee in item.get('assignees', []):
                 assignee_name = assignee['login']
                 analysis['assignees'][assignee_name] = analysis['assignees'].get(assignee_name, 0) + 1
 
             # Author
-            author = issue.get('user', {}).get('login', 'unknown')
+            author = item.get('user', {}).get('login', 'unknown')
             analysis['authors'][author] = analysis['authors'].get(author, 0) + 1
 
             # Reactions
-            reactions = issue.get('reactions', {})
+            reactions = item.get('reactions', {})
             total_reactions = reactions.get('total_count', 0)
             analysis['reactions']['total'] = analysis['reactions'].get('total', 0) + total_reactions
 
             # Timeline (created/closed dates)
-            created_date = datetime.fromisoformat(issue['created_at'].replace('Z', '+00:00')).date()
-            analysis['issues_by_year'][created_date.year] = analysis['issues_by_year'].get(created_date.year, 0) + 1
+            if item.get('created_at'):
+                try:
+                    created_date = datetime.fromisoformat(item['created_at'].replace('Z', '+00:00')).date()
+                    analysis['issues_by_year'][created_date.year] = analysis['issues_by_year'].get(created_date.year, 0) + 1
 
-            if issue['state'] == 'closed' and issue['closed_at']:
-                closed_date = datetime.fromisoformat(issue['closed_at'].replace('Z', '+00:00')).date()
-                resolution_days = (closed_date - created_date).days
-                analysis['recent_activity'].append({
-                    'type': 'closed',
-                    'issue_number': issue['number'],
-                    'title': issue['title'][:50] + '...' if len(issue['title']) > 50 else issue['title'],
-                    'days_to_resolve': resolution_days,
-                    'date': closed_date.isoformat()
-                })
-            else:
-                days_open = (datetime.now().date() - created_date).days
-                analysis['recent_activity'].append({
-                    'type': 'open',
-                    'issue_number': issue['number'],
-                    'title': issue['title'][:50] + '...' if len(issue['title']) > 50 else issue['title'],
-                    'days_open': days_open,
-                    'date': created_date.isoformat()
-                })
+                    if item['state'] == 'closed' and item.get('closed_at'):
+                        closed_date = datetime.fromisoformat(item['closed_at'].replace('Z', '+00:00')).date()
+                        resolution_days = (closed_date - created_date).days
+                        analysis['recent_activity'].append({
+                            'type': 'closed',
+                            'issue_number': item['number'],
+                            'title': (item.get('title', '')[:50] + '...') if len(item.get('title', '')) > 50 else item.get('title', ''),
+                            'days_to_resolve': resolution_days,
+                            'date': closed_date.isoformat()
+                        })
+                    else:
+                        days_open = (datetime.now().date() - created_date).days
+                        analysis['recent_activity'].append({
+                            'type': 'open',
+                            'issue_number': item['number'],
+                            'title': (item.get('title', '')[:50] + '...') if len(item.get('title', '')) > 50 else item.get('title', ''),
+                            'days_open': days_open,
+                            'date': created_date.isoformat()
+                        })
+                except (ValueError, AttributeError) as e:
+                    print(f"[WARNING] Error procesando fechas del item #{item.get('number', 'unknown')}: {e}")
+                    continue
 
         # Sort recent activity
         analysis['recent_activity'].sort(key=lambda x: x['date'], reverse=True)
 
         # Generate summary
-        top_issues = []
-        for issue in all_issues[:10]:  # Top 10 most recent
-            top_issues.append({
-                'number': issue['number'],
-                'title': issue['title'],
-                'state': issue['state'],
-                'created_at': issue['created_at'],
-                'labels': [label['name'] for label in issue.get('labels', [])],
-                'author': issue.get('user', {}).get('login'),
-                'reactions': issue.get('reactions', {}).get('total_count', 0),
-                'comments': issue.get('comments', 0)
+        top_items = []
+        for item in all_items[:10]:  # Top 10 most recent
+            item_type = 'PR' if 'pull_request' in item else 'Issue'
+            top_items.append({
+                'number': item['number'],
+                'title': item['title'],
+                'state': item['state'],
+                'type': item_type,
+                'created_at': item['created_at'],
+                'labels': [label['name'] for label in item.get('labels', [])],
+                'author': item.get('user', {}).get('login'),
+                'reactions': item.get('reactions', {}).get('total_count', 0),
+                'comments': item.get('comments', 0)
             })
 
-        analysis['issues_summary'] = top_issues
+        analysis['issues_summary'] = top_items
 
         return analysis
 
@@ -210,19 +264,22 @@ def print_analysis_results(analysis: Dict[str, Any]):
 
     print(f"\n[RESUMEN] Resumen General:")
     print(f"   • Total de Issues: {analysis['total_issues']}")
-    print(f"   • Issues Abiertos: {analysis['open_issues']}")
-    print(f"   • Issues Cerrados: {analysis['closed_issues']}")
+    print(f"   • Pull Requests: {analysis.get('pull_requests', 0)}")
+    print(f"   • Total de Items: {analysis.get('total_items', 0)}")
+    print(f"   • Items Abiertos: {analysis['open_issues']}")
+    print(f"   • Items Cerrados: {analysis['closed_issues']}")
     print(f"   • Tasa de Resolucion: {analysis['resolution_rate']:.1f}%")
 
     print(f"\n[CATEGORIAS] Categorias:")
+    total_items = analysis.get('total_items', 1)
     for category, count in sorted(analysis['categories'].items(), key=lambda x: x[1], reverse=True):
-        percentage = (count / analysis['total_issues']) * 100 if analysis['total_issues'] > 0 else 0
+        percentage = (count / total_items) * 100 if total_items > 0 else 0
         print(f"   • {category.title()}: {count} ({percentage:.1f}%)")
 
     print(f"\n[SEVERIDAD] Severidad:")
     for level, count in analysis['severity'].items():
         if count > 0:
-            percentage = (count / analysis['total_issues']) * 100 if analysis['total_issues'] > 0 else 0
+            percentage = (count / total_items) * 100 if total_items > 0 else 0
             print(f"   • {level.title()}: {count} ({percentage:.1f}%)")
 
     print(f"\n[ASIGNADOS] Asignados:")
@@ -245,10 +302,11 @@ def print_analysis_results(analysis: Dict[str, Any]):
 
     print(f"\n[RECIENTES] Issues Recientes:")
     print("   (Ultimos 10 issues creados)")
-    for i, issue in enumerate(analysis['issues_summary'][:5]):
-        status_marker = "[ABIERTO]" if issue['state'] == 'open' else "[CERRADO]"
-        print(f"   {status_marker} #{issue['number']}: {issue['title']}")
-        print(f"      Autor: {issue['author']} • Reacciones: {issue['reactions']} • Comentarios: {issue['comments']}")
+    for i, item in enumerate(analysis['issues_summary'][:5]):
+        status_marker = "[ABIERTO]" if item['state'] == 'open' else "[CERRADO]"
+        type_marker = f"[{item['type']}]" if 'type' in item else "[ITEM]"
+        print(f"   {status_marker} {type_marker} #{item['number']}: {item['title']}")
+        print(f"      Autor: {item['author']} • Reacciones: {item['reactions']} • Comentarios: {item['comments']}")
 
     if len(analysis['issues_summary']) > 5:
         print(f"   ... y {len(analysis['issues_summary']) - 5} issues mas")
