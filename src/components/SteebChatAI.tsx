@@ -359,7 +359,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
 
         {/* Side Tasks Panel */}
         {showSideTasks && (
-          <div className="h-60 bg-white dark:bg-black flex flex-col border-t-4 border-black dark:border-white">
+          <div className="h-96 bg-white dark:bg-black flex flex-col border-t-4 border-black dark:border-white">
             {/* Header */}
             <div className="p-4 border-b-2 border-black dark:border-white flex items-center justify-center relative">
               <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
