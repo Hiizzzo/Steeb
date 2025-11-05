@@ -494,36 +494,51 @@ const SteebChatLLM: React.FC = () => {
 
         {/* Side Tasks Panel */}
         {showSideTasks && (
-          <div className="w-80 border-l border-black dark:border-white bg-gray-50 dark:bg-gray-950 flex flex-col">
-            <div className="p-4 border-b border-black dark:border-white flex items-center justify-between">
-              <h3 className="font-bold text-black dark:text-white">Tareas Pendientes</h3>
+          <div className="w-96 border-l-2 border-black dark:border-white bg-white dark:bg-black flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b-2 border-black dark:border-white flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pendiente</p>
+              </div>
               <button
                 onClick={() => setShowSideTasks(false)}
-                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
               >
-                <X className="w-4 h-4 text-black dark:text-white" />
+                <X className="w-5 h-5 text-black dark:text-white" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+
+            {/* Tasks List */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {tasks.filter(t => !t.completed).length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">✨ ¡Sin tareas pendientes!</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Buen trabajo 🎉</p>
+                <div className="text-center py-12">
+                  <p className="text-lg text-gray-500 dark:text-gray-400">✨ ¡Sin tareas pendientes!</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Buen trabajo 🎉</p>
                 </div>
               ) : (
-                tasks.filter(t => !t.completed).map((task) => (
-                  <div
-                    key={task.id}
-                    className="p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-green-500 dark:hover:border-green-500 transition-colors"
-                  >
-                    <p className="text-sm font-medium text-black dark:text-white break-words">
-                      {task.title}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {task.category || 'Sin categoría'}
-                    </p>
-                  </div>
-                ))
+                <>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase">
+                    {tasks.filter(t => !t.completed).length} pendiente{tasks.filter(t => !t.completed).length !== 1 ? 's' : ''}
+                  </p>
+                  {tasks.filter(t => !t.completed).map((task) => (
+                    <div
+                      key={task.id}
+                      className="group p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border-l-4 border-green-500 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="text-base font-semibold text-black dark:text-white break-words leading-tight">
+                            {task.title}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 uppercase tracking-wider">
+                            {task.category || 'Sin categoría'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
               )}
             </div>
           </div>
