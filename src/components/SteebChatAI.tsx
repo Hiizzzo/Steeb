@@ -119,7 +119,6 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
     if (taskMatch) {
       const taskTitle = taskMatch[1].trim();
       try {
-        await tasks; // Esperar a que las tareas se carguen
         await addTask({
           title: taskTitle,
           completed: false,
@@ -136,6 +135,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
         setShowSideTasks(true);
         return;
       } catch (error) {
+        console.error('Error creating task:', error);
         const errorMessage: ChatMessage = {
           id: `msg_${Date.now() + 1}`,
           role: 'assistant',
