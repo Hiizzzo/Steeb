@@ -305,9 +305,9 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
   return (
     <div className="flex h-full bg-white dark:bg-black flex-col">
       {/* Main Content - Chat + Side Tasks */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className={`flex flex-1 overflow-hidden ${showSideTasks ? 'gap-0' : ''}`}>
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className={`flex flex-col ${showSideTasks ? 'w-1/2 border-r-2 border-black dark:border-white' : 'flex-1'}`}>
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4">
         {messages.map((message, index) => {
@@ -383,7 +383,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
 
         {/* Side Tasks Panel */}
         {showSideTasks && (
-          <div className="w-96 border-l-2 border-black dark:border-white bg-white dark:bg-black flex flex-col">
+          <div className="w-1/2 bg-white dark:bg-black flex flex-col">
             {/* Header */}
             <div className="p-6 border-b-2 border-black dark:border-white flex items-start justify-between">
               <div>
