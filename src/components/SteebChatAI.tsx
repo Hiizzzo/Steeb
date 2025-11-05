@@ -113,6 +113,40 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
       return;
     }
 
+    // Detectar comando para crear tarea: "steeb crea tarea de (texto)"
+    const taskRegex = /steeb\s+crea\s+tarea\s+de\s+(.+)/i;
+    const taskMatch = message.match(taskRegex);
+    if (taskMatch) {
+      const taskTitle = taskMatch[1].trim();
+      try {
+        await tasks; // Esperar a que las tareas se carguen
+        await addTask({
+          title: taskTitle,
+          completed: false,
+          type: 'extra',
+          category: 'extra'
+        });
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: `✅ Tarea "${taskTitle}" creada exitosamente`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        setShowSideTasks(true);
+        return;
+      } catch (error) {
+        const errorMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: `❌ Error al crear la tarea`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+    }
+
     setIsTyping(true);
 
     try {
