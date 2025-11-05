@@ -305,11 +305,9 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
   return (
     <div className="flex h-full bg-white dark:bg-black flex-col">
       {/* Main Content - Chat + Side Tasks */}
-      <div className={`flex ${showSideTasks ? 'flex-col' : ''} flex-1 overflow-hidden`}>
-        {/* Chat Area */}
-        <div className={`flex flex-col ${showSideTasks ? 'flex-1' : 'flex-1'}`}>
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4">
         {messages.map((message, index) => {
           const nextMessage = messages[index + 1];
           const shouldAddSpacing = !nextMessage || nextMessage.role !== message.role;
@@ -357,28 +355,6 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
         )}
 
             <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="border-t border-black dark:border-white p-4">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Preguntale a Steeb AI sobre tus tareas o motivación..."
-                className="flex-1 px-4 py-3 bg-white dark:bg-black border border-black dark:border-white rounded-full text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isTyping}
-                className="p-3 bg-black dark:bg-white text-white dark:text-black rounded-full border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Side Tasks Panel */}
@@ -429,6 +405,27 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
             </div>
           </div>
         )}
+
+        {/* Input Area - Always at the bottom */}
+        <div className="border-t border-black dark:border-white p-4">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Preguntale a Steeb AI sobre tus tareas o motivación..."
+              className="flex-1 px-4 py-3 bg-white dark:bg-black border border-black dark:border-white rounded-full text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isTyping}
+              className="p-3 bg-black dark:bg-white text-white dark:text-black rounded-full border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
