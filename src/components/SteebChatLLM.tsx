@@ -404,9 +404,9 @@ const SteebChatLLM: React.FC = () => {
       )}
 
       {/* Main Content - Chat + Side Tasks */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className={`flex ${showSideTasks ? 'flex-col' : ''} flex-1 overflow-hidden`}>
         {/* Chat Area */}
-        <div className={`flex flex-col ${showSideTasks ? 'w-1/2' : 'flex-1'}`}>
+        <div className={`flex flex-col ${showSideTasks ? 'flex-1' : 'flex-1'}`}>
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
@@ -494,7 +494,7 @@ const SteebChatLLM: React.FC = () => {
 
         {/* Side Tasks Panel */}
         {showSideTasks && (
-          <div className="w-1/2 bg-white dark:bg-black flex flex-col border-l-4 border-black dark:border-white">
+          <div className="flex-1 bg-white dark:bg-black flex flex-col border-t-4 border-black dark:border-white">
             {/* Header */}
             <div className="p-6 border-b-2 border-black dark:border-white flex items-center justify-between">
               <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
