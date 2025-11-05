@@ -365,7 +365,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
               <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
               <button
                 onClick={() => setShowSideTasks(false)}
-                className="absolute right-6 p-1 hover:opacity-70 transition-opacity"
+                className="absolute right-6 p-1 hover:opacity-70 transition-opacity bg-transparent border-0"
               >
                 <X className="w-5 h-5 text-black dark:text-white" />
               </button>
