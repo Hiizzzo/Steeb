@@ -361,11 +361,11 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
         {showSideTasks && (
           <div className="flex-1 bg-white dark:bg-black flex flex-col border-t-4 border-black dark:border-white">
             {/* Header */}
-            <div className="p-6 border-b-2 border-black dark:border-white flex items-center justify-between">
+            <div className="p-6 border-b-2 border-black dark:border-white flex items-center justify-center relative">
               <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
               <button
                 onClick={() => setShowSideTasks(false)}
-                className="p-1 hover:opacity-70 transition-opacity"
+                className="absolute right-6 p-1 hover:opacity-70 transition-opacity"
               >
                 <X className="w-5 h-5 text-black dark:text-white" />
               </button>
@@ -373,17 +373,14 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
 
             {/* Tasks List */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {tasks.filter(t => !t.completed).length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-lg text-gray-500 dark:text-gray-400">✨ ¡Sin tareas pendientes!</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Buen trabajo 🎉</p>
-                </div>
-              ) : (
+              {tasks.filter(t => !t.completed).length > 0 && (
                 <>
                   <p className="text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase">
                     {tasks.filter(t => !t.completed).length} pendiente{tasks.filter(t => !t.completed).length !== 1 ? 's' : ''}
                   </p>
-                  {tasks.filter(t => !t.completed).map((task) => (
+                </>
+              )}
+              {tasks.filter(t => !t.completed).map((task) => (
                     <div
                       key={task.id}
                       className="group p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border-l-4 border-green-500 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all hover:shadow-md"
@@ -399,9 +396,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
                         </div>
                       </div>
                     </div>
-                  ))}
-                </>
-              )}
+              ))}
             </div>
           </div>
         )}
