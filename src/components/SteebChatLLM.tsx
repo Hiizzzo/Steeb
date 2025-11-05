@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Settings, X, AlertCircle } from 'lucide-react';
+import { ArrowUp, Bot, User, Settings, X, AlertCircle } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import llmService from '@/services/llmService';
 
@@ -428,7 +428,7 @@ const SteebChatLLM: React.FC = () => {
               <div
                 className={`px-4 py-3 ${
                   message.role === 'assistant'
-                    ? 'bg-black dark:bg-white text-white dark:text-black rounded-2xl rounded-tl-none'
+                    ? 'bg-white dark:bg-white text-black dark:text-black rounded-2xl rounded-tl-none border border-gray-300 dark:border-gray-300'
                     : 'bg-gray-100 dark:bg-gray-900 text-black dark:text-white rounded-2xl rounded-tr-none border border-gray-300 dark:border-gray-700'
                 }`}
               >
@@ -436,7 +436,7 @@ const SteebChatLLM: React.FC = () => {
                   {message.content}
                 </p>
                 <div className={`text-xs mt-2 ${
-                  message.role === 'assistant' ? 'text-gray-300 dark:text-gray-700' : 'text-gray-500 dark:text-gray-400'
+                  message.role === 'assistant' ? 'text-gray-500 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'
                 }`}>
                   {message.timestamp.toLocaleTimeString('es-ES', {
                     hour: '2-digit',
@@ -528,7 +528,7 @@ const SteebChatLLM: React.FC = () => {
               disabled={!inputMessage.trim() || isTyping}
               className="p-3 bg-black dark:bg-white text-white dark:text-black rounded-full border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <Send className="w-4 h-4" />
+              <ArrowUp className="w-4 h-4" />
             </button>
           </div>
         </div>

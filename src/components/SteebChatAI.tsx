@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X } from 'lucide-react';
+import { ArrowUp, X } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import minimaxDirectService from '@/services/minimaxDirectService';
 
@@ -321,7 +321,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
             <div
               className={`px-4 py-3 max-w-[80%] rounded-2xl ${
                 message.role === 'assistant'
-                  ? 'bg-black text-white'
+                  ? 'bg-white text-black border border-gray-300'
                   : 'bg-gray-200 text-black'
               }`}
             >
@@ -329,7 +329,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
                 {message.content}
               </p>
               <div className={`text-xs mt-2 ${
-                message.role === 'assistant' ? 'text-gray-400' : 'text-gray-600'
+                message.role === 'assistant' ? 'text-gray-500' : 'text-gray-600'
               }`}>
                 {message.timestamp.toLocaleTimeString('es-ES', {
                   hour: '2-digit',
@@ -417,7 +417,7 @@ Responde como Steeb, su amigo. Sé emocional, genuino, duro pero justo. Si menci
               disabled={!inputMessage.trim() || isTyping}
               className="p-3 bg-black dark:bg-white text-white dark:text-black rounded-full border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <Send className="w-4 h-4" />
+              <ArrowUp className="w-4 h-4" />
             </button>
           </div>
         </div>
