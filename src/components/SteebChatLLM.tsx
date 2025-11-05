@@ -30,6 +30,7 @@ const SteebChatLLM: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [baseUrl, setBaseUrl] = useState('http://localhost:11434');
   const [model, setModel] = useState('MiniMax-M2');
+  const [showSideTasks, setShowSideTasks] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { tasks } = useTaskStore();
 
@@ -134,12 +135,12 @@ const SteebChatLLM: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
 
     // Detectar comando especial (funciona sin LLM inicializado)
-    if (message.toUpperCase() === 'TAREAS POR MENSAJE A STEEB') {
-      const taskContext = getTaskContext();
+    if (message.toUpperCase() === 'TAREAS') {
+      setShowSideTasks(true);
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
-        content: `🎯 Aquí están tus tareas de hoy:\n\n${taskContext.pending} pendientes | ${taskContext.completedToday} completadas`,
+        content: `🎯 Mostrando tus tareas pendientes`,
         timestamp: new Date(),
         isCommandResponse: true
       };
@@ -363,7 +364,7 @@ const SteebChatLLM: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-black">
+    <div className="flex h-full bg-white dark:bg-black flex-col">
       {/* AI Status Bar */}
       <div className="bg-black dark:bg-white text-white dark:text-black px-4 py-3 border-b border-black dark:border-white flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -402,8 +403,12 @@ const SteebChatLLM: React.FC = () => {
         </div>
       )}
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Main Content - Chat + Side Tasks */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -472,28 +477,67 @@ const SteebChatLLM: React.FC = () => {
           </div>
         )}
 
-        <div ref={messagesEndRef} />
-      </div>
+            <div ref={messagesEndRef} />
+          </div>
 
-      {/* Input Area */}
-      <div className="border-t border-black dark:border-white p-4">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Preguntale a Steeb..."
-            className="flex-1 px-4 py-3 bg-white dark:bg-black border border-black dark:border-white rounded-full text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isTyping}
-            className="p-3 bg-black dark:bg-white text-white dark:text-black rounded-full border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+          {/* Input Area */}
+          <div className="border-t border-black dark:border-white p-4">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Preguntale a Steeb..."
+                className="flex-1 px-4 py-3 bg-white dark:bg-black border border-black dark:border-white rounded-full text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputMessage.trim() || isTyping}
+                className="p-3 bg-black dark:bg-white text-white dark:text-black rounded-full border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
+
+        {/* Side Tasks Panel */}
+        {showSideTasks && (
+          <div className="w-80 border-l border-black dark:border-white bg-gray-50 dark:bg-gray-950 flex flex-col">
+            <div className="p-4 border-b border-black dark:border-white flex items-center justify-between">
+              <h3 className="font-bold text-black dark:text-white">Tareas Pendientes</h3>
+              <button
+                onClick={() => setShowSideTasks(false)}
+                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
+              >
+                <X className="w-4 h-4 text-black dark:text-white" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {tasks.filter(t => !t.completed).length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">✨ ¡Sin tareas pendientes!</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Buen trabajo 🎉</p>
+                </div>
+              ) : (
+                tasks.filter(t => !t.completed).map((task) => (
+                  <div
+                    key={task.id}
+                    className="p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-green-500 dark:hover:border-green-500 transition-colors"
+                  >
+                    <p className="text-sm font-medium text-black dark:text-white break-words">
+                      {task.title}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {task.category || 'Sin categoría'}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
