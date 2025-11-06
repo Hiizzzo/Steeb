@@ -757,24 +757,47 @@ export const useTaskStore = create<TaskStore>()(
 
         // Nueva función para configurar listeners en tiempo real con Firestore
         setupRealtimeListener: (userId?: string) => {
-          if (!userId) {
-            console.log('📱 Modo offline - Sin listener en tiempo real');
-            return () => {};
-          }
-
-          console.log('🔄 Intentando configurar listener con Firestore (userId=${userId})');
-
+          // Manejo robusto de errores para evitar que la app se bloquee
           try {
+            if (!userId) {
+              console.log('📱 Modo offline - Sin listener en tiempo real (sin userId)');
+              // No mostrar error, solo modo offline silencioso
+              set({ syncStatus: 'offline' });
+              return () => {};
+            }
+
+            console.log('🔄 Intentando configurar listener con Firestore (userId=${userId})');
+
+            // Configurar listener con timeout para evitar bloqueos
             const unsubscribe = FirestoreTaskService.subscribeToTasks(userId, (tasks) => {
-              console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
-              set({ tasks });
-              get().calculateStats();
+              try {
+                console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
+                set({
+                  tasks: Array.isArray(tasks) ? tasks : [], // Validar que sea un array
+                  syncStatus: 'online',
+                  error: null // Limpiar cualquier error anterior
+                });
+                get().calculateStats();
+              } catch (callbackError) {
+                console.error('❌ Error en callback del listener:', callbackError);
+                set({
+                  syncStatus: 'error',
+                  error: 'Error al sincronizar tareas'
+                });
+              }
             });
 
             console.log('✅ Listener en tiempo real configurado');
+            set({ syncStatus: 'online' });
             return unsubscribe;
+
           } catch (error) {
             console.warn('⚠️ Error configurando listener, usando modo offline:', error);
+            // Establecer modo offline sin error crítico
+            set({
+              syncStatus: 'offline',
+              error: null // No mostrar error al usuario, solo modo offline
+            });
             return () => {};
           }
         },

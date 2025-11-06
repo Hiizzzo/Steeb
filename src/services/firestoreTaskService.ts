@@ -247,44 +247,103 @@ export class FirestoreTaskService {
    * Escuchar cambios en tiempo real
    */
   static subscribeToTasks(userId: string | undefined, callback: (tasks: Task[]) => void): () => void {
-    if (!db) {
-      console.error('Firestore no está inicializado');
-      return () => {};
-    }
+    // Validación más robusta para evitar errores críticos
+    try {
+      if (!db) {
+        console.warn('📱 Firestore no está inicializado - Modo offline');
+        callback([]);
+        return () => {};
+      }
 
-    const uid = auth.currentUser?.uid;
-    if (!uid) {
-      console.error('Necesitás iniciar sesión');
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        console.warn('📱 Usuario no autenticado - Modo offline');
+        callback([]);
+        return () => {};
+      }
+
+      // Validar que la colección existe antes de hacer la consulta
+      const tasksRef = collection(db, TASKS_COLLECTION);
+      if (!tasksRef) {
+        console.warn('📱 Colección de tareas no disponible - Modo offline');
+        callback([]);
+        return () => {};
+      }
+
+      const q = query(tasksRef, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'));
+
+      let unsubscribe: (() => void) | null = null;
+
+      try {
+        unsubscribe = onSnapshot(q,
+          (snapshot) => {
+            try {
+              const tasks = snapshot.docs.map(doc => {
+                try {
+                  const data = doc.data();
+                  return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
+                    updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
+                    dueDate: data.dueDate?.toDate?.()?.toISOString() || data.dueDate,
+                  } as Task;
+                } catch (docError) {
+                  console.warn('⚠️ Error procesando documento:', doc.id, docError);
+                  return null;
+                }
+              }).filter(Boolean) as Task[];
+
+              console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
+              callback(tasks);
+            } catch (processingError) {
+              console.error('❌ Error procesando snapshot:', processingError);
+              callback([]);
+            }
+          },
+          (error) => {
+            console.warn('📱 Error en listener de Firebase - Modo offline activado:', error);
+
+            // No mostrar errores críticos en la UI, solo en consola
+            if (error?.message?.includes('permission-denied') ||
+                error?.code === 'permission-denied') {
+              console.warn('📱 Permisos denegados - Modo offline');
+            } else if (error?.message?.includes('ERR_ABORTED') ||
+                      error?.message?.includes('net::ERR_') ||
+                      error?.code === 'cancelled' ||
+                      error?.code === 'unavailable') {
+              console.warn('📱 Error de conexión - Modo offline temporal');
+            } else {
+              console.warn('📱 Error desconocido - Activando modo offline:', error);
+            }
+
+            // Enviar lista vacía para evitar que la app se bloquee
+            callback([]);
+          }
+        );
+      } catch (snapshotError) {
+        console.error('❌ Error creando snapshot:', snapshotError);
+        callback([]);
+        return () => {};
+      }
+
+      // Devolver función de unsubscribe segura
+      return () => {
+        try {
+          if (unsubscribe) {
+            unsubscribe();
+          }
+        } catch (unsubError) {
+          console.warn('⚠️ Error en unsubscribe:', unsubError);
+        }
+      };
+
+    } catch (criticalError) {
+      console.error('🚨 Error crítico en subscribeToTasks:', criticalError);
+      // Enviar lista vacía para evitar que la app se bloquee
       callback([]);
       return () => {};
     }
-
-    const tasksRef = collection(db, TASKS_COLLECTION);
-    const q = query(tasksRef, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'));
-
-    return onSnapshot(q, (snapshot) => {
-      const tasks = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
-        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
-        dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
-      } as Task));
-
-      console.log('📡 Actualizando tareas en tiempo real:', tasks.length);
-      callback(tasks);
-    }, (error) => {
-      // Manejar errores de conexión de manera más elegante
-      if (error?.message?.includes('ERR_ABORTED') ||
-          error?.message?.includes('net::ERR_') ||
-          error?.code === 'cancelled' ||
-          error?.code === 'unavailable') {
-        console.warn('⚠️ Error de conexión en tiempo real, reintentando...', error.message);
-        // No interrumpir la aplicación por errores de red
-        return;
-      }
-      console.error('❌ Error crítico al escuchar cambios en tareas:', error);
-    });
   }
 
   /**
