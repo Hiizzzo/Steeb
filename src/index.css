@@ -39,46 +39,186 @@ html, body {
 
 @layer base {
   :root {
+    /* Enhanced light mode color palette for better contrast */
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --foreground: 0 0% 3.9%; /* Slightly softer black */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 0 0% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 0 0% 3.9%;
 
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 9%; /* Pure black for primary elements */
+    --primary-foreground: 0 0% 98%; /* Near white for text on primary */
 
-    --secondary: 0 0% 97%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 0 0% 96.1%; /* Lighter secondary background */
+    --secondary-foreground: 0 0% 9%; /* Dark text on secondary */
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 0% 96.1%; /* Consistent muted background */
+    --muted-foreground: 0 0% 45.1%; /* Standard muted text */
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 0 0% 96.1%; /* Consistent accent background */
+    --accent-foreground: 0 0% 9%; /* Dark text on accent */
 
-    --destructive: 0 0% 0%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 85%;
-    --input: 0 0% 85%;
-    --ring: 0 0% 0%;
+    --border: 0 0% 89.8%; /* Subtle borders */
+    --input: 0 0% 89.8%; /* Consistent input borders */
+    --ring: 0 0% 9%; /* Dark ring color */
 
     --radius: 0.5rem;
 
+    /* Enhanced sidebar colors for light mode */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 0 0% 9%; /* Dark primary */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent: 0 0% 96.1%;
     --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 0 0% 89.8%;
+    --sidebar-ring: 0 0% 9%;
   }
 
+  /* Enhanced light mode contrast improvements */
+  .light {
+    /* Text improvements for better readability */
+    color: hsl(var(--foreground));
+
+    /* Button improvements */
+    button {
+      border-color: hsl(var(--border));
+    }
+
+    /* Input improvements */
+    input, textarea {
+      border-color: hsl(var(--input));
+      color: hsl(var(--foreground));
+    }
+
+    /* Card improvements */
+    .card {
+      border-color: hsl(var(--border));
+    }
+  }
+
+  /* Calendar loading bars improvements - PR #238 */
+  .calendar-loading-bar {
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--accent)) 50%,
+      hsl(var(--primary)) 100%
+    );
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--radius);
+  }
+
+  @keyframes loading-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Theme-aware calendar loading bars */
+  .light .calendar-loading-bar {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--muted)) 50%,
+      hsl(var(--primary)) 100%
+    );
+    box-shadow: 0 1px 3px hsl(var(--border) / 0.3);
+  }
+
+  .dark .calendar-loading-bar {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--muted)) 50%,
+      hsl(var(--primary)) 100%
+    );
+    box-shadow: 0 1px 3px hsl(var(--foreground) / 0.1);
+  }
+
+  /* Calendar day loading states */
+  .calendar-day-loading {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calendar-day-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--muted) / 0.5),
+      transparent
+    );
+    animation: day-loading 1.2s ease-in-out infinite;
+  }
+
+  @keyframes day-loading {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* Dark mode calendar loading bars */
+  .dark .calendar-loading-bar {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--accent)) 50%,
+      hsl(var(--primary)) 100%
+    );
+  }
+
+  /* Dark mode styles (keep existing) */
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+
+    --sidebar-background: 0 0% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 0 0% 14.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 14.9%;
+    --sidebar-ring: 0 0% 83.1%;
+  }
 }
 
 /* Shiny toggle: animated multicolor border like checkbox */
