@@ -1,28 +1,55 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, X, Check, Trash2 } from 'lucide-react';
+import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import minimaxDirectService from '@/services/minimaxDirectService';
 import { dailySummaryService } from '@/services/dailySummaryService';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isTyping?: boolean;
+  category?: 'general' | 'task' | 'productivity' | 'motivation';
 }
 
 const SteebChatAI: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
-  
+  const { currentTheme } = useTheme();
+
+  // Respuestas predefinidas para mejor UX - PR #142
+  const predefinedResponses: Record<string, string> = {
+    'hola': '¡Hola! ¿Qué tareitas tenemos para hoy?',
+    'buenos días': '¡Buenos días! 💪 Empecemos el día con energía.',
+    'buenas tardes': '¡Buenas tardes! ¿Cómo va tu productividad hoy?',
+    'buenas noches': '¡Buenas noches! 🌙 Terminemos el día fuerte.',
+    'cómo estás': '¡Estoy listo para ayudarte! ¿Qué necesitamos hacer?',
+    'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. ¡Escribe "tareas" para ver!',
+    'tareas': 'Mostrando tus tareas pendientes... ¡Una de una! 🎯',
+    'progreso': 'Tu progreso es genial, sigue así, campeón.',
+    'motírame': '¡Tú puedes! 💪 Cada tarea completada te acerca a tu meta.',
+    'gracias': '¡De nada! Estoy aquí para ayudarte a lograr tus metas.',
+    'adiós': '¡Hasta luego! Termina bien tus tareas.',
+    'ok': '¡Perfecto! Vamos por ello.',
+    'estoy cansado': 'Descansa un poco, ¡pero no te rindas! 🚀',
+    'no sé qué hacer': 'Empecemos con algo pequeño. ¿Cuál es la tarea más sencilla que puedes hacer ahora?',
+    'estoy aburrido': '¡Perfecto momento para avanzar en esas tareas pendientes! 📋',
+    'feliz': '¡Me encanta tu energía! Canalízala en una tarea y verás resultados. ⚡',
+    'triste': '¡No te preocupes! Una pequeña tarea puede mejorar tu estado de ánimo. 💙'
+  };
+
   const getInitialMessage = () => {
     const hour = new Date().getHours();
-    let greeting = '';
-    
-    if (hour < 12) greeting = 'Buenos días';
-    else if (hour < 18) greeting = 'Buenas tardes';
-    else greeting = 'Buenas noches';
-    
-    return greeting;
+    const taskContext = getTaskContext();
+
+    if (hour < 12) {
+      return taskContext.hasTasks ? '¡Buenos días! 💪 Listo para conquistar tus tareas?' : '¡Buenos días! ¿Qué desafíos nos esperan hoy?';
+    } else if (hour < 18) {
+      return taskContext.hasTasks ? '¡Buenas tardes! ⚡ Mantengamos el momentum.' : '¡Buenas tardes! ¿Lista/o para ser productiva/o?';
+    } else {
+      return taskContext.hasTasks ? '¡Buenas noches! 🌙 Terminemos el día con energía.' : '¡Buenas noches! ¿Revisamos tu progreso?';
+    }
   };
   
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -130,6 +157,25 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
 - SIN INSULTOS`;
   };
 
+  // Detectar respuestas predefinidas - PR #142
+  const getPredefinedResponse = (message: string): string | null => {
+    const normalizedMessage = message.toLowerCase().trim();
+
+    // Buscar coincidencia exacta
+    if (predefinedResponses[normalizedMessage]) {
+      return predefinedResponses[normalizedMessage];
+    }
+
+    // Buscar coincidencias parciales
+    for (const [key, response] of Object.entries(predefinedResponses)) {
+      if (normalizedMessage.includes(key) || key.includes(normalizedMessage)) {
+        return response;
+      }
+    }
+
+    return null;
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
@@ -146,6 +192,20 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
 
     setMessages(prev => [...prev, userMessage]);
 
+    // Detectar respuestas predefinidas primero
+    const predefinedResponse = getPredefinedResponse(message);
+    if (predefinedResponse) {
+      const aiMessage: ChatMessage = {
+        id: `msg_${Date.now() + 1}`,
+        role: 'assistant',
+        content: predefinedResponse,
+        timestamp: new Date(),
+        category: 'general'
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+
     // Detectar comando especial "TAREAS"
     if (message.trim().toUpperCase() === 'TAREAS') {
       setShowSideTasks(true);
@@ -153,7 +213,8 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
         content: `🎯 Mostrando tus tareas pendientes`,
-        timestamp: new Date()
+        timestamp: new Date(),
+        category: 'task'
       };
       setMessages(prev => [...prev, aiMessage]);
       return;
@@ -393,38 +454,87 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             key={message.id}
             className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} ${shouldAddSpacing ? 'mb-4' : 'mb-1'}`}
           >
-            {/* Message Content - Sin avatares */}
-            <div
-              className={`px-4 py-3 max-w-[80%] rounded-2xl ${
+            {/* Message Content with improved colors and avatars - PR #143 */}
+            <div className={`flex items-end space-x-2 max-w-[85%] ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}>
+              {/* Avatar */}
+              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                 message.role === 'assistant'
-                  ? 'bg-white text-black border border-gray-300'
-                  : 'bg-gray-200 text-black'
-              }`}
-            >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                {message.content}
-              </p>
-              <div className={`text-xs mt-2 ${
-                message.role === 'assistant' ? 'text-gray-500' : 'text-gray-600'
+                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+                  : 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white'
               }`}>
-                {message.timestamp.toLocaleTimeString('es-ES', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+                {message.role === 'assistant' ? (
+                  <Bot className="w-4 h-4" />
+                ) : (
+                  <User className="w-4 h-4" />
+                )}
+              </div>
+
+              {/* Message bubble */}
+              <div
+                className={`px-4 py-3 rounded-2xl relative group ${
+                  message.role === 'assistant'
+                    ? 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-black dark:text-white border border-gray-200 dark:border-gray-700 shadow-sm'
+                    : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md'
+                }`}
+              >
+                {/* Message category indicator */}
+                {message.role === 'assistant' && message.category && (
+                  <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${
+                    message.category === 'task' ? 'bg-green-400' :
+                    message.category === 'productivity' ? 'bg-blue-400' :
+                    message.category === 'motivation' ? 'bg-yellow-400' :
+                    'bg-purple-400'
+                  }`} />
+                )}
+
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {message.content}
+                </p>
+
+                {/* Timestamp with improved styling */}
+                <div className={`text-xs mt-2 flex items-center space-x-1 ${
+                  message.role === 'assistant'
+                    ? 'text-gray-500 dark:text-gray-400'
+                    : 'text-blue-100'
+                }`}>
+                  <Clock className="w-3 h-3" />
+                  <span>
+                    {message.timestamp.toLocaleTimeString('es-ES', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+
+                {/* Hover effect for assistant messages */}
+                {message.role === 'assistant' && (
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                )}
               </div>
             </div>
           </div>
         );
         })}
 
-        {/* Typing Indicator */}
+        {/* Enhanced Typing Indicator */}
         {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-black dark:bg-white text-white dark:text-black px-4 py-3 rounded-2xl">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-300 dark:bg-gray-700 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-gray-300 dark:bg-gray-700 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-gray-300 dark:bg-gray-700 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          <div className="flex justify-start mb-4">
+            <div className="flex items-end space-x-2">
+              {/* Steeb Avatar */}
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center">
+                <Bot className="w-4 h-4" />
+              </div>
+
+              {/* Typing bubble */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-black dark:text-white px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                </div>
               </div>
             </div>
           </div>
@@ -556,24 +666,51 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
           </div>
         )}
 
-        {/* Input Area - Always at the bottom */}
-        <div className="border-t border-black dark:border-white p-4">
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Habla con Steeb"
-              className="flex-1 px-4 py-3 bg-white dark:bg-black border border-black dark:border-white rounded-full text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-            />
+        {/* Enhanced Input Area with improved colors */}
+        <div className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-4">
+          <div className="flex items-end space-x-3">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Habla con Steeb..."
+                className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-700 rounded-2xl text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200"
+              />
+
+              {/* Character count indicator */}
+              {inputMessage.length > 0 && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <span className={`text-xs ${
+                    inputMessage.length > 100 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'
+                  }`}>
+                    {inputMessage.length}
+                  </span>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isTyping}
-              className="p-3 bg-black dark:bg-white text-white dark:text-black rounded-full border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl border-2 border-purple-300 dark:border-purple-700"
             >
               <ArrowUp className="w-4 h-4" />
             </button>
+          </div>
+
+          {/* Quick actions suggestions */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {['hola', 'tareas', 'ayuda', 'motírame'].map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => setInputMessage(suggestion)}
+                className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150"
+              >
+                {suggestion}
+              </button>
+            ))}
           </div>
         </div>
       </div>
