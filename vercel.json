@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "devCommand": "vite",
   "env": {
-    "VITE_API_URL": "@vite-api-url"
+    "VITE_API_URL": "https://stebe-app.vercel.app/api"
   },
   "headers": [
     {
