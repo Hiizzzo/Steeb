@@ -577,17 +577,26 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         </div>
 
         {/* Side Tasks Panel - Altura predefinida */}
-        <FixedPanelContainer isOpen={showSideTasks} onClose={() => setShowSideTasks(false)}>
+        <FixedPanelContainer
+          isOpen={showSideTasks}
+          onClose={() => setShowSideTasks(false)}
+                  >
           <SimpleSideTasksPanel onClose={() => setShowSideTasks(false)} />
         </FixedPanelContainer>
 
         {/* Progress Panel - Altura predefinida */}
-        <FixedPanelContainer isOpen={showProgress} onClose={() => setShowProgress(false)}>
+        <FixedPanelContainer
+          isOpen={showProgress}
+          onClose={() => setShowProgress(false)}
+                  >
           <SimpleProgressPanel onClose={() => setShowProgress(false)} />
         </FixedPanelContainer>
 
         {/* Calendar Panel - Altura predefinida */}
-        <FixedPanelContainer isOpen={showCalendar} onClose={() => setShowCalendar(false)}>
+        <FixedPanelContainer
+          isOpen={showCalendar}
+          onClose={() => setShowCalendar(false)}
+                  >
           <SimpleCalendarPanel onClose={() => setShowCalendar(false)} />
         </FixedPanelContainer>
 

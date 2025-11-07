@@ -50,7 +50,10 @@
       "Bash(git init:*)",
       "Bash(gh repo create:*)",
       "Bash(chcp:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(gh pr create:*)",
+      "Bash(gh repo view:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

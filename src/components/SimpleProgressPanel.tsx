@@ -72,49 +72,90 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, [tasks, viewMode]);
 
+  // Calcular tareas por día de la semana (Lunes a Domingo)
+  const tasksByDay = useMemo(() => {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const weekData = days.map((day, index) => {
+      const dayTasks = tasks.filter(task => {
+        const taskDate = new Date(task.completedAt || task.createdAt);
+        return taskDate.getDay() === index && task.completed;
+      });
+      return {
+        day: day.charAt(0), // L, M, M, J, V, S, D
+        completed: dayTasks.length,
+        total: dayTasks.length
+      };
+    });
+    return weekData;
+  }, [tasks]);
+
   return (
     <div className={`h-full flex flex-col ${
       isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
     }`}>
       {/* Header */}
       <div className={`p-4 border-b-2 flex items-center justify-center ${
-        isDarkMode ? 'border-white' : 'border-black'
+        isDarkMode ? 'border-white' : 'border-white'
       }`}>
-        <h2 className="text-xl font-bold flex items-center">
-          <BarChart3 className="w-5 h-5 mr-2" />
+        <h2 className="text-3xl font-bold">
           Progreso
         </h2>
       </div>
 
-      {/* View Mode Selector */}
-      <div className={`p-2 border-b flex justify-center space-x-1 ${
-        isDarkMode ? 'border-gray-800' : 'border-gray-200'
-      }`}>
-        {[
-          { value: 'day', label: 'Hoy' },
-          { value: 'week', label: 'Semana' },
-          { value: 'month', label: 'Mes' }
-        ].map((mode) => (
-          <button
-            key={mode.value}
-            onClick={() => setViewMode(mode.value as any)}
-            className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-              viewMode === mode.value
-                ? isDarkMode ? 'bg-white text-black' : 'bg-black text-white'
-                : isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'
-            }`}
-          >
-            {mode.label}
-          </button>
-        ))}
-      </div>
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-3">
+        {/* Simple Chart */}
+        <div className={`p-4 rounded-lg border mb-3 ${
+          isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
+        }`}>
+          <h4 className="text-base font-medium mb-4 text-center">
+            {viewMode === 'day' ? 'Hoy' : viewMode === 'week' ? 'Esta semana' : 'Este mes'}
+          </h4>
+          <div className="flex items-end justify-center h-32 space-x-2">
+            {viewMode === 'week' ? (
+              tasksByDay.map((dayData, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  <div
+                    className={`flex-1 max-w-10 rounded-t transition-all duration-300 ${
+                      isDarkMode ? 'bg-white' : 'bg-black'
+                    }`}
+                    style={{
+                      height: `${Math.max(dayData.completed * 10, 10)}%`, // Mínimo 10%, cada tarea = 10%
+                      minHeight: '20px'
+                    }}
+                  />
+                  <div className="flex items-center justify-center mt-1 text-xs">
+                    <span className="font-medium">{dayData.day}</span>
+                    {dayData.completed > 0 && (
+                      <span className="ml-1 font-bold text-xs">{dayData.completed}</span>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              // Mantener el comportamiento original para día y mes
+              Array.from({ length: viewMode === 'day' ? 1 : 4 }, (_, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 max-w-10 rounded-t transition-all duration-300 ${
+                    isDarkMode ? 'bg-white' : 'bg-black'
+                  }`}
+                  style={{
+                    height: `${Math.random() * 60 + 20}%`
+                  }}
+                />
+              ))
+            )}
+          </div>
+          <p className="text-sm text-center mt-4 opacity-70">
+            Promedio: {stats.averagePerDay} tareas/día
+          </p>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div className={`p-2 rounded-lg border text-center text-xs ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
           }`}>
             <div className="flex items-center justify-center mb-1">
               <Target className="w-3 h-3" />
@@ -124,7 +165,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
           </div>
 
           <div className={`p-2 rounded-lg border text-center text-xs ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
           }`}>
             <div className="flex items-center justify-center mb-1">
               <CheckCircle className="w-3 h-3" />
@@ -134,7 +175,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
           </div>
 
           <div className={`p-2 rounded-lg border text-center text-xs ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
           }`}>
             <div className="flex items-center justify-center mb-1">
               <Flame className="w-3 h-3" />
@@ -144,7 +185,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
           </div>
 
           <div className={`p-2 rounded-lg border text-center text-xs ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
           }`}>
             <div className="flex items-center justify-center mb-1">
               <Trophy className="w-3 h-3" />
@@ -156,10 +197,9 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 
         {/* Progress Bar */}
         <div className={`p-3 rounded-lg border mb-3 ${
-          isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+          isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
         }`}>
-          <div className="flex justify-between text-sm mb-2">
-            <span>Progreso</span>
+          <div className="flex justify-end text-sm mb-2">
             <span className="font-medium">{stats.completionRate}%</span>
           </div>
           <div className={`w-full h-2 rounded-full overflow-hidden ${
@@ -177,41 +217,28 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
           </p>
         </div>
 
-        {/* Simple Chart */}
-        <div className={`p-3 rounded-lg border mb-3 ${
-          isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+        
+        {/* View Mode Selector */}
+        <div className={`p-2 border-t flex justify-center space-x-1 ${
+          isDarkMode ? 'border-white' : 'border-white'
         }`}>
-          <h4 className="text-sm font-medium mb-2 text-center">
-            {viewMode === 'day' ? 'Hoy' : viewMode === 'week' ? 'Esta semana' : 'Este mes'}
-          </h4>
-          <div className="flex items-end justify-center h-16 space-x-1">
-            {Array.from({ length: viewMode === 'day' ? 1 : viewMode === 'week' ? 7 : 4 }, (_, i) => (
-              <div
-                key={i}
-                className={`flex-1 max-w-6 rounded-t transition-all duration-300 ${
-                  isDarkMode ? 'bg-white' : 'bg-black'
-                }`}
-                style={{
-                  height: `${Math.random() * 60 + 20}%`
-                }}
-              />
-            ))}
-          </div>
-          <p className="text-xs text-center mt-2 opacity-70">
-            Promedio: {stats.averagePerDay} tareas/día
-          </p>
-        </div>
-
-        {/* Motivational Message */}
-        <div className={`p-3 rounded-lg border text-center ${
-          isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
-        }`}>
-          <p className="text-sm">
-            {stats.completionRate >= 80 ? '¡Excelente productividad! 🚀' :
-             stats.completionRate >= 60 ? '¡Buen progreso! Sigue así 💪' :
-             stats.completionRate >= 40 ? 'Vas bien, puedes mejorar 📈' :
-             '¡Un pequeño paso a la vez! 🎯'}
-          </p>
+          {[
+            { value: 'day', label: 'Hoy' },
+            { value: 'week', label: 'Semana' },
+            { value: 'month', label: 'Mes' }
+          ].map((mode) => (
+            <button
+              key={mode.value}
+              onClick={() => setViewMode(mode.value as any)}
+              className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                viewMode === mode.value
+                  ? isDarkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'
+              }`}
+            >
+              {mode.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>

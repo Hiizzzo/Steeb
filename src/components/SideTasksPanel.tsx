@@ -3,11 +3,11 @@ import { CheckCircle, Trash2 } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTheme } from '@/hooks/useTheme';
 
-interface SimpleSideTasksPanelProps {
+interface SideTasksPanelProps {
   onClose: () => void;
 }
 
-const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) => {
+const SideTasksPanel: React.FC<SideTasksPanelProps> = ({ onClose }) => {
   const { currentTheme } = useTheme();
   const { tasks, toggleTask, deleteTask } = useTaskStore();
   const isDarkMode = currentTheme === 'dark';
@@ -80,39 +80,37 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
       isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
     }`}>
       {/* Header */}
-      <div className={`p-2 pt-5 border-b-2 flex items-center justify-center ${
-        isDarkMode ? 'border-white' : 'border-white'
-      }`}>
-        <h2 className="text-3xl font-bold">Tareas</h2>
+      <div className="p-2 pt-5 flex items-center justify-center">
+        <h2 className="text-4xl font-black">Tareas</h2>
       </div>
 
       {/* Tasks List */}
-      <div className="flex-1 overflow-y-auto p-3 pt-12">
-        {pendingTasks.length > 0 ? (
+      <div className="flex-1 overflow-y-auto p-4 pt-12">
+        {pendingTasks.length > 0 && (
           <>
-              <div className="space-y-2">
+              <div className="space-y-3">
               {pendingTasks.map((task) => {
                 const isTaskDeleting = isDeleting[task.id] || false;
 
                 return (
                   <div key={task.id} className="relative">
                     {/* Fondo con tacho visible durante swipe */}
-                    <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${
+                    <div className={`absolute inset-0 rounded-xl flex items-center justify-end pr-4 transition-all duration-300 ease-out ${
                       (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
                     } ${
                       isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
                     }`}>
-                      <Trash2 className="w-4 h-4 text-black" />
+                      <Trash2 className="w-5 h-5 text-black" />
                     </div>
 
                     <div
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
+                      className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 ${
                         isTaskDeleting
                           ? 'bg-black dark:bg-white animate-pulse'
                           : isDarkMode ? 'bg-gray-900 border border-white' : 'bg-gray-50 border border-white'
                       }`}
                       style={{
-                        borderLeft: '3px solid black',
+                        borderLeft: '4px solid black',
                         transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
                         transition: activeIdRef.current === task.id ? 'none' : 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                         touchAction: 'pan-y',
@@ -126,14 +124,14 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                       onContextMenu={(e) => e.preventDefault()}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-semibold break-words leading-tight ${
+                        <p className={`text-base font-semibold break-words leading-tight ${
                           isTaskDeleting
                             ? 'text-white dark:text-black'
                             : ''
                         }`}>
                           {task.title}
                         </p>
-                        <p className={`text-xs opacity-70 mt-1 ${
+                        <p className={`text-xs opacity-70 mt-2 uppercase tracking-wider ${
                           isTaskDeleting
                             ? 'text-white dark:text-black'
                             : ''
@@ -150,7 +148,7 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                             console.error('Error al completar tarea:', error);
                           });
                         }}
-                        className={`flex-shrink-0 w-4 h-4 rounded-full transition-all duration-200 ${
+                        className={`flex-shrink-0 w-5 h-5 rounded-full transition-all duration-200 ${
                           task.completed
                             ? 'bg-white border-white'
                             : isDarkMode
@@ -166,21 +164,23 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
               })}
             </div>
           </>
-        ) : (
+        )}
+
+        {pendingTasks.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
               isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
             }`}>
-              <CheckCircle className={`w-6 h-6 ${
+              <CheckCircle className={`w-8 h-8 ${
                 isDarkMode ? 'text-gray-600' : 'text-gray-400'
               }`} />
             </div>
-            <p className={`text-sm font-medium mb-1 ${
+            <p className={`text-lg font-medium mb-2 ${
               isDarkMode ? 'text-white' : 'text-black'
             }`}>
               ¡No hay tareas pendientes!
             </p>
-            <p className={`text-xs ${
+            <p className={`text-sm ${
               isDarkMode ? 'text-gray-400' : 'text-gray-600'
             }`}>
               Todas tus tareas están completadas
@@ -192,4 +192,4 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
   );
 };
 
-export default SimpleSideTasksPanel;
+export default SideTasksPanel;

@@ -13,7 +13,7 @@ import { notificationService } from '@/services/notificationService';
 import TaskCard from '@/components/TaskCard';
 import FloatingButtons from '@/components/FloatingButtons';
 import SteebChatAI from '@/components/SteebChatAI';
-import { Eye, EyeOff, CheckCircle, Trash2, Check } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, Trash2, Check, TrendingUp } from 'lucide-react';
 
 import TaskDetailModal from '@/components/TaskDetailModal';
 import SteveAvatar from '@/components/SteveAvatar';
@@ -27,6 +27,7 @@ import MonthlyCalendar from '@/components/MonthlyCalendar';
 import ShapeIcon from '@/components/ShapeIcon';
 import type { RecurrenceRule, Task, SubTask } from '@/types';
 import ModalAddTask from '@/components/ModalAddTask';
+import ProgressPage from '@/components/ProgressPage';
 
 
 // 9-colores (de abajo hacia arriba): ROJO, NARANJA, AMARILLO, VERDE, CELESTE, AZUL, INDIGO, ROSA FUERTE, VIOLETA
@@ -752,7 +753,15 @@ const Index = () => {
 
             </div>
 
+      {/* Botón flotante de Progreso - Ahora abre el panel del chat */}
+      <div
+        className="fixed bottom-24 right-6 opacity-0 pointer-events-none"
+        title="El progreso ahora se abre escribiendo 'progreso' en el chat"
+      >
+        <TrendingUp className="w-6 h-6 text-gray-400" />
+      </div>
 
+    
       {/* Modales */}
       <ModalAddTask
         isOpen={showModal}
@@ -792,7 +801,8 @@ const Index = () => {
           }}
         />
       )}
-      </div>
+
+          </div>
 
       {/* Chat STEEB Permanente - ocupa todo el ancho y alto de la pantalla */}
       <div className="fixed top-32 left-0 right-0 bottom-0 z-40">

@@ -19,17 +19,19 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Altura predefinida: 50% de la pantalla para que el usuario vea el chat y el panel
-  const DEFAULT_HEIGHT = window.innerHeight * 0.5;
+  // Altura predefinida: 60% de la pantalla para el panel, dejando 40% para el chat
+  const DEFAULT_HEIGHT = window.innerHeight * 0.6;
 
+  
   // Efectos para manejar el drag con mouse y touch
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
 
       const newHeight = window.innerHeight - e.clientY;
-      const maxHeight = window.innerHeight; // Máximo 100% de la pantalla - llega hasta arriba
-      const minHeight = window.innerHeight * 0.2; // Mínimo 20% de la pantalla
+      const steebHeaderHeight = 120; // Altura ajustada del header STEEB para que choque pero no lo traspase
+      const maxHeight = window.innerHeight - steebHeaderHeight; // Choca con el div de STEEB
+      const minHeight = window.innerHeight * 0.3; // Mínimo 30% de la pantalla para dejar más espacio al chat
 
       setPanelHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
     };
@@ -39,8 +41,9 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
 
       const touch = e.touches[0];
       const newHeight = window.innerHeight - touch.clientY;
-      const maxHeight = window.innerHeight;
-      const minHeight = window.innerHeight * 0.2;
+      const steebHeaderHeight = 120; // Altura ajustada del header STEEB para que choque pero no lo traspase
+      const maxHeight = window.innerHeight - steebHeaderHeight; // Choca con el div de STEEB
+      const minHeight = window.innerHeight * 0.3; // Mínimo 30% de la pantalla para dejar más espacio al chat
 
       setPanelHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
     };
@@ -103,8 +106,8 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
 
   return (
     <>
-      {/* Overlay - desaparece cuando el panel está completamente arriba */}
-      {isOpen && panelHeight < window.innerHeight * 0.9 && (
+      {/* Overlay - desaparece cuando el panel choca con el header STEEB */}
+      {isOpen && panelHeight < (window.innerHeight - 120) && (
         <div
           className="fixed top-0 left-0 right-0 z-40"
           style={{
@@ -118,12 +121,13 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
       {/* Panel con altura dinámica y movimiento fluido */}
       {isOpen && (
         <div
-          className={`fixed left-0 right-0 z-50 ${
+          className={`fixed left-0 right-0 ${
             isDragging ? 'transition-none' : 'transition-all duration-300 ease-out'
           } ${isDarkMode ? 'bg-black text-white' : 'bg-white text-black'} ${
             isDragging ? 'cursor-ns-resize' : ''
           }`}
           style={{
+            zIndex: 45,
             bottom: 0,
             height: `${panelHeight}px`,
             borderTop: isDragging ? '2px solid #3B82F6' : 'none'
@@ -141,21 +145,12 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
             </div>
           )}
 
-          {/* Content con padding superior para el área de drag */}
-          <div className="h-full overflow-hidden pt-6">
+          {/* Content con padding superior reducido para acercar el título arriba */}
+          <div className="h-full overflow-hidden pt-2">
             {children}
           </div>
 
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
-              isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-            }`}
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+          </div>
       )}
     </>
   );

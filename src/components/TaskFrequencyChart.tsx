@@ -140,7 +140,7 @@ const TaskFrequencyChart: React.FC<TaskFrequencyChartProps> = ({ tasks, period, 
       case 'salud':
         return (
           <div className="w-6 h-6 relative">
-            <svg viewBox="0 0 24 24" className="w-full h-full" className="border-2 border-black dark:border-white">
+            <svg viewBox="0 0 24 24" className="w-full h-full border-2 border-black dark:border-white">
               <defs>
                 <pattern id={`heart-pattern-${index}`} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
                   {isShiny ? (
