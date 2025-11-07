@@ -4,6 +4,10 @@ import { useTaskStore } from '@/store/useTaskStore';
 import minimaxDirectService from '@/services/minimaxDirectService';
 import { dailySummaryService } from '@/services/dailySummaryService';
 import { useTheme } from '@/hooks/useTheme';
+import FixedPanelContainer from './FixedPanelContainer';
+import SimpleSideTasksPanel from './SimpleSideTasksPanel';
+import SimpleProgressPanel from './SimpleProgressPanel';
+import SimpleCalendarPanel from './SimpleCalendarPanel';
 
 interface ChatMessage {
   id: string;
@@ -17,6 +21,25 @@ interface ChatMessage {
 const SteebChatAI: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const { currentTheme } = useTheme();
+  const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
+
+  // Helper: get task context - moved to top to avoid hoisting issues
+  const getTaskContext = () => {
+    const pendingTasks = tasks.filter(task => !task.completed);
+    const completedToday = tasks.filter(task =>
+      task.completed &&
+      new Date(task.completedAt || task.createdAt).toDateString() === new Date().toDateString()
+    );
+
+    return {
+      pending: pendingTasks.length,
+      pendingList: pendingTasks.slice(0, 5).map(t => t.title),
+      allPendingTasks: pendingTasks.map(t => t.title),
+      completedToday: completedToday.length,
+      completedTodayList: completedToday.map(t => t.title),
+      hasTasks: tasks.length > 0
+    };
+  };
 
   // Respuestas predefinidas para mejor UX - PR #142
   const predefinedResponses: Record<string, string> = {
@@ -27,7 +50,16 @@ const SteebChatAI: React.FC = () => {
     'cómo estás': '¡Estoy listo para ayudarte! ¿Qué necesitamos hacer?',
     'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. ¡Escribe "tareas" para ver!',
     'tareas': 'Mostrando tus tareas pendientes... ¡Una de una! 🎯',
-    'progreso': 'Tu progreso es genial, sigue así, campeón.',
+    'progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'ver progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'mis estadísticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'estadísticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'métricas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'rendimiento': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'calendario': 'SPECIAL_COMMAND:OPEN_CALENDAR',
+    'ver calendario': 'SPECIAL_COMMAND:OPEN_CALENDAR',
+    'agenda': 'SPECIAL_COMMAND:OPEN_CALENDAR',
+    'mes': 'SPECIAL_COMMAND:OPEN_CALENDAR',
     'motírame': '¡Tú puedes! 💪 Cada tarea completada te acerca a tu meta.',
     'gracias': '¡De nada! Estoy aquí para ayudarte a lograr tus metas.',
     'adiós': '¡Hasta luego! Termina bien tus tareas.',
@@ -62,8 +94,9 @@ const SteebChatAI: React.FC = () => {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [showSideTasks, setShowSideTasks] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
 
   // Inicializar MINIMAX Direct Service al cargar
   useEffect(() => {
@@ -120,23 +153,6 @@ const SteebChatAI: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const getTaskContext = () => {
-    const pendingTasks = tasks.filter(task => !task.completed);
-    const completedToday = tasks.filter(task =>
-      task.completed &&
-      new Date(task.completedAt || task.createdAt).toDateString() === new Date().toDateString()
-    );
-
-    return {
-      pending: pendingTasks.length,
-      pendingList: pendingTasks.slice(0, 5).map(t => t.title),
-      allPendingTasks: pendingTasks.map(t => t.title),
-      completedToday: completedToday.length,
-      completedTodayList: completedToday.map(t => t.title),
-      hasTasks: tasks.length > 0
-    };
-  };
-
   const generateSteebPrompt = async (userMessage: string): Promise<string> => {
     const taskContext = getTaskContext();
     
@@ -161,18 +177,24 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
   const getPredefinedResponse = (message: string): string | null => {
     const normalizedMessage = message.toLowerCase().trim();
 
+    console.log('🔍 Debug - Mensaje normalizado:', `"${normalizedMessage}"`);
+    console.log('🔍 Debug - Respuestas disponibles:', Object.keys(predefinedResponses));
+
     // Buscar coincidencia exacta
     if (predefinedResponses[normalizedMessage]) {
+      console.log('✅ Debug - Coincidencia exacta encontrada:', normalizedMessage);
       return predefinedResponses[normalizedMessage];
     }
 
     // Buscar coincidencias parciales
     for (const [key, response] of Object.entries(predefinedResponses)) {
       if (normalizedMessage.includes(key) || key.includes(normalizedMessage)) {
+        console.log('✅ Debug - Coincidencia parcial encontrada:', key, '->', response);
         return response;
       }
     }
 
+    console.log('❌ Debug - No se encontró respuesta predefinida para:', normalizedMessage);
     return null;
   };
 
@@ -194,7 +216,44 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
 
     // Detectar respuestas predefinidas primero
     const predefinedResponse = getPredefinedResponse(message);
+    console.log('🔍 Debug - Mensaje:', message);
+    console.log('🔍 Debug - Respuesta predefinida:', predefinedResponse);
+
     if (predefinedResponse) {
+      // Manejar comando especial para abrir progreso
+      if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_PROGRESS') {
+        console.log('🚀 Debug - Abriendo panel de progreso...');
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: '📊 Mostrando tu panel de progreso...',
+          timestamp: new Date(),
+          category: 'general'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Abrir el panel de progreso
+        setShowProgress(true);
+        return;
+      }
+
+      // Manejar comando especial para abrir calendario
+      if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_CALENDAR') {
+        console.log('📅 Debug - Abriendo panel de calendario...');
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: '📅 Abriendo tu calendario mensual...',
+          timestamp: new Date(),
+          category: 'general'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Abrir el panel de calendario
+        setShowCalendar(true);
+        return;
+      }
+
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
@@ -203,6 +262,12 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         category: 'general'
       };
       setMessages(prev => [...prev, aiMessage]);
+
+      // Si es una solicitud de tareas, abrir el panel
+      if (message.toLowerCase().includes('tarea')) {
+        setShowSideTasks(true);
+      }
+
       return;
     }
 
@@ -454,39 +519,17 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             key={message.id}
             className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} ${shouldAddSpacing ? 'mb-4' : 'mb-1'}`}
           >
-            {/* Message Content with improved colors and avatars - PR #143 */}
+            {/* Message Content with improved colors - PR #143 */}
             <div className={`flex items-end space-x-2 max-w-[85%] ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}>
-              {/* Avatar */}
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                message.role === 'assistant'
-                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-                  : 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white'
-              }`}>
-                {message.role === 'assistant' ? (
-                  <Bot className="w-4 h-4" />
-                ) : (
-                  <User className="w-4 h-4" />
-                )}
-              </div>
-
               {/* Message bubble */}
               <div
                 className={`px-4 py-3 rounded-2xl relative group ${
                   message.role === 'assistant'
-                    ? 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-black dark:text-white border border-gray-200 dark:border-gray-700 shadow-sm'
-                    : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md'
+                    ? 'bg-white text-black border-2 border-gray-300 shadow-md'
+                    : 'bg-gray-300 text-black shadow-md border-2 border-gray-300'
                 }`}
               >
-                {/* Message category indicator */}
-                {message.role === 'assistant' && message.category && (
-                  <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${
-                    message.category === 'task' ? 'bg-green-400' :
-                    message.category === 'productivity' ? 'bg-blue-400' :
-                    message.category === 'motivation' ? 'bg-yellow-400' :
-                    'bg-purple-400'
-                  }`} />
-                )}
-
+  
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
                   {message.content}
                 </p>
@@ -520,21 +563,11 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         {isTyping && (
           <div className="flex justify-start mb-4">
             <div className="flex items-end space-x-2">
-              {/* Steeb Avatar */}
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center">
-                <Bot className="w-4 h-4" />
-              </div>
-
-              {/* Typing bubble */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-black dark:text-white px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                  </div>
-                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-                </div>
+              {/* Typing animation only - no bubble */}
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>
@@ -543,131 +576,23 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             <div ref={messagesEndRef} />
         </div>
 
-        {/* Side Tasks Panel */}
-        {showSideTasks && (
-          <div className="h-96 bg-white dark:bg-black flex flex-col border-t-4 border-black dark:border-white">
-            {/* Header */}
-            <div className="p-4 border-b-2 border-black dark:border-white flex items-center justify-center relative">
-              <h2 className="text-2xl font-black text-black dark:text-white">Tareas</h2>
-              <button
-                onClick={() => setShowSideTasks(false)}
-                className="absolute right-4 p-1 hover:opacity-70 transition-opacity bg-transparent border-0"
-              >
-                <X className="w-5 h-5 text-black dark:text-white" />
-              </button>
-            </div>
+        {/* Side Tasks Panel - Altura predefinida */}
+        <FixedPanelContainer isOpen={showSideTasks} onClose={() => setShowSideTasks(false)}>
+          <SimpleSideTasksPanel onClose={() => setShowSideTasks(false)} />
+        </FixedPanelContainer>
 
-            {/* Tasks List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {tasks.filter(t => !t.completed).length > 0 && (
-                <>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase">
-                    {tasks.filter(t => !t.completed).length} pendiente{tasks.filter(t => !t.completed).length !== 1 ? 's' : ''}
-                  </p>
-                </>
-              )}
-              {tasks.filter(t => !t.completed).map((task) => (
-                    <div
-                      key={task.id}
-                      className="group p-4 bg-white dark:bg-gray-950 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all hover:shadow-md"
-                      style={{ borderLeft: '4px solid black' }}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="text-base font-semibold text-black dark:text-white break-words leading-tight">
-                            {task.title}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 uppercase tracking-wider">
-                            {task.category || 'Sin categoría'}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2 ml-3">
-                          <button
-                            onClick={async (e) => {
-                              if (!task) return;
+        {/* Progress Panel - Altura predefinida */}
+        <FixedPanelContainer isOpen={showProgress} onClose={() => setShowProgress(false)}>
+          <SimpleProgressPanel onClose={() => setShowProgress(false)} />
+        </FixedPanelContainer>
 
-                              try {
-                                // Deshabilitar botón temporalmente para evitar múltiples clicks
-                                const button = e.currentTarget as HTMLButtonElement;
-                                const originalBg = button.style.backgroundColor;
-                                button.disabled = true;
-                                button.style.opacity = '0.5';
-
-                                await toggleTask(task.id);
-
-                                // Feedback visual exitoso
-                                button.style.backgroundColor = '#10b981';
-                                setTimeout(() => {
-                                  button.style.opacity = '1';
-                                  button.style.backgroundColor = originalBg;
-                                  button.disabled = false;
-                                }, 300);
-
-                              } catch (error) {
-                                console.error('❌ Error al completar tarea:', error);
-
-                                // Feedback visual de error
-                                const button = e.currentTarget as HTMLButtonElement;
-                                button.style.backgroundColor = '#ef4444';
-                                button.disabled = false;
-                                button.style.opacity = '1';
-
-                                // Mostrar mensaje amigable al usuario (solo si es un error real)
-                                setTimeout(() => {
-                                  button.style.backgroundColor = '';
-                                }, 1500);
-                              }
-                            }}
-                            className="flex-shrink-0 w-5 h-5 rounded-full bg-white hover:bg-white transition-all duration-200"
-                            style={{ border: '2px solid black' }}
-                            title="Completar tarea"
-                          >
-                          </button>
-                          <button
-                            onClick={async (e) => {
-                              if (!task) return;
-
-                              try {
-                                const confirmMessage = `¿Estás seguro de que querés eliminar "${task.title}"?`;
-                                if (!window.confirm(confirmMessage)) return;
-
-                                // Deshabilitar botón temporalmente
-                                const button = e.currentTarget as HTMLButtonElement;
-                                button.disabled = true;
-                                button.style.opacity = '0.5';
-
-                                await deleteTask(task.id);
-                                console.log(`✅ Tarea eliminada exitosamente: ${task.title}`);
-
-                              } catch (error) {
-                                console.error('❌ Error al eliminar tarea:', error);
-
-                                // Feedback visual de error
-                                const button = e.currentTarget as HTMLButtonElement;
-                                button.style.backgroundColor = '#dc2626';
-                                button.disabled = false;
-                                button.style.opacity = '1';
-
-                                setTimeout(() => {
-                                  button.style.backgroundColor = '';
-                                }, 1500);
-                              }
-                            }}
-                            className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 hover:bg-red-200 transition-all duration-200 flex items-center justify-center group/delete"
-                            title="Eliminar tarea"
-                          >
-                            <Trash2 className="w-3 h-3 text-red-600 group-hover/delete:text-red-800" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Calendar Panel - Altura predefinida */}
+        <FixedPanelContainer isOpen={showCalendar} onClose={() => setShowCalendar(false)}>
+          <SimpleCalendarPanel onClose={() => setShowCalendar(false)} />
+        </FixedPanelContainer>
 
         {/* Enhanced Input Area with improved colors */}
-        <div className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-4">
+        <div className="bg-gray-100 dark:bg-gray-900 backdrop-blur-sm p-4">
           <div className="flex items-end space-x-3">
             <div className="flex-1 relative">
               <input
@@ -676,7 +601,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Habla con Steeb..."
-                className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-700 rounded-2xl text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200"
+                className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-900 border-0 rounded-2xl text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-2 focus:!border-gray-300 dark:!focus:border-gray-500 transition-all duration-200"
               />
 
               {/* Character count indicator */}
@@ -694,24 +619,13 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             <button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isTyping}
-              className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl border-2 border-purple-300 dark:border-purple-700"
+              className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 border-gray-300"
             >
-              <ArrowUp className="w-4 h-4" />
+              <ArrowUp className="w-4 h-4 text-black" />
             </button>
           </div>
 
-          {/* Quick actions suggestions */}
-          <div className="mt-2 flex flex-wrap gap-2">
-            {['hola', 'tareas', 'ayuda', 'motírame'].map((suggestion) => (
-              <button
-                key={suggestion}
-                onClick={() => setInputMessage(suggestion)}
-                className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
+
         </div>
       </div>
     </div>
