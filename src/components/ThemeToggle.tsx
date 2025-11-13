@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { useUserCredits } from "@/hooks/useUserCredits";
 import { Switch } from "@/components/ui/switch";
@@ -19,9 +19,109 @@ const ThemeToggle = () => {
 		return false;
 	});
 
+	// Estados para el deslizamiento
+	const [isDragging, setIsDragging] = useState(false);
+	const [dragStartX, setDragStartX] = useState(0);
+	const [currentX, setCurrentX] = useState(0);
+	const sliderRef = useRef(null);
+
 	useEffect(() => {
 		setMounted(true);
 	}, []);
+
+	// Función para determinar posición basada en coordenada X
+	const getPositionFromX = (x) => {
+		if (!sliderRef.current) return currentTheme;
+
+		const rect = sliderRef.current.getBoundingClientRect();
+		const relativeX = x - rect.left;
+		const percentage = Math.max(0, Math.min(1, relativeX / rect.width));
+
+		console.log('getPositionFromX - relativeX:', relativeX, 'percentage:', percentage);
+
+		if (percentage < 0.33) return "light";
+		if (percentage < 0.66) return "shiny";
+		return "dark";
+	};
+
+	// Función para obtener coordenada X de posición
+	const getXFromPosition = (position) => {
+		if (!sliderRef.current) return 0;
+
+		const rect = sliderRef.current.getBoundingClientRect();
+
+		switch (position) {
+			case "light": return rect.width * 0.166;
+			case "shiny": return rect.width * 0.5;
+			case "dark": return rect.width * 0.833;
+			default: return rect.width * 0.166;
+		}
+	};
+
+	// Click directo para cambiar de tema
+	const handleClick = (e) => {
+		e.preventDefault();
+		const newPosition = getPositionFromX(e.clientX);
+		toggleTheme(newPosition);
+	};
+
+	// Mouse event handlers
+	const handleMouseDown = (e) => {
+		e.preventDefault();
+		e.stopPropagation(); // Evitar que se dispare el handleClick
+		console.log('Mouse DOWN - clienteX:', e.clientX);
+
+		setIsDragging(true);
+		setDragStartX(e.clientX);
+		setCurrentX(e.clientX);
+
+		const handleMouseMove = (moveEvent) => {
+			setCurrentX(moveEvent.clientX);
+		};
+
+		const handleMouseUp = (moveEvent) => {
+			console.log('Mouse UP - clienteX:', moveEvent.clientX, 'isDragging:', isDragging);
+			if (isDragging) {
+				const newPosition = getPositionFromX(moveEvent.clientX);
+				console.log('New position:', newPosition);
+				toggleTheme(newPosition);
+			}
+			setIsDragging(false);
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+		};
+
+		document.addEventListener('mousemove', handleMouseMove);
+		document.addEventListener('mouseup', handleMouseUp);
+	};
+
+	// Touch event handlers
+	const handleTouchStart = (e) => {
+		e.preventDefault();
+		const touch = e.touches[0];
+		setIsDragging(true);
+		setDragStartX(touch.clientX);
+		setCurrentX(touch.clientX);
+
+		const handleTouchMove = (moveEvent) => {
+			const touch = moveEvent.touches[0];
+			setCurrentX(touch.clientX);
+		};
+
+		const handleTouchEnd = () => {
+			if (isDragging) {
+				const newPosition = getPositionFromX(currentX);
+				toggleTheme(newPosition);
+			}
+			setIsDragging(false);
+		};
+
+		const element = sliderRef.current;
+		if (element) {
+			element.addEventListener('touchmove', handleTouchMove);
+			element.addEventListener('touchend', handleTouchEnd);
+		}
+	};
 
 	if (!mounted) return null;
 
@@ -29,17 +129,36 @@ const ThemeToggle = () => {
 	const isShiny = currentTheme === "shiny";
 
 	return (
-		<div className="fixed top-6 right-4 z-[60] flex gap-2">
-			{/* Switch normal para light/dark - al costado de STEEB */}
-			<Switch
-				className={`scale-125 origin-top-right [&>span]:bg-black [&>span[data-state="checked"]]:bg-black border-2 border-white [&>span[data-state="checked"]]:border-white bg-white [&>span]:border-white data-[state="checked"]:bg-white`}
-				checked={isDark}
-			onCheckedChange={(checked) => {
-				// Cambiar directamente entre light y dark
-				toggleTheme(checked ? "dark" : "light");
-			}}
+		<div className="fixed top-8 right-4 z-[60]">
+			{/* Switch de 3 posiciones deslizable: left=white, middle=shiny, right=black */}
+			<div
+				ref={sliderRef}
+				className={`relative w-16 h-8 rounded-full border-2 border-white transition-all duration-200 cursor-pointer select-none ${
+					currentTheme === "light"
+						? 'bg-white'
+						: currentTheme === "shiny"
+							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500'
+							: 'bg-black'
+				}`}
+				onClick={handleClick}
+				onMouseDown={handleMouseDown}
+				onTouchStart={handleTouchStart}
 				aria-label="Toggle theme"
-			/>
+			>
+				
+				{/* Marcadores de posición */}
+				<div className="absolute inset-0 flex items-center justify-between px-1.5 pointer-events-none z-20">
+					<div className={`${currentTheme === "light" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
+						currentTheme === "light" ? 'bg-black' : 'bg-gray-400'
+					} shadow-sm`} />
+					<div className={`${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
+						currentTheme === "shiny" ? 'bg-white' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
+					} shadow-sm`} />
+					<div className={`${currentTheme === "dark" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
+						currentTheme === "dark" ? 'bg-gray-100 border border-gray-300' : 'bg-gray-400'
+					} shadow-md`} />
+				</div>
+			</div>
 
 			{/* Indicador de versión DARK */}
 			{userCredits.hasDarkVersion && (
@@ -49,32 +168,11 @@ const ThemeToggle = () => {
 				</div>
 			)}
 
-			{/* Botón para tema Shiny (solo visible si está desbloqueado) */}
-			{shinyUnlocked && (
-				<button
-					onClick={() => toggleTheme('shiny')}
-					className={`w-12 h-6 rounded-full border-2 transition-all duration-200 ${
-						isShiny
-							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 border-white shadow-lg'
-							: 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-purple-400'
-					}`}
-					aria-label="Activar tema Shiny"
-					title="Tema Shiny desbloqueado ✨"
-				>
-					<div className={`w-4 h-4 rounded-full transition-transform duration-200 ${
-						isShiny
-							? 'bg-white transform translate-x-6 shadow-md'
-							: 'bg-white transform translate-x-0'
-					}`} />
-				</button>
-			)}
-			
 			{/* Modal del juego de adivinanza */}
 			<ShinyGreetingModal
 				open={showGame}
 				onOpenChange={setShowGame}
 				onWin={() => {
-					// Al ganar, desbloquear Shiny y cambiar al tema dark
 					setShinyUnlocked(true);
 					localStorage.setItem('stebe-shiny-unlocked', 'true');
 					toggleTheme('dark');

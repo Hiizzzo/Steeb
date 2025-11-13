@@ -6,21 +6,31 @@ interface FixedPanelContainerProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  onHeightChange?: (height: number) => void;
 }
 
 const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
   isOpen,
   onClose,
-  children
+  children,
+  onHeightChange
 }) => {
   const { currentTheme } = useTheme();
   const isDarkMode = currentTheme === 'dark';
   const [panelHeight, setPanelHeight] = useState(window.innerHeight * 0.5);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMultiTaskMode, setIsMultiTaskMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Altura predefinida: 60% de la pantalla para el panel, dejando 40% para el chat
   const DEFAULT_HEIGHT = window.innerHeight * 0.6;
+
+  // Notificar al componente padre cuando cambia la altura del panel
+  useEffect(() => {
+    if (onHeightChange && isOpen) {
+      onHeightChange(panelHeight);
+    }
+  }, [panelHeight, isOpen, onHeightChange]);
 
   
   // Efectos para manejar el drag con mouse y touch
@@ -31,9 +41,17 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
       const newHeight = window.innerHeight - e.clientY;
       const steebHeaderHeight = 120; // Altura ajustada del header STEEB para que choque pero no lo traspase
       const maxHeight = window.innerHeight - steebHeaderHeight; // Choca con el div de STEEB
-      const minHeight = window.innerHeight * 0.3; // Mínimo 30% de la pantalla para dejar más espacio al chat
+      const minHeight = 400; // Mínimo 400px desde el fondo de la pantalla
 
-      setPanelHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
+      const finalHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+      setPanelHeight(finalHeight);
+
+      // Detectar si el panel toca el techo para activar modo multitarea
+      if (finalHeight >= maxHeight - 5) { // 5px de tolerancia
+        setIsMultiTaskMode(true);
+      } else {
+        setIsMultiTaskMode(false);
+      }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -43,9 +61,17 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
       const newHeight = window.innerHeight - touch.clientY;
       const steebHeaderHeight = 120; // Altura ajustada del header STEEB para que choque pero no lo traspase
       const maxHeight = window.innerHeight - steebHeaderHeight; // Choca con el div de STEEB
-      const minHeight = window.innerHeight * 0.3; // Mínimo 30% de la pantalla para dejar más espacio al chat
+      const minHeight = 400; // Mínimo 400px desde el fondo de la pantalla
 
-      setPanelHeight(Math.max(minHeight, Math.min(maxHeight, newHeight)));
+      const finalHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+      setPanelHeight(finalHeight);
+
+      // Detectar si el panel toca el techo para activar modo multitarea
+      if (finalHeight >= maxHeight - 5) { // 5px de tolerancia
+        setIsMultiTaskMode(true);
+      } else {
+        setIsMultiTaskMode(false);
+      }
     };
 
     const handleEnd = () => {
@@ -55,8 +81,8 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleEnd);
-      document.addEventListener('touchmove', handleTouchMove);
-      document.addEventListener('touchend', handleEnd);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleEnd, { passive: false });
       document.body.style.cursor = 'ns-resize';
       document.body.style.userSelect = 'none';
       document.body.style.webkitUserSelect = 'none';
@@ -77,20 +103,30 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
+    // Si está en modo multitarea, restablecer altura normal al empezar a arrastrar
+    if (isMultiTaskMode) {
+      setPanelHeight(window.innerHeight * 0.6); // Empezar desde 60%
+      setIsMultiTaskMode(false);
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
+    // No usar preventDefault() aquí para evitar el error de passive event listener
     e.stopPropagation();
     setIsDragging(true);
+    // Si está en modo multitarea, restablecer altura normal al empezar a arrastrar
+    if (isMultiTaskMode) {
+      setPanelHeight(window.innerHeight * 0.6); // Empezar desde 60%
+      setIsMultiTaskMode(false);
+    }
   };
 
   // Manejadores para el área completa del panel
   const handlePanelMouseDown = (e: React.MouseEvent) => {
-    // Solo iniciar drag si se hace click en la parte superior (primeros 50px)
+    // Solo iniciar drag si se hace click en la parte superior (primeros 80px)
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
-    if (clickY <= 50) {
+    if (clickY <= 80) {
       handleMouseDown(e);
     }
   };
@@ -99,24 +135,16 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
     const rect = e.currentTarget.getBoundingClientRect();
     const touch = e.touches[0];
     const touchY = touch.clientY - rect.top;
-    if (touchY <= 50) {
-      handleTouchStart(e);
+    if (touchY <= 80) {
+      // No usar preventDefault() aquí para evitar el error de passive event listener
+      e.stopPropagation();
+      setIsDragging(true);
     }
   };
 
   return (
     <>
-      {/* Overlay - desaparece cuando el panel choca con el header STEEB */}
-      {isOpen && panelHeight < (window.innerHeight - 120) && (
-        <div
-          className="fixed top-0 left-0 right-0 z-40"
-          style={{
-            height: `calc(100vh - ${panelHeight}px)`,
-            backgroundColor: 'rgba(0, 0, 0, 0.05)'
-          }}
-          onClick={onClose}
-        />
-      )}
+      {/* Overlay eliminado para permitir chat mientras los paneles están abiertos */}
 
       {/* Panel con altura dinámica y movimiento fluido */}
       {isOpen && (
@@ -127,26 +155,53 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
             isDragging ? 'cursor-ns-resize' : ''
           }`}
           style={{
-            zIndex: 45,
+            zIndex: 30, // Z-index bajo para que el chat siempre quede por encima
             bottom: 0,
-            height: `${panelHeight}px`,
-            borderTop: isDragging ? '2px solid #3B82F6' : 'none'
+            height: isMultiTaskMode ? `${window.innerHeight * 0.6}px` : `${panelHeight}px`, // 60% fijo en modo multitarea
+            borderTop: isDragging ? '2px solid #6B7280' : isMultiTaskMode ? '2px solid #6B7280' : 'none',
+            touchAction: isDragging ? 'none' : 'pan-y',
+            pointerEvents: isMultiTaskMode ? 'auto' : 'auto' // Siempre interactuable
           }}
           ref={containerRef}
           onMouseDown={handlePanelMouseDown}
           onTouchStart={handlePanelTouchStart}
         >
+          {/* Botón de cerrar */}
+          <button
+            onClick={onClose}
+            className={`absolute top-3 left-3 z-50 p-1 transition-colors border-0 outline-none focus:outline-none focus:border-none ${
+              isDarkMode
+                ? 'text-white'
+                : 'text-black'
+            }`}
+            style={{
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none',
+              background: 'transparent'
+            }}
+            title="Cerrar panel"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
           {/* Indicador sutil en la parte superior */}
           {!isDragging && (
             <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
-              <div className={`w-8 h-0.5 rounded-full opacity-30 ${
-                isDarkMode ? 'bg-gray-600' : 'bg-gray-400'
-              }`}></div>
+              {isMultiTaskMode ? (
+                <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500 text-white text-xs">
+                  <span>Modo multitarea</span>
+                </div>
+              ) : (
+                <div className={`w-8 h-0.5 rounded-full opacity-30 ${
+                  isDarkMode ? 'bg-gray-600' : 'bg-gray-400'
+                }`}></div>
+              )}
             </div>
           )}
 
-          {/* Content con padding superior reducido para acercar el título arriba */}
-          <div className="h-full overflow-hidden pt-2">
+          {/* Content con padding mínimo para maximizar espacio vertical */}
+          <div className="h-full overflow-hidden pt-1">
             {children}
           </div>
 

@@ -21,6 +21,7 @@ interface ChatMessage {
 const SteebChatAI: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const { currentTheme } = useTheme();
+  const isDarkMode = currentTheme === 'dark';
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
 
   // Helper: get task context - moved to top to avoid hoisting issues
@@ -48,7 +49,7 @@ const SteebChatAI: React.FC = () => {
     'buenas tardes': '¡Buenas tardes! ¿Cómo va tu productividad hoy?',
     'buenas noches': '¡Buenas noches! 🌙 Terminemos el día fuerte.',
     'cómo estás': '¡Estoy listo para ayudarte! ¿Qué necesitamos hacer?',
-    'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. ¡Escribe "tareas" para ver!',
+    'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. ¡Escribe "tareas" para ver! Los paneles de progreso y calendario se abren sin mensajes.',
     'tareas': 'Mostrando tus tareas pendientes... ¡Una de una! 🎯',
     'progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'ver progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
@@ -96,6 +97,7 @@ const SteebChatAI: React.FC = () => {
   const [showSideTasks, setShowSideTasks] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [panelHeight, setPanelHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Inicializar MINIMAX Direct Service al cargar
@@ -153,6 +155,36 @@ const SteebChatAI: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Manejar cambios de altura del panel
+  const handlePanelHeightChange = (height: number) => {
+    setPanelHeight(height);
+
+    // Si el panel ocupa más del 85% de la pantalla, el chat casi no se ve
+    const screenHeight = window.innerHeight;
+    const threshold = screenHeight * 0.85;
+
+    // Scroll al fondo con un pequeño delay para que la transición se complete
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+  };
+
+  // Resetear altura del panel cuando se cierra
+  useEffect(() => {
+    if (!showSideTasks && !showProgress && !showCalendar) {
+      setPanelHeight(0);
+    }
+  }, [showSideTasks, showProgress, showCalendar]);
+
+  // Scroll al fondo cuando se abre/cierra un panel para ajustar la vista
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 300); // Pequeño delay para que la transición del panel se complete
+
+    return () => clearTimeout(timer);
+  }, [showSideTasks, showProgress, showCalendar]);
+
   const generateSteebPrompt = async (userMessage: string): Promise<string> => {
     const taskContext = getTaskContext();
     
@@ -204,7 +236,30 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
     const message = inputMessage.trim();
     setInputMessage('');
 
-    // Add user message
+    // Detectar si es un comando de panel ANTES de agregar mensaje de usuario
+    const predefinedResponse = getPredefinedResponse(message);
+
+    // Comandos que abren paneles - manejarlos silenciosamente
+    if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_PROGRESS') {
+      console.log('🚀 Abriendo panel de progreso sin mensajes...');
+      setShowProgress(true);
+      return;
+    }
+
+    if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_CALENDAR') {
+      console.log('📅 Abriendo panel de calendario sin mensajes...');
+      setShowCalendar(true);
+      return;
+    }
+
+    // Comando de tareas - manejarlo silenciosamente
+    if (message.trim().toUpperCase() === 'TAREAS' || message.toLowerCase().includes('tarea')) {
+      console.log('📋 Abriendo panel de tareas sin mensajes...');
+      setShowSideTasks(true);
+      return;
+    }
+
+    // Add user message (solo para mensajes que no son comandos de paneles)
     const userMessage: ChatMessage = {
       id: `msg_${Date.now()}`,
       role: 'user',
@@ -214,72 +269,15 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
 
     setMessages(prev => [...prev, userMessage]);
 
-    // Detectar respuestas predefinidas primero
-    const predefinedResponse = getPredefinedResponse(message);
-    console.log('🔍 Debug - Mensaje:', message);
-    console.log('🔍 Debug - Respuesta predefinida:', predefinedResponse);
-
-    if (predefinedResponse) {
-      // Manejar comando especial para abrir progreso
-      if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_PROGRESS') {
-        console.log('🚀 Debug - Abriendo panel de progreso...');
-        const aiMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: '📊 Mostrando tu panel de progreso...',
-          timestamp: new Date(),
-          category: 'general'
-        };
-        setMessages(prev => [...prev, aiMessage]);
-
-        // Abrir el panel de progreso
-        setShowProgress(true);
-        return;
-      }
-
-      // Manejar comando especial para abrir calendario
-      if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_CALENDAR') {
-        console.log('📅 Debug - Abriendo panel de calendario...');
-        const aiMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: '📅 Abriendo tu calendario mensual...',
-          timestamp: new Date(),
-          category: 'general'
-        };
-        setMessages(prev => [...prev, aiMessage]);
-
-        // Abrir el panel de calendario
-        setShowCalendar(true);
-        return;
-      }
-
+    // Ya detectamos respuestas predefinidas arriba, pero ya excluimos los comandos de paneles
+    // Si llegamos aquí, es porque no es un comando de panel, pero puede tener respuesta predefinida
+    if (predefinedResponse && predefinedResponse !== 'SPECIAL_COMMAND:OPEN_PROGRESS' && predefinedResponse !== 'SPECIAL_COMMAND:OPEN_CALENDAR') {
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
         content: predefinedResponse,
         timestamp: new Date(),
         category: 'general'
-      };
-      setMessages(prev => [...prev, aiMessage]);
-
-      // Si es una solicitud de tareas, abrir el panel
-      if (message.toLowerCase().includes('tarea')) {
-        setShowSideTasks(true);
-      }
-
-      return;
-    }
-
-    // Detectar comando especial "TAREAS"
-    if (message.trim().toUpperCase() === 'TAREAS') {
-      setShowSideTasks(true);
-      const aiMessage: ChatMessage = {
-        id: `msg_${Date.now() + 1}`,
-        role: 'assistant',
-        content: `🎯 Mostrando tus tareas pendientes`,
-        timestamp: new Date(),
-        category: 'task'
       };
       setMessages(prev => [...prev, aiMessage]);
       return;
@@ -441,7 +439,27 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
     }
 
     if (message.includes('plan') || message.includes('organizar')) {
+      // Abrir panel de tareas y cerrar otros paneles
+      setShowSideTasks(true);
+      setShowCalendar(false);
+      setShowProgress(false);
       return `Tu plan es simple: ${taskContext.pending > 0 ? `1) Completar ${taskContext.pending} tareas pendientes` : '1) Agregar nuevas metas'}, 2) Celebrar cada victoria, 3) Repetir mañana. ¿Necesitas más detalles?`;
+    }
+
+    if (message.includes('calendario') || message.includes('calendario')) {
+      // Abrir panel de calendario y cerrar otros paneles
+      setShowCalendar(true);
+      setShowSideTasks(false);
+      setShowProgress(false);
+      return 'Aquí está tu calendario. Planificá tu semana como un campeón. Sin excusas.';
+    }
+
+    if (message.includes('progreso') || message.includes('estadísticas') || message.includes('gráfico')) {
+      // Abrir panel de progreso y cerrar otros paneles
+      setShowProgress(true);
+      setShowSideTasks(false);
+      setShowCalendar(false);
+      return 'Tus estadísticas de productividad. Mirá lo que podés lograr cuando dejás de procrastinar.';
     }
 
     if (message.includes('tiempo') || message.includes('cuánto')) {
@@ -472,11 +490,25 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
     const taskContext = getTaskContext();
 
     if (message.includes('tarea') || message.includes('tareas')) {
+      // Abrir panel de tareas sin cerrar otros paneles
+      setShowSideTasks(true);
       if (taskContext.pending > 0) {
         return `Tenés ${taskContext.pending} tareas pendientes. Elegí una y empezá ahora. No pienses, hacé.`;
       } else {
         return '¡Excelente! Sin tareas pendientes. Agregá un nuevo desafío o disfruta tu productividad.';
       }
+    }
+
+    if (message.includes('calendario') || message.includes('calendario')) {
+      // Abrir panel de calendario sin cerrar otros paneles
+      setShowCalendar(true);
+      return 'Aquí está tu calendario. Planificá tu semana como un campeón. Sin excusas.';
+    }
+
+    if (message.includes('progreso') || message.includes('estadísticas') || message.includes('gráfico')) {
+      // Abrir panel de progreso sin cerrar otros paneles
+      setShowProgress(true);
+      return 'Tus estadísticas de productividad. Mirá lo que podés lograr cuando dejás de procrastinar.';
     }
 
     if (message.includes('procrastinar') || message.includes('postergar')) {
@@ -505,11 +537,27 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
   };
 
   return (
-    <div className="flex h-full bg-white dark:bg-black flex-col">
+    <>
+      <style jsx>{`
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+      `}</style>
+      <div className={`flex h-full ${isDarkMode ? 'bg-black' : 'bg-white'} flex-col`}>
       {/* Main Content - Chat + Side Tasks */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div
+          className="overflow-y-auto p-4 transition-all duration-300 absolute left-0 right-0"
+          style={{
+            zIndex: 100,
+            top: '0px',
+            bottom: panelHeight > 0
+              ? `${panelHeight + 60}px` // Dejar 60px para input + espacio del panel
+              : '60px' // Dejar 60px para input cuando no hay panel
+          }}
+        >
         {messages.map((message, index) => {
           const nextMessage = messages[index + 1];
           const shouldAddSpacing = !nextMessage || nextMessage.role !== message.role;
@@ -525,12 +573,12 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
               <div
                 className={`px-4 py-3 rounded-2xl relative group ${
                   message.role === 'assistant'
-                    ? 'bg-white text-black border-2 border-gray-300 shadow-md'
-                    : 'bg-gray-300 text-black shadow-md border-2 border-gray-300'
+                    ? `bg-white text-black border-2 border-gray-300 shadow-md ${isDarkMode ? 'border-white' : ''}`
+                    : `${isDarkMode ? 'bg-gray-400 border-gray-400' : 'bg-gray-300 border-gray-300'} text-black shadow-md border-2`
                 }`}
               >
   
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-black dark:text-white">
                   {message.content}
                 </p>
 
@@ -551,7 +599,13 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
 
                 {/* Hover effect for assistant messages */}
                 {message.role === 'assistant' && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  <div className={`absolute rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 transition-opacity duration-200 ${
+                    isDarkMode
+                      ? 'inset-[-2px] border-4 border-red !opacity-100 z-10'
+                      : 'inset-0 opacity-0 group-hover:opacity-100'
+                  }`}
+                  onClick={() => console.log('isDarkMode:', isDarkMode)}
+                  />
                 )}
               </div>
             </div>
@@ -580,6 +634,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         <FixedPanelContainer
           isOpen={showSideTasks}
           onClose={() => setShowSideTasks(false)}
+          onHeightChange={handlePanelHeightChange}
                   >
           <SimpleSideTasksPanel onClose={() => setShowSideTasks(false)} />
         </FixedPanelContainer>
@@ -588,6 +643,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         <FixedPanelContainer
           isOpen={showProgress}
           onClose={() => setShowProgress(false)}
+          onHeightChange={handlePanelHeightChange}
                   >
           <SimpleProgressPanel onClose={() => setShowProgress(false)} />
         </FixedPanelContainer>
@@ -596,22 +652,39 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         <FixedPanelContainer
           isOpen={showCalendar}
           onClose={() => setShowCalendar(false)}
+          onHeightChange={handlePanelHeightChange}
                   >
           <SimpleCalendarPanel onClose={() => setShowCalendar(false)} />
         </FixedPanelContainer>
 
-        {/* Enhanced Input Area with improved colors */}
-        <div className="bg-gray-100 dark:bg-gray-900 backdrop-blur-sm p-4">
-          <div className="flex items-end space-x-3">
+        {/* Enhanced Input Area with improved colors - Positionado arriba de los paneles */}
+        <div className="bg-gray-100 dark:bg-black dark:border-t-2 dark:border-white backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0" style={{
+          zIndex: 100,
+          bottom: panelHeight > 0 ? `${panelHeight}px` : '0px'
+        }}>
+          <div className="flex items-end space-x-2">
             <div className="flex-1 relative">
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Habla con Steeb..."
-                className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-900 border-0 rounded-2xl text-sm text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-2 focus:!border-gray-300 dark:!focus:border-gray-500 transition-all duration-200"
+                placeholder=""
+                className={`w-full py-2 pr-10 bg-white dark:bg-black border border-gray-300 rounded-xl text-sm leading-relaxed text-black dark:text-white focus:outline-none focus:border-2 focus:!border-white dark:!focus:border-gray-500 focus:shadow-lg transition-all duration-200 shadow-sm ${
+                  inputMessage ? 'pl-3' : 'pl-10'
+                }`}
               />
+              {/* Cursor clásico parpadeante */}
+              {!inputMessage && (
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                  <div
+                    className="w-0.5 h-4 bg-black dark:bg-white"
+                    style={{
+                      animation: 'blink 1s step-end infinite'
+                    }}
+                  ></div>
+                </div>
+              )}
 
               {/* Character count indicator */}
               {inputMessage.length > 0 && (
@@ -628,7 +701,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             <button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isTyping}
-              className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 border-gray-300"
+              className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 border-white"
             >
               <ArrowUp className="w-4 h-4 text-black" />
             </button>
@@ -638,6 +711,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -90,7 +90,7 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
       <div className="flex-1 overflow-y-auto p-3 pt-12">
         {pendingTasks.length > 0 ? (
           <>
-              <div className="space-y-2">
+              <div className="space-y-0">
               {pendingTasks.map((task) => {
                 const isTaskDeleting = isDeleting[task.id] || false;
 
@@ -106,18 +106,23 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                     </div>
 
                     <div
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 mb-6 ${
                         isTaskDeleting
                           ? 'bg-black dark:bg-white animate-pulse'
                           : isDarkMode ? 'bg-gray-900 border border-white' : 'bg-gray-50 border border-white'
                       }`}
                       style={{
                         borderLeft: '3px solid black',
-                        transform: `translate3d(-${rowOffsetById[task.id] || 0}px,0,0)`,
+                        transform: `translateX(-${rowOffsetById[task.id] || 0}px)`,
                         transition: activeIdRef.current === task.id ? 'none' : 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                         touchAction: 'pan-y',
                         userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
-                        willChange: 'transform',
+                        // Optimización para calidad de texto - simplificada
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale',
+                        textRendering: 'optimizeLegibility',
+                        // Margen adicional para separación
+                        marginTop: '24px',
                       }}
                       onPointerDown={onRowPointerDown(task.id)}
                       onPointerMove={onRowPointerMove(task.id)}
@@ -126,7 +131,7 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                       onContextMenu={(e) => e.preventDefault()}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-semibold break-words leading-tight ${
+                        <p className={`text-sm font-bold break-words leading-tight ${
                           isTaskDeleting
                             ? 'text-white dark:text-black'
                             : ''

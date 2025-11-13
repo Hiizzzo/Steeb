@@ -53,7 +53,13 @@
       "WebFetch(domain:github.com)",
       "Bash(gh pr create:*)",
       "Bash(gh repo view:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Skill(steeb-task-debugger)",
+      "Bash(echo:*)",
+      "Skill(steeb-web-issues-fixer)",
+      "Bash(npx tsc --noEmit --checkJs false:*)",
+      "Bash(npx tsc:*)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []

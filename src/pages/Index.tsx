@@ -687,7 +687,7 @@ const Index = () => {
           <div className="flex items-center justify-center flex-1 px-4 w-full">
             {/* ÍCONO STEEB - IZQUIERDA */}
             <div className="w-32 h-32 mr-1 flex items-center justify-center flex-shrink-0">
-              <img src="/lovable-uploads/steeboriginal.png" alt="Steeb" className="w-full h-full object-contain rounded-full" style={{
+              <img src="/te-observo.png" alt="Steeb" className="w-full h-full object-contain" style={{
                 filter: theme.isShiny ? 'none' : 'none',
                 opacity: 1,
                 backgroundColor: 'transparent'
@@ -695,7 +695,7 @@ const Index = () => {
             </div>
 
             {/* TEXTO FIJO "STEEB" - MÁS CERCA DEL ÍCONO */}
-            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '16px' }}>
+            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '8px', paddingLeft: '16px' }}>
               STEEB
             </h1>
 

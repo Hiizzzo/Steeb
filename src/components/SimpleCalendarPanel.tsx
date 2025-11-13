@@ -46,7 +46,17 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
       const dateStr = date.toISOString().split('T')[0];
 
       const dayTasks = tasks.filter(task => {
-        const taskDate = new Date(task.scheduledDate || task.createdAt || task.completedAt);
+        // Considerar tareas con scheduledDate, createdAt o completedAt de ese día
+        let taskDate;
+        if (task.scheduledDate) {
+          taskDate = new Date(task.scheduledDate);
+        } else if (task.createdAt) {
+          taskDate = new Date(task.createdAt);
+        } else if (task.completedAt) {
+          taskDate = new Date(task.completedAt);
+        } else {
+          return false;
+        }
         return taskDate.toISOString().split('T')[0] === dateStr;
       });
 
@@ -135,33 +145,23 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
       isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
     }`}>
       {/* Header */}
-      <div className={`p-4 border-b-2 flex items-center justify-center ${
-        isDarkMode ? 'border-white' : 'border-black'
-      }`}>
+      <div className="p-4 flex items-center justify-center">
         <h2 className="text-xl font-bold flex items-center">
-          <Calendar className="w-5 h-5 mr-2" />
-          CALENDARIO
         </h2>
       </div>
 
       {/* Month Navigation */}
-      <div className={`p-2 border-b flex items-center justify-between ${
-        isDarkMode ? 'border-gray-800' : 'border-gray-200'
-      }`}>
+      <div className="p-2 flex items-center justify-between">
         <button
           onClick={() => navigateMonth('prev')}
-          className={`p-1 rounded transition-colors ${
-            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-          }`}
+          className="p-1 rounded transition-colors border-0 bg-transparent"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <h3 className="text-sm font-bold capitalize">{monthName}</h3>
+        <h3 className="text-2xl font-bold capitalize">{monthName}</h3>
         <button
           onClick={() => navigateMonth('next')}
-          className={`p-1 rounded transition-colors ${
-            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-          }`}
+          className="p-1 rounded transition-colors border-0 bg-transparent"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -169,35 +169,13 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-3">
-        {/* Stats Summary */}
-        <div className="grid grid-cols-3 gap-1 mb-3">
-          <div className={`p-2 rounded-lg border text-center text-xs ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
-          }`}>
-            <p className="font-bold">{stats.total}</p>
-            <p className="opacity-70">Total</p>
-          </div>
-          <div className={`p-2 rounded-lg border text-center text-xs ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
-          }`}>
-            <p className="font-bold">{stats.completed}</p>
-            <p className="opacity-70">Hechas</p>
-          </div>
-          <div className={`p-2 rounded-lg border text-center text-xs ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
-          }`}>
-            <p className="font-bold">{stats.pending}</p>
-            <p className="opacity-70">Pend.</p>
-          </div>
-        </div>
-
         {/* Calendar Grid */}
-        <div className={`p-3 rounded-lg border mb-3 ${
-          isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+        <div className={`p-3 rounded-lg mb-3 ${
+          isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
         }`}>
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day, index) => (
-              <div key={`weekday-${index}`} className="text-center text-xs font-medium opacity-70">
+              <div key={`weekday-${index}`} className="text-center text-sm font-medium opacity-70">
                 {day}
               </div>
             ))}
@@ -217,33 +195,35 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
               return (
                 <div
                   key={day.day}
-                  onClick={() => hasTasks && setSelectedDay(day.date)}
-                  className={`aspect-square flex flex-col items-center justify-center rounded text-xs relative cursor-pointer transition-all ${
+                  onClick={() => setSelectedDay(day.date)}
+                  className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm relative cursor-pointer transition-all hover:scale-105 ${
                     isSelected
-                      ? isDarkMode ? 'bg-white text-black' : 'bg-black text-white'
+                      ? isDarkMode ? 'bg-white text-black shadow-lg scale-110' : 'bg-black text-white shadow-lg scale-110'
                       : isToday
                       ? isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
                       : isCompleted
                       ? isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
                       : hasTasks
-                      ? isDarkMode ? 'bg-gray-900 border border-gray-600' : 'bg-white border border-gray-400'
-                      : 'opacity-30'
-                  } ${hasTasks ? 'hover:scale-105' : ''}`}
+                      ? isDarkMode ? 'bg-gray-900' : 'bg-white'
+                      : isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
+                  }`}
                   title={`${day.day} - ${day.completed}/${day.total} tareas`}
                 >
                   <span className="font-medium">{day.day}</span>
-                  {hasTasks && (
-                    <div className="flex space-x-1 mt-1">
-                      {day.completed > 0 && (
-                        <div className={`w-1 h-1 rounded-full ${
-                          isDarkMode ? 'bg-green-400' : 'bg-green-600'
-                        }`} />
-                      )}
-                      {day.pending > 0 && (
-                        <div className={`w-1 h-1 rounded-full ${
-                          isDarkMode ? 'bg-red-400' : 'bg-red-600'
-                        }`} />
-                      )}
+
+                  {/* Barra de progreso del día */}
+                  {day.total > 0 && (
+                    <div className="w-1/2 mt-1 mx-auto">
+                      <div className={`w-full h-1 rounded-full overflow-hidden ${
+                        isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
+                      }`}>
+                        <div
+                          className="h-full transition-all duration-300 bg-black"
+                          style={{
+                            width: `${(day.completed / day.total) * 100}%`
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -254,89 +234,70 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
 
         {/* Selected Day Details */}
         {selectedDayData && (
-          <div className={`p-3 rounded-lg border mb-3 ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+          <div className={`p-3 rounded-lg mb-3 ${
+            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
           }`}>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-sm font-medium">
+            <div className="flex justify-center items-center mb-4">
+              <h4 className="text-xl font-bold text-center">
                 {selectedDayData.day} de {currentMonth.toLocaleDateString('es-ES', { month: 'long' })}
               </h4>
-              <button
-                onClick={() => setSelectedDay(null)}
-                className={`p-1 rounded text-xs ${
-                  isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-                }`}
-              >
-                <X className="w-3 h-3" />
-              </button>
             </div>
 
             {selectedDayData.tasks.length > 0 ? (
-              <div className="space-y-1 max-h-20 overflow-y-auto">
+              <div className="space-y-2 max-h-40 overflow-y-auto">
                 {selectedDayData.tasks.map((task: Task) => {
                   const Icon = TYPE_ICONS[task.type || 'extra'] || Plus;
                   return (
                     <div
                       key={task.id}
-                      className={`flex items-center space-x-2 text-xs p-1 rounded ${
+                      className={`flex items-center space-x-3 text-base p-4 rounded-lg ${
                         isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
                       }`}
                     >
-                      <Icon className="w-3 h-3 flex-shrink-0" />
+                      <Icon className="w-4 h-4 flex-shrink-0" />
                       <span className={`flex-1 truncate ${
                         task.completed ? 'line-through opacity-60' : ''
                       }`}>
                         {task.title}
                       </span>
                       {task.completed ? (
-                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <CheckCircle className="w-4 h-4 text-black" />
                       ) : (
-                        <Circle className="w-3 h-3 text-gray-400" />
+                        <Circle className="w-4 h-4 text-gray-400" />
                       )}
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <p className="text-xs opacity-70 text-center">No hay tareas para este día</p>
+              <p className="text-sm opacity-70 text-center mb-6">No hay tareas para este día</p>
             )}
           </div>
         )}
+      </div>
 
-        {/* Type Summary */}
-        {Object.keys(stats.typeStats).length > 0 && (
-          <div className={`p-3 rounded-lg border ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-black'
+      {/* Stats Summary - Movido al final */}
+      <div className="p-3">
+        <div className="grid grid-cols-3 gap-1">
+          <div className={`p-3 rounded-lg text-center ${
+            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
           }`}>
-            <h4 className="text-sm font-medium mb-2">Resumen por tipo</h4>
-            <div className="space-y-1">
-              {Object.entries(stats.typeStats).map(([type, typeData]) => {
-                const Icon = TYPE_ICONS[type] || Plus;
-                const completionRate = typeData.total > 0
-                  ? Math.round((typeData.completed / typeData.total) * 100)
-                  : 0;
-
-                return (
-                  <div key={type} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-2">
-                      <Icon className="w-3 h-3" />
-                      <span className="capitalize">{type}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span>{typeData.completed}/{typeData.total}</span>
-                      <span className={`font-medium ${
-                        completionRate >= 80 ? 'text-green-500' :
-                        completionRate >= 50 ? 'text-yellow-500' : 'text-red-500'
-                      }`}>
-                        {completionRate}%
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <p className="font-bold text-2xl">{stats.total}</p>
+            <p className="opacity-70 text-sm">Total</p>
           </div>
-        )}
+          <div className={`p-3 rounded-lg text-center ${
+            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+          }`}>
+            <p className="font-bold text-2xl">{stats.completed}</p>
+            <p className="opacity-70 text-sm">Hechas</p>
+          </div>
+          <div className={`p-3 rounded-lg text-center ${
+            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+          }`}>
+            <p className="font-bold text-2xl">{stats.pending}</p>
+            <p className="opacity-70 text-sm">Pend.</p>
+          </div>
+        </div>
       </div>
     </div>
   );
