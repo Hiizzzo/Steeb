@@ -59,7 +59,10 @@
       "Skill(steeb-web-issues-fixer)",
       "Bash(npx tsc --noEmit --checkJs false:*)",
       "Bash(npx tsc:*)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(gh auth:*)",
+      "Bash(export GH_TOKEN=\"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\":*)",
+      "Bash(GH_TOKEN=\"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\" gh pr create --title \"✨ STEEB: Major UI/UX Improvements & Enhanced Features\" --body \"🚀 STEEB v2.0 - Complete overhaul with 3-mode theme switch and interactive panels!\n\n## 🎯 Key Features:\n- ✅ 3-Mode Theme Switch (White → Shiny → Black)\n- ✅ Interactive drag-to-resize panels\n- ✅ Real-time chart scaling (120fps)\n- ✅ Smart multi-task mode\n- ✅ Professional UI/UX polish\n\n## 🔥 Impact:\n- 9 files modified, 1000+ improvements\n- Enhanced productivity features\n- 100% mobile responsive\n\nReady for review! 🎯\")"
     ],
     "deny": [],
     "ask": []
