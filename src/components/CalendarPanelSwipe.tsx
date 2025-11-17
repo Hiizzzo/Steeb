@@ -46,7 +46,7 @@ const CalendarPanelSwipe: React.FC<CalendarPanelSwipeProps> = ({ onClose }) => {
       const dateStr = date.toISOString().split('T')[0];
 
       const dayTasks = tasks.filter(task => {
-        const taskDate = new Date(task.scheduledDate || task.createdAt || task.completedAt);
+        const taskDate = new Date(task.scheduledDate || task.createdAt || task.completedDate);
         return taskDate.toISOString().split('T')[0] === dateStr;
       });
 

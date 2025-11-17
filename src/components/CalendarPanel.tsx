@@ -65,7 +65,7 @@ const CalendarPanel: React.FC<CalendarPanelProps> = ({ onClose }) => {
 
       // Filtrar tareas para este día
       const dayTasks = tasks.filter(task => {
-        const taskDate = new Date(task.scheduledDate || task.createdAt || task.completedAt);
+        const taskDate = new Date(task.scheduledDate || task.createdAt || task.completedDate);
         return taskDate.toISOString().split('T')[0] === dateStr;
       });
 
