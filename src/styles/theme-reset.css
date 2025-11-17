@@ -4,6 +4,9 @@
   Este archivo debe cargarse DESPUÉS de index.css para asegurar
   que las reglas de limpieza tengan máxima prioridad y prevengan
   cualquier tipo de contaminación visual entre temas
+  Este archivo se mantiene enfocado únicamente en la transición de tema
+  y la prevención de artefactos visuales. Las utilidades de aislamiento
+  de tema y variantes no utilizadas fueron eliminadas para reducir CSS.
 */
 
 /* Prevenir FOUC - Ocultar contenido durante transición de tema */
@@ -19,65 +22,4 @@
   animation: none !important;
   transform: none !important;
   opacity: inherit !important;
-}
-
-
-
-/* Theme isolation for each mode */
-.light-only {
-  display: revert;
-}
-.dark-only {
-  display: none;
-}
-.shiny-only {
-  display: none;
-}
-
-.dark .light-only {
-  display: none !important;
-}
-.dark .dark-only {
-  display: revert !important;
-}
-.dark .shiny-only {
-  display: none !important;
-}
-
-.shiny .light-only {
-  display: none !important;
-}
-.shiny .dark-only {
-  display: none !important;
-}
-.shiny .shiny-only {
-  display: revert !important;
-}
-
-/* Force specific elements to respect theme isolation */
-.dark .theme-isolate-light {
-  display: none !important;
-}
-.light .theme-isolate-dark {
-  display: none !important;
-}
-.shiny .theme-isolate-light,
-.shiny .theme-isolate-dark {
-  display: none !important;
-}
-
-/* Critical: Override any potential inline styles that might contaminate themes */
-.dark .force-light,
-.shiny .force-light {
-  display: none !important;
-}
-
-.light .force-dark,
-.shiny .force-dark {
-  display: none !important;
-}
-
-.light .force-shiny,
-.dark .force-shiny {
-  display: none !important;
 }

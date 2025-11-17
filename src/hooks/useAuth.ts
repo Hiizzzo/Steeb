@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       try {
         await setPersistence(auth, browserLocalPersistence);
-        console.log('🔄 Persistencia local configurada correctamente');
+        ('🔄 Persistencia local configurada correctamente');
       } catch (error) {
         console.warn('⚠️ Error configurando persistencia:', error);
       }
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let unsubscribeTaskListener: (() => void) | null = null;
     
     if (!isFirebaseConfigured) {
-      console.log('🔄 Firebase no configurado');
+      ('🔄 Firebase no configurado');
       setUser(null);
       setIsLoading(false);
       return;
@@ -129,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
       
       // Configurar listener de tareas en tiempo real
-      console.log('🔄 Configurando listener de tareas para usuario:', fbUser.uid);
+      ('🔄 Configurando listener de tareas para usuario:', fbUser.uid);
       unsubscribeTaskListener = setupRealtimeListener(fbUser.uid);
       
       // Cargar tareas iniciales
@@ -241,13 +241,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Para iOS, si el plugin no está disponible, usar redirect con configuración específica
         if (Capacitor.getPlatform() === 'ios') {
-          console.log('🍎 iOS: Usando signInWithRedirect para Google Auth');
+          ('🍎 iOS: Usando signInWithRedirect para Google Auth');
           await signInWithRedirect(auth, googleProvider);
           return;
         }
         
         // Para Android, intentar redirect como fallback
-        console.log('🤖 Android: Usando signInWithRedirect como fallback');
+        ('🤖 Android: Usando signInWithRedirect como fallback');
         await signInWithRedirect(auth, googleProvider);
         return;
       } catch (error) {

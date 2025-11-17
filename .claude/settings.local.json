@@ -75,7 +75,11 @@
       "Bash(temp_index.css)",
       "Bash(temp_clean_start.css)",
       "Bash(temp_clean_end.css)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npx eslint:*)",
+      "Bash(find:*)",
+      "Bash(sort:*)",
+      "Bash(cmp:*)"
     ],
     "deny": [],
     "ask": []

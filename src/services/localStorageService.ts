@@ -19,7 +19,7 @@ class LocalStorageService {
       // También crear un archivo de texto legible
       this.saveTasksAsText(tasks);
       
-      console.log('💾 Tareas guardadas localmente:', tasks.length);
+      ('💾 Tareas guardadas localmente:', tasks.length);
     } catch (error) {
       console.error('❌ Error al guardar tareas localmente:', error);
     }
@@ -139,7 +139,7 @@ class LocalStorageService {
   clearLocalStorage(): void {
     localStorage.removeItem(this.TASKS_KEY);
     localStorage.removeItem(this.TASKS_FILE_KEY);
-    console.log('🗑️ Almacenamiento local limpiado');
+    ('🗑️ Almacenamiento local limpiado');
   }
 
   // Exportar tareas manualmente

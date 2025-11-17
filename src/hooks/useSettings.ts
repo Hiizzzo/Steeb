@@ -95,7 +95,7 @@ export const useSettings = () => {
       
       setSettings(newSettings);
       setHasUnsavedChanges(false);
-      console.log('✅ Settings saved successfully');
+      ('✅ Settings saved successfully');
     } catch (error) {
       console.error('❌ Failed to save settings:', error);
       throw error;
@@ -206,7 +206,7 @@ export const useSettings = () => {
         try {
           const newSettings = JSON.parse(event.newValue);
           setSettings(newSettings);
-          console.log('🔄 Settings synced from another tab');
+          ('🔄 Settings synced from another tab');
         } catch (error) {
           console.warn('Failed to sync settings from another tab:', error);
         }

@@ -137,8 +137,7 @@ export class ThemeDebugger {
       return true;
     }
 
-    console.log('🔧 Fixing theme inconsistencies...');
-
+    
     // PROTECCIÓN: Guardar elementos con colores personalizados ANTES de limpiar
     const elementsWithCustomColors = document.querySelectorAll('[data-custom-color="true"], [style*="border-color"]:not([style*="auto"]), [style*="color"]:not([style*="auto"])');
     const customStyles: Array<{element: Element, borderColor: string, color: string}> = [];
@@ -175,8 +174,7 @@ export class ThemeDebugger {
       // 4. Verificar corrección
       const postFixDiagnostics = this.runDiagnostics();
       if (postFixDiagnostics.inconsistencies.length === 0) {
-        console.log('✅ Theme inconsistencies fixed successfully');
-      } else {
+              } else {
         console.error('❌ Some inconsistencies could not be fixed:', postFixDiagnostics.inconsistencies);
       }
     }, 100);

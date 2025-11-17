@@ -89,7 +89,7 @@ export const useAnalytics = (tasks: Task[] = []) => {
     };
 
     setEvents(prev => [...prev, event]);
-    console.log('📊 Analytics event tracked:', type, data);
+    ('📊 Analytics event tracked:', type, data);
   }, [currentSessionId]);
 
   // Track task completion

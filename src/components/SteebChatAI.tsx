@@ -105,28 +105,23 @@ const SteebChatAI: React.FC = () => {
     const initMinimax = async () => {
       const initialized = await minimaxDirectService.initialize();
       if (initialized) {
-        console.log('✅ MINIMAX M2 Direct Service inicializado');
-      }
+        }
     };
     initMinimax();
 
     // Debug automático de estilos del input + SOLUCIÓN NUCLEAR JS
     setTimeout(() => {
-      console.log('🚀 Ejecutando debug automático de estilos del input...');
-      debugInputStyles();
+        debugInputStyles();
 
       // SOLUCIÓN NUCLEAR JAVASCRIPT si es modo oscuro
       if (currentTheme === 'dark') {
         const inputs = document.querySelectorAll('input[type="text"]') as NodeListOf<HTMLInputElement>;
-        console.log(`🎯 Encontrados ${inputs.length} inputs para nuclear fix...`);
-
+  
         inputs.forEach((input, index) => {
           // Aplicar a todos los inputs o específicamente al de Steeb
           if (input.classList.contains('steeb-chat-input') ||
               input.classList.contains('steeb-nuclear-input') ||
               input.classList.contains('bg-black')) {
-
-            console.log(`☢️ Aplicando NUCLEAR JS FIX al input ${index}...`);
 
             // FORZAR BRUTAL con setProperty y 'important'
             input.style.setProperty('background', '#000000', 'important');
@@ -141,8 +136,6 @@ const SteebChatAI: React.FC = () => {
 
             // Atributo style directo como último recurso
             input.setAttribute('style', (input.getAttribute('style') || '') + ' background: #000000 !important; background-color: #000000 !important; color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important;');
-
-            console.log(`☢️ NUCLEAR aplicado al input ${index}:`, input.className);
           }
         });
       }
@@ -150,14 +143,12 @@ const SteebChatAI: React.FC = () => {
 
     // Hacer disponible la función globalmente para depuración manual
     (window as any).debugInputStyles = debugInputStyles;
-    console.log('💡 Función debugInputStyles() disponible globalmente - ejecútala desde la consola');
-
+  
     // OBSERVADOR MUTACIÓN - DEFENSA CONTRA CAMBIOS CSS
     if (currentTheme === 'dark') {
       setTimeout(() => {
         const steebInput = document.querySelector('input.steeb-chat-input, input.steeb-nuclear-input') as HTMLInputElement;
         if (steebInput) {
-          console.log('🛡️ Activando MutationObserver para defender el input...');
 
           const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {

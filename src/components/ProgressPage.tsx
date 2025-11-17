@@ -29,8 +29,7 @@ interface StatsData {
 }
 
 const ProgressPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  console.log('🎯 ProgressPage renderizado - Iniciando componente');
-  const { currentTheme } = useTheme();
+    const { currentTheme } = useTheme();
   const { tasks } = useTaskStore();
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month' | 'year'>('week');
 
@@ -215,10 +214,7 @@ const ProgressPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
           </div>
           <button
-            onClick={() => {
-              console.log('❌ Botón X clickeado en ProgressPage');
-              onClose();
-            }}
+            onClick={onClose}
             className={`p-2 rounded-full transition-colors ${
               currentTheme === 'dark'
                 ? 'hover:bg-white hover:text-black'

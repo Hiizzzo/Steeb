@@ -48,11 +48,11 @@ export const dailySummaryService = {
     // 1. Guardar localmente siempre
     const localKey = `steeb_summary_${today}`;
     localStorage.setItem(localKey, JSON.stringify(dailySummary));
-    console.log('💾 Resumen guardado localmente:', today);
+    ('💾 Resumen guardado localmente:', today);
 
     // 2. Sincronizar con Firebase solo si hay autenticación
     if (!uid) {
-      console.log('📱 Modo offline - Resumen guardado solo localmente');
+      ('📱 Modo offline - Resumen guardado solo localmente');
       return;
     }
 
@@ -63,9 +63,9 @@ export const dailySummaryService = {
         ...dailySummary,
         ownerUid: uid
       });
-      console.log('✅ Resumen sincronizado con Firebase:', today);
+      ('✅ Resumen sincronizado con Firebase:', today);
     } catch (error) {
-      console.log('📱 Error sincronizando resumen, manteniendo solo local:', error.message || error);
+      ('📱 Error sincronizando resumen, manteniendo solo local:', error.message || error);
       // Continuar sin error - ya está guardado localmente
     }
   },

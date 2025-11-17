@@ -71,7 +71,7 @@ REGLAS:
    */
   async initialize(): Promise<boolean> {
     try {
-      console.log('🚀 Inicializando MINIMAX Direct Service...');
+      ('🚀 Inicializando MINIMAX Direct Service...');
       
       // Inicializar contexto con system prompt
       this.messages = [{
@@ -80,7 +80,7 @@ REGLAS:
       }];
 
       this.isInitialized = true;
-      console.log('✅ MINIMAX Direct Service inicializado correctamente');
+      ('✅ MINIMAX Direct Service inicializado correctamente');
       return true;
 
     } catch (error) {
@@ -95,7 +95,7 @@ REGLAS:
    */
   async sendMessage(message: string): Promise<string> {
     if (!this.isInitialized) {
-      console.log('Inicializando MINIMAX...');
+      ('Inicializando MINIMAX...');
       await this.initialize();
     }
 
@@ -106,8 +106,8 @@ REGLAS:
         content: message
       });
 
-      console.log('📤 Enviando a MINIMAX M2...');
-      console.log('💭 Contexto:', { messageCount: this.messages.length, messagePreview: message.substring(0, 100) + '...' });
+      ('📤 Enviando a MINIMAX M2...');
+      ('💭 Contexto:', { messageCount: this.messages.length, messagePreview: message.substring(0, 100) + '...' });
 
       // Hacer llamada a MINIMAX API
       const response = await fetch(`${minimaxConfig.baseUrl}/chat/completions`, {
@@ -142,10 +142,10 @@ REGLAS:
       // MINIMAX devuelve: <think>razonamiento interno</think>respuesta final
       const thinkMatch = assistantMessage.match(/<think>([\s\S]*?)<\/think>([\s\S]*)/);
       if (thinkMatch) {
-        console.log('🧠 Filtrando razonamiento interno...');
+        ('🧠 Filtrando razonamiento interno...');
         // Solo guardar la respuesta después del </think>
         assistantMessage = thinkMatch[2].trim();
-        console.log('✂️ Razonamiento eliminado, mostrando solo respuesta');
+        ('✂️ Razonamiento eliminado, mostrando solo respuesta');
       }
 
       if (!assistantMessage) {
@@ -166,8 +166,8 @@ REGLAS:
         ];
       }
 
-      console.log('✅ Respuesta recibida de MINIMAX M2');
-      console.log('💬 Contenido:', assistantMessage.substring(0, 150) + (assistantMessage.length > 150 ? '...' : ''));
+      ('✅ Respuesta recibida de MINIMAX M2');
+      ('💬 Contenido:', assistantMessage.substring(0, 150) + (assistantMessage.length > 150 ? '...' : ''));
       return assistantMessage;
 
     } catch (error) {

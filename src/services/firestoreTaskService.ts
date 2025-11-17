@@ -294,7 +294,7 @@ export class FirestoreTaskService {
                 }
               }).filter(Boolean) as Task[];
 
-              console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
+              ('📡 Tareas actualizadas en tiempo real:', tasks.length);
               callback(tasks);
             } catch (processingError) {
               console.error('❌ Error procesando snapshot:', processingError);

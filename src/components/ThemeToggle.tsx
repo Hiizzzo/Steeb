@@ -27,8 +27,7 @@ const ThemeToggle = () => {
 
 	// Callback de cambio de tema mejorado con validación
 	const handleThemeChange = useCallback((newTheme: 'light' | 'dark' | 'shiny') => {
-		console.log('🎨 ThemeToggle: Changing theme to', newTheme);
-
+	
 		// Validar el cambio de tema
 		toggleTheme(newTheme);
 
@@ -38,8 +37,7 @@ const ThemeToggle = () => {
 			if (!validation.consistent) {
 				console.error('❌ ThemeToggle: Inconsistency detected after change', validation);
 			} else {
-				console.log('✅ ThemeToggle: Theme change successful', validation);
-			}
+				}
 		}, 50);
 	}, [toggleTheme, validateTheme]);
 
@@ -63,8 +61,7 @@ const ThemeToggle = () => {
 		const relativeX = x - rect.left;
 		const percentage = Math.max(0, Math.min(1, relativeX / rect.width));
 
-		console.log('getPositionFromX - relativeX:', relativeX, 'percentage:', percentage);
-
+	
 		if (percentage < 0.33) return "light";
 		if (percentage < 0.66) return "shiny";
 		return "dark";
@@ -95,8 +92,7 @@ const ThemeToggle = () => {
 	const handleMouseDown = (e) => {
 		e.preventDefault();
 		e.stopPropagation(); // Evitar que se dispare el handleClick
-		console.log('Mouse DOWN - clienteX:', e.clientX);
-
+		
 		setIsDragging(true);
 		setDragStartX(e.clientX);
 		setCurrentX(e.clientX);
@@ -106,11 +102,9 @@ const ThemeToggle = () => {
 		};
 
 		const handleMouseUp = (moveEvent) => {
-			console.log('Mouse UP - clienteX:', moveEvent.clientX, 'isDragging:', isDragging);
-			if (isDragging) {
+				if (isDragging) {
 				const newPosition = getPositionFromX(moveEvent.clientX);
-				console.log('New position:', newPosition);
-				handleThemeChange(newPosition);
+						handleThemeChange(newPosition);
 			}
 			setIsDragging(false);
 			document.removeEventListener('mousemove', handleMouseMove);

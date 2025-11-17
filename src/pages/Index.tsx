@@ -300,10 +300,7 @@ const Index = () => {
           
           {/* Checkbox FUERA del área de swipe */}
           <button
-            onClick={() => {
-              console.log('CHECKBOX CLICKED!', task.id);
-              handleToggleTask(task.id);
-            }}
+            onClick={() => handleToggleTask(task.id)}
             className={`task-checkbox-button w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center ${task.completed ? 'completed !bg-black !border-black dark:!bg-transparent dark:!border-white' : '!bg-white !border-black dark:border-white'}`}
             style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
           >
@@ -328,12 +325,7 @@ const Index = () => {
     toggleSubtask
   } = useTaskStore();
 
-  // Debug: Log tasks loading
-  useEffect(() => {
-    console.log('🔍 Index.tsx: Tasks loaded:', tasks.length, tasks);
-    console.log('🔍 Index.tsx: Is loading:', isPersistenceLoading);
-  }, [tasks, isPersistenceLoading]);
-
+  
   // Hook para sincronización con Service Worker
   const { 
     isServiceWorkerReady, 
@@ -362,8 +354,7 @@ const Index = () => {
   useEffect(() => {
     notificationService.initialize().then((initialized) => {
       if (initialized) {
-        console.log('🔔 Servicio de notificaciones STEEB listo');
-      }
+        }
     });
   }, []);
 
@@ -376,12 +367,10 @@ const Index = () => {
     const timeoutId = setTimeout(() => {
       const tasksWithEmptyTitles = tasks.filter(task => !task.title || !task.title.trim() || !task.id);
       if (tasksWithEmptyTitles.length > 0) {
-        console.log(`🧹 Encontradas ${tasksWithEmptyTitles.length} tareas inválidas para limpiar`);
-        const cleanedTasks = tasks.filter(task => task.title && task.title.trim() && task.id);
+            const cleanedTasks = tasks.filter(task => task.title && task.title.trim() && task.id);
         if (cleanedTasks.length !== tasks.length) {
           updateTasks(cleanedTasks);
-          console.log(`🧹 Eliminadas ${tasksWithEmptyTitles.length} tareas inválidas`);
-        }
+          }
       }
     }, 500); // Debounce de 500ms para evitar múltiples ejecuciones
     
@@ -418,16 +407,13 @@ const Index = () => {
   }, [tasks.length, isServiceWorkerReady, triggerBackup]);
 
   const handleToggleTask = (id: string) => {
-    console.log('🎯 handleToggleTask called with ID:', id);
     const task = tasks.find(t => t.id === id);
-    console.log('🎯 Found task:', task);
     
     // Si la tarea tiene subtareas y no están todas completadas, no permitir completar la tarea principal
     if (task && task.subtasks && task.subtasks.length > 0 && !task.completed) {
       const allSubtasksCompleted = task.subtasks.every(subtask => subtask.completed);
       if (!allSubtasksCompleted) {
-        console.log('🛑 Blocked: subtasks not completed');
-        toast({
+            toast({
           title: "Complete subtasks first",
           description: "You need to complete all subtasks before completing the main task.",
         });
@@ -509,8 +495,7 @@ const Index = () => {
         return;
       }
       
-      console.log('🗑️ Eliminando tarea:', taskToDelete.title);
-      
+          
       // Solo vibración al eliminar - sin sonido
       triggerVibration();
       
@@ -531,12 +516,10 @@ const Index = () => {
   };
 
   const handleAddTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, recurrence?: RecurrenceRule, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
-    console.log('🎯 Index.tsx: handleAddTask llamado con:', { title, type, scheduledDate, notes, isPrimary });
-    
+        
     // Validar que el título no esté vacío
     if (!title.trim()) {
-      console.log('❌ Index.tsx: Título vacío detectado');
-      toast({
+            toast({
         title: "Error",
         description: "El título de la tarea no puede estar vacío.",
         variant: "destructive",
@@ -587,8 +570,7 @@ const Index = () => {
          recurrence: recurrence
        };
       
-      console.log('🆕 Index.tsx: Creando nueva tarea con datos:', newTaskData);
-      
+            
       // Usar addTask del store en lugar de updateTasks directamente
       addTask(newTaskData).catch((error) => {
         console.error('❌ Index.tsx: Error al crear tarea:', error);
@@ -721,12 +703,7 @@ const Index = () => {
     });
   }, [tasks, selectedDateISO, todayISO]);
 
-  // Debug: Log filtered tasks
-   useEffect(() => {
-     console.log('🔍 Index.tsx: Selected day:', selectedDateISO);
-     console.log('🔍 Index.tsx: Tasks up to selected day:', todaysTasks.length, todaysTasks);
-   }, [selectedDateISO, todaysTasks]);
-
+  
   // Dividir tareas de hoy en pendientes y completadas (hoy y anteriores)
    const pendingTodaysTasks = todaysTasks.filter(t => !t.completed);
    const completedTodaysTasks = todaysTasks.filter(t => t.completed);
@@ -872,8 +849,7 @@ const Index = () => {
           isOpen={true}
           onClose={() => setShowConfigModal(false)}
           onSave={(dailyTasks) => {
-            console.log('Configuración de tareas diarias guardada:', dailyTasks);
-            setShowConfigModal(false);
+                  setShowConfigModal(false);
           }}
         />
       )}

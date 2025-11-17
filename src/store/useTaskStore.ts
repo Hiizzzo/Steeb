@@ -250,26 +250,10 @@ export const useTaskStore = create<TaskStore>()(
             ...(taskData.subtasks && { subtasks: taskData.subtasks }),
           };
           
-          console.log('⚡ Creando tarea instantáneamente:', taskData.title.trim());
-          console.log('📊 Datos completos de la tarea:', {
-            title: taskData.title,
-            type: taskData.type,
-            scheduledDate: taskData.scheduledDate,
-            recurrence: taskData.recurrence,
-            hasRecurrence: !!(taskData.recurrence && taskData.recurrence.frequency !== 'none'),
-            hasScheduledDate: !!taskData.scheduledDate
-          });
-          
+                    
           // 1. ACTUALIZAR UI INMEDIATAMENTE (sin esperar Firebase)
           set(state => {
             const updatedTasks = [...state.tasks, newTask];
-            console.log('📝 Tarea agregada al estado. Total de tareas:', updatedTasks.length);
-            console.log('🔍 Nueva tarea creada:', {
-              id: newTask.id,
-              title: newTask.title,
-              scheduledDate: newTask.scheduledDate,
-              type: newTask.type
-            });
             return {
               tasks: updatedTasks,
               error: null
@@ -278,8 +262,7 @@ export const useTaskStore = create<TaskStore>()(
           
           // 2. Si la tarea tiene recurrencia y fecha programada, generar instancias para el mes completo
           if (taskData.recurrence && taskData.recurrence.frequency !== 'none' && taskData.scheduledDate) {
-            console.log('🔄 Generando instancias recurrentes para el mes completo:', taskData.title.trim());
-            
+                        
             // Importar la función de generación de instancias mensuales
             const { generateMonthlyRecurrenceInstances } = await import('@/utils/recurrenceManager');
             const monthlyDates = generateMonthlyRecurrenceInstances(taskData.scheduledDate, taskData.recurrence);
@@ -310,7 +293,7 @@ export const useTaskStore = create<TaskStore>()(
             }
             
             if (monthlyTasks.length > 0) {
-              console.log(`📅 Creando ${monthlyTasks.length} instancias adicionales para el mes`);
+              (`📅 Creando ${monthlyTasks.length} instancias adicionales para el mes`);
               set(state => ({
                 tasks: [...state.tasks, ...monthlyTasks],
               }));
@@ -320,7 +303,7 @@ export const useTaskStore = create<TaskStore>()(
               for (const monthlyTask of monthlyTasks) {
                 FirestoreTaskService.createTask(monthlyTask, userId)
                   .then(() => {
-                    console.log('✅ Instancia mensual sincronizada:', monthlyTask.scheduledDate);
+                    ('✅ Instancia mensual sincronizada:', monthlyTask.scheduledDate);
                   })
                   .catch((error) => {
                     console.error('❌ Error al sincronizar instancia mensual:', error);
@@ -334,13 +317,13 @@ export const useTaskStore = create<TaskStore>()(
           // 3. GUARDAR LOCALMENTE EN TEXTO (instantáneo)
           const currentTasks = get().tasks;
           localStorageService.saveTasks(currentTasks);
-          console.log('💾 Tarea guardada localmente en texto');
+          ('💾 Tarea guardada localmente en texto');
           
           // 4. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
           if (userId) {
             FirestoreTaskService.createTask(newTask, userId)
             .then(() => {
-              console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
+              ('✅ Tarea sincronizada con Firebase:', newTask.title);
             })
             .catch((error) => {
               console.error('❌ Error al sincronizar con Firebase:', error);
@@ -360,7 +343,7 @@ export const useTaskStore = create<TaskStore>()(
             throw new Error('Tarea no encontrada');
           }
 
-          console.log('📝 Actualizando tarea:', id, 'Updates:', Object.keys(updates));
+          ('📝 Actualizando tarea:', id, 'Updates:', Object.keys(updates));
 
           // Validar que haya cambios reales
           const hasRealChanges = Object.keys(updates).some(key => {
@@ -370,7 +353,7 @@ export const useTaskStore = create<TaskStore>()(
           });
 
           if (!hasRealChanges) {
-            console.log('ℹ️ No hay cambios reales para actualizar');
+            ('ℹ️ No hay cambios reales para actualizar');
             return;
           }
 
@@ -388,7 +371,7 @@ export const useTaskStore = create<TaskStore>()(
             }));
 
             get().calculateStats();
-            console.log('✅ Estado local actualizado optimistamente');
+            ('✅ Estado local actualizado optimistamente');
 
             // 2. SINCRONIZACIÓN CON FIRESTORE (si hay usuario)
             const userId = auth.currentUser?.uid;
@@ -398,17 +381,17 @@ export const useTaskStore = create<TaskStore>()(
                 const { id: _omitId, createdAt: _omitCreatedAt, updatedAt: _omitUpdatedAt, userId: _omitUserId, ...firestoreUpdates } = (updates || {}) as any;
 
                 await FirestoreTaskService.updateTask(id, firestoreUpdates);
-                console.log('✅ Sincronización con Firestore exitosa');
+                ('✅ Sincronización con Firestore exitosa');
 
                 // Verificar si se marcó como completada y tiene recurrencia
                 if (updates.completed === true && previousTask.recurrence && previousTask.scheduledDate) {
-                  console.log('🔄 Tarea recurrente completada, generando siguiente ocurrencia:', previousTask.title);
+                  ('🔄 Tarea recurrente completada, generando siguiente ocurrencia:', previousTask.title);
 
                   const baseDate = updates.completedDate ? updates.completedDate.split('T')[0] : previousTask.scheduledDate;
                   const nextDate = computeNextOccurrenceDate(baseDate, previousTask.recurrence);
 
                   if (nextDate) {
-                    console.log('📅 Creando siguiente ocurrencia para:', nextDate);
+                    ('📅 Creando siguiente ocurrencia para:', nextDate);
 
                     const existingTask = get().tasks.find(t =>
                       t.title === previousTask.title &&
@@ -440,9 +423,9 @@ export const useTaskStore = create<TaskStore>()(
                         estimatedDuration: previousTask.estimatedDuration,
                       } as any);
 
-                      console.log('✨ Nueva ocurrencia creada para:', nextDate);
+                      ('✨ Nueva ocurrencia creada para:', nextDate);
                     } else {
-                      console.log('ℹ️ Ya existe una tarea para la fecha:', nextDate);
+                      ('ℹ️ Ya existe una tarea para la fecha:', nextDate);
                     }
                   }
                 }
@@ -452,7 +435,7 @@ export const useTaskStore = create<TaskStore>()(
                 // No revertimos cambios locales, el usuario quiere que la tarea se actualice
               }
             } else {
-              console.log('📱 Modo offline - Cambio guardado localmente');
+              ('📱 Modo offline - Cambio guardado localmente');
             }
 
           } catch (error) {
@@ -471,7 +454,7 @@ export const useTaskStore = create<TaskStore>()(
             return;
           }
 
-          console.log('Deleting task (optimistic):', taskToDelete.title);
+          ('Deleting task (optimistic):', taskToDelete.title);
 
           set(state => ({
             tasks: state.tasks.filter(task => task.id !== id),
@@ -492,7 +475,7 @@ export const useTaskStore = create<TaskStore>()(
 
           try {
             await FirestoreTaskService.deleteTask(id, userId);
-            console.log('Task deleted from Firestore');
+            ('Task deleted from Firestore');
           } catch (error) {
             console.error('Error deleting task from Firestore:', error);
             set(state => ({
@@ -512,7 +495,7 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            console.log('📝 Actualizando tareas en lote offline:', updates.length);
+            ('📝 Actualizando tareas en lote offline:', updates.length);
             
             // En modo offline, solo aplicamos las actualizaciones localmente
             set(state => ({
@@ -523,7 +506,7 @@ export const useTaskStore = create<TaskStore>()(
               syncStatus: 'offline'
             }));
             
-            console.log('✅ Tareas actualizadas en lote offline exitosamente');
+            ('✅ Tareas actualizadas en lote offline exitosamente');
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Failed to update tasks',
@@ -539,7 +522,7 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            console.log('🗑️ Eliminando tareas en lote offline:', ids.length);
+            ('🗑️ Eliminando tareas en lote offline:', ids.length);
             
             // En modo offline, solo eliminamos localmente
             set(state => ({
@@ -548,7 +531,7 @@ export const useTaskStore = create<TaskStore>()(
               syncStatus: 'offline'
             }));
             
-            console.log('✅ Tareas eliminadas en lote offline exitosamente');
+            ('✅ Tareas eliminadas en lote offline exitosamente');
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Failed to delete tasks',
@@ -573,7 +556,7 @@ export const useTaskStore = create<TaskStore>()(
           const previousState = { ...currentTask };
 
           try {
-            console.log('🔄 Toggle task:', currentTask.title, `${previousState.completed} → ${willComplete}`);
+            ('🔄 Toggle task:', currentTask.title, `${previousState.completed} → ${willComplete}`);
 
             // Actualización optimista local inmediata
             set(state => ({
@@ -591,7 +574,7 @@ export const useTaskStore = create<TaskStore>()(
             }));
 
             get().calculateStats();
-            console.log('✅ Estado local actualizado:', currentTask.title, '→', willComplete);
+            ('✅ Estado local actualizado:', currentTask.title, '→', willComplete);
 
             // Sincronización con Firestore si hay usuario
             const userId = auth.currentUser?.uid;
@@ -602,13 +585,13 @@ export const useTaskStore = create<TaskStore>()(
                   status: willComplete ? 'completed' : 'pending',
                   completedDate: willComplete ? new Date().toISOString() : undefined,
                 });
-                console.log('✅ Sincronización exitosa con Firestore');
+                ('✅ Sincronización exitosa con Firestore');
               } catch (firestoreError) {
                 console.warn('⚠️ Error de sincronización (cambio local mantenido):', firestoreError.message);
                 // El cambio local se mantiene aunque falle Firestore
               }
             } else {
-              console.log('📱 Modo offline - Cambio guardado localmente');
+              ('📱 Modo offline - Cambio guardado localmente');
             }
 
           } catch (error) {
@@ -709,10 +692,10 @@ export const useTaskStore = create<TaskStore>()(
             // Obtener userId del usuario autenticado
             const userId = auth.currentUser?.uid;
 
-            console.log('📥 Intentando cargar tareas desde Firestore', userId ? `(userId=${userId})` : '(sin userId)');
+            ('📥 Intentando cargar tareas desde Firestore', userId ? `(userId=${userId})` : '(sin userId)');
 
             if (!userId) {
-              console.log('📱 Modo offline - Cargando tareas desde almacenamiento local');
+              ('📱 Modo offline - Cargando tareas desde almacenamiento local');
               get().loadTasksFromLocal();
               set({
                 isLoading: false,
@@ -735,7 +718,7 @@ export const useTaskStore = create<TaskStore>()(
               });
 
               get().calculateStats();
-              console.log('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
+              ('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
             } catch (firestoreError) {
               console.warn('⚠️ Error con Firestore, usando almacenamiento local:', firestoreError);
               get().loadTasksFromLocal();
@@ -760,18 +743,18 @@ export const useTaskStore = create<TaskStore>()(
           // Manejo robusto de errores para evitar que la app se bloquee
           try {
             if (!userId) {
-              console.log('📱 Modo offline - Sin listener en tiempo real (sin userId)');
+              ('📱 Modo offline - Sin listener en tiempo real (sin userId)');
               // No mostrar error, solo modo offline silencioso
               set({ syncStatus: 'offline' });
               return () => {};
             }
 
-            console.log('🔄 Intentando configurar listener con Firestore (userId=${userId})');
+            ('🔄 Intentando configurar listener con Firestore (userId=${userId})');
 
             // Configurar listener con timeout para evitar bloqueos
             const unsubscribe = FirestoreTaskService.subscribeToTasks(userId, (tasks) => {
               try {
-                console.log('📡 Tareas actualizadas en tiempo real:', tasks.length);
+                ('📡 Tareas actualizadas en tiempo real:', tasks.length);
                 set({
                   tasks: Array.isArray(tasks) ? tasks : [], // Validar que sea un array
                   syncStatus: 'online',
@@ -787,7 +770,7 @@ export const useTaskStore = create<TaskStore>()(
               }
             });
 
-            console.log('✅ Listener en tiempo real configurado');
+            ('✅ Listener en tiempo real configurado');
             set({ syncStatus: 'online' });
             return unsubscribe;
 
@@ -806,7 +789,7 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            console.log('📅 Filtrando tareas offline por rango de fechas:', startDate, 'a', endDate);
+            ('📅 Filtrando tareas offline por rango de fechas:', startDate, 'a', endDate);
             
             // En modo offline, filtramos las tareas existentes por el rango de fechas
             const allTasks = get().tasks || [];
@@ -817,7 +800,7 @@ export const useTaskStore = create<TaskStore>()(
             });
             
             set({ tasks: filteredTasks });
-            console.log('✅ Tareas filtradas offline:', filteredTasks.length);
+            ('✅ Tareas filtradas offline:', filteredTasks.length);
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to load tasks' });
           } finally {
@@ -830,7 +813,7 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            console.log('📅 Filtrando tareas offline para fecha:', date);
+            ('📅 Filtrando tareas offline para fecha:', date);
             
             // En modo offline, filtramos las tareas existentes por la fecha específica
             const allTasks = get().tasks || [];
@@ -841,7 +824,7 @@ export const useTaskStore = create<TaskStore>()(
             });
             
             set({ tasks: filteredTasks });
-            console.log('✅ Tareas filtradas offline para fecha:', filteredTasks.length);
+            ('✅ Tareas filtradas offline para fecha:', filteredTasks.length);
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to load tasks' });
           } finally {
@@ -869,7 +852,7 @@ export const useTaskStore = create<TaskStore>()(
           set({ isLoading: true, error: null });
           
           try {
-            console.log('🔍 Buscando tareas offline:', query);
+            ('🔍 Buscando tareas offline:', query);
             
             // En modo offline, buscamos en las tareas locales
             const allTasks = get().tasks || [];
@@ -883,7 +866,7 @@ export const useTaskStore = create<TaskStore>()(
               filters: { ...get().filters, search: query }
             });
             
-            console.log('✅ Búsqueda offline completada:', searchResults.length, 'resultados');
+            ('✅ Búsqueda offline completada:', searchResults.length, 'resultados');
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to search tasks' });
           } finally {
@@ -1013,7 +996,7 @@ export const useTaskStore = create<TaskStore>()(
         syncWithServer: async () => {
           try {
             set({ syncStatus: { ...get().syncStatus, syncInProgress: true } });
-            console.log('🔄 Sincronizando con Firestore...');
+            ('🔄 Sincronizando con Firestore...');
             
             // Recargar tareas desde Firestore
             await get().loadTasks();
@@ -1026,7 +1009,7 @@ export const useTaskStore = create<TaskStore>()(
               } 
             });
             
-            console.log('✅ Sincronización con Firestore completada');
+            ('✅ Sincronización con Firestore completada');
           } catch (error) {
             console.error('❌ Error en sincronización:', error);
             set({ 
@@ -1069,7 +1052,7 @@ export const useTaskStore = create<TaskStore>()(
             if (localTasks.length > 0) {
               set({ tasks: localTasks });
               get().calculateStats();
-              console.log('📂 Tareas cargadas desde almacenamiento local:', localTasks.length);
+              ('📂 Tareas cargadas desde almacenamiento local:', localTasks.length);
             }
           } catch (error) {
             console.error('❌ Error al cargar tareas locales:', error);
@@ -1079,7 +1062,7 @@ export const useTaskStore = create<TaskStore>()(
         exportTasksAsText: () => {
           try {
             localStorageService.exportTasks();
-            console.log('📄 Tareas exportadas como archivo de texto');
+            ('📄 Tareas exportadas como archivo de texto');
           } catch (error) {
             console.error('❌ Error al exportar tareas:', error);
           }
@@ -1097,7 +1080,7 @@ export const useTaskStore = create<TaskStore>()(
         clearLocalStorage: () => {
           try {
             localStorageService.clearLocalStorage();
-            console.log('🗑️ Almacenamiento local limpiado');
+            ('🗑️ Almacenamiento local limpiado');
           } catch (error) {
             console.error('❌ Error al limpiar almacenamiento local:', error);
           }

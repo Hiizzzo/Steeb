@@ -17,12 +17,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onSkip }) => {
       // Mantener consistencia con useTheme: clave 'stebe-theme'
       const savedTheme = localStorage.getItem('stebe-theme');
       
-      console.log('LoadingScreen - hasDarkClass:', hasDarkClass);
-      console.log('LoadingScreen - savedTheme:', savedTheme);
-      
       // Considerar shiny como fondo negro también
       const isDarkMode = hasDarkClass || savedTheme === 'dark' || savedTheme === 'shiny' || !savedTheme;
-      console.log('LoadingScreen - isDarkMode:', isDarkMode);
       setIsDark(isDarkMode);
     };
     

@@ -17,7 +17,7 @@ export const minimaxConfig = {
 // Test function para verificar conexión
 export async function testMINIMAXConnection() {
   try {
-    if (import.meta.env.DEV) console.log('🧪 Probando conexión con MINIMAX M2...');
+    if (import.meta.env.DEV) ('🧪 Probando conexión con MINIMAX M2...');
     
     const response = await fetch('https://api.minimax.io/v1/chat/completions', {
       method: 'POST',
@@ -44,8 +44,8 @@ export async function testMINIMAXConnection() {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    if (import.meta.env.DEV) console.log('✅ Conexión exitosa con MINIMAX M2');
-    if (import.meta.env.DEV) console.log('📝 Respuesta:', content);
+    if (import.meta.env.DEV) ('✅ Conexión exitosa con MINIMAX M2');
+    if (import.meta.env.DEV) ('📝 Respuesta:', content);
     
     return {
       success: true,

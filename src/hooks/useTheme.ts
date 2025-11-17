@@ -119,11 +119,6 @@ export const useTheme = () => {
       root.classList.remove('theme-transitioning');
     }, 50);
 
-    console.log(`🎨 Theme applied: ${theme}`, {
-      classes: root.className,
-      localStorage: localStorage.getItem('stebe-theme'),
-      computed: getComputedStyle(root).getPropertyValue('--background')
-    });
   }, []);
 
   // Efecto de montaje: Aplicar tema INMEDIATAMENTE y validar consistencia
@@ -141,11 +136,8 @@ export const useTheme = () => {
         // Intentar corrección automática
         const health = themeDebugger.checkSystemHealth();
         if (!health.isHealthy) {
-          console.log('🔧 Attempting automatic theme correction...');
-          themeDebugger.fixInconsistencies();
+                    themeDebugger.fixInconsistencies();
         }
-      } else {
-        console.log('✅ Theme validation passed');
       }
     }, 100);
 
@@ -174,8 +166,7 @@ export const useTheme = () => {
       return;
     }
 
-    console.log('🔄 Theme toggle requested:', theme);
-    applyTheme(theme);
+        applyTheme(theme);
   }, [applyTheme]);
 
   // Suscribirse a cambios globales del tema

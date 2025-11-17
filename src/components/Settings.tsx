@@ -106,7 +106,7 @@ const SettingsUI: React.FC = () => {
           description: 'Controlar quién ve tus tareas',
           type: 'link',
           value: '',
-          onChange: () => console.log('Navegar a privacidad'),
+          onChange: () => ('Navegar a privacidad'),
           enabled: true
         },
         {
@@ -115,7 +115,7 @@ const SettingsUI: React.FC = () => {
           description: 'Descargar copia de tus tareas',
           type: 'link',
           value: '',
-          onChange: () => console.log('Exportar datos'),
+          onChange: () => ('Exportar datos'),
           enabled: true
         }
       ]
@@ -124,7 +124,7 @@ const SettingsUI: React.FC = () => {
 
   const handleSettingChange = (setting: any, value: any) => {
     setting.onChange(value);
-    console.log(`Setting ${setting.title} changed to:`, value);
+    (`Setting ${setting.title} changed to:`, value);
   };
 
   const getToggleComponent = (setting: any) => (
@@ -295,7 +295,7 @@ const SettingsUI: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center"
-            onClick={() => console.log('Settings saved:', {
+            onClick={() => ('Settings saved:', {
               darkMode,
               notifications,
               soundEffects,

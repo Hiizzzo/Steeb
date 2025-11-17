@@ -73,7 +73,7 @@ const CategoryManager: React.FC = () => {
       setCategories([...categories, category]);
       setNewCategory({ name: '', color: 'bg-blue-500', icon: '📌' });
       setShowAddModal(false);
-      console.log('✅ Categoría creada:', category.name);
+      ('✅ Categoría creada:', category.name);
     }
   };
 
@@ -97,7 +97,7 @@ const CategoryManager: React.FC = () => {
       setEditingCategory(null);
       setNewCategory({ name: '', color: 'bg-blue-500', icon: '📌' });
       setShowAddModal(false);
-      console.log('✅ Categoría actualizada:', newCategory.name);
+      ('✅ Categoría actualizada:', newCategory.name);
     }
   };
 
@@ -110,7 +110,7 @@ const CategoryManager: React.FC = () => {
 
     if (category && window.confirm(`¿Estás seguro de que querés eliminar la categoría "${category.name}"?`)) {
       setCategories(categories.filter(cat => cat.id !== categoryId));
-      console.log('🗑️ Categoría eliminada:', category.name);
+      ('🗑️ Categoría eliminada:', category.name);
     }
   };
 

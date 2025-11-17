@@ -100,20 +100,17 @@ const AppContent = () => {
   useEffect(() => {
     // INICIALIZACIÓN CRÍTICA: Aplicar tema ANTES que todo lo demás
     const initialTheme = initializeTheme();
-    console.log('🎨 App: Initial theme set to', initialTheme);
-
+    
     // Solicitar permiso de App Tracking Transparency en iOS
     const requestTrackingPermission = async () => {
       if (Capacitor.getPlatform() === 'ios') {
         try {
           const response = await AppTrackingTransparency.requestPermission();
-          if (import.meta.env.DEV) console.log('🔒 ATT Status:', response.status);
-
+          
           // Guardar el estado del permiso para referencia futura
           localStorage.setItem('att-status', response.status);
         } catch (error) {
-          if (import.meta.env.DEV) console.log('❌ Error requesting ATT permission:', error);
-          localStorage.setItem('att-status', 'denied');
+                    localStorage.setItem('att-status', 'denied');
         }
       }
     };
@@ -151,8 +148,6 @@ const AppContent = () => {
         root.classList.remove('dark', 'shiny');
         if (initialTheme === 'dark') root.classList.add('dark');
         else if (initialTheme === 'shiny') root.classList.add('shiny');
-      } else {
-        console.log('✅ App: Theme consistency verified');
       }
     }, 500);
 

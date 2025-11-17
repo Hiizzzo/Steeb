@@ -80,14 +80,14 @@ const Events: React.FC = () => {
       });
       setShowAddModal(false);
 
-      console.log('✅ Evento creado:', event.title);
+      ('✅ Evento creado:', event.title);
     }
   };
 
   const handleDeleteEvent = (eventId: string) => {
     if (window.confirm('¿Estás seguro de que querés eliminar este evento?')) {
       setEvents(events.filter(event => event.id !== eventId));
-      console.log('🗑️ Evento eliminado');
+      ('🗑️ Evento eliminado');
     }
   };
 
