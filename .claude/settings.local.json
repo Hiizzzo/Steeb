@@ -79,7 +79,8 @@
       "Bash(npx eslint:*)",
       "Bash(find:*)",
       "Bash(sort:*)",
-      "Bash(cmp:*)"
+      "Bash(cmp:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
