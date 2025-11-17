@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { useUserCredits } from "@/hooks/useUserCredits";
 import { Switch } from "@/components/ui/switch";
@@ -7,7 +7,7 @@ import { PaymentModal } from "@/components/PaymentModal";
 import { Coins, Crown } from "lucide-react";
 
 const ThemeToggle = () => {
-	const { currentTheme, toggleTheme } = useTheme();
+	const { currentTheme, toggleTheme, validateTheme } = useTheme();
 	const { userCredits } = useUserCredits();
 	const [mounted, setMounted] = useState(false);
 	const [showGame, setShowGame] = useState(false);
@@ -25,9 +25,35 @@ const ThemeToggle = () => {
 	const [currentX, setCurrentX] = useState(0);
 	const sliderRef = useRef(null);
 
+	// Callback de cambio de tema mejorado con validación
+	const handleThemeChange = useCallback((newTheme: 'light' | 'dark' | 'shiny') => {
+		console.log('🎨 ThemeToggle: Changing theme to', newTheme);
+
+		// Validar el cambio de tema
+		toggleTheme(newTheme);
+
+		// Validación post-cambio (para debugging)
+		setTimeout(() => {
+			const validation = validateTheme();
+			if (!validation.consistent) {
+				console.error('❌ ThemeToggle: Inconsistency detected after change', validation);
+			} else {
+				console.log('✅ ThemeToggle: Theme change successful', validation);
+			}
+		}, 50);
+	}, [toggleTheme, validateTheme]);
+
 	useEffect(() => {
 		setMounted(true);
-	}, []);
+
+		// Validación inicial al montar
+		if (mounted) {
+			const validation = validateTheme();
+			if (!validation.consistent) {
+				console.warn('⚠️ ThemeToggle: Initial inconsistency detected', validation);
+			}
+		}
+	}, [mounted, validateTheme]);
 
 	// Función para determinar posición basada en coordenada X
 	const getPositionFromX = (x) => {
@@ -62,7 +88,7 @@ const ThemeToggle = () => {
 	const handleClick = (e) => {
 		e.preventDefault();
 		const newPosition = getPositionFromX(e.clientX);
-		toggleTheme(newPosition);
+		handleThemeChange(newPosition);
 	};
 
 	// Mouse event handlers
@@ -84,7 +110,7 @@ const ThemeToggle = () => {
 			if (isDragging) {
 				const newPosition = getPositionFromX(moveEvent.clientX);
 				console.log('New position:', newPosition);
-				toggleTheme(newPosition);
+				handleThemeChange(newPosition);
 			}
 			setIsDragging(false);
 			document.removeEventListener('mousemove', handleMouseMove);
@@ -111,7 +137,7 @@ const ThemeToggle = () => {
 		const handleTouchEnd = () => {
 			if (isDragging) {
 				const newPosition = getPositionFromX(currentX);
-				toggleTheme(newPosition);
+				handleThemeChange(newPosition);
 			}
 			setIsDragging(false);
 		};
@@ -129,16 +155,16 @@ const ThemeToggle = () => {
 	const isShiny = currentTheme === "shiny";
 
 	return (
-		<div className="fixed top-8 right-4 z-[60]">
+		<div className="fixed top-8 right-4 z-[60] overflow-hidden rounded-full">
 			{/* Switch de 3 posiciones deslizable: left=white, middle=shiny, right=black */}
 			<div
 				ref={sliderRef}
-				className={`relative w-16 h-8 rounded-full border-2 border-white transition-all duration-200 cursor-pointer select-none ${
+				className={`relative w-16 h-8 rounded-full border-2 transition-all duration-200 cursor-pointer select-none ${
 					currentTheme === "light"
-						? 'bg-white'
+						? 'bg-white border-black'
 						: currentTheme === "shiny"
-							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500'
-							: 'bg-black'
+							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 border-white'
+							: 'bg-black border-black'
 				}`}
 				onClick={handleClick}
 				onMouseDown={handleMouseDown}
@@ -175,7 +201,7 @@ const ThemeToggle = () => {
 				onWin={() => {
 					setShinyUnlocked(true);
 					localStorage.setItem('stebe-shiny-unlocked', 'true');
-					toggleTheme('dark');
+					handleThemeChange('dark');
 					setShowGame(false);
 				}}
 			/>

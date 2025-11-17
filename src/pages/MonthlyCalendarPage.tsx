@@ -619,7 +619,7 @@ const MonthlyCalendarPage: React.FC = () => {
         }}
         className={`
             relative h-12 sm:h-14 rounded-full cursor-pointer transition-all duration-150
-            bg-white text-black dark:bg-white dark:text-black
+            bg-white text-black dark:bg-white dark:text-white
             ${day.isSelected ? 'border-2 border-black dark:border-white' : 'border border-transparent'}
             hover:shadow-sm
           `}
@@ -628,7 +628,7 @@ const MonthlyCalendarPage: React.FC = () => {
         onMouseLeave={() => setHoveredDate(null)}
       >
         {/* Número del día */}
-        <div className={`absolute inset-0 flex items-center justify-center text-[14px] sm:text-[16px] font-semibold transition-colors text-black dark:text-black ${day.isCurrentMonth ? '' : 'opacity-60'}`}>
+        <div className={`absolute inset-0 flex items-center justify-center text-[14px] sm:text-[16px] font-semibold transition-colors text-black dark:text-white ${day.isCurrentMonth ? '' : 'opacity-60'}`}>
           {day.day}
         </div>
   

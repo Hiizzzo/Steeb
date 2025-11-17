@@ -160,8 +160,8 @@ export function generateMonthlyRecurrenceInstances(startDate: string, rule: Recu
   // Ordenar las fechas
   dates.sort();
   
-  console.log(`📅 Fechas generadas para ${startDate} con regla:`, rule);
-  console.log(`📅 Instancias generadas:`, dates);
+  if (import.meta.env.DEV) console.log(`📅 Fechas generadas para ${startDate} con regla:`, rule);
+  if (import.meta.env.DEV) console.log(`📅 Instancias generadas:`, dates);
   return dates;
 }
 
@@ -171,7 +171,7 @@ export async function processRecurringTasks(): Promise<void> {
   const tasks = store.tasks;
   const today = toDateOnly(new Date());
   
-  console.log('🔄 Procesando tareas recurrentes para el día:', today);
+  if (import.meta.env.DEV) console.log('🔄 Procesando tareas recurrentes para el día:', today);
   
   // Encontrar todas las tareas completadas con recurrencia
   const completedRecurringTasks = tasks.filter(task => 
@@ -181,7 +181,7 @@ export async function processRecurringTasks(): Promise<void> {
     task.scheduledDate
   );
   
-  console.log(`📋 Encontradas ${completedRecurringTasks.length} tareas recurrentes completadas`);
+  if (import.meta.env.DEV) console.log(`📋 Encontradas ${completedRecurringTasks.length} tareas recurrentes completadas`);
   
   for (const task of completedRecurringTasks) {
     if (!task.scheduledDate || !task.recurrence) continue;
@@ -195,7 +195,7 @@ export async function processRecurringTasks(): Promise<void> {
     );
     
     if (existingTaskForToday) {
-      console.log(`✅ Ya existe tarea pendiente para hoy: ${task.title}`);
+      if (import.meta.env.DEV) console.log(`✅ Ya existe tarea pendiente para hoy: ${task.title}`);
       continue;
     }
     
@@ -203,7 +203,7 @@ export async function processRecurringTasks(): Promise<void> {
     const missingDates = generateMissingDates(task.scheduledDate, task.recurrence, today);
     
     if (missingDates.length > 0) {
-      console.log(`📅 Generando ${missingDates.length} ocurrencias faltantes para: ${task.title}`);
+      if (import.meta.env.DEV) console.log(`📅 Generando ${missingDates.length} ocurrencias faltantes para: ${task.title}`);
       
       // Crear tareas para cada fecha faltante
       for (const date of missingDates) {
@@ -237,13 +237,13 @@ export async function processRecurringTasks(): Promise<void> {
             estimatedDuration: task.estimatedDuration,
           });
           
-          console.log(`✨ Creada tarea recurrente: ${task.title} para ${date}`);
+          if (import.meta.env.DEV) console.log(`✨ Creada tarea recurrente: ${task.title} para ${date}`);
         }
       }
     }
   }
   
-  console.log('✅ Procesamiento de tareas recurrentes completado');
+  if (import.meta.env.DEV) console.log('✅ Procesamiento de tareas recurrentes completado');
 }
 
 // Función para inicializar el procesamiento automático

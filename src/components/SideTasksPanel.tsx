@@ -155,7 +155,7 @@ const SideTasksPanel: React.FC<SideTasksPanelProps> = ({ onClose }) => {
                               ? 'bg-transparent border-white'
                               : 'bg-transparent border-black'
                         } border`}
-                        style={{ borderWidth: '1px' }}
+                        style={{ borderWidth: '2px' }}
                         title="Completar tarea"
                       />
                     </div>

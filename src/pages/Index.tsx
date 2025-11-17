@@ -75,6 +75,82 @@ const Index = () => {
   const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
   const { currentTheme } = useTheme();
+
+  // FORZAR HEADER CORRECTO SEGÚN TEMA - JavaScript directo
+  useEffect(() => {
+    const forceHeaderColors = () => {
+      const headerElements = document.querySelectorAll('.tareas-header *');
+
+      // Determinar colores según el tema
+      const isDark = document.documentElement.classList.contains('dark');
+      const isShiny = document.documentElement.classList.contains('shiny');
+
+      if (isDark || isShiny) {
+        // Dark/Shiny mode: header blanco con texto negro
+        headerElements.forEach(el => {
+          el.style.setProperty('background-color', '#ffffff', 'important');
+          el.style.setProperty('background', '#ffffff', 'important');
+          el.style.setProperty('color', '#000000', 'important');
+        });
+
+        // Forzar el header principal también
+        const headerMain = document.querySelector('.tareas-header');
+        if (headerMain) {
+          headerMain.style.setProperty('background-color', '#ffffff', 'important');
+          headerMain.style.setProperty('background', '#ffffff', 'important');
+          headerMain.style.setProperty('color', '#000000', 'important');
+        }
+
+        // Forzar específicamente el h1 a texto negro en dark mode
+        const h1Element = document.querySelector('.tareas-header h1');
+        if (h1Element) {
+          h1Element.style.setProperty('color', '#000000', 'important');
+          h1Element.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+        }
+      } else {
+        // Light mode: header negro con texto blanco
+        headerElements.forEach(el => {
+          el.style.setProperty('background-color', '#000000', 'important');
+          el.style.setProperty('background', '#000000', 'important');
+          el.style.setProperty('color', '#ffffff', 'important');
+        });
+
+        // Forzar el header principal también
+        const headerMain = document.querySelector('.tareas-header');
+        if (headerMain) {
+          headerMain.style.setProperty('background-color', '#000000', 'important');
+          headerMain.style.setProperty('background', '#000000', 'important');
+          headerMain.style.setProperty('color', '#ffffff', 'important');
+        }
+
+        // Forzar específicamente el h1 según el modo
+        const h1Element = document.querySelector('.tareas-header h1');
+        if (h1Element) {
+          h1Element.style.setProperty('color', '#ffffff', 'important');
+          h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+        }
+      }
+    };
+
+    // Aplicar inmediatamente
+    forceHeaderColors();
+
+    // Aplicar cada 100ms para asegurar que se mantenga
+    const interval = setInterval(forceHeaderColors, 100);
+
+    // También aplicar cuando cambie el tema
+    const observer = new MutationObserver(forceHeaderColors);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => {
+      clearInterval(interval);
+      observer.disconnect();
+    };
+  }, [currentTheme]);
+
   // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
   const SWIPE_THRESHOLD = 80;
   const MAX_SWIPE = 160;
@@ -207,7 +283,7 @@ const Index = () => {
             <div className="flex-1 min-w-0">
               <p className={`task-title text-[18px] ${
                 isTaskDeleting 
-                  ? 'text-white dark:text-black' 
+                  ? 'text-white dark:text-white' 
                   : task.completed 
                     ? 'line-through text-gray-500' 
                     : 'text-black font-medium'
@@ -215,7 +291,7 @@ const Index = () => {
               {task.scheduledTime && (
                 <p className={`text-sm ${
                   isTaskDeleting 
-                    ? 'text-white dark:text-black' 
+                    ? 'text-white dark:text-white' 
                     : 'text-gray-600'
                 }`}>{task.scheduledTime}</p>
               )}
@@ -683,10 +759,10 @@ const Index = () => {
 
       {/* Header STEEB en la raíz del HTML - arriba de todo */}
       <div className="pb-0.5 fixed top-0 left-0 right-0 z-50" style={{ marginTop: '0', paddingTop: '0' }}>
-        <div className={`tareas-header flex items-center justify-center py-0 relative w-screen ${theme.isShiny ? 'bg-white text-black' : 'bg-black text-white'}`} style={{ marginTop: '0', paddingTop: '0', borderRadius: '0 !important', borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important', WebkitBorderRadius: '0 !important', mozBorderRadius: '0 !important', msBorderRadius: '0 !important', OBorderRadius: '0 !important', KhtmlBorderRadius: '0 !important', clipPath: 'none !important', borderRadius: '0 !important', zIndex: '50' }}>
-          <div className="flex items-center justify-center flex-1 px-4 w-full">
+        <div className={`tareas-header flex items-center justify-center py-0 relative w-screen bg-white text-black steeb-header-force-white`} style={{ backgroundColor: '#ffffff !important', background: '#ffffff !important', color: '#000000 !important', marginTop: '0', paddingTop: '0', borderRadius: '0 !important', borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important', WebkitBorderRadius: '0 !important', mozBorderRadius: '0 !important', msBorderRadius: '0 !important', OBorderRadius: '0 !important', KhtmlBorderRadius: '0 !important', clipPath: 'none !important', borderRadius: '0 !important', zIndex: '50' }}>
+          <div className="flex items-center justify-center flex-1 px-4 w-full steeb-force-white-child" style={{ backgroundColor: '#ffffff !important', background: '#ffffff !important' }}>
             {/* ÍCONO STEEB - IZQUIERDA */}
-            <div className="w-32 h-32 mr-1 flex items-center justify-center flex-shrink-0">
+            <div className="w-32 h-32 mr-1 flex items-center justify-center flex-shrink-0 steeb-force-white-child" style={{ backgroundColor: '#ffffff !important', background: '#ffffff !important' }}>
               <img src="/te-observo.png" alt="Steeb" className="w-full h-full object-contain" style={{
                 filter: theme.isShiny ? 'none' : 'none',
                 opacity: 1,
@@ -695,7 +771,7 @@ const Index = () => {
             </div>
 
             {/* TEXTO FIJO "STEEB" - MÁS CERCA DEL ÍCONO */}
-            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '8px', paddingLeft: '16px' }}>
+            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ color: '#000000 !important', fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '8px', paddingLeft: '16px' }}>
               STEEB
             </h1>
 

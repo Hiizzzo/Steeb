@@ -168,23 +168,23 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-2">
         {/* Calendar Grid */}
-        <div className={`p-3 rounded-lg mb-3 ${
+        <div className={`rounded-lg mb-2 ${
           isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
         }`}>
-          <div className="grid grid-cols-7 gap-1 mb-2">
+          <div className="grid grid-cols-7 gap-2 mb-1">
             {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day, index) => (
-              <div key={`weekday-${index}`} className="text-center text-sm font-medium opacity-70">
+              <div key={`weekday-${index}`} className="text-center text-base font-medium opacity-70">
                 {day}
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-1 mb-2">
+          <div className="grid grid-cols-7 gap-2 mb-1">
             {monthData.map((day, index) => {
               if (day === null) {
-                return <div key={`empty-${index}`} className="aspect-square" />;
+                return <div key={`empty-${index}`} className="h-10" />;
               }
 
               const isToday = day.date.toDateString() === new Date().toDateString();
@@ -196,13 +196,13 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
                 <div
                   key={day.day}
                   onClick={() => setSelectedDay(day.date)}
-                  className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm relative cursor-pointer transition-all hover:scale-105 ${
+                  className={`flex flex-col items-center justify-center rounded-lg text-base relative cursor-pointer transition-all hover:scale-105 ${
                     isSelected
                       ? isDarkMode ? 'bg-white text-black shadow-lg scale-110' : 'bg-black text-white shadow-lg scale-110'
                       : isToday
                       ? isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
                       : isCompleted
-                      ? isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
+                      ? isDarkMode ? 'bg-gray-800' : 'bg-white'
                       : hasTasks
                       ? isDarkMode ? 'bg-gray-900' : 'bg-white'
                       : isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
@@ -237,7 +237,7 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
           <div className={`p-3 rounded-lg mb-3 ${
             isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
           }`}>
-            <div className="flex justify-center items-center mb-4">
+            <div className="flex justify-center items-center mb-2">
               <h4 className="text-xl font-bold text-center">
                 {selectedDayData.day} de {currentMonth.toLocaleDateString('es-ES', { month: 'long' })}
               </h4>
@@ -270,34 +270,10 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
                 })}
               </div>
             ) : (
-              <p className="text-sm opacity-70 text-center mb-6">No hay tareas para este día</p>
+              <p className="text-base opacity-70 text-center mb-6">No hay tareas para este día</p>
             )}
           </div>
         )}
-      </div>
-
-      {/* Stats Summary - Movido al final */}
-      <div className="p-3">
-        <div className="grid grid-cols-3 gap-1">
-          <div className={`p-3 rounded-lg text-center ${
-            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
-          }`}>
-            <p className="font-bold text-2xl">{stats.total}</p>
-            <p className="opacity-70 text-sm">Total</p>
-          </div>
-          <div className={`p-3 rounded-lg text-center ${
-            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
-          }`}>
-            <p className="font-bold text-2xl">{stats.completed}</p>
-            <p className="opacity-70 text-sm">Hechas</p>
-          </div>
-          <div className={`p-3 rounded-lg text-center ${
-            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
-          }`}>
-            <p className="font-bold text-2xl">{stats.pending}</p>
-            <p className="opacity-70 text-sm">Pend.</p>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -7,23 +7,25 @@ interface FixedPanelContainerProps {
   onClose: () => void;
   children: React.ReactNode;
   onHeightChange?: (height: number) => void;
+  minHeight?: number;
 }
 
 const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
   isOpen,
   onClose,
   children,
-  onHeightChange
+  onHeightChange,
+  minHeight = 500
 }) => {
   const { currentTheme } = useTheme();
   const isDarkMode = currentTheme === 'dark';
-  const [panelHeight, setPanelHeight] = useState(window.innerHeight * 0.5);
+  const [panelHeight, setPanelHeight] = useState(500);
   const [isDragging, setIsDragging] = useState(false);
   const [isMultiTaskMode, setIsMultiTaskMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Altura predefinida: 60% de la pantalla para el panel, dejando 40% para el chat
-  const DEFAULT_HEIGHT = window.innerHeight * 0.6;
+  // Altura fija: 500px para el panel calendario - piso mínimo
+  const DEFAULT_HEIGHT = 500;
 
   // Notificar al componente padre cuando cambia la altura del panel
   useEffect(() => {
@@ -41,9 +43,9 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
       const newHeight = window.innerHeight - e.clientY;
       const steebHeaderHeight = 120; // Altura ajustada del header STEEB para que choque pero no lo traspase
       const maxHeight = window.innerHeight - steebHeaderHeight; // Choca con el div de STEEB
-      const minHeight = 400; // Mínimo 400px desde el fondo de la pantalla
+      const calculatedMinHeight = minHeight; // Usar el minHeight pasado como prop
 
-      const finalHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+      const finalHeight = Math.max(calculatedMinHeight, Math.min(maxHeight, newHeight));
       setPanelHeight(finalHeight);
 
       // Detectar si el panel toca el techo para activar modo multitarea
@@ -61,9 +63,9 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
       const newHeight = window.innerHeight - touch.clientY;
       const steebHeaderHeight = 120; // Altura ajustada del header STEEB para que choque pero no lo traspase
       const maxHeight = window.innerHeight - steebHeaderHeight; // Choca con el div de STEEB
-      const minHeight = 400; // Mínimo 400px desde el fondo de la pantalla
+      const calculatedMinHeight = minHeight; // Usar el minHeight pasado como prop
 
-      const finalHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+      const finalHeight = Math.max(calculatedMinHeight, Math.min(maxHeight, newHeight));
       setPanelHeight(finalHeight);
 
       // Detectar si el panel toca el techo para activar modo multitarea
@@ -169,16 +171,18 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
           {/* Botón de cerrar */}
           <button
             onClick={onClose}
-            className={`absolute top-3 left-3 z-50 p-1 transition-colors border-0 outline-none focus:outline-none focus:border-none ${
+            className={`absolute top-3 left-3 z-50 p-1 transition-colors border-0 outline-none focus:outline-none focus:border-none focus:ring-0 ring-0 ${
               isDarkMode
                 ? 'text-white'
                 : 'text-black'
             }`}
             style={{
-              border: 'none',
-              outline: 'none',
-              boxShadow: 'none',
-              background: 'transparent'
+              border: 'none !important',
+              outline: 'none !important',
+              boxShadow: 'none !important',
+              background: 'transparent',
+              borderWidth: '0px',
+              borderColor: 'transparent'
             }}
             title="Cerrar panel"
           >

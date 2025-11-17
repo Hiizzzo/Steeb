@@ -80,12 +80,12 @@ export const generateSampleTasks = () => {
 export const loadSampleData = () => {
   const sampleTasks = generateSampleTasks();
   localStorage.setItem('stebe-tasks', JSON.stringify(sampleTasks));
-  console.log(`Loaded ${sampleTasks.length} sample tasks`);
+  if (import.meta.env.DEV) console.log(`Loaded ${sampleTasks.length} sample tasks`);
   return sampleTasks;
 };
 
 // Function to clear sample data
 export const clearSampleData = () => {
   localStorage.removeItem('stebe-tasks');
-  console.log('Sample data cleared');
+  if (import.meta.env.DEV) console.log('Sample data cleared');
 };

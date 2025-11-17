@@ -84,7 +84,7 @@ const SettingsPage = () => {
               onClick={() => updateGeneralSettings({ language: 'es' })}
               className={`p-3 rounded-lg border-2 transition-all ${
                 settings.language === 'es'
-                  ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                  ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-white'
                   : 'border-gray-300 dark:border-white bg-white dark:bg-black text-gray-700 dark:text-white'
               }`}
             >
@@ -97,7 +97,7 @@ const SettingsPage = () => {
               onClick={() => updateGeneralSettings({ language: 'en' })}
               className={`p-3 rounded-lg border-2 transition-all ${
                 settings.language === 'en'
-                  ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
+                  ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-white'
                   : 'border-gray-300 dark:border-white bg-white dark:bg-black text-gray-700 dark:text-white'
               }`}
             >
@@ -163,7 +163,7 @@ const SettingsPage = () => {
                           alert(e?.message || 'No se pudo vincular con Google. Intenta desde navegador si estás en iOS.');
                         }
                       }}
-                      className="text-sm bg-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                      className="text-sm bg-black dark:bg-white text-white dark:text-white px-3 py-1 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                     >
                       Vincular con Google
                     </button>

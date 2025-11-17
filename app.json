@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "STEEB",
-    "slug": "steeb-native",
+    "slug": "steeb",
     "scheme": "steeb",
     "version": "8.6.0",
     "orientation": "portrait",

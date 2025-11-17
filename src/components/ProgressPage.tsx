@@ -237,14 +237,14 @@ const ProgressPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-2 ${
                 viewMode === mode
                   ? currentTheme === 'dark'
-                    ? 'bg-white text-black'
-                    : 'bg-black text-white'
+                    ? 'bg-white text-black border-black'
+                    : 'bg-black text-white border-black'
                   : currentTheme === 'dark'
-                    ? 'bg-gray-800 text-white hover:bg-gray-700'
-                    : 'bg-gray-200 text-black hover:bg-gray-300'
+                    ? 'bg-gray-800 text-white hover:bg-gray-700 border-black'
+                    : 'bg-gray-200 text-black hover:bg-gray-300 border-black'
               }`}
             >
               {mode === 'day' ? 'Día' : mode === 'week' ? 'Semana' : mode === 'month' ? 'Mes' : 'Año'}

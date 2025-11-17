@@ -217,31 +217,23 @@ export const useSettings = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Apply theme settings to document
+  // Apply theme settings to document (coordinated with useTheme hook)
   useEffect(() => {
     const applyTheme = () => {
       const root = document.documentElement;
-      
-      // Apply theme mode
-      if (settings.theme.mode === 'auto') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        root.classList.toggle('dark', prefersDark);
-      } else {
-        root.classList.toggle('dark', settings.theme.mode === 'dark');
-      }
-      
-      // Apply accent color
-      root.style.setProperty('--accent-color', settings.theme.accentColor);
-      
-      // Apply font size
+
+      // IMPORTANT: Don't interfere with useTheme hook's theme management
+      // Only apply settings that are NOT handled by useTheme
+
+      // Apply font size (safe - doesn't conflict with theme colors)
       const fontSizeMap = {
         small: '14px',
         medium: '16px',
         large: '18px',
       };
       root.style.setProperty('--base-font-size', fontSizeMap[settings.theme.fontSize]);
-      
-      // Apply motion preferences
+
+      // Apply motion preferences (safe - doesn't conflict with theme colors)
       if (settings.theme.reduceMotion) {
         root.style.setProperty('--animation-duration', '0s');
         root.style.setProperty('--transition-duration', '0s');
@@ -249,15 +241,25 @@ export const useSettings = () => {
         root.style.removeProperty('--animation-duration');
         root.style.removeProperty('--transition-duration');
       }
+
+      // Apply accent color only if it's not a theme variable (safe)
+      // Only apply custom accent colors, not theme-related ones
+      if (settings.theme.accentColor && !settings.theme.accentColor.startsWith('hsl')) {
+        root.style.setProperty('--user-accent-color', settings.theme.accentColor);
+      }
     };
 
     applyTheme();
 
     // Listen for system theme changes when mode is auto
+    // BUT don't apply changes - let useTheme handle theme switching
     if (settings.theme.mode === 'auto') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => applyTheme();
-      
+      const handleChange = () => {
+        // Just trigger a storage event to notify useTheme if needed
+        window.dispatchEvent(new CustomEvent('system-theme-change'));
+      };
+
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }

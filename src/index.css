@@ -1,14 +1,11 @@
 
 @import './styles/shiny-protection.css';
-@import './index-dark-borders.css';
+@import './styles/theme-reset.css';
 @reference "tailwindcss";
 
-/* Tailwind directives - standard syntax */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* RESET CSS FUNDAMENTAL - Eliminar todos los márgenes del HTML */
 html, body {
   margin: 0 !important;
   padding: 0 !important;
@@ -38,42 +35,32 @@ html, body {
 /* stylelint-enable */
 
 @layer base {
-  :root {
-    /* Enhanced light mode color palette for better contrast */
+    :root:not(.dark):not(.shiny) {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%; /* Slightly softer black */
-
+    --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-
-    --primary: 0 0% 9%; /* Pure black for primary elements */
-    --primary-foreground: 0 0% 98%; /* Near white for text on primary */
-
-    --secondary: 0 0% 96.1%; /* Lighter secondary background */
-    --secondary-foreground: 0 0% 9%; /* Dark text on secondary */
-
-    --muted: 0 0% 96.1%; /* Consistent muted background */
-    --muted-foreground: 0 0% 45.1%; /* Standard muted text */
-
-    --accent: 0 0% 96.1%; /* Consistent accent background */
-    --accent-foreground: 0 0% 9%; /* Dark text on accent */
-
-    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 89.8%; /* Subtle borders */
-    --input: 0 0% 89.8%; /* Consistent input borders */
-    --ring: 0 0% 9%; /* Dark ring color */
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 9%;
 
     --radius: 0.5rem;
 
-    /* Enhanced sidebar colors for light mode */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 0 0% 9%; /* Dark primary */
+    --sidebar-primary: 0 0% 9%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 0 0% 96.1%;
     --sidebar-accent-foreground: 240 5.9% 10%;
@@ -81,30 +68,84 @@ html, body {
     --sidebar-ring: 0 0% 9%;
   }
 
-  /* Enhanced light mode contrast improvements */
+    :root:not(.dark):not(.shiny) .bg-white,
+  :root:not(.dark):not(.shiny) [class*="bg-white"],
+  :root:not(.dark):not(.shiny) .bg-gray-50,
+  :root:not(.dark):not(.shiny) .bg-gray-100:not(.absolute):not([class*="absolute"]) {
+    background-color: #ffffff !important;
+  }
+
+  
+    :root:not(.dark):not(.shiny) .overflow-y-auto,
+  :root:not(.dark):not(.shiny) [class*="overflow-y-auto"] {
+    background-color: #ffffff !important;
+  }
+
+    .dark {
+    /* Completely isolated dark mode variables */
+    --background: 0 0% 0% !important;
+    --foreground: 0 0% 100% !important;
+
+    --card: 0 0% 0% !important;
+    --card-foreground: 0 0% 100% !important;
+
+    --popover: 0 0% 0% !important;
+    --popover-foreground: 0 0% 100% !important;
+
+    --primary: 0 0% 0% !important;
+    --primary-foreground: 0 0% 100% !important;
+
+    --secondary: 0 0% 100% !important;
+    --secondary-foreground: 0 0% 0% !important;
+
+    --muted: 0 0% 5% !important;
+    --muted-foreground: 0 0% 80% !important;
+
+    --accent: 0 0% 5% !important;
+    --accent-foreground: 0 0% 100% !important;
+
+    --destructive: 0 0% 0% !important;
+    --destructive-foreground: 0 0% 100% !important;
+
+    --border: 0 0% 15% !important;
+    --input: 0 0% 15% !important;
+    --ring: 0 0% 0% !important;
+
+    --sidebar-background: 0 0% 0% !important;
+    --sidebar-foreground: 0 0% 100% !important;
+    --sidebar-primary: 0 0% 0% !important;
+    --sidebar-primary-foreground: 0 0% 100% !important;
+    --sidebar-accent: 0 0% 5% !important;
+    --sidebar-accent-foreground: 0 0% 100% !important;
+    --sidebar-border: 0 0% 15% !important;
+    --sidebar-ring: 0 0% 0% !important;
+  }
+
+    :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+  }
+
+  /* Global styles */
+  * {
+    @apply border-[hsl(var(--border))];
+  }
+  body {
+    background-color: #FFFFFF !important;
+    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  }
+
   .light {
-    /* Text improvements for better readability */
     color: hsl(var(--foreground));
-
-    /* Button improvements */
-    button {
-      border-color: hsl(var(--border));
-    }
-
-    /* Input improvements */
+    button { border-color: hsl(var(--border)); }
     input, textarea {
       border-color: hsl(var(--input));
       color: hsl(var(--foreground));
     }
-
-    /* Card improvements */
-    .card {
-      border-color: hsl(var(--border));
-    }
+    .card { border-color: hsl(var(--border)); }
   }
 
-  /* Calendar loading bars improvements - PR #238 */
-  .calendar-loading-bar {
+    .calendar-loading-bar {
     height: 4px;
     background: linear-gradient(
       90deg,
@@ -180,48 +221,8 @@ html, body {
     );
   }
 
-  /* Dark mode styles (keep existing) */
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-
-    --sidebar-background: 0 0% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 0 0% 14.9%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 14.9%;
-    --sidebar-ring: 0 0% 83.1%;
   }
-}
 
-/* Shiny toggle: animated multicolor border like checkbox */
 .shiny .shiny-toggle {
   position: relative;
   border-color: transparent !important; /* let gradient border be visible */
@@ -237,85 +238,15 @@ html, body {
     from 0deg,
     #ff004c,#ff7a00,#ffe600,#00ff66,#00c2ff,#8b00ff,#ff00ff,#ff004c
   );
-  /* mask so only the ring (padding) is visible on rounded rectangle */
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: none;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      animation: none;
   pointer-events: none;
 }
 
-@layer base {
-  .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 0 0% 0%;
-
-    --muted: 0 0% 5%;
-    --muted-foreground: 0 0% 80%;
-
-    --accent: 0 0% 5%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 0% 0%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 0%;
-
-    --sidebar-background: 0 0% 0%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 0% 0%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 5%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 0 0% 0%;
-  }
-}
-
-@layer base {
   /* stylelint-disable-next-line at-rule-no-unknown */
-  * {
-    @apply border-[hsl(var(--border))];
-  }
-
-  /* stylelint-disable-next-line at-rule-no-unknown */
-  body {
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
-    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
-    -webkit-tap-highlight-color: transparent;
-  }
-  /* stylelint-disable-next-line at-rule-no-unknown */
-  .dark body {
-    background-color: #000000 !important;
-    color: #FFFFFF !important;
-  }
-
-  /* Ensure all root elements in dark mode have pure black background */
-  .dark html,
-  .dark #root,
-  .dark .min-h-screen {
-    background-color: #000000 !important;
-  }
   
-  /* Esconde el scrollbar para móviles */
-  ::-webkit-scrollbar {
+    
+    ::-webkit-scrollbar {
     display: none;
   }
   
@@ -333,27 +264,20 @@ html, body {
     caret-color: #FFFFFF !important;
   }
 
-  /* Estilos para checkboxes completados en tema por defecto (no shiny) */
-  .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) {
-    background: #000000 !important;
+    .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) {
+    background: var(--shiny-card-bg) !important;
     border-color: #000000 !important;
     color: #ffffff !important;
   }
   
-  .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) svg {
-    color: #ffffff !important;
-    stroke: #ffffff !important;
-    fill: #ffffff !important;
-  }
-  
+  .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) svg,
   .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) .lucide-check {
     color: #ffffff !important;
     stroke: #ffffff !important;
     fill: #ffffff !important;
   }
 
-  /* Dark mode: checkboxes completados con fondo blanco */
-  .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) {
+    .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) {
     background: #ffffff !important;
     border-color: #ffffff !important;
     color: #ffffff !important;
@@ -365,14 +289,8 @@ html, body {
     fill: #ffffff !important;
   }
   
-  .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) .lucide-check {
-    color: #ffffff !important;
-    stroke: #ffffff !important;
-    fill: #ffffff !important;
-  }
-
-  /* Efecto multicolor animado para el texto TAREAS */
-  .tareas-multicolor {
+  
+    .tareas-multicolor {
     background: linear-gradient(
       45deg,
       #ff004c,
@@ -390,100 +308,8 @@ html, body {
     -webkit-text-fill-color: transparent;
     /* animation: gradientShift 3s ease-in-out infinite; */
   }
-  
-  @keyframes gradientShift {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
-  /* Cursor específico para el formulario de añadir tareas */
-  .modal-add-task input,
-  .modal-add-task textarea {
-    caret-color: #000000 !important;
-    cursor: text !important;
-  }
-  .dark .modal-add-task input,
-  .dark .modal-add-task textarea {
-    caret-color: #FFFFFF !important;
-  }
-
-  /* Cursor para inputs enfocados */
-  input:focus,
-  textarea:focus {
-    caret-color: #000000 !important;
-    cursor: text !important;
-  }
-  .dark input:focus,
-  .dark textarea:focus {
-    caret-color: #FFFFFF !important;
-  }
-}
 
 @layer utilities {
-  /* Steve colors - Custom utilities */
-  .bg-steve-white {
-    background-color: #FFFFFF;
-  }
-
-  .bg-steve-black {
-    background-color: #000000;
-  }
-
-  .bg-steve-gray-light {
-    background-color: #F3F3F3;
-  }
-
-  .bg-steve-gray-dark {
-    background-color: #222222;
-  }
-
-  .text-steve-white {
-    color: #FFFFFF;
-  }
-
-  .text-steve-black {
-    color: #000000;
-  }
-
-  .text-steve-gray-light {
-    color: #F3F3F3;
-  }
-
-  .text-steve-gray-dark {
-    color: #222222;
-  }
-
-  .border-steve-white {
-    border-color: #FFFFFF;
-  }
-
-  .border-steve-black {
-    border-color: #000000;
-  }
-
-  .steve-shadow {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  /* stylelint-disable-next-line at-rule-no-unknown */
-  .steve-border {
-    border: 1px solid #E5E7EB;
-    border-radius: 0.5rem;
-  }
-
-  /* Clase específica para asegurar visibilidad del cursor */
-  .cursor-visible {
-    caret-color: #000000 !important;
-    cursor: text !important;
-  }
-  .dark .cursor-visible {
-    caret-color: #FFFFFF !important;
-  }
-
   /* Utilidades para prevenir selección de texto */
   .no-select {
     -webkit-user-select: none !important;
@@ -506,11 +332,7 @@ html, body {
   }
 
   /* stylelint-disable at-rule-no-unknown */
-  /* Light mode (not dark, not shiny): ensure proper contrast */
-  body:not(.dark):not(.shiny) .text-black {
-    color: #000000 !important;
-  }
-
+  
   /* Light mode: force task cards background to pure white */
   body:not(.dark):not(.shiny) .bg-gray-50,
   body:not(.dark):not(.shiny) .bg-gray-100 {
@@ -529,63 +351,79 @@ html, body {
     overflow: hidden !important;
   }
 
-  /* Dark mode overrides for common utility classes - preserve critical components */
-  .dark .bg-white:not(.task-checkbox-button):not(.task-creation-modal):not(.task-creation-modal *):not(.steeb-bubble):not([class*="steve-avatar"]):not(.shiny-fab):not([class*="floating"]) { background-color: #000000 !important; }
-  .dark .text-black:not(.task-creation-modal):not(.task-creation-modal *) { color: #FFFFFF !important; }
-
-  /* Force pure black backgrounds in dark mode for any remaining elements */
-  .dark .bg-gray-50,
-  .dark .bg-gray-100,
-  .dark .bg-gray-200,
-  .dark .bg-gray-300,
-  .dark .bg-gray-900,
-  .dark .bg-gray-800 {
-    background-color: #000000 !important;
+  
+    .dark button[data-custom-color="true"],
+  .light button[data-custom-color="true"],
+  button[data-custom-color="true"],
+  .dark button:not(.calendar-progress):not([data-calendar]),
+  html.dark button:not(.calendar-progress):not([data-calendar]) {
+    border: none !important;
   }
 
-  /* Force pure white borders in dark mode for consistency */
-  .dark .border-gray-50,
-  .dark .border-gray-100,
-  .dark .border-gray-200,
-  .dark .border-gray-300,
-  .dark .border-gray-400,
-  .dark .border-gray-500,
-  .dark .border-gray-600,
-  .dark .border-gray-700,
-  .dark .border-gray-800,
-  .dark .border-gray-900 {
-    border-color: #FFFFFF !important;
+    .dark .calendar-progress,
+  .dark [data-calendar],
+  html.dark .calendar-progress,
+  html.dark [data-calendar] {
+    border: initial !important;
+    background: initial !important;
+  }
+
+  
+  /* Ataque directo a motion.div en dark mode */
+  .dark motion div,
+  html.dark motion div,
+  .dark .calendar-progress motion.div,
+  html.dark .calendar-progress motion.div {
+    background: #FFFFFF !important;
+  }
+
+    
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    .dark .rounded-lg.mb-2.bg-gray-900,
+  html.dark .rounded-lg.mb-2.bg-gray-900,
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    
+    
+  
+    
+    .dark button.selected-button-mode,
+  html.dark button.selected-button-mode {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  /* ANTIQUILIDAD DE CSS: Eliminar fondos oscuros */
+  .dark button.bg-transparent,
+  html.dark button.bg-transparent {
+    background-color: transparent !important;
+    background: transparent !important;
   }
   
   /* Dark mode: force all remaining gray elements to pure black/white */
-  .dark .text-gray-900 { color: #FFFFFF !important; }
-  .dark .text-gray-800 { color: #FFFFFF !important; }
-  .dark .text-gray-700 { color: #FFFFFF !important; }
-  .dark .text-gray-600 { color: #FFFFFF !important; }
-  .dark .bg-gray-100 { background-color: #000000 !important; }
-  .dark .bg-gray-50 { background-color: #000000 !important; }
-  .dark .hover\:bg-gray-50:hover { background-color: #000000 !important; }
-  /* stylelint-enable at-rule-no-unknown */
-  .dark .hover\:bg-black\/5:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
+    /* Eliminado forzado de fondos negros en dark mode */
 
-  /* Exception: keep the TAREAS header white with black text in dark mode */
-  .dark .tareas-header { background-color: #ffffff !important; color: #000000 !important; }
-  .dark .tareas-header h1 { color: #000000 !important; }
-
-  /* Dark mode: force backgrounds to pure black, but preserve critical elements */
-  .dark .min-h-screen {
-    background-color: #000000 !important;
-  }
-
-  /* Force black backgrounds for common containers in dark mode */
-  .dark .bg-gray-50,
-  .dark .bg-gray-100,
-  .dark .bg-gray-200,
-  .dark .bg-gray-300,
-  .dark .bg-gray-900,
-  .dark .bg-gray-800 {
-    background-color: #000000 !important;
-  }
+  
+  
+  /* ELIMINADO: Forzado de fondos negros en dark mode */
 
   /* Tema Shiny - Colores Elegantes y Modernos */
   .shiny {
@@ -612,11 +450,7 @@ html, body {
   /* Shiny: ensure the entire app surface is pure black */
   .shiny,
   .shiny html,
-  .shiny body,
-  .shiny #root {
-    background-color: #000000 !important;
-  }
-
+  
   /* Fondo principal shiny */
   .shiny .bg-white {
     background: var(--shiny-card-bg) !important;
@@ -626,77 +460,27 @@ html, body {
     background: var(--shiny-bg) !important;
   }
 
-  .shiny .text-black {
-    color: var(--shiny-text) !important;
-  }
-
-  .shiny .text-white {
-    color: var(--shiny-text) !important;
-  }
-
+  
   /* Bordes neón animados - Solo elementos específicos */
   .shiny .border:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card),
   .shiny .border-black:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card),
-  .shiny .border-white:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card),
-  .shiny .border-gray-200:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card),
-  .shiny .border-gray-700:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card) {
-    border-color: transparent !important;
-    background: #000000 !important;
-    background-size: 400% 400% !important;
-    animation: shiny-border 4s ease-in-out infinite !important;
-  }
-
+  
   @keyframes shiny-border {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
   }
 
   /* Botones neón - Solo botones específicos (excluir header y checkbox de tareas) */
-  /* Excluir botones absolutos (.absolute) para no romper menú radial */
-  .shiny button:not(.floating-button):not(.task-checkbox):not(.task-checkbox-button):not(.swipe-button):not(.tareas-header):not(.shiny-toggle):not(.shiny-fab):not(.absolute) {
-    background: #000000 !important;
-    border: 1px solid transparent !important;
-    background-clip: padding-box !important;
-    position: relative !important;
-    overflow: hidden !important;
-    color: white !important;
-    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.2) !important;
-  }
-
-  .shiny button:not(.floating-button):not(.task-checkbox):not(.task-checkbox-button):not(.swipe-button):not(.tareas-header):not(.shiny-toggle):not(.shiny-fab)::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: -100% !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent) !important;
-    animation: shiny-shine 2s infinite !important;
-  }
-
+  
+  
   @keyframes shiny-shine {
     0% { left: -100%; }
     100% { left: 100%; }
   }
 
   /* Tarjetas neón */
-  .shiny .bg-gray-50,
-  .shiny .bg-gray-100,
-  .shiny .bg-gray-900 {
-    background: #000000 !important; /* pure black cards */
-    border: 1px solid transparent !important;
-    background-clip: padding-box !important;
-    position: relative !important;
-    backdrop-filter: none !important;
-    box-shadow: none !important;
-  }
-
-  .shiny .bg-gray-50::before,
-  .shiny .bg-gray-100::before,
-  .shiny .bg-gray-900::before {
-    content: none !important; /* disable neon overlay for pure black */
-  }
-
+  
+  
   @keyframes shiny-card {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -708,15 +492,7 @@ html, body {
     animation: icon-glow 3s ease-in-out infinite !important;
   }
 
-  /* Override: task shapes should not inherit the pink glow; they use .task-shine white pulse */
-  .shiny .task-shape-wrapper svg {
-    filter: none !important;
-    animation: none !important;
-    /* Allow inline color from React (style/color on SVG or wrapper) to win */
-    color: inherit;
-    fill: currentColor !important;
-  }
-
+  
   /* Estilos para formas de categorías - evitar color azul inicial */
   .task-category-icon {
     color: inherit !important;
@@ -741,18 +517,7 @@ html, body {
     to { filter: drop-shadow(0 0 10px #000000); }
   }
 
-  /* Texto neón */
-  .shiny h1,
-  .shiny h2,
-  .shiny h3 {
-    background: #000000 !important;
-    background-size: 200% 200% !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-    animation: text-shine 4s ease-in-out infinite !important;
-  }
-
+  
   @keyframes text-shine {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -775,17 +540,14 @@ html, body {
   .shiny .border-gray-200:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card),
   .shiny .border-gray-700:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card) {
     border-color: transparent !important;
-    background: #000000 !important;
-    background-size: 300% 300% !important;
-    animation: shiny-border 4s ease-in-out infinite !important;
+        animation: shiny-border 4s ease-in-out infinite !important;
   }
 
   /* Inputs y textareas shiny */
   .shiny input,
   .shiny textarea {
     background: var(--shiny-card-bg) !important;
-    border: 1px solid #000000 !important;
-    color: var(--shiny-text) !important;
+        color: var(--shiny-text) !important;
     position: relative !important;
     box-shadow: 0 2px 10px rgba(108, 92, 231, 0.1) !important;
   }
@@ -828,12 +590,7 @@ html, body {
     background: var(--shiny-bg) !important;
   }
 
-  .shiny ::-webkit-scrollbar-thumb {
-    background: #000000 !important;
-    border-radius: 4px !important;
-    box-shadow: 0 0 10px rgba(255, 107, 157, 0.3) !important;
-  }
-
+  
   /* Protección de componentes críticos en modo shiny */
   .shiny .floating-buttons-container,
   .shiny [class*="floating"]:not(.floating-border),
@@ -841,8 +598,7 @@ html, body {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    animation: none !important;
-  }
+      }
 
   .shiny .floating-buttons-container button,
   .shiny [class*="floating"] button,
@@ -850,8 +606,7 @@ html, body {
     background: inherit !important;
     border: inherit !important;
     box-shadow: inherit !important;
-    animation: none !important;
-    /* transform: none !important;  REMOVED to preserve radial positioning */
+        /* transform: none !important;  REMOVED to preserve radial positioning */
   }
 
   /* Proteger específicamente el menú circular principal */
@@ -860,8 +615,7 @@ html, body {
     background: inherit !important;
     /* border: inherit !important;  Avoid overriding explicit white/black border */
     box-shadow: inherit !important;
-    animation: none !important;
-    /* transform: none !important;  REMOVED to preserve radial positioning */
+        /* transform: none !important;  REMOVED to preserve radial positioning */
   }
 
   /* Ensure children don't reintroduce borders */
@@ -920,10 +674,7 @@ html, body {
     font-size: 0.9rem !important;
   }
   
-  .large-text .text-sm {
-    font-size: 1rem !important;
-  }
-  
+    
   .large-text .text-base {
     font-size: 1.2rem !important;
   }
@@ -1024,8 +775,7 @@ html, body {
 .shiny .progress-fill {
   /* Gradiente con los 9 colores del arcoíris */
   background: linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #8000ff) !important;
-  animation: none !important;
-  position: relative;
+    position: relative;
   overflow: hidden;
   filter: none !important;
 }
@@ -1046,7 +796,7 @@ html, body {
   position: relative !important;
   z-index: 0 !important;
   /* Black center background */
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
   border: none !important;
   box-shadow: none !important;
   overflow: visible !important; /* let side pills protrude */
@@ -1068,11 +818,7 @@ html, body {
     #00c2ff 57.1428%, #8b00ff 71.4285%,
     #ff00ff 85.7142%, #ff004c 100%
   );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: none !important; /* stop rotation */
+      animation: none !important; /* stop rotation */
 }
 
 /* Floating Border: rainbow ring for floating menu */
@@ -1094,12 +840,7 @@ html, body {
     #00c2ff 57.1428%, #8b00ff 71.4285%,
     #ff00ff 85.7142%, #ff004c 100%
   );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: none !important;
-  z-index: -1 !important;
+        z-index: -1 !important;
   will-change: auto !important;
   pointer-events: none !important;
 }
@@ -1130,14 +871,14 @@ html, body {
 /* ::before already defined above draws the conic-gradient ring */
 
 /* Shiny: Settings cards with fixed multicolor border (no animation) */
-.shiny .shiny-settings-card { position: relative !important; background: #000000 !important; border: 1px solid transparent !important; background-clip: padding-box !important; }
+.shiny .shiny-settings-card { position: relative !important; background: var(--shiny-card-bg) !important; border: 1px solid transparent !important; background-clip: padding-box !important; }
 .shiny .shiny-settings-card::before { content: "" !important; position: absolute !important; inset: 0; border-radius: inherit; padding: 1.5px; background: conic-gradient(from 0deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000) !important; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: none !important; pointer-events: none; }
 
 /* Shiny: Home button with rainbow ring (same as FAB) */
 .shiny .shiny-home-button {
   position: relative !important;
   z-index: 0 !important;
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
   border: none !important;
   box-shadow: none !important;
   overflow: visible !important;
@@ -1162,12 +903,7 @@ html, body {
     #ff00ff 83.33%, #ff0080 91.66%,
     #ff0000 100%
   );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: none !important;
-  will-change: auto !important;
+        will-change: auto !important;
   pointer-events: none !important;
   z-index: 1 !important;
 }
@@ -1259,13 +995,13 @@ html, body {
   background-color: #000 !important;
 }
 
-/* Shiny: TAREAS header - black background with multicolor rotating border, white text */
+/* Shiny: TAREAS header - white background with multicolor rotating border, black text */
 .shiny .tareas-header {
   border: none !important;
-  background: #000000 !important;
+  background: #ffffff !important;
   background-image: none !important;
   box-shadow: none !important;
-  color: #ffffff !important;
+  color: #000000 !important;
   position: relative;
   overflow: hidden !important; /* Para que el pseudo no se desborde si es necesario */
   border-radius: 9999px !important; /* Mantener bordes redondeados en modo Shiny */
@@ -1288,30 +1024,19 @@ html, body {
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
   -webkit-mask-composite: xor !important;
   mask-composite: exclude !important;
-  animation: none !important;
-  pointer-events: none !important;
+    pointer-events: none !important;
   z-index: -1 !important;
 }
 /* Shiny TAREAS header: disable side ring to show ONLY top & bottom neon lines */
 .shiny .tareas-header::after { content: none !important; }
 .shiny .tareas-header h1:not(.tareas-multicolor) {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
   background: none !important;
   background-image: none !important;
-  animation: none !important;
-  text-shadow: none !important;
+    text-shadow: none !important;
 }
 
-/* Shiny: tasks list container pure black */
-.shiny .tasks-list {
-  background-color: #000000 !important;
-  width: 100vw !important;
-  max-width: 100vw !important;
-  box-sizing: border-box !important;
-  padding-left: 12px !important;  /* keep a small gutter */
-  padding-right: 12px !important; /* ensure space near checkbox edge */
-}
 
 /* Shiny: allow task title to wrap; override Tailwind's truncate */
 .shiny .tasks-list .task-title {
@@ -1324,7 +1049,7 @@ html, body {
 
 /* Shiny: make the 'Ver/Ocultar' completed-toggle button solid black, no gradient */
 .shiny .completed-header .completed-toggle-btn.completed-toggle-btn {
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
   background-image: none !important;
   background-clip: border-box !important;
   -webkit-background-clip: border-box !important;
@@ -1336,7 +1061,6 @@ html, body {
   box-shadow: none !important;
 }
 .shiny .completed-header .completed-toggle-btn.completed-toggle-btn::before { display: none !important; content: none !important; }
-.shiny .completed-header .completed-toggle-btn.completed-toggle-btn:hover { background: #0a0a0a !important; background-image: none !important; border: none !important; }
 
 /* Shiny: Completed header text/icons in white */
 .shiny .completed-header {
@@ -1354,8 +1078,7 @@ html, body {
   -webkit-background-clip: initial !important;
   background-clip: initial !important;
   -webkit-text-fill-color: #ffffff !important;
-  animation: none !important;
-}
+  }
 .shiny .completed-header svg * {
   stroke: #ffffff !important;
 }
@@ -1410,7 +1133,7 @@ html, body {
   position: absolute !important;
   inset: 2px !important;                 /* larger black disk to fully overpaint inner edge */
   border-radius: 9999px !important;
-  background: #000000 !important;        /* solid black center */
+  background: var(--shiny-card-bg) !important;        /* solid black center */
   pointer-events: none !important;
   z-index: 2 !important;                 /* ensure it covers any inner gradient */
   /* White border between black center and multicolor ring */
@@ -1551,9 +1274,7 @@ html, body {
     #00c2ff 57.1428%, #8b00ff 71.4285%, #ff00ff 85.7142%, #ff004c 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  border-radius: 10px;
+    border-radius: 10px;
   pointer-events: none;
   animation: rainbow-move 6s linear infinite;
 }
@@ -1667,9 +1388,7 @@ html, body {
     #EE82EE 66.66%, #4B0082 77.77%,
     #FFC0CB 88.88%, #FF0000 100%
   );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
+    -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: none;
   z-index: -1;
@@ -1778,8 +1497,7 @@ html, body {
 /* Bordes multicolor para elementos específicos seleccionados */
 .shiny [data-lov-id="src\\components\\TaskFrequencyChart.tsx:142:4"] {
   position: relative !important;
-  background: #000000 !important; /* fondo oscuro para Shiny */
-  border: 1px solid transparent !important;
+    border: 1px solid transparent !important;
   background-clip: padding-box !important;
   color: #ffffff !important; /* texto blanco */
 }
@@ -1802,10 +1520,7 @@ html, body {
   ) !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: none !important;
-  pointer-events: none !important;
+      pointer-events: none !important;
 }
 
 .shiny [data-lov-name="div"][data-component-path="src\components\ProductivityStatsConnected.tsx"][data-component-line="501"] {
@@ -1858,15 +1573,9 @@ html, body {
   -webkit-background-clip: unset !important;
   background-clip: unset !important;
   background: unset !important;
-  animation: none !important;
-}
+  }
 
 /* Animaciones para bordes multicolor */
-@keyframes rainbow-border {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
 
 @keyframes rainbow-border-static {
   0% { filter: hue-rotate(0deg) brightness(1); }
@@ -1896,7 +1605,7 @@ html, body {
 .shiny .shiny-stats-chart-card {
   position: relative !important;
   border: 2px solid transparent !important;
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
   background-clip: padding-box !important;
 }
 
@@ -1922,15 +1631,6 @@ html, body {
   background-clip: padding-box !important;
 }
 
-.shiny .shiny-period-buttons::before {
-  content: '' !important;
-  position: absolute !important;
-  inset: -2px !important;
-  border-radius: inherit !important;
-  background: conic-gradient(from 0deg, #ff004c, #ff7a00, #ffe600, #00ff66, #00c2ff, #8b00ff, #ff00ff, #ff004c) !important;
-  z-index: -1 !important;
-  pointer-events: none !important;
-}
 
 
 
@@ -2001,9 +1701,7 @@ html, body {
   animation: shine-sweep 3.2s ease-in-out infinite;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
+    pointer-events: none;
 }
 
 /* Base STEEB speech bubble */
@@ -2045,11 +1743,7 @@ html, body {
   );
   background-size: 300% 100%;
   animation: rainbow-move 8s linear infinite; /* faster left-to-right sweep */
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
+      pointer-events: none;
   filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 15px rgba(168, 85, 247, 0.3));
 }
 .shiny .steeb-bubble::after {
@@ -2061,11 +1755,7 @@ html, body {
   opacity: 0.8; /* brighter white sweep */
   mix-blend-mode: screen;
   animation: shine-sweep 2.2s linear infinite; /* slightly faster */
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
+      pointer-events: none;
 }
 
 /* Dark mode: apply the same neon bubble without requiring a .shiny parent */
@@ -2097,11 +1787,7 @@ html, body {
   );
   background-size: 300% 100%;
   animation: rainbow-move 8s linear infinite; /* faster left-to-right sweep */
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
+      pointer-events: none;
   filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 15px rgba(168, 85, 247, 0.3));
 }
 .dark .steeb-bubble::after {
@@ -2113,16 +1799,12 @@ html, body {
   opacity: 0.8; /* brighter white sweep */
   mix-blend-mode: screen;
   animation: shine-sweep 2.2s linear infinite; /* slightly faster */
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
+      pointer-events: none;
 }
 
 /* Dark mode: STEEB speech bubble - simplified for visibility */
 .dark .steeb-bubble {
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
   color: #ffffff !important;
   border: 2px solid #ffffff !important;
   border-radius: 12px !important;
@@ -2153,24 +1835,11 @@ html, body {
 }
 
 /* Dark mode: Ensure Floating Action Button (FAB) is visible - MAXIMUM PRIORITY */
-.dark .shiny-fab,
-html.dark .shiny-fab,
-.dark button.shiny-fab,
-.dark .fixed.bottom-8.left-0.right-0 .flex button,
-.dark [class*="shiny-fab"],
-.dark .fixed.bottom-8 button:not([class*="calendar"]) {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  border: 3px solid #ffffff !important;
-  color: #000000 !important;
-  box-shadow: 0 0 0 3px #000000, 0 0 0 6px #ffffff !important;
-}
 
 /* Dark mode: Override any inline styles or other rules */
 .dark .shiny-fab[style*="background"],
 .dark .shiny-fab[style*="bg"] {
   background: #ffffff !important;
-  background-color: #ffffff !important;
 }
 .dark .shiny-fab svg {
   color: #000000 !important;
@@ -2203,16 +1872,6 @@ html.dark .shiny-fab,
 /* Dark mode: Force Plus icon to be BLACK and VISIBLE - SPECIFIC SELECTORS */
 .dark .fixed.bottom-8 button svg.lucide-plus,
 .dark .fixed.bottom-8 button svg.lucide-plus *,
-.dark .fixed.bottom-8 button svg path[d*="M12 5v14"],
-.dark .fixed.bottom-8 button svg line[d*="M5 12h14"] {
-  stroke: #000000 !important;
-  color: #000000 !important;
-  fill: #000000 !important;
-  filter: brightness(0) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  stroke-width: 3 !important;
-}
 
 /* Dark mode: Preserve eye and checkbox icons - DO NOT override */
 .dark button svg.lucide-eye,
@@ -2230,24 +1889,17 @@ html.dark .shiny-fab,
 
 /* Dark mode: Ensure all interactive elements are visible */
 .dark button:not([class*="period"]):not(.shiny-period-buttons *) {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+    color: #ffffff !important;
   border: 1px solid #ffffff !important;
 }
 .dark button:hover:not([class*="period"]):not(.shiny-period-buttons *) {
   background-color: #333333 !important;
 }
-.dark button svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  fill: #ffffff !important;
-}
 
 /* Dark mode: Task cards visibility */
 .dark .task-card,
 .dark [class*="task"] {
-  background-color: #000000 !important;
-  border: 1px solid #ffffff !important;
+    border: 1px solid #ffffff !important;
   color: #ffffff !important;
 }
 .dark .task-card *,
@@ -2276,13 +1928,6 @@ html.dark .shiny-fab,
   filter: none !important;
 }
 
-/* Dark mode: Remove borders from ALL shapes everywhere - EMERGENCY FIX */
-.dark svg {
-  stroke: none !important;
-  stroke-width: 0 !important;
-  border: none !important;
-  outline: none !important;
-}
 
 /* Dark mode: Remove borders from ALL geometric shapes */
 .dark .shape-circle,
@@ -2343,8 +1988,7 @@ html.dark .shiny-fab,
 
 /* Dark mode: Checkboxes - circle black background */
 .dark .task-checkbox-button:not(.completed) {
-  background-color: #000000 !important;
-  border: 2px solid #ffffff !important;
+    border: 2px solid #ffffff !important;
 }
 
 /* Dark mode: Completed checkboxes - white background with black check */
@@ -2380,108 +2024,7 @@ button svg.lucide-eye-off {
   fill: none !important;
 }
 
-/* Dark mode: Eye icon - white borders, no button border - PROPER SHAPE */
-.dark .text-gray-500 svg.lucide-eye,
-.dark .text-gray-500 svg.lucide-eye-off,
-.dark button svg.lucide-eye,
-.dark button svg.lucide-eye-off,
-.dark div button svg.lucide-eye,
-.dark div button svg.lucide-eye-off,
-.dark [class*="cursor-pointer"] svg.lucide-eye,
-.dark [class*="cursor-pointer"] svg.lucide-eye-off {
-  color: #ffffff !important;
-  fill: none !important;
-  stroke: #ffffff !important;
-  stroke-width: 2 !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
 
-/* Dark mode: Force white borders on ALL eye icons - NO BUTTON BORDER */
-.dark svg.lucide-eye,
-.dark svg.lucide-eye-off {
-  color: #ffffff !important;
-  fill: none !important;
-  stroke: #ffffff !important;
-  stroke-width: 2 !important;
-}
-
-/* Dark mode: Remove borders from button containing eye icon - SUPER AGGRESSIVE */
-.dark button svg.lucide-eye,
-.dark button svg.lucide-eye-off,
-.dark .text-gray-500 button,
-.dark button:has(svg.lucide-eye),
-.dark button:has(svg.lucide-eye-off) {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
-/* Dark mode: Target the specific button container */
-.dark .flex.justify-start.mb-4 button,
-.dark div button svg.lucide-eye,
-.dark div button svg.lucide-eye-off {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Dark mode: Cross (X) buttons - white color - SUPER AGGRESSIVE */
-.dark button svg.lucide-x,
-.dark button svg[class*="x"],
-.dark button svg[class*="close"],
-.dark button svg[class*="X"],
-.dark button svg[class*="Close"],
-.dark button svg,
-.dark button svg *,
-.dark [class*="button"] svg,
-.dark [class*="modal"] button svg,
-.dark [class*="dialog"] button svg,
-.dark button svg path,
-.dark button svg line,
-.dark button svg polyline,
-.dark button svg g {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  fill: none !important;
-}
-
-/* Dark mode: Force ALL SVG icons in buttons to be white - WITH FILL */
-.dark button svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  fill: #ffffff !important;
-}
-
-.dark button svg * {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  fill: #ffffff !important;
-}
-
-/* Dark mode: Cross specifically - solid white fill - TARGETING text-gray-500 */
-.dark .text-gray-500 svg.lucide-x,
-.dark .text-gray-500 svg[class*="x"],
-.dark .text-gray-500 svg[class*="close"],
-.dark button svg.lucide-x,
-.dark button svg[class*="x"],
-.dark button svg[class*="close"] {
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
-  color: #ffffff !important;
-}
-
-.dark .text-gray-500 svg.lucide-x *,
-.dark .text-gray-500 svg[class*="x"] *,
-.dark .text-gray-500 svg[class*="close"] *,
-.dark button svg.lucide-x *,
-.dark button svg[class*="x"] *,
-.dark button svg[class*="close"] * {
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
-}
 
 /* Estilos específicos para ProductivityStats en versión shiny - igual a versión blanca */
 .shiny .productivity-stats {
@@ -2530,8 +2073,7 @@ button svg.lucide-eye-off {
   background-clip: text !important;
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
-  animation: none !important;
-}
+  }
 
 .shiny .productivity-stats .kpi-value {
   color: #000000 !important;
@@ -2542,7 +2084,7 @@ button svg.lucide-eye-off {
 }
 
 .shiny .productivity-stats .progress-fill {
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
 }
 
 .shiny .productivity-stats .chart-container {
@@ -2563,8 +2105,7 @@ button svg.lucide-eye-off {
   background-clip: text !important;
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
-  animation: none !important;
-}
+  }
 
 .shiny .productivity-stats .stats-card {
   background: #ffffff !important;
@@ -2585,12 +2126,8 @@ button svg.lucide-eye-off {
   background-clip: text !important;
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
-  animation: none !important;
-}
+  }
 
-.shiny .productivity-stats .donut-background {
-  stroke: #f3f4f6 !important;
-}
 
 .shiny .productivity-stats .donut-progress {
   stroke: #3b82f6 !important;
@@ -2605,11 +2142,11 @@ button svg.lucide-eye-off {
 }
 
 .shiny .productivity-stats .stats-progress-fill {
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
 }
 
 .shiny .productivity-stats .streak-bar {
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
 }
 
 .shiny .productivity-stats .streak-labels {
@@ -2624,13 +2161,7 @@ button svg.lucide-eye-off {
   fill: #3b82f6 !important;
 }
 
-.shiny .productivity-stats .chart-grid {
-  stroke: #f3f4f6 !important;
-}
 
-.shiny .productivity-stats .chart-label {
-  fill: #6b7280 !important;
-}
 
 /* Estilos para gráficos Recharts en versión shiny */
 .shiny .recharts-cartesian-grid-horizontal line,
@@ -2647,7 +2178,7 @@ button svg.lucide-eye-off {
 }
 
 .shiny .recharts-tooltip-wrapper {
-  background: #000000 !important;
+  background: var(--shiny-card-bg) !important;
   border: 1px solid #ffffff !important;
   color: #ffffff !important;
 }
@@ -2754,9 +2285,7 @@ button svg.lucide-eye-off {
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: rainbow-move 6s linear infinite;
+    animation: rainbow-move 6s linear infinite;
   pointer-events: none !important;
   z-index: 1 !important;
 }
@@ -2847,15 +2376,6 @@ button svg.lucide-eye-off {
   fill: #ffffff !important;
 }
 
-/* Dark mode: Target Lucide XCircle and X icons specifically */
-.dark .lucide-x-circle,
-.dark .lucide-x,
-.dark svg[viewBox="0 0 24 24"] g[stroke*="current"],
-.dark button svg:not(.lucide-eye):not(.lucide-eye-off) {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  fill: #ffffff !important;
-}
 
 /* Dark mode: Maximum specificity for X icons in all contexts - FINAL SOLUTION */
 html.dark button svg.lucide-x-circle,
@@ -2869,15 +2389,6 @@ html.dark .dark button svg[class*="X"],
   stroke-width: 2 !important;
 }
 
-/* Dark mode: Ultra-specific targeting for XCircle and close buttons */
-.dark .bg-transparent.hover\:bg-gray-100 svg,
-.dark .hover\:bg-gray-100 button svg,
-.dark [data-radix-collection-item] svg.lucide-x,
-.dark .absolute.top-2.right-2 button svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  fill: #ffffff !important;
-}
 
 /* Hide white rect backgrounds from lucide-react SVG icons in dark mode */
 .dark .absolute.-top-\[140px\] button svg rect,
@@ -2931,3 +2442,306 @@ html.dark .dark button svg[class*="X"],
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
+
+/* ============================================================================
+ * ESSENTIAL CSS RULES (Consolidado desde index-dark-borders.css)
+ * Solamente las reglas críticas que no causan conflictos
+ * ============================================================================
+ */
+
+/* Steeb Chat Border - Simplified rule for all modes */
+.steeb-chat-border {
+  border: 4px solid white !important;
+  border-color: white !important;
+  box-sizing: border-box !important;
+}
+
+/* Dark Mode: steeb-chat-border simple rule */
+html.dark .steeb-chat-border {
+    color: #FFFFFF !important;
+    border-width: 2px !important;
+}
+
+/* Dark Mode: Arrow up button - black background and border */
+html.dark button[class*="w-10"][class*="h-10"][class*="bg-white"][class*="rounded-full"] {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+}
+
+/* Dark Mode: Input debajo del overlay - FORZAR ESTILOS */
+.dark .bg-black.text-white input[type="text"] {
+    background: var(--shiny-card-bg) !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* Dark Mode: Simple rule for chat inputs */
+html.dark input.steeb-chat-input,
+html.dark input.steeb-nuclear-input {
+    color: #FFFFFF !important;
+}
+
+
+/* Ultra-specific targeting for exact div */
+html.dark body div[class*="absolute"][class*="left-0"][class*="right-0"][class*="bg-gray-100"] {
+    background: var(--shiny-card-bg) !important;
+}
+
+/* Dark Mode: Basic icon visibility */
+.dark svg.lucide-calendar,
+.dark svg.lucide-settings,
+.dark svg.lucide-bar-chart-2 {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+  fill: none !important;
+}
+
+/* Dark Mode: Button X icon fix - Target SVG specifically */
+.dark .absolute.top-3.left-3.z-50 button[title="Cerrar panel"] .lucide-x,
+.dark button[title="Cerrar panel"] .lucide-x,
+.dark .lucide-x[stroke="currentColor"],
+.dark svg.lucide-x {
+  stroke: #000000 !important;
+  color: #000000 !important;
+}
+
+
+/* Also target the button itself */
+.dark button[title="Cerrar panel"] {
+  color: #000000 !important;
+}
+
+/* Override inline styles for close button in dark mode */
+.dark button[title="Cerrar panel"][style*="text-white"] .lucide-x {
+  stroke: #000000 !important;
+}
+
+/* Ultra-specific - Force black stroke on X icon in dark mode */
+html.dark body button[title="Cerrar panel"] svg.lucide-x {
+  stroke: #000000 !important;
+}
+
+/* Dark Mode: Stats panel borders fix */
+.dark .border-white,
+.dark div[class*="border-white"],
+.dark .bg-white.border-white,
+.dark [style*="border-white"] {
+  border-color: #000000 !important;
+}
+
+/* Specific fix for stats cards */
+.dark .p-2.rounded-lg.border.border-white,
+.dark .bg-gray-900.border-white {
+  border-color: #000000 !important;
+}
+
+/* Fix individual stat items */
+.dark .w-8.rounded.border-white {
+  border-color: #000000 !important;
+}
+
+/* Dark Mode: Tab selector buttons fix */
+.dark .border-t.border-white,
+.dark button[class*="border-white"] {
+  border-color: #000000 !important;
+}
+
+/* Dark mode: Selected tab - white background, black text */
+.dark button[class*="bg-black"][class*="text-white"],
+.dark button[class*="border-black"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+/* Dark mode: Arrow up icon - white stroke for visibility on black background */
+.dark button svg.lucide-arrow-up,
+.dark button[class*="w-10"][class*="h-10"][class*="bg-white"] svg,
+.dark button[class*="rounded-full"] svg.lucide-arrow-up {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode: Unselected tabs - black borders, white background */
+.dark button[class*="border-white"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+/* Dark mode: Remove white separators between tabs */
+.dark .flex.justify-center.border-t.border-white {
+  border-color: #000000 !important;
+}
+
+.dark button[class*="-mx-px"] {
+  border-color: #000000 !important;
+}
+
+/* Mobile: Move tabs selector higher up */
+@media (max-width: 768px) {
+  .p-1\.5.flex.justify-center.border-t.border-white {
+    margin-top: -30px;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 10;
+    padding: 0.5rem 1.5rem;
+    min-height: auto;
+  }
+}
+
+.p-1\.5.flex.justify-center.border-t.border-white {
+  padding: 0.5rem 1.5rem;
+  min-height: auto;
+}
+.p-1\.5.flex.justify-center.border-t.border-white .relative.flex {
+  min-height: 2rem;
+}
+
+@media (max-height: 500px) {
+  /* Move loading/stats bar higher up */
+  .p-2.rounded-lg.border.border-white,
+  .bg-gray-900.border-white {
+    margin-bottom: 5px !important;
+    transform: translateY(-10px);
+  }
+
+  /* Make the large number smaller */
+  .text-6xl.font-black.leading-none {
+    font-size: 3rem !important; /* Reducir de 6xl a 3xl */
+    line-height: 1 !important;
+  }
+
+  /* Adjust container padding for more space */
+  .p-2.rounded-lg.border.border-white {
+    padding: 0.75rem !important;
+  }
+}
+
+@media (max-height: 400px) {
+  .bg-gray-900.border-white {
+    transform: translateY(-20px);
+    margin-bottom: 2px !important;
+  }
+
+  .text-6xl.font-black.leading-none {
+    font-size: 2.5rem !important; /* Más pequeño aún */
+  }
+
+  .p-2.rounded-lg.border.border-white {
+    padding: 0.5rem !important;
+  }
+}
+
+@media (max-height: 350px) {
+  .bg-gray-900.border-white {
+    transform: translateY(-30px);
+    margin-bottom: 0 !important;
+  }
+
+  .text-6xl.font-black.leading-none {
+    font-size: 2rem !important; /* Ultra compacto */
+  }
+
+  .p-2.rounded-lg.border.border-white {
+    padding: 0.25rem !important;
+  }
+}
+
+
+  /* CALENDAR HEADER ELIMINAR BORDES GRICES: Eliminar todos los bordes del header del calendario */
+  .dark .p-2.flex.items-center.justify-between,
+  html.dark .p-2.flex.items-center.justify-between,
+  .dark .p-2.flex.items-center.justify-between *,
+  html.dark .p-2.flex.items-center.justify-between * {
+    border: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-text-stroke: 0 !important;
+    text-decoration: none !important;
+  }
+
+
+  /* STEEB HEADER TEXT: Texto blanco en dark mode */
+  .dark .text-3xl.font-normal.tracking-wide.text-center,
+  html.dark .text-3xl.font-normal.tracking-wide.text-center {
+    color: #FFFFFF !important;
+  }
+
+  /* STEEB HEADER CONTAINER: Asegurar contenedor visible en dark mode */
+  .dark .flex.items-center.justify-center.flex-1.px-4.w-full,
+  html.dark .flex.items-center.justify-center.flex-1.px-4.w-full {
+    color: #FFFFFF !important;
+  }
+
+
+
+  
+
+
+    
+  /* NUCLEAR OPTION: Header STEEB - FORZADO MÁXIMO */
+  html.dark .steeb-header-force-white,
+  .dark .steeb-header-force-white,
+  .steeb-header-force-white {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    background-image: none !important;
+    background-image: linear-gradient(none) !important;
+    background-color: #ffffff !important;
+    --background-color: #ffffff !important;
+    color: #000000 !important;
+    --color: #000000 !important;
+  }
+
+  html.dark .steeb-header-force-white *,
+  .dark .steeb-header-force-white *,
+  .steeb-header-force-white * {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: inherit !important;
+  }
+
+  html.dark .steeb-header-force-white h1,
+  .dark .steeb-header-force-white h1,
+  .steeb-header-force-white h1 {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+
+  
+  /* STEEB CHAT INPUT FIX: Solución definitiva para el input en modo oscuro */
+  html.dark body input[type="text"].steeb-chat-input,
+  html.dark body input.steeb-chat-input,
+  .dark input[type="text"].steeb-chat-input,
+  .dark input.steeb-chat-input,
+  html.dark .steeb-chat-input {
+        background: var(--shiny-card-bg) !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    caret-color: #FFFFFF !important;
+    border-color: #4B5563 !important;
+  }
+
+  /* Override específico para el problema de bg-black convirtiéndose en blanco */
+  html.dark input[type="text"].bg-black,
+  .dark input[type="text"].bg-black {
+        background: var(--shiny-card-bg) !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+  }
+
+  /* Máxima especificidad para el input de SteebChat */
+  html.dark body div[class*="flex-1"] input[type="text"],
+  html.dark body .relative input[type="text"] {
+        background: var(--shiny-card-bg) !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+  }
+
+

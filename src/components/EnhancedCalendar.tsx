@@ -484,12 +484,12 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
             <motion.button
               key={mode}
               onClick={() => setViewMode(mode as 'month' | 'week')}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 border-2 ${
                 viewMode === mode
-                  ? (isDark 
-                    ? 'bg-white text-black shadow-lg' 
-                    : 'bg-black text-white shadow-lg')
-                  : (isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
+                  ? (isDark
+                    ? 'bg-white text-black shadow-lg border-black'
+                    : 'bg-black text-white shadow-lg border-black')
+                  : (isDark ? 'text-gray-400 hover:text-white border-black' : 'text-gray-600 hover:text-gray-900 border-black')
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

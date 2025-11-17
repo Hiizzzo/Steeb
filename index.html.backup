@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="google-site-verification" content="aHkS6P8olPDvXk7y8I8fqdx2AkkOsDWg2Pstz0i9h94" />
+    <title>Steve - Tu Asistente Anti-Procrastinación</title>
+    <meta name="description" content="Steve te ayuda a cumplir tus tareas y evitar la procrastinación" />
+    <meta name="author" content="Steve App" />
+    <meta property="og:image" content="/lovable-uploads/steve-thumbs-up-icon.png" />
+    <link rel="icon" type="image/png" href="/lovable-uploads/icono de la app.png" />
+    <link rel="apple-touch-icon" href="/lovable-uploads/icono de la app.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="msapplication-TileColor" content="#000000" />
+    <meta name="msapplication-navbutton-color" content="#000000" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <meta property="og:title" content="Steve - Tu Asistente Anti-Procrastinación" />
+    <meta property="og:description" content="Steve te ayuda a cumplir tus tareas y evitar la procrastinación" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/lovable-uploads/steve-thumbs-up-icon.png" />
+
+    <!-- PWA Meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Steve" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
+
+    <!-- Favicons adicionales para mejor compatibilidad -->
+    <link rel="shortcut icon" href="/lovable-uploads/te obesrvo.png" />
+    <link rel="icon" sizes="512x512" href="/lovable-uploads/te obesrvo.png" />
+
+    <!-- Service Worker Registration (solo fuera de desarrollo) -->
+    
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
