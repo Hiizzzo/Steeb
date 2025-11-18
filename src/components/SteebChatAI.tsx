@@ -780,7 +780,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
                 {/* Hover effect for assistant messages */}
                 {message.role === 'assistant' && (
                   <div
-                  className={`absolute rounded-2xl transition-opacity duration-200 steeb-chat-border ${
+                  className={`absolute rounded-2xl transition-opacity duration-200 steeb-chat-border steeb-chat-input ${
                     isDarkMode
                       ? 'inset-0 !opacity-100 z-10'
                       : 'inset-0 opacity-0 group-hover:opacity-100'
@@ -904,7 +904,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
               disabled={!inputMessage.trim() || isTyping}
               className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 border-white"
             >
-              <ArrowUp className="w-4 h-4" style={{ stroke: '#000000' }} />
+              <ArrowUp className="w-4 h-4" style={{ stroke: isDarkMode ? '#ffffff' : '#000000' }} />
             </button>
           </div>
 
