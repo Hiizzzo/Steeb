@@ -168,15 +168,21 @@ const ThemeToggle = () => {
 				
 				{/* Marcadores de posición */}
 				<div className="absolute inset-0 flex items-center justify-between px-1.5 pointer-events-none z-20">
-					<div className={`${currentTheme === "light" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
-						currentTheme === "light" ? 'bg-black' : 'bg-gray-400'
-					} shadow-sm`} />
-					<div className={`${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
-						currentTheme === "shiny" ? 'bg-white' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
-					} shadow-sm`} />
-					<div className={`${currentTheme === "dark" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
-						currentTheme === "dark" ? 'bg-gray-100 border border-gray-300' : 'bg-gray-400'
-					} shadow-md`} />
+					<div
+						className={`theme-toggle-dot theme-toggle-dot-left ${currentTheme === "light" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
+							currentTheme === "light" ? 'bg-black' : 'bg-gray-400'
+						} shadow-sm`}
+					/>
+					<div
+						className={`theme-toggle-dot theme-toggle-dot-middle ${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
+							currentTheme === "shiny" ? 'bg-white' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
+						} shadow-sm`}
+					/>
+					<div
+						className={`theme-toggle-dot theme-toggle-dot-right ${currentTheme === "dark" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
+							currentTheme === "dark" ? 'bg-gray-100 border border-gray-300' : 'bg-gray-400'
+						} shadow-md`}
+					/>
 				</div>
 			</div>
 

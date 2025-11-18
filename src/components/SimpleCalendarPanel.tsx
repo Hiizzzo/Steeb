@@ -214,11 +214,11 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
                   {/* Barra de progreso del día */}
                   {day.total > 0 && (
                     <div className="w-1/2 mt-1 mx-auto">
-                      <div className={`w-full h-1 rounded-full overflow-hidden ${
+                      <div className={`simple-calendar-progress-track w-full h-1 rounded-full overflow-hidden ${
                         isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
                       }`}>
                         <div
-                          className="h-full transition-all duration-300 bg-black"
+                          className="simple-calendar-progress-fill h-full transition-all duration-300 bg-black"
                           style={{
                             width: `${(day.completed / day.total) * 100}%`
                           }}

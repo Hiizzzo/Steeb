@@ -1,12 +1,9 @@
-
 @import './styles/shiny-protection.css';
 @import './styles/theme-reset.css';
 @reference "tailwindcss";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 html, body {
   margin: 0 !important;
   padding: 0 !important;
@@ -18,30 +15,24 @@ html, body {
   height: 100%;
   overflow-x: hidden;
 }
-
 #root {
   margin: 0 !important;
   padding: 0 !important;
   width: 100%;
   height: 100%;
 }
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-
 /* stylelint-disable */
 /* stylelint-enable */
-
 @layer base {
-
   .dark {
     background: #000000 !important;
     color: #ffffff !important;
   }
-
   .dark *,
   .dark *::before,
   .dark *::after {
@@ -49,7 +40,6 @@ html, body {
     color: inherit !important;
     border-color: rgba(255,255,255,0.2) !important;
   }
-
   .dark button,
   .dark input,
   .dark textarea,
@@ -58,48 +48,6 @@ html, body {
     color: #ffffff !important;
     border-color: rgba(255,255,255,0.3) !important;
   }
-  .dark .theme-toggle-dot-left {
-    background: #4b5563 !important;
-    background-color: #4b5563 !important;
-  }
-  .dark .theme-toggle-dot-middle {
-    background: #d1d5db !important;
-    background-color: #d1d5db !important;
-  }
-  .dark .theme-toggle-dot-right {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    border-color: #e5e7eb !important;
-  }
-  .dark .simple-progress-panel .chart-bar {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-  .dark .simple-progress-panel .chart-bar-value {
-    color: #000000 !important;
-  }
-  .dark .view-mode-btn.dark-view-mode-btn-default {
-    background: #000000 !important;
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-color: #000000 !important;
-  }
-  .dark .view-mode-btn.dark-view-mode-btn-selected {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border-color: #ffffff !important;
-  }
-  .dark .simple-progress-panel .progress-track {
-    background: #4b5563 !important;
-    background-color: #4b5563 !important;
-  }
-  .dark .simple-progress-panel .progress-fill {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-  }
-
   .dark .steeb-chat-input,
   .dark input.steeb-chat-input,
   .dark input[type="text"].bg-black {
@@ -107,21 +55,17 @@ html, body {
     color: #ffffff !important;
     border-color: #4B5563 !important;
   }
-
   .dark .productivity-stats,
   .dark .productivity-stats > div {
     background: var(--shiny-card-bg) !important;
   }
-
   .dark .steeb-header-force-white {
     background: #ffffff !important;
     color: #000000 !important;
   }
-
   .dark .steeb-header-force-white * {
     color: #000000 !important;
   }
-
   .dark button svg,
   .dark button svg *,
   .dark svg.lucide-x,
@@ -130,65 +74,26 @@ html, body {
     fill: #ffffff !important;
     color: #ffffff !important;
   }
-
-  .simple-task-checkbox {
-    border-color: #000000 !important;
-    border-width: 2px !important;
-    border-style: solid !important;
-  }
-
-  .dark .fixed-panel-close-btn {
-    background: transparent !important;
-    border-color: #000000 !important;
-  }
-
-  .dark .simple-task-card {
-    border-color: #000000 !important;
-    border-left: 3px solid #ffffff !important;
-  }
-
-  .dark .simple-task-checkbox {
-    border-color: #ffffff !important;
-  }
-
-  .dark .simple-calendar-progress-track {
-    background-color: #9ca3af !important;
-  }
-
-  .dark .simple-calendar-progress-fill {
-    background-color: #ffffff !important;
-  }
-
-  .dark .steeb-chat-send-button svg,
-  .dark .steeb-chat-send-button svg * {
-    fill: transparent !important;
-  }
-
   .dark .task-checkbox-button.completed {
     background: #ffffff !important;
     border-color: #ffffff !important;
   }
-
   .dark .task-checkbox-button.completed svg,
   .dark .task-checkbox-button.completed .lucide-check {
     color: #000000 !important;
     stroke: #000000 !important;
     fill: #000000 !important;
   }
-
   .shiny {
     background: var(--shiny-card-bg) !important;
   }
-
   .dark .shiny {
     background: var(--shiny-card-bg) !important;
   }
-
     :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
   }
-
   * {
     @apply border-[hsl(var(--border))];
   }
@@ -196,51 +101,42 @@ html, body {
     background-color: #FFFFFF !important;
     font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   }
-
   html, body {
     font-size: 16px;
     line-height: 1.5;
     font-weight: 400;
   }
-
   * {
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
     font-weight: inherit;
   }
-
   .text-6xl {
     font-size: 3.5rem;
     font-weight: 800;
     line-height: 1;
   }
-
   .text-3xl {
     font-size: 1.875rem;
     font-weight: 600;
     line-height: 1.2;
   }
-
   .text-\[56px\],
   .sm\:text-\[100px\] {
     font-weight: 800;
     line-height: 1;
   }
-
   .text-\[56px\] { font-size: 3.5rem; }
   .sm\:text-\[100px\] { font-size: 6.25rem; }
-
   .text-3xl.font-normal.tracking-wide {
     font-weight: 400;
     letter-spacing: 0.025em;
   }
-
   .steeb-header-force-white h1 {
     font-size: 2.5rem;
     font-weight: 700;
   }
-
   .light {
     color: hsl(var(--foreground));
     button { border-color: hsl(var(--border)); }
@@ -250,14 +146,11 @@ html, body {
     }
     .card { border-color: hsl(var(--border)); }
   }
-
   }
-
 .shiny .shiny-toggle {
   position: relative;
   border-color: transparent !important;
 }
-
 .shiny .shiny-toggle::before {
   content: "";
   position: absolute;
@@ -272,18 +165,14 @@ html, body {
       animation: none;
   pointer-events: none;
 }
-
   /* stylelint-disable-next-line at-rule-no-unknown */
-
     ::-webkit-scrollbar {
     display: none;
   }
-
   * {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-
   input, textarea {
     caret-color: #000000 !important;
     cursor: text !important;
@@ -291,32 +180,27 @@ html, body {
   .dark input, .dark textarea {
     caret-color: #FFFFFF !important;
   }
-
     .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) {
     background: var(--shiny-card-bg) !important;
     border-color: #000000 !important;
     color: #ffffff !important;
   }
-
   .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) svg,
   .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) .lucide-check {
     color: #ffffff !important;
     stroke: #ffffff !important;
     fill: #ffffff !important;
   }
-
     .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) {
     background: #ffffff !important;
     border-color: #ffffff !important;
     color: #ffffff !important;
   }
-
   .dark .task-checkbox-button.completed:not(.shiny .task-checkbox-button.completed) svg {
     color: #ffffff !important;
     stroke: #ffffff !important;
     fill: #ffffff !important;
   }
-
     .tareas-multicolor {
     background: linear-gradient(
       45deg,
@@ -333,11 +217,8 @@ html, body {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-
   }
-
 @layer utilities {
-
   .no-select {
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
@@ -346,7 +227,6 @@ html, body {
     -webkit-touch-callout: none !important;
     -webkit-tap-highlight-color: transparent !important;
   }
-
   .touch-button {
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
@@ -357,23 +237,18 @@ html, body {
     touch-action: manipulation !important;
   }
 }
-
   /* stylelint-disable at-rule-no-unknown */
-
   body:not(.dark):not(.shiny) .bg-gray-50,
   body:not(.dark):not(.shiny) .bg-gray-100 {
     background-color: #FFFFFF !important;
   }
-
   body:not(.dark):not(.shiny) .bg-white {
     background-color: #FFFFFF !important;
   }
-
   .tareas-header {
     border-radius: 0px !important;
     overflow: hidden !important;
   }
-
     .dark button[data-custom-color="true"],
   .light button[data-custom-color="true"],
   button[data-custom-color="true"],
@@ -381,7 +256,6 @@ html, body {
   html.dark button:not(.calendar-progress):not([data-calendar]) {
     border: none !important;
   }
-
     .dark .calendar-progress,
   .dark [data-calendar],
   html.dark .calendar-progress,
@@ -389,26 +263,22 @@ html, body {
     border: initial !important;
     background: initial !important;
   }
-
   .dark motion div,
   html.dark motion div,
   .dark .calendar-progress motion.div,
   html.dark .calendar-progress motion.div {
     background: #FFFFFF !important;
   }
-
     .dark button.selected-button-mode,
   html.dark button.selected-button-mode {
     background: #FFFFFF !important;
     color: #000000 !important;
   }
-
   .dark button.bg-transparent,
   html.dark button.bg-transparent {
     background-color: transparent !important;
     background: transparent !important;
   }
-
   .shiny {
     --shiny-bg: #000000;
     --shiny-card-bg: #000000;
@@ -424,54 +294,42 @@ html, body {
     --shiny-teal: #00cec9;
     --shiny-pink: #fd79a8;
   }
-
   .shiny body {
     background: var(--shiny-bg) !important;
     color: var(--shiny-text) !important;
   }
-
   .shiny,
   .shiny html,
-
   .shiny .bg-white {
     background: var(--shiny-card-bg) !important;
   }
-
   .shiny .bg-black {
     background: var(--shiny-bg) !important;
   }
-
   .shiny .border:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card),
   .shiny .border-black:not(.task-border):not(.floating-border):not(.tareas-header):not(.stats-border):not(.shiny-stats-chart-card):not(.shiny-settings-card),
-
   .shiny svg {
     filter: drop-shadow(0 0 6px var(--shiny-pink)) !important;
     animation: icon-glow 3s ease-in-out infinite !important;
   }
-
   .task-category-icon {
     color: inherit !important;
   }
-
   .dark .task-category-icon {
     color: #FFFFFF !important;
   }
-
   .dark .task-category-icon path {
     fill: #FFFFFF !important;
     color: #FFFFFF !important;
   }
-
   .light .task-category-icon path {
     fill: #000000 !important;
     color: #000000 !important;
   }
-
   @keyframes icon-glow {
     from { filter: drop-shadow(0 0 6px var(--shiny-pink)); }
     to { filter: drop-shadow(0 0 10px #000000); }
   }
-
   .shiny button:hover:not(.floating-button):not(.absolute),
   .shiny .bg-gray-50:hover,
   .shiny .bg-gray-100:hover,
@@ -480,7 +338,6 @@ html, body {
     box-shadow: 0 10px 30px rgba(255, 107, 157, 0.25), 0 5px 15px rgba(156, 136, 255, 0.15) !important;
     transition: all 0.3s ease !important;
   }
-
 .shiny .shiny-fab,
 .shiny .floating-border {
   position: relative !important;
@@ -489,14 +346,12 @@ html, body {
   border: none !important;
   box-shadow: none !important;
 }
-
 .shiny .shiny-fab {
   overflow: visible !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
-
 .shiny .shiny-fab::before,
 .shiny .floating-border::before {
   content: "" !important;
@@ -507,36 +362,29 @@ html, body {
   background: conic-gradient(from 0deg, #ff004c 0%, #ff7a00 14.2857%, #ffe600 28.5714%, #00ff66 42.8571%, #00c2ff 57.1428%, #8b00ff 71.4285%, #ff00ff 85.7142%, #ff004c 100%);
   animation: none !important;
 }
-
 .shiny .shiny-fab::after { content: none !important; }
-
 .shiny .shiny-fab svg {
   color: #ffffff !important;
   position: relative !important;
   z-index: 3 !important;
 }
-
 .shiny .shiny-fab svg,
 .shiny .shiny-fab svg * {
   stroke: #ffffff !important;
   fill: none !important;
 }
-
 .shiny .shiny-fab > * {
   position: relative !important;
   z-index: 3 !important;
   color: #ffffff !important;
 }
-
 .shiny .shiny-toggle { border-color: transparent !important; }
-
 .shiny-rainbow-border {
   position: relative !important;
   border: 1px solid transparent !important;
   background: var(--shiny-card-bg) !important;
   background-clip: padding-box !important;
 }
-
 .shiny-rainbow-border::before {
   content: "" !important;
   position: absolute !important;
@@ -551,14 +399,12 @@ html, body {
   animation: none !important;
   pointer-events: none;
 }
-
 .shiny .shiny-settings-card {
   position: relative !important;
   border: 1px solid transparent !important;
   background: var(--shiny-card-bg) !important;
   background-clip: padding-box !important;
 }
-
 .shiny .shiny-settings-card::before {
   content: "" !important;
   position: absolute !important;
@@ -573,11 +419,9 @@ html, body {
   animation: none !important;
   pointer-events: none;
 }
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
 @keyframes neon-background-move {
   0% { background-position: 0% 50%; }
   25% { background-position: 100% 25%; }
@@ -585,7 +429,6 @@ html, body {
   75% { background-position: 300% 25%; }
   100% { background-position: 400% 50%; }
 }
-
 .shiny .tareas-header {
   border: none !important;
   background: #ffffff !important;
@@ -617,7 +460,6 @@ html, body {
     pointer-events: none !important;
   z-index: -1 !important;
 }
-
 .shiny .tareas-header::after { content: none !important; }
 .shiny .tareas-header h1:not(.tareas-multicolor) {
   color: #000000 !important;
@@ -626,7 +468,6 @@ html, body {
   background-image: none !important;
     text-shadow: none !important;
 }
-
 .shiny .tasks-list .task-title {
   white-space: normal !important;
   overflow: visible !important;
@@ -634,7 +475,6 @@ html, body {
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
 }
-
 .shiny .completed-header .completed-toggle-btn.completed-toggle-btn {
   background: var(--shiny-card-bg) !important;
   background-image: none !important;
@@ -648,7 +488,6 @@ html, body {
   box-shadow: none !important;
 }
 .shiny .completed-header .completed-toggle-btn.completed-toggle-btn::before { display: none !important; content: none !important; }
-
 .shiny .completed-header {
   color: #ffffff !important;
 }
@@ -657,20 +496,17 @@ html, body {
   stroke: #000000 !important;
   fill: #000000 !important;
 }
-
 .shiny .task-checkbox-button svg {
   filter: none !important;
   color: #ffffff !important;
   stroke: #ffffff !important;
   fill: #ffffff !important;
 }
-
 .shiny .task-checkbox-button.completed .lucide-check {
   color: #000000 !important;
   stroke: #000000 !important;
   fill: #000000 !important;
 }
-
 .shiny .tareas-header .shiny-divider-bottom {
   position: absolute;
   left: -1px;
@@ -687,7 +523,6 @@ html, body {
   filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)) drop-shadow(0 0 10px rgba(255,0,255,0.25));
   pointer-events: none;
 }
-
 .shiny .tareas-header .shiny-divider-bottom::after {
   content: "";
   position: absolute;
@@ -697,18 +532,15 @@ html, body {
   animation: shine-sweep 3s linear infinite;
   pointer-events: none;
 }
-
 .shiny .shiny-task-card .shiny-footer-btn {
   position: relative;
   color: #fff !important;
 }
 .shiny .shiny-task-card .shiny-footer-btn svg { color: currentColor; }
-
 .shiny .shiny-task-card .shiny-footer-btn.is-white {
   background: #fff !important;
   color: #000 !important;
 }
-
 .shiny .shiny-task-card .shiny-footer-btn.is-multi::before {
   content: "";
   position: absolute;
@@ -725,18 +557,15 @@ html, body {
   pointer-events: none;
   animation: rainbow-move 6s linear infinite;
 }
-
 .shiny .shiny-task-card .picker-panel {
   color: #fff !important;
   border-color: transparent !important;
 }
-
 .light .shiny .shiny-task-card .picker-panel,
 .shiny.light .shiny-task-card .picker-panel {
   background: #fff !important;
   color: #000 !important;
 }
-
 .shiny .shiny-task-card .repeat-day-btn {
   color: #fff !important;
   border: 1px solid #fff !important;
@@ -746,7 +575,6 @@ html, body {
   color: #000 !important;
   border-color: #000 !important;
 }
-
 .shiny .shiny-task-card .tag-btn {
   position: relative;
   color: #fff !important;
@@ -779,7 +607,6 @@ html, body {
   right: -1px;
   top: -1px;
   height: 2px;
-
   background: linear-gradient(90deg,
     #ff004c,
     #ff7a00,
@@ -794,7 +621,6 @@ html, body {
   filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)) drop-shadow(0 0 10px rgba(255,0,255,0.25));
   pointer-events: none;
 }
-
 .shiny .tareas-header .shiny-divider-top::after {
   content: "";
   position: absolute;
@@ -804,7 +630,6 @@ html, body {
   animation: shine-sweep 3s linear infinite;
   pointer-events: none;
 }
-
 .shiny .task-shape-wrapper {
   position: relative;
   display: inline-flex;
@@ -813,24 +638,18 @@ html, body {
 }
 .shiny .task-shape-wrapper::before { content: ""; position: absolute; inset: 1px; border-radius: 3px; display: none; }
 .shiny .task-shape-wrapper::after { display: none; }
-
 .steeb-stroke { display: none; }
-
 .shiny .steeb-stroke { display: none !important; }
-
 .shape-fill-rainbow9 { display: none; }
 .shape-fill-current { display: inline; }
-
 .shiny .shape-fill-rainbow9 { display: none !important; }
 .shiny .shape-fill-current { display: inline; }
-
 .shiny .shiny-stats-chart-card {
   position: relative !important;
   border: 2px solid transparent !important;
   background: var(--shiny-card-bg) !important;
   background-clip: padding-box !important;
 }
-
 .shiny .shiny-stats-chart-card::before {
   content: '' !important;
   position: absolute !important;
@@ -844,7 +663,6 @@ html, body {
   mask-composite: exclude !important;
   pointer-events: none !important;
 }
-
 .shiny .shiny-period-buttons {
   position: relative !important;
   background: black !important;
@@ -852,23 +670,19 @@ html, body {
   border-radius: 9999px !important;
   background-clip: padding-box !important;
 }
-
 .shiny .task-shape-wrapper > svg,
 .shiny .task-shape-wrapper > div {
   position: relative;
   z-index: 2;
 }
-
 .shiny .has-neon-stroke .neon-stroke {
   opacity: 0.9;
 }
-
 .steeb-bubble {
   background: #ffffff !important;
   color: #000 !important;
   border: 1px solid #e5e7eb !important;
 }
-
 .dark .steeb-bubble {
   position: relative;
 }
@@ -905,7 +719,6 @@ html, body {
   animation: shine-sweep 2.2s linear infinite;
       pointer-events: none;
 }
-
 .dark .steeb-bubble {
   background: var(--shiny-card-bg) !important;
   color: #ffffff !important;
@@ -923,7 +736,6 @@ html, body {
   display: none !important;
   content: none !important;
 }
-
 .dark [class*="steve-avatar"],
 .dark [class*="SteveAvatar"] {
   background: transparent !important;
@@ -935,7 +747,6 @@ html, body {
   opacity: 1 !important;
   filter: brightness(1) !important;
 }
-
 .dark .shiny-fab[style*="background"],
 .dark .shiny-fab[style*="bg"] {
   background: #ffffff !important;
@@ -945,7 +756,6 @@ html, body {
   stroke: #000000 !important;
   fill: #000000 !important;
 }
-
 .dark .shiny-fab svg.lucide-plus,
 .dark .shiny-fab svg path,
 .dark .shiny-fab svg line {
@@ -953,11 +763,9 @@ html, body {
   stroke: #000000 !important;
   fill: #000000 !important;
 }
-
 .dark .shiny-fab::before {
   display: none !important;
 }
-
 .dark .fixed.bottom-8 button.w-16.h-16.rounded-full,
 .dark .fixed.bottom-8 button.w-20.h-20.rounded-full {
   background-color: #ffffff !important;
@@ -965,10 +773,8 @@ html, body {
   border: 3px solid #ffffff !important;
   box-shadow: 0 0 0 2px #000000, 0 4px 12px rgba(0,0,0,0.3) !important;
 }
-
 .dark .fixed.bottom-8 button svg.lucide-plus,
 .dark .fixed.bottom-8 button svg.lucide-plus *,
-
 .dark button svg.lucide-eye,
 .dark button svg.lucide-eye-off,
 .dark .task-checkbox-button svg,
@@ -977,5 +783,4 @@ html, body {
   color: #ffffff !important;
   fill: none !important;
 }
-
 .shiny .shiny-fab svg { fill: white !important; }

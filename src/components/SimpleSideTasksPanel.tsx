@@ -80,8 +80,8 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
       isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
     }`}>
       {/* Header */}
-      <div className={`p-2 pt-5 border-b-2 flex items-center justify-center ${
-        isDarkMode ? 'border-white' : 'border-white'
+      <div className={`p-2 pt-5 flex items-center justify-center ${
+        isDarkMode ? '' : 'border-b-2 border-white'
       }`}>
         <h2 className="text-3xl font-bold">Tareas</h2>
       </div>
@@ -106,13 +106,13 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                     </div>
 
                     <div
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 mb-6 ${
+                      className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 mb-6 ${
                         isTaskDeleting
                           ? 'bg-black dark:bg-white animate-pulse'
-                          : isDarkMode ? 'bg-gray-900 border border-white' : 'bg-gray-50 border border-white'
+                          : isDarkMode ? 'bg-gray-900 border border-black' : 'bg-gray-50 border border-white'
                       }`}
                       style={{
-                        borderLeft: '3px solid black',
+                        ...(isDarkMode ? {} : { borderLeft: '3px solid black' }),
                         transform: `translateX(-${rowOffsetById[task.id] || 0}px)`,
                         transition: activeIdRef.current === task.id ? 'none' : 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                         touchAction: 'pan-y',
@@ -155,14 +155,9 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                             console.error('Error al completar tarea:', error);
                           });
                         }}
-                        className={`flex-shrink-0 w-4 h-4 rounded-full transition-all duration-200 ${
-                          task.completed
-                            ? 'bg-white border-white'
-                            : isDarkMode
-                              ? 'bg-transparent border-white'
-                              : 'bg-transparent border-black'
-                        } border`}
-                        style={{ borderWidth: '2px' }}
+                        className={`simple-task-checkbox flex-shrink-0 w-4 h-4 rounded-full transition-all duration-200 border-2 ${
+                          task.completed ? 'bg-white' : 'bg-transparent'
+                        }`}
                         title="Completar tarea"
                       />
                     </div>

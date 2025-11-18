@@ -101,94 +101,14 @@ const SteebChatAI: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Inicializar MINIMAX Direct Service al cargar
-  useEffect(() => {
-    const initMinimax = async () => {
-      const initialized = await minimaxDirectService.initialize();
-      if (initialized) {
-        }
-    };
-    initMinimax();
-
-    // Debug automático de estilos del input + SOLUCIÓN NUCLEAR JS
-    setTimeout(() => {
-        debugInputStyles();
-
-      // SOLUCIÓN NUCLEAR JAVASCRIPT si es modo oscuro
-      if (currentTheme === 'dark') {
-        const inputs = document.querySelectorAll('input[type="text"]') as NodeListOf<HTMLInputElement>;
-  
-        inputs.forEach((input, index) => {
-          // Aplicar a todos los inputs o específicamente al de Steeb
-          if (input.classList.contains('steeb-chat-input') ||
-              input.classList.contains('steeb-nuclear-input') ||
-              input.classList.contains('bg-black')) {
-
-            // FORZAR BRUTAL con setProperty y 'important'
-            input.style.setProperty('background', '#000000', 'important');
-            input.style.setProperty('background-color', '#000000', 'important');
-            input.style.setProperty('background-image', 'none', 'important');
-            input.style.setProperty('color', '#FFFFFF', 'important');
-            input.style.setProperty('-webkit-text-fill-color', '#FFFFFF', 'important');
-            input.style.setProperty('caret-color', '#FFFFFF', 'important');
-
-            // Método alternativo: asignación directa para máximo override
-            input.style.cssText += '; background: #000000 !important; background-color: #000000 !important; color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important;';
-
-            // Atributo style directo como último recurso
-            input.setAttribute('style', (input.getAttribute('style') || '') + ' background: #000000 !important; background-color: #000000 !important; color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important;');
+    useEffect(() => {
+      const initMinimax = async () => {
+        const initialized = await minimaxDirectService.initialize();
+        if (initialized) {
           }
-        });
-      }
-    }, 1000); // Esperar 1 segundo a que el componente se monte completamente
-
-    // Hacer disponible la función globalmente para depuración manual
-    (window as any).debugInputStyles = debugInputStyles;
-  
-    // OBSERVADOR MUTACIÓN - DEFENSA CONTRA CAMBIOS CSS
-    if (currentTheme === 'dark') {
-      setTimeout(() => {
-        const steebInput = document.querySelector('input.steeb-chat-input, input.steeb-nuclear-input') as HTMLInputElement;
-        if (steebInput) {
-
-          const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-              if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                const target = mutation.target as HTMLInputElement;
-                const computed = window.getComputedStyle(target);
-
-                // Si el fondo no es negro, volver a aplicar la solución nuclear
-                if (computed.backgroundColor !== 'rgb(0, 0, 0)' && computed.backgroundColor !== '#000000') {
-                  console.warn('⚠️ ¡ATAQUE DETECTADO! Alguién cambió el fondo del input. Aplicando contraataque nuclear...');
-                  target.style.setProperty('background', '#000000', 'important');
-                  target.style.setProperty('background-color', '#000000', 'important');
-                  target.style.setProperty('color', '#FFFFFF', 'important');
-                  target.style.setProperty('-webkit-text-fill-color', '#FFFFFF', 'important');
-                }
-              }
-            });
-          });
-
-          observer.observe(steebInput, {
-            attributes: true,
-            attributeFilter: ['style'],
-            subtree: false
-          });
-
-          // Guardar observer para limpieza
-          (window as any).steebInputObserver = observer;
-        }
-      }, 1500);
-    }
-
-    return () => {
-      // Cleanup
-      delete (window as any).debugInputStyles;
-      if ((window as any).steebInputObserver) {
-        (window as any).steebInputObserver.disconnect();
-        delete (window as any).steebInputObserver;
-      }
-    };
-  }, []);
+      };
+      initMinimax();
+    }, []);
 
   // Manejar resumen diario
   useEffect(() => {
@@ -451,99 +371,6 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
     }
 
     setIsTyping(false);
-  };
-
-  // Función de depuración mejorada basada en CSS Tricks best practices
-  const debugInputStyles = () => {
-    const input = document.querySelector('input[type="text"]') as HTMLInputElement;
-    if (!input) {
-      console.log('❌ No se encontró el input');
-      return;
-    }
-
-    console.log('🔍 DEBUG AVANZADO DE ESTILOS (CSS TRICKS METHODOLOGY)');
-    console.log('==================================================');
-
-    // Computed styles con más detalle
-    const computed = window.getComputedStyle(input);
-    console.log('📊 ESTILOS COMPUTADOS:');
-    console.log('  color:', computed.color, '| Is White?', computed.color === 'rgb(255, 255, 255)');
-    console.log('  backgroundColor:', computed.backgroundColor, '| Is Black?', computed.backgroundColor === 'rgb(0, 0, 0)');
-    console.log('  borderColor:', computed.borderColor);
-    console.log('  caretColor:', computed.caretColor);
-    console.log('  WebkitTextFillColor:', computed.webkitTextFillColor);
-
-    // Análisis de specificity
-    console.log('\n🎯 ANÁLISIS DE SPECIFICITY:');
-    console.log('🏷️ Clases completas:', input.className);
-    console.log('🆔 ID:', input.id);
-    console.log('📋 Tag:', input.tagName.toLowerCase());
-    console.log('🎨 Inline styles:', input.getAttribute('style'));
-    console.log('👨‍👩‍👦‍👦 Parent:', input.parentElement?.className);
-
-    // CSS Variables que afectan el input
-    const cssVars = [];
-    for (let prop of Object.values(getComputedStyle(document.documentElement))) {
-      if (prop.startsWith('--') && (prop.includes('color') || prop.includes('text') || prop.includes('bg'))) {
-        cssVars.push(`${prop}: ${getComputedStyle(document.documentElement).getPropertyValue(prop)}`);
-      }
-    }
-    if (cssVars.length > 0) {
-      console.log('\n🎨 CSS RELEVANT VARIABLES:');
-      cssVars.forEach(v => console.log('  ', v));
-    }
-
-    // Estado del tema
-    console.log('\n🌓 ESTADO DEL TEMA:');
-    console.log('  currentTheme:', currentTheme);
-    console.log('  isDarkMode:', isDarkMode);
-    console.log('  document.documentElement classes:', document.documentElement.className);
-    console.log('  body classes:', document.body.className);
-
-    // Análisis de specificity avanzado
-    console.log('\n🔍 ANÁLISIS DE REGLAS CSS CONFLICTIVAS:');
-    const problematicRules = [
-      'background', 'background-color', 'color', '-webkit-text-fill-color'
-    ];
-
-    // Intentar identificar qué regla está aplicando el fondo blanco
-    if (computed.backgroundColor === 'rgb(255, 255, 255)') {
-      console.log('🚨 PROBLEMA IDENTIFICADO: El fondo es blanco en modo oscuro');
-      console.log('   Buscando la regla culpable...');
-
-      // Verificar si es por CSS heredado
-      const parentBg = window.getComputedStyle(input.parentElement!).backgroundColor;
-      console.log('   Parent background:', parentBg);
-
-      // Verificar reglas !important
-      const rules = document.styleSheets[0]?.cssRules || [];
-      for (let i = 0; i < rules.length; i++) {
-        const rule = rules[i] as CSSStyleRule;
-        if (rule.style?.backgroundColor && rule.style.backgroundColor.includes('255')) {
-          console.log('   🎯 Regla sospechosa:', rule.selectorText, '->', rule.style.backgroundColor);
-        }
-      }
-    }
-
-    // Solución sugerida
-    console.log('\n💡 SOLUCIÓN SUGERIDA:');
-    console.log('   1. Usar máxima specificity: html.dark body input[type="text"]');
-    console.log('   2. Aplicar !important a background y color');
-    console.log('   3. Forzar webkitTextFillColor para compatibilidad');
-    console.log('   4. Resetear background-image: none');
-
-    // Verificar si el texto es realmente visible
-    const isVisible = computed.color !== computed.backgroundColor;
-    const isWhiteText = computed.color === 'rgb(255, 255, 255)';
-    const isBlackBg = computed.backgroundColor === 'rgb(0, 0, 0)';
-
-    console.log('\n✅ ESTADO FINAL:');
-    console.log('   ¿Texto visible?', isVisible ? '✅ SÍ' : '❌ NO');
-    console.log('   ¿Texto blanco?', isWhiteText ? '✅ SÍ' : '❌ NO');
-    console.log('   ¿Fondo negro?', isBlackBg ? '✅ SÍ' : '❌ NO');
-    console.log('   ¿Configuración correcta?', (isWhiteText && isBlackBg) ? '✅ SÍ' : '❌ NO');
-
-    console.log('==================================================');
   };
 
   const generateIntelligentResponse = (userMessage: string): string => {
@@ -857,22 +684,15 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder=""
-                className={`w-full py-2 pr-10 ${isDarkMode ? 'bg-black text-white border-gray-600' : 'bg-white text-black border-gray-300'} border rounded-full leading-relaxed focus:outline-none focus:border-2 ${isDarkMode ? 'focus:!border-gray-400' : 'focus:!border-black'} focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${
-                  inputMessage ? 'pl-3' : 'pl-10'
-                }`}
+                className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${
+                  isDarkMode
+                    ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
+                    : 'bg-white text-black border-gray-300 focus:!border-black'
+                } ${inputMessage ? 'pl-3' : 'pl-10'}`}
                 style={{
                   fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
                   fontWeight: '400',
-                  fontSize: '16px',
-                  // Solución definitiva con máxima specificity
-                  ...(isDarkMode && {
-                    backgroundColor: '#000000 !important',
-                    background: '#000000 !important',
-                    backgroundImage: 'none !important',
-                    color: '#FFFFFF !important',
-                    WebkitTextFillColor: '#FFFFFF !important',
-                    caretColor: '#FFFFFF !important'
-                  })
+                  fontSize: '16px'
                 }}
               />
               {/* Cursor clásico parpadeante */}
@@ -902,9 +722,23 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             <button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isTyping}
-              className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 border-white"
+              className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 ${
+                isDarkMode
+                  ? 'bg-black border-gray-700 hover:bg-gray-800'
+                  : 'bg-white border-white hover:bg-gray-100'
+              }`}
+              style={{
+                boxShadow: isDarkMode
+                  ? '10px 12px 25px -10px rgba(255,255,255,0.45), 0 18px 22px -10px rgba(0,0,0,0.65)'
+                  : undefined
+              }}
             >
-              <ArrowUp className="w-4 h-4" style={{ stroke: isDarkMode ? '#ffffff' : '#000000' }} />
+              <ArrowUp
+                className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-black'}`}
+                strokeWidth={2}
+                stroke="currentColor"
+                fill="none"
+              />
             </button>
           </div>
 

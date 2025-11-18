@@ -171,7 +171,7 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
           {/* Botón de cerrar */}
           <button
             onClick={onClose}
-            className={`absolute top-3 left-3 z-50 p-1 transition-colors border-0 outline-none focus:outline-none focus:border-none focus:ring-0 ring-0 ${
+            className={`fixed-panel-close-btn absolute top-3 left-3 z-50 p-1 transition-colors border-0 outline-none focus:outline-none focus:border-none focus:ring-0 ring-0 ${
               isDarkMode
                 ? 'text-white'
                 : 'text-black'

@@ -349,12 +349,12 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
   }, [tasks, actualContainerHeight, getScaledHeight]);
 
   return (
-    <div className={`h-full flex flex-col ${
+    <div className={`simple-progress-panel h-full flex flex-col ${
       isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
     }`}>
       {/* Header */}
-      <div className={`p-2 border-b-2 flex items-center justify-center ${
-        isDarkMode ? 'border-white' : 'border-white'
+      <div className={`p-2 flex items-center justify-center ${
+        isDarkMode ? '' : 'border-b-2 border-white'
       }`}>
         <h2 className="text-xl font-bold">
           {viewMode === 'year' ? new Date().getFullYear() : viewMode === 'week' ? getCurrentWeekOfMonth() : getCurrentMonthName()}
@@ -365,7 +365,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
       <div className="flex-1 flex flex-col" style={{ minHeight: '250px' }}>
         {/* Task Count Text Above Chart */}
         <div className="text-center py-0 px-2">
-          <div className={`inline-block px-2 py-0.5 rounded-lg ${
+          <div className={`inline-block px-2 py-0.5 rounded-lg border-0 ${
             isDarkMode ? 'bg-black/80 text-white' : 'bg-white/80 text-black'
           } backdrop-blur-sm`}>
             <div className="flex flex-col items-center justify-center min-w-[90px]">
@@ -483,8 +483,8 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
         {/* Simple Chart */}
         <div
           ref={chartContainerRef}
-          className={`p-1 rounded-lg border flex flex-col relative ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
+          className={`p-1 rounded-lg flex flex-col relative ${
+            isDarkMode ? 'bg-gray-900 border-0' : 'bg-gray-50 border border-white'
           }`}
           style={{
             height: 'auto',
@@ -511,7 +511,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               tasksByDay.map((dayData, index) => (
                 <div key={index} className="flex flex-col items-center flex-shrink-0">
                   <div
-                    className={`w-8 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
+                    className={`chart-bar w-8 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
                     style={{
                       height: `${dayData.scaledHeight}px`,
                       backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
@@ -522,7 +522,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   >
                     {dayData.completed > 0 && (
                       <span
-                        className={`font-bold flex items-center justify-center ${
+                        className={`chart-bar-value font-bold flex items-center justify-center ${
                           isDarkMode ? 'text-black' : 'text-white'
                         }`}
                         style={{
@@ -544,7 +544,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               tasksByWeek.map((weekData, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div
-                    className={`w-16 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
+                    className={`chart-bar w-16 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
                     style={{
                       height: `${weekData.scaledHeight}px`,
                       backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
@@ -555,7 +555,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   >
                     {weekData.completed > 0 && (
                       <span
-                        className={`font-bold flex items-center justify-center ${
+                        className={`chart-bar-value font-bold flex items-center justify-center ${
                           isDarkMode ? 'text-black' : 'text-white'
                         }`}
                         style={{
@@ -577,7 +577,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               tasksByMonth.map((monthData, index) => (
                 <div key={index} className="flex flex-col items-center flex-shrink-0">
                   <div
-                    className={`w-7 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
+                    className={`chart-bar w-7 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
                     style={{
                       height: `${monthData.scaledHeight}px`,
                       backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
@@ -588,7 +588,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   >
                     {monthData.completed > 0 && (
                       <span
-                        className={`font-bold flex items-center justify-center ${
+                        className={`chart-bar-value font-bold flex items-center justify-center ${
                           isDarkMode ? 'text-black' : 'text-white'
                         }`}
                         style={{
@@ -611,21 +611,26 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 
           {/* Progress Bar Clone - Justo debajo del texto */}
           <div className={`px-1.5 py-0.5 rounded-lg border mx-2 mb-1 ${
-            isDarkMode ? 'bg-gray-900 border-white' : 'bg-gray-50 border-white'
+            isDarkMode ? 'bg-gray-900 border-0' : 'bg-gray-50 border-white'
           }`}>
             <div
-              className="w-full h-2 rounded-full overflow-hidden relative"
+              className={`progress-track w-full h-2 rounded-full overflow-hidden relative ${
+                isDarkMode ? 'bg-gray-600' : ''
+              }`}
               style={{
-                backgroundColor: isDarkMode ? '#333333' : '#E5E7EB'
+                backgroundColor: isDarkMode ? '#4B5563' : '#E5E7EB'
               }}
             >
               <div
-                className="h-full transition-all duration-500 ease-out"
+                className={`progress-fill h-full transition-all duration-500 ease-out ${
+                  isDarkMode ? 'bg-white' : ''
+                }`}
                 style={{
                   backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
                   width: `${stats.completionRate}%`,
                   willChange: 'width',
-                  minWidth: stats.completionRate > 0 ? '20px' : '0px'
+                  minWidth: stats.completionRate > 0 ? '20px' : '0px',
+                  mixBlendMode: isDarkMode ? 'normal' : undefined
                 }}
               />
             </div>
@@ -670,8 +675,8 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 
   
       {/* View Mode Selector at Bottom */}
-      <div className={`p-1.5 flex justify-center border-t ${
-        isDarkMode ? 'border-white' : 'border-white'
+      <div className={`p-1.5 flex justify-center ${
+        isDarkMode ? '' : 'border-t border-white'
       }`}>
         <div className={`relative flex rounded-full p-0.5 w-full ${
           isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
@@ -685,13 +690,13 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               key={mode.value}
               data-custom-color="true"
               onClick={() => setViewMode(mode.value as any)}
-              className={`relative flex-1 py-1.5 text-base font-sans font-medium transition-all duration-200 ease-in-out ${
-                viewMode === mode.value
-                  ? (isDarkMode
-                    ? 'selected-button-mode'
-                    : 'bg-black text-white shadow-none')
-                  : (isDarkMode
-                    ? 'bg-transparent text-white hover:bg-gray-700'
+              className={`view-mode-btn relative flex-1 py-1.5 text-base font-sans font-medium transition-all duration-200 ease-in-out ${
+                isDarkMode
+                  ? `${viewMode === mode.value
+                      ? 'selected-button-mode dark-view-mode-btn-selected'
+                      : 'dark-view-mode-btn-default'}`
+                  : (viewMode === mode.value
+                    ? 'bg-black text-white shadow-none'
                     : 'bg-transparent text-black hover:bg-gray-200')
               } ${index === 0 ? 'rounded-l-full' : ''} ${index === 2 ? 'rounded-r-full' : ''} ${index === 1 ? '-mx-px' : ''}`}
               style={{
