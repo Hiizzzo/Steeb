@@ -44,7 +44,9 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
     setIsLoading(true);
     setError('');
     try {
-      await loginWithGoogle();
+      // Forzar que siempre muestre el selector de cuentas de Google
+      await loginWithGoogle(true); // true = forceAccountPicker
+
       // Si el usuario es nuevo o no tiene perfil completo, ir a onboarding
       // Si ya tiene perfil, entrar directamente
       const userAfterAuth = user; // El hook ya actualiza el usuario

@@ -44,7 +44,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (forceAccountPicker?: boolean) => Promise<void>;
   register: (email: string, password: string, name: string, nickname: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (name: string, nickname: string) => Promise<void>;
@@ -202,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (forceAccountPicker: boolean = false) => {
     ensureConfigured();
     
     // En plataformas nativas (Capacitor Android/iOS), intentar flujo nativo
@@ -269,7 +269,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     // En web, usar popup
-    const res = await signInWithPopup(auth, googleProvider);
+    // Si forceAccountPicker es true, crear un nuevo provider para forzar el selector
+    const provider = forceAccountPicker ? new GoogleAuthProvider() : googleProvider;
+
+    // Forzar que muestre el selector de cuentas si se solicita
+    if (forceAccountPicker) {
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+    }
+
+    const res = await signInWithPopup(auth, provider);
     // Ensure user doc exists
     const uid = res.user.uid;
     const ref = doc(db, 'users', uid);
