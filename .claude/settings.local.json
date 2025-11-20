@@ -80,7 +80,12 @@
       "Bash(find:*)",
       "Bash(sort:*)",
       "Bash(cmp:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(start http://localhost:8081)",
+      "Bash(node:*)",
+      "WebFetch(domain:www.mercadopago.com.ar)",
+      "Bash(start http://localhost:8082)",
+      "Bash(tasklist:*)"
     ],
     "deny": [],
     "ask": []

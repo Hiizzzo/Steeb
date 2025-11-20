@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles } from 'lucide-react';
+import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
 import { sendMessageToSteeb } from '@/services/steebApi';
@@ -16,6 +16,7 @@ interface ChatMessage {
   timestamp: Date;
   isTyping?: boolean;
   category?: 'general' | 'task' | 'productivity' | 'motivation';
+  showMercadoPagoButton?: boolean; // Nueva propiedad para mostrar botón
 }
 
 const SteebChatAI: React.FC = () => {
@@ -82,7 +83,11 @@ const SteebChatAI: React.FC = () => {
     'no sé qué hacer': 'Empecemos con algo pequeño. ¿Cuál es la tarea más sencilla que puedes hacer ahora?',
     'estoy aburrido': '¡Perfecto momento para avanzar en esas tareas pendientes! 📋',
     'feliz': '¡Me encanta tu energía! Canalízala en una tarea y verás resultados. ⚡',
-    'triste': '¡No te preocupes! Una pequeña tarea puede mejorar tu estado de ánimo. 💙'
+    'triste': '¡No te preocupes! Una pequeña tarea puede mejorar tu estado de ánimo. 💙',
+    'comprar dark mode': 'SPECIAL_COMMAND:BUY_DARK_MODE',
+    'comprar modo dark': 'SPECIAL_COMMAND:BUY_DARK_MODE',
+    'quiero dark mode': 'SPECIAL_COMMAND:BUY_DARK_MODE',
+    'quiero modo dark': 'SPECIAL_COMMAND:BUY_DARK_MODE'
   };
 
   const getInitialMessage = () => {
@@ -147,6 +152,41 @@ const SteebChatAI: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Escuchar mensajes del ThemeToggle
+  useEffect(() => {
+    const handleSteebMessage = (event: CustomEvent) => {
+      const { type, content, timestamp, showMercadoPagoButton } = event.detail;
+
+      if (type === 'theme-info' || type === 'theme-info-with-button') {
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: content,
+          timestamp: timestamp || new Date(),
+          category: 'general',
+          showMercadoPagoButton: showMercadoPagoButton || false
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Scroll al final para mostrar el nuevo mensaje
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+      }
+    };
+
+    // Escuchar los eventos personalizados
+    window.addEventListener('steeb-message', handleSteebMessage as EventListener);
+    window.addEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
+
+    // Limpiar los event listeners al desmontar
+    return () => {
+      window.removeEventListener('steeb-message', handleSteebMessage as EventListener);
+      window.removeEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
+    };
+  }, []);
 
   // Manejar cambios de altura del panel
   const handlePanelHeightChange = (height: number) => {
@@ -228,6 +268,50 @@ const SteebChatAI: React.FC = () => {
     if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_TASKS') {
       console.log('📋 Abriendo panel de tareas sin mensajes...');
       setShowSideTasks(true);
+      return;
+    }
+
+    if (predefinedResponse === 'SPECIAL_COMMAND:BUY_DARK_MODE') {
+      console.log('💳 Comprando Dark Mode...');
+
+      // Enviar un evento global para que el ThemeToggle abra el modal de pago
+      const buyDarkEvent = new CustomEvent('buy-dark-mode', {
+        detail: {
+          source: 'chat',
+          timestamp: new Date()
+        }
+      });
+      window.dispatchEvent(buyDarkEvent);
+
+      const confirmationMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: '¡Excelente decisión! Estoy abriendo el proceso de compra para el Dark Mode por $3.000. Te dará acceso inmediato + 1 intento gratis para Shiny. 🌙',
+        timestamp: new Date(),
+        category: 'general'
+      };
+      setMessages(prev => [...prev, confirmationMessage]);
+
+      // Enviar segundo mensaje con botón de Mercado Pago
+      setTimeout(() => {
+        const mercadoPagoMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: `# $3.000
+
+### 1 intento gratis del modo SHINY`,
+          timestamp: new Date(),
+          category: 'general',
+          showMercadoPagoButton: true // Nueva propiedad para mostrar el botón
+        };
+        setMessages(prev => [...prev, mercadoPagoMessage]);
+
+        // Scroll al final para mostrar el nuevo mensaje
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+      }, 1000); // Esperar 1 segundo para enviar el segundo mensaje
+
       return;
     }
 
@@ -579,6 +663,30 @@ const SteebChatAI: React.FC = () => {
                     })}
                   </span>
                 </div>
+
+                {/* Botón de Mercado Pago */}
+                {message.showMercadoPagoButton && (
+                  <button
+                    onClick={() => {
+                      // Enviar evento para abrir modal de pago (cuando exista)
+                      const buyDarkEvent = new CustomEvent('buy-dark-mode', {
+                        detail: {
+                          source: 'chat-button',
+                          timestamp: new Date()
+                        }
+                      });
+                      window.dispatchEvent(buyDarkEvent);
+                    }}
+                    className={`w-full mt-3 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md border-2 ${
+                      isShinyMode || isDarkMode
+                        ? 'bg-white text-black border-white hover:bg-gray-100'
+                        : 'bg-black text-white border-black hover:bg-gray-800'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Pagar con Mercado Pago
+                  </button>
+                )}
 
               </div>
                 );

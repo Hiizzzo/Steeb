@@ -21,6 +21,7 @@ import AppUpdateNotification from '@/components/AppUpdateNotification';
 import DailyTasksConfig from '@/components/DailyTasksConfig';
 import DailyTaskReminderModal from '@/components/DailyTaskReminderModal';
 import ShapeIcon from '@/components/ShapeIcon';
+import ThemeToggle from '@/components/ThemeToggle';
 import type { RecurrenceRule, Task, SubTask } from '@/types';
 import ModalAddTask from '@/components/ModalAddTask';
 import ProgressPage from '@/components/ProgressPage';
@@ -71,96 +72,63 @@ const Index = () => {
   const [showCompletedToday, setShowCompletedToday] = useState(false);
   const { currentTheme } = useTheme();
 
-  // FORZAR HEADER CORRECTO SEGÚN TEMA - JavaScript directo
+  // Aplicar colores al header según tema (excluyendo ThemeToggle)
   useEffect(() => {
-    const forceHeaderColors = () => {
-      const headerElements = document.querySelectorAll('.tareas-header *');
-
-      // Determinar colores según el tema
+    const applyHeaderColors = () => {
       const isDark = document.documentElement.classList.contains('dark');
       const isShiny = document.documentElement.classList.contains('shiny');
 
-      if (isDark) {
-        // Dark mode: header blanco con texto negro
-        headerElements.forEach(el => {
-          el.style.setProperty('background-color', '#ffffff', 'important');
-          el.style.setProperty('background', '#ffffff', 'important');
-          el.style.setProperty('color', '#000000', 'important');
-        });
+      // Aplicar solo al header principal y sus elementos directos (excluyendo ThemeToggle)
+      const headerMain = document.querySelector('.tareas-header');
+      const h1Element = document.querySelector('.tareas-header h1');
 
-        const headerMain = document.querySelector('.tareas-header');
-        if (headerMain) {
-          headerMain.style.setProperty('background-color', '#ffffff', 'important');
-          headerMain.style.setProperty('background', '#ffffff', 'important');
-          headerMain.style.setProperty('color', '#000000', 'important');
-        }
-
-        const h1Element = document.querySelector('.tareas-header h1');
-        if (h1Element) {
-          h1Element.style.setProperty('color', '#000000', 'important');
-          h1Element.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
-        }
-      } else if (isShiny) {
-        // Shiny mode: header negro con texto blanco
-        headerElements.forEach(el => {
-          el.style.setProperty('background-color', '#000000', 'important');
-          el.style.setProperty('background', '#000000', 'important');
-          el.style.setProperty('color', '#ffffff', 'important');
-        });
-
-        const headerMain = document.querySelector('.tareas-header');
-        if (headerMain) {
+      if (headerMain) {
+        if (isDark) {
+          // Dark mode: header negro con texto blanco
+          headerMain.style.setProperty('background-color', '#000000', 'important');
+          headerMain.style.setProperty('background', '#000000', 'important');
+          headerMain.style.setProperty('color', '#ffffff', 'important');
+        } else if (isShiny) {
+          // Shiny mode: header negro con texto blanco
+          headerMain.style.setProperty('background-color', '#000000', 'important');
+          headerMain.style.setProperty('background', '#000000', 'important');
+          headerMain.style.setProperty('color', '#ffffff', 'important');
+        } else {
+          // Light mode: header negro con texto blanco
           headerMain.style.setProperty('background-color', '#000000', 'important');
           headerMain.style.setProperty('background', '#000000', 'important');
           headerMain.style.setProperty('color', '#ffffff', 'important');
         }
+      }
 
-        const h1Element = document.querySelector('.tareas-header h1');
-        if (h1Element) {
+      if (h1Element) {
+        if (isDark) {
           h1Element.style.setProperty('color', '#ffffff', 'important');
           h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
-        }
-      } else {
-        // Light mode: header negro con texto blanco
-        headerElements.forEach(el => {
-          el.style.setProperty('background-color', '#000000', 'important');
-          el.style.setProperty('background', '#000000', 'important');
-          el.style.setProperty('color', '#ffffff', 'important');
-        });
-
-        const headerMain = document.querySelector('.tareas-header');
-        if (headerMain) {
-          headerMain.style.setProperty('background-color', '#000000', 'important');
-          headerMain.style.setProperty('background', '#000000', 'important');
-          headerMain.style.setProperty('color', '#ffffff', 'important');
-        }
-
-        const h1Element = document.querySelector('.tareas-header h1');
-        if (h1Element) {
+        } else if (isShiny) {
+          h1Element.style.setProperty('color', '#ffffff', 'important');
+          h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+        } else {
           h1Element.style.setProperty('color', '#ffffff', 'important');
           h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
         }
       }
     };
 
-    // Aplicar inmediatamente
-    forceHeaderColors();
+    // Aplicar inmediatamente y cuando cambie el tema
+    applyHeaderColors();
 
-    // Aplicar cada 100ms para asegurar que se mantenga
-    const interval = setInterval(forceHeaderColors, 100);
-
-    // También aplicar cuando cambie el tema
-    const observer = new MutationObserver(forceHeaderColors);
+    const observer = new MutationObserver(applyHeaderColors);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class']
     });
 
     return () => {
-      clearInterval(interval);
       observer.disconnect();
     };
   }, [currentTheme]);
+
 
   // Swipe-to-delete (lista principal) con Pointer Events (sin long-press)
   const SWIPE_THRESHOLD = 80;
@@ -613,8 +581,8 @@ const Index = () => {
     return { isShiny, isDark };
   });
 
-  const headerBackgroundColor = theme.isShiny ? '#000000' : '#ffffff';
-  const headerTextColor = theme.isShiny ? '#ffffff' : '#000000';
+  const headerBackgroundColor = '#000000';
+  const headerTextColor = '#ffffff';
   
   // Actualizar tema cuando cambie
   useEffect(() => {
@@ -775,8 +743,10 @@ const Index = () => {
               STEEB
             </h1>
 
-            {/* ESPACIO SIMÉTRICO DERECHO */}
-            <div className="w-8 h-8 ml-auto flex-shrink-0"></div>
+            {/* ThemeToggle - SIEMPRE VISIBLE */}
+            <div className="ml-auto flex-shrink-0">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>

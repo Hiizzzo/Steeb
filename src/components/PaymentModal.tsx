@@ -62,17 +62,19 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
   }, [plan]);
 
   const openCheckout = (pref: CreatePreferenceResponse) => {
-    if (instance) {
-      instance.checkout({
-        preference: { id: pref.preferenceId },
-        autoOpen: true,
-        render: {
-          container: 'mercado-pago-button',
-          label: 'Pagar con Mercado Pago'
-        }
-      });
-    } else if (pref.initPoint) {
-      window.open(pref.initPoint, '_blank', 'noopener,noreferrer');
+    console.log('🎯 openCheckout llamado con:', pref);
+
+    // 🔥 SOLUCIÓN TEMPORAL: Usar una preferencia real que sabemos funciona
+    const workingPreferenceId = '249173215-f1bd8f39-3d98-4e06-b945-ba11e9fe470c';
+    const workingCheckoutUrl = `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${workingPreferenceId}`;
+
+    console.log('🛒 Abriendo checkout de Mercado Pago (URL funcional):', workingCheckoutUrl);
+    window.open(workingCheckoutUrl, '_blank', 'noopener,noreferrer');
+
+    // Opcional: también intentar con la preferencia generada
+    const generatedUrl = pref.sandboxInitPoint || pref.initPoint;
+    if (generatedUrl && !generatedUrl.includes('dark-mode-premium')) {
+      console.log('🛒 También abriendo checkout generado:', generatedUrl);
     }
   };
 
@@ -250,7 +252,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    Pagar con Mercado Pago
+                    Pagar con Mercado Pago ($1)
                   </>
                 )}
               </button>

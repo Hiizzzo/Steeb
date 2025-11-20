@@ -33,7 +33,6 @@ import SettingsPage from "./pages/SettingsPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
-import ThemeToggle from "./components/ThemeToggle";
 import AuthScreen from "./components/AuthScreen";
 import { NetworkStatus } from "./components/NetworkStatus";
 import { useAuth } from "./hooks/useAuth";
@@ -166,7 +165,6 @@ const AppContent = () => {
 
   return (
     <BrowserRouter>
-      <ThemeToggle />
       <NetworkStatus />
       <Routes>
         <Route path="/" element={<Index />} />

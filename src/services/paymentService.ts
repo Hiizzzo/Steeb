@@ -6,7 +6,7 @@ const sanitizeBaseUrl = (url?: string | null): string | null => {
 };
 
 const apiBaseUrl = sanitizeBaseUrl(import.meta.env.VITE_API_URL);
-const BASE_PATH = apiBaseUrl ? `${apiBaseUrl}/payments` : '/api/payments';
+const BASE_PATH = apiBaseUrl ? `${apiBaseUrl}/api/payments` : '/api/payments';
 const buildUrl = (path: string) => `${BASE_PATH}${path}`;
 
 export interface CreatePreferenceInput {

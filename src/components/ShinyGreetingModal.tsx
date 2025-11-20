@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,8 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
   onOpenChange,
   onWin,
 }) => {
-  const [secret, setSecret] = useState<number>(generateSecureRandomNumber());
+  // Almacenar el secreto en una closure privada para evitar acceso desde DevTools
+  const secretRef = useRef<number | null>(null);
   const [guess, setGuess] = useState<string>("");
   const [attempted, setAttempted] = useState(false);
   const [message, setMessage] = useState<string>("");
@@ -40,14 +41,32 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
   const { userCredits, canPlayGame, playGame } = useUserCredits();
   const { currentTheme } = useTheme();
 
+  // Calcular próximo intento disponible
+  const getNextAttemptTime = () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const hoursUntilMidnight = Math.floor((tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60));
+    const minutesUntilMidnight = Math.floor(((tomorrow.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hoursUntilMidnight > 0) {
+      return `en ${hoursUntilMidnight}h ${minutesUntilMidnight}min`;
+    } else if (minutesUntilMidnight > 0) {
+      return `en ${minutesUntilMidnight} minutos`;
+    } else {
+      return 'muy pronto';
+    }
+  };
+
   const steebGreeting = useMemo(() => {
     return "Qué ansiedad me daría que adivines el número que estoy pensando del 1 al 100 para desbloquear la versión Shiny.";
   }, [open]);
 
   useEffect(() => {
     if (open) {
-      const newSecret = generateSecureRandomNumber();
-      setSecret(newSecret);
+      secretRef.current = generateSecureRandomNumber();
       setGuess("");
       setAttempted(false);
       setMessage("");
@@ -65,7 +84,7 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
 
     // Límite de 1 intento por día
     if (!canPlayGame()) {
-      setMessage("Solo puedes intentar el modo Shiny una vez por día.");
+      setMessage(`Ya usaste tu intento de hoy. Podrás volver a intentar ${getNextAttemptTime()}.`);
       return;
     }
 
@@ -82,13 +101,18 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
     }
 
     setAttempted(true);
-    if (n === secret) {
+
+    // Verificar el resultado de forma segura
+    if (secretRef.current !== null && n === secretRef.current) {
       setMessage("¡GANASTE SHINY!");
       onWin();
       onOpenChange(false);
     } else {
-      setMessage(`La próxima será. He pensado el ${secret}.`);
+      setMessage("La próxima será. ¡Seguí intentando!");
     }
+
+    // Limpiar el secreto inmediatamente después del uso
+    secretRef.current = null;
   };
 
   const handleBuyDarkVersion = () => {

@@ -50,7 +50,7 @@ html, body {
     border-color: rgba(255,255,255,0.3) !important;
   }
 
-  .dark button:not(.task-eye-toggle):not(.simple-task-checkbox):not(.fixed-panel-close-btn):not(.steeb-chat-send-button) {
+  .dark button:not(.task-eye-toggle):not(.simple-task-checkbox):not(.fixed-panel-close-btn):not(.steeb-chat-send-button):not([class*="bg-white/10"]) {
     background-color: #1a1a1a !important;
     color: #ffffff !important;
     border-color: rgba(255,255,255,0.3) !important;

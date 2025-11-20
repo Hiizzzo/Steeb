@@ -10,6 +10,9 @@ export interface UserProfile {
   shinyRolls?: number;
   createdAt: Date;
   lastLoginAt: Date;
+  // Tracking para límite diario de intentos Shiny
+  lastShinyAttemptAt?: Date;
+  shinyAttemptsToday?: number;
 }
 
 export interface UserAccess {
@@ -35,19 +38,19 @@ export const USER_ROLES = {
 } as const;
 
 export const ROLE_PERMISSIONS: Record<UserRole, UserAccess> = {
-  [USER_ROLES.WHITE]: {
+  white: {
     canUseWhiteMode: true,
     canUseDarkMode: false,
     canUseShinyMode: false,
     canBuyShinyRolls: false
   },
-  [USER_ROLES.DARK]: {
+  dark: {
     canUseWhiteMode: true,
     canUseDarkMode: true,
     canUseShinyMode: false,
     canBuyShinyRolls: true
   },
-  [USER_ROLES.SHINY]: {
+  shiny: {
     canUseWhiteMode: true,
     canUseDarkMode: true,
     canUseShinyMode: true,
@@ -56,7 +59,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, UserAccess> = {
 };
 
 export const ROLE_PRICES = {
-  SHINY_ROLL: 500, // $500 pesos argentinos
-  UPGRADE_TO_DARK: 1000, // $1000 para upgrade de white a dark
-  UPGRADE_TO_SHINY: 2000  // $2000 para upgrade a shiny permanente
+  SHINY_ROLL: 300, // $300 pesos argentinos por intento para adivinar el número
+  UPGRADE_TO_DARK: 3000, // $3000 para upgrade de white a dark (incluye 1 intento gratis)
+  UPGRADE_TO_SHINY: 300   // $300 por intento para adivinar número del 1 al 100
 } as const;

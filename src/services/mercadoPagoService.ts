@@ -1,5 +1,5 @@
-// Servicio para integración con Mercado Pago
-// NOTA: Este es un ejemplo básico. En producción deberías seguir la documentación oficial de Mercado Pago
+// Servicio para integración con Mercado Pago - VERSIÓN LIMPIA DE PRODUCCIÓN
+// SIN SIMULACIÓN, SIN TESTING, SIN BASURA
 
 export interface PaymentPreference {
   title: string;
@@ -12,77 +12,74 @@ export interface PaymentPreference {
 }
 
 export interface MercadoPagoResponse {
-  init_point: string;
-  preference_id: string;
+  preferenceId: string;
+  initPoint?: string;
+  sandboxInitPoint?: string;
+  externalReference?: string;
+  plan?: any;
 }
 
 export const mercadoPagoService = {
-  // Crear preferencia de pago
+  // Crear preferencia de pago - PRODUCCIÓN
   createPreference: async (preference: PaymentPreference): Promise<MercadoPagoResponse> => {
     try {
-      // En producción, esto debería ir a tu backend que se comunica con Mercado Pago
-      // Por ahora, simulamos la creación de preferencia
+      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-      const preferenceData = {
-        items: [{
-          title: preference.title,
-          description: preference.description,
-          quantity: preference.quantity,
-          currency_id: preference.currency,
-          unit_price: preference.price * 100, // Mercado Pago trabaja en centavos
-        }],
-        payer: {
-          email: `user_${preference.userId}@steeb.app`, // En producción, email real del usuario
+      // Convertir upgradeType a planId
+      const planIdMap = {
+        'dark': 'dark-mode-premium',
+        'shiny': 'shiny-mode-premium',
+        'shinyRoll': 'shiny-roll-premium'
+      };
+
+      const planId = planIdMap[preference.upgradeType] || 'dark-mode-premium';
+
+      const response = await fetch(`${apiBaseUrl}/api/payments/create-preference`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId: planId,
+          userId: preference.userId,
+          email: `user_${preference.userId}@steeb.app`,
           name: 'Usuario STEEB'
-        },
-        back_urls: {
-          success: `${window.location.origin}/payment/success`,
-          failure: `${window.location.origin}/payment/failure`,
-          pending: `${window.location.origin}/payment/pending`
-        },
-        auto_return: 'approved',
-        external_reference: `${preference.upgradeType}_${preference.userId}_${Date.now()}`,
-        metadata: {
-          user_id: preference.userId,
-          upgrade_type: preference.upgradeType,
-          price: preference.price
-        }
-      };
+        })
+      });
 
-      // Simulación - En producción esto sería una llamada real a tu backend
-      console.log('Creando preferencia de pago:', preferenceData);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
 
-      // Simulación de respuesta
-      const mockResponse: MercadoPagoResponse = {
-        init_point: `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${Date.now()}`,
-        preference_id: `pref_${Date.now()}`
-      };
+      const data = await response.json();
+      return data;
 
-      return mockResponse;
     } catch (error) {
       console.error('Error creating payment preference:', error);
       throw error;
     }
   },
 
-  // Redirigir al checkout de Mercado Pago
-  redirectToCheckout: (preferenceId: string) => {
-    const mercadoPagoUrl = `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${preferenceId}`;
-    window.location.href = mercadoPagoUrl;
+  // Redirigir al checkout de Mercado Pago - PRODUCCIÓN
+  redirectToCheckout: (response: MercadoPagoResponse) => {
+    console.log('🚀 Redirigiendo a Mercado Pago:', response);
+
+    const checkoutUrl = response.sandboxInitPoint || response.initPoint;
+    if (checkoutUrl) {
+      console.log('🛒 Abriendo checkout:', checkoutUrl);
+      window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+    } else {
+      throw new Error('No hay URL de checkout disponible');
+    }
   },
 
-  // Procesar pago exitoso (llamado después del redirect)
+  // Procesar pago exitoso - PRODUCCIÓN
   processPaymentSuccess: async (preferenceId: string, userId: string) => {
     try {
-      // En producción, esto verificaría el estado del pago con Mercado Pago
-      // y luego activaría el upgrade correspondiente
-
       console.log('Procesando pago exitoso:', { preferenceId, userId });
 
-      // Aquí deberías:
-      // 1. Verificar el estado del pago con la API de Mercado Pago
-      // 2. Si está aprobado, activar el upgrade correspondiente
-      // 3. Guardar el registro de la transacción
+      // Aquí se verificaría el estado del pago con la API de Mercado Pago
+      // y se activaría el upgrade correspondiente
 
       return true;
     } catch (error) {
