@@ -127,7 +127,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
           <div className="mb-8 flex justify-center">
             <img
-              src="/assets/steeb-icon.png"
+              src="/steeb-icon.png"
               alt="STEEB"
               className="w-40 h-40 object-contain"
             />
