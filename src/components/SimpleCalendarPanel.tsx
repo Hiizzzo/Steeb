@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, CheckCircle, Circle, Target, Heart, Lightbulb, Users, Briefcase, Book, Gamepad2, Plus, X } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, CheckCircle, Circle, Target, Heart, Lightbulb, Users, Briefcase, Book, Gamepad2, Plus, X, Trash2 } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTheme } from '@/hooks/useTheme';
 import { Task } from '@/types';
@@ -20,12 +20,22 @@ const TYPE_ICONS: Record<string, React.ComponentType<any>> = {
   'extra': Plus
 };
 
+const SHINY_WEEK_BAR_COLORS = ['#ff004c', '#ff7a00', '#ffe600', '#00ff66', '#00c2ff', '#8b00ff', '#ff00ff'];
+
 const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) => {
   const { currentTheme } = useTheme();
-  const { tasks } = useTaskStore();
+  const { tasks, toggleTask, deleteTask } = useTaskStore();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const isDarkMode = currentTheme === 'dark';
+  const isShinyMode = currentTheme === 'shiny';
+  const isDarkOrShiny = isDarkMode || isShinyMode;
+  const SWIPE_THRESHOLD = 80;
+  const MAX_SWIPE = 160;
+  const [rowOffsetById, setRowOffsetById] = useState<Record<string, number>>({});
+  const [isDeletingById, setIsDeletingById] = useState<Record<string, boolean>>({});
+  const activeTaskIdRef = useRef<string | null>(null);
+  const startXRef = useRef(0);
 
   // Obtener días del mes actual con tareas
   const monthData = useMemo(() => {
@@ -34,7 +44,7 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const startDayOfWeek = firstDay.getDay();
+    const startDayOfWeek = (firstDay.getDay() + 6) % 7; // Lunes como inicio
 
     const days = [];
     for (let i = 0; i < startDayOfWeek; i++) {
@@ -140,13 +150,67 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
     ? monthData.find(day => day && day.date.toDateString() === selectedDay.toDateString())
     : null;
 
+  const handleTaskPointerDown = (id: string) => (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    activeTaskIdRef.current = id;
+    startXRef.current = e.clientX;
+    document.body.style.userSelect = 'none';
+  };
+
+  const handleTaskPointerMove = (id: string) => (e: React.PointerEvent) => {
+    if (activeTaskIdRef.current !== id) return;
+    const deltaX = startXRef.current - e.clientX;
+    if (deltaX > 0) {
+      e.preventDefault();
+      const next = Math.min(deltaX, MAX_SWIPE);
+      setRowOffsetById(prev => ({ ...prev, [id]: next }));
+    } else if (deltaX < 0) {
+      const next = Math.max(0, (rowOffsetById[id] || 0) + deltaX);
+      setRowOffsetById(prev => ({ ...prev, [id]: next }));
+    }
+  };
+
+  const finishTaskSwipe = async (id: string) => {
+    const offset = rowOffsetById[id] || 0;
+    if (offset > SWIPE_THRESHOLD) {
+      setIsDeletingById(prev => ({ ...prev, [id]: true }));
+      setRowOffsetById(prev => ({ ...prev, [id]: MAX_SWIPE }));
+      try {
+        await deleteTask(id);
+      } catch (error) {
+        console.error('Error al eliminar tarea del calendario:', error);
+      } finally {
+        setRowOffsetById(prev => {
+          if (!(id in prev)) return prev;
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+        setIsDeletingById(prev => ({ ...prev, [id]: false }));
+      }
+    } else {
+      setRowOffsetById(prev => ({ ...prev, [id]: 0 }));
+    }
+    activeTaskIdRef.current = null;
+    document.body.style.userSelect = '';
+  };
+
+  const handleTaskPointerUp = (id: string) => (e: React.PointerEvent) => {
+    e.stopPropagation();
+    finishTaskSwipe(id);
+  };
+
+
   return (
-    <div className={`h-full flex flex-col ${
-      isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
-    }`}>
+    <div
+      className={`h-full flex flex-col ${
+        isDarkOrShiny ? 'bg-black text-white' : 'bg-white text-black'
+      }`}
+      style={{ transform: 'scale(0.9)', transformOrigin: 'top center' }}
+    >
       {/* Header */}
       <div className="p-4 flex items-center justify-center">
-        <h2 className="text-xl font-bold flex items-center">
+        <h2 className="text-xl font-bold flex items-center" style={isShinyMode ? { color: '#ffffff' } : undefined}>
         </h2>
       </div>
 
@@ -158,7 +222,12 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <h3 className="text-2xl font-bold capitalize">{monthName}</h3>
+        <h3
+          className="text-2xl font-bold capitalize"
+          style={isShinyMode ? { color: '#ffffff' } : undefined}
+        >
+          {monthName}
+        </h3>
         <button
           onClick={() => navigateMonth('next')}
           className="p-1 rounded transition-colors border-0 bg-transparent"
@@ -171,11 +240,16 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
       <div className="flex-1 overflow-y-auto p-2">
         {/* Calendar Grid */}
         <div className={`rounded-lg mb-2 ${
-          isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+          (isDarkMode || isShinyMode) ? 'bg-black' : 'bg-gray-50'
         }`}>
-          <div className="grid grid-cols-7 gap-2 mb-1">
-            {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day, index) => (
-              <div key={`weekday-${index}`} className="text-center text-base font-medium opacity-70">
+          <div className={`grid grid-cols-7 gap-2 mb-1 ${isShinyMode ? 'text-white' : ''}`}>
+            {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, index) => (
+              <div
+                key={`weekday-${index}`}
+                className={`text-center text-base font-medium opacity-70 ${
+                  isShinyMode ? 'text-white' : ''
+                }`}
+              >
                 {day}
               </div>
             ))}
@@ -192,35 +266,56 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
               const hasTasks = day.total > 0;
               const isCompleted = day.total > 0 && day.completed === day.total;
 
+              const dayClass = (() => {
+                if (isShinyMode) {
+                  return `bg-black text-white ${isSelected ? 'shadow-lg scale-110 border border-white' : ''}`;
+                }
+
+                if (isDarkMode) {
+                  if (isSelected) return 'bg-white text-black border border-white shadow-lg scale-110';
+                  if (isToday) return 'bg-black text-white border border-white';
+                  if (isCompleted) return 'bg-black text-white';
+                  if (hasTasks) return 'bg-black text-white';
+                  return 'bg-black text-white border border-transparent';
+                }
+
+                return isSelected
+                  ? 'bg-black text-white shadow-lg scale-110'
+                  : isToday
+                    ? 'bg-gray-300'
+                    : isCompleted
+                      ? 'bg-white'
+                      : hasTasks
+                        ? 'bg-white'
+                        : 'bg-gray-100';
+              })();
+
               return (
                 <div
                   key={day.day}
                   onClick={() => setSelectedDay(day.date)}
-                  className={`flex flex-col items-center justify-center rounded-lg text-base relative cursor-pointer transition-all hover:scale-105 ${
-                    isSelected
-                      ? isDarkMode ? 'bg-white text-black shadow-lg scale-110' : 'bg-black text-white shadow-lg scale-110'
-                      : isToday
-                      ? isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
-                      : isCompleted
-                      ? isDarkMode ? 'bg-gray-800' : 'bg-white'
-                      : hasTasks
-                      ? isDarkMode ? 'bg-gray-900' : 'bg-white'
-                      : isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
-                  }`}
+                  className={`flex flex-col items-center justify-center rounded-lg text-base relative cursor-pointer transition-all hover:scale-105 ${dayClass}`}
                   title={`${day.day} - ${day.completed}/${day.total} tareas`}
                 >
-                  <span className="font-medium">{day.day}</span>
+                  <span className={`font-medium ${
+                    isShinyMode ? 'text-white' : ''
+                  } ${isDarkMode && isSelected ? 'text-black' : ''}`}>
+                    {day.day}
+                  </span>
 
                   {/* Barra de progreso del día */}
                   {day.total > 0 && (
                     <div className="w-1/2 mt-1 mx-auto">
                       <div className={`simple-calendar-progress-track w-full h-1 rounded-full overflow-hidden ${
-                        isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
+                        isShinyMode ? 'bg-white/30' : isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
                       }`}>
                         <div
-                          className="simple-calendar-progress-fill h-full transition-all duration-300 bg-black"
+                          className="simple-calendar-progress-fill h-full transition-all duration-300"
                           style={{
-                            width: `${(day.completed / day.total) * 100}%`
+                            width: `${(day.completed / day.total) * 100}%`,
+                            backgroundColor: isShinyMode
+                              ? SHINY_WEEK_BAR_COLORS[((day.date.getDay() + 6) % 7)] ?? '#ffffff'
+                              : '#000000'
                           }}
                         />
                       </div>
@@ -235,7 +330,7 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
         {/* Selected Day Details */}
         {selectedDayData && (
           <div className={`p-3 rounded-lg mb-3 ${
-            isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+            isShinyMode ? 'bg-black text-white border border-black' : isDarkMode ? 'bg-black text-white' : 'bg-gray-50'
           }`}>
             <div className="flex justify-center items-center mb-2">
               <h4 className="text-xl font-bold text-center">
@@ -245,26 +340,83 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
 
             {selectedDayData.tasks.length > 0 ? (
               <div className="space-y-2 max-h-40 overflow-y-auto">
-                {selectedDayData.tasks.map((task: Task) => {
+                {selectedDayData.tasks.map((task: Task, index) => {
                   const Icon = TYPE_ICONS[task.type || 'extra'] || Plus;
+                  const shinyTaskColor = SHINY_WEEK_BAR_COLORS[index % SHINY_WEEK_BAR_COLORS.length] || '#ffffff';
+                  const isTaskDeleting = isDeletingById[task.id] || false;
                   return (
-                    <div
-                      key={task.id}
-                      className={`flex items-center space-x-3 text-base p-4 rounded-lg ${
-                        isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      <span className={`flex-1 truncate ${
-                        task.completed ? 'line-through opacity-60' : ''
-                      }`}>
-                        {task.title}
-                      </span>
-                      {task.completed ? (
-                        <CheckCircle className="w-4 h-4 text-black" />
-                      ) : (
-                        <Circle className="w-4 h-4 text-gray-400" />
-                      )}
+                    <div key={task.id} className="relative">
+                      <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-opacity duration-200 ${
+                        (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
+                      } ${isDarkOrShiny ? 'bg-gray-900' : 'bg-gray-200'}`}>
+                        <Trash2 className="w-4 h-4 text-white" />
+                      </div>
+                      <div
+                        className={`flex items-center space-x-3 text-base p-4 rounded-lg ${
+                          isShinyMode
+                            ? 'bg-black text-white border border-black'
+                            : isDarkMode
+                              ? 'bg-black text-white border border-transparent'
+                              : 'bg-gray-100'
+                        } ${isTaskDeleting ? 'opacity-50' : ''}`}
+                        style={{
+                          ...(isShinyMode
+                            ? { borderLeft: `4px solid ${shinyTaskColor}` }
+                            : isDarkMode
+                              ? { borderLeft: '4px solid #ffffff' }
+                              : undefined),
+                          transform: `translateX(-${rowOffsetById[task.id] || 0}px)`,
+                          transition: activeTaskIdRef.current === task.id ? 'none' : 'transform 200ms ease'
+                        }}
+                        onPointerDown={handleTaskPointerDown(task.id)}
+                        onPointerMove={handleTaskPointerMove(task.id)}
+                        onPointerUp={handleTaskPointerUp(task.id)}
+                        onPointerCancel={handleTaskPointerUp(task.id)}
+                      >
+                        <Icon
+                          className="w-4 h-4 flex-shrink-0"
+                          style={isShinyMode ? { color: shinyTaskColor } : undefined}
+                        />
+                        <span className={`flex-1 truncate ${
+                          task.completed ? 'line-through opacity-60' : ''
+                        }`}>
+                          {task.title}
+                        </span>
+                        <button
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTask(task.id).catch(error => console.error('Error al actualizar tarea del calendario:', error));
+                          }}
+                          className="flex items-center justify-center w-6 h-6 rounded-full"
+                          title={task.completed ? 'Marcar como pendiente' : 'Completar tarea'}
+                          style={{ border: 'none', background: 'transparent' }}
+                        >
+                          {task.completed ? (
+                            <CheckCircle
+                              className="w-4 h-4"
+                              style={
+                                isShinyMode
+                                  ? { color: shinyTaskColor }
+                                  : isDarkMode
+                                    ? { color: '#ffffff' }
+                                    : { color: '#000000' }
+                              }
+                            />
+                          ) : (
+                            <Circle
+                              className="w-4 h-4"
+                              style={
+                                isShinyMode
+                                  ? { color: shinyTaskColor }
+                                  : isDarkMode
+                                    ? { color: '#ffffff' }
+                                    : { color: '#9CA3AF' }
+                              }
+                            />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   );
                 })}

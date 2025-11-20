@@ -12,6 +12,17 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
   const { tasks } = useTaskStore();
   const [viewMode, setViewMode] = useState<'week' | 'month' | 'year'>('week');
   const isDarkMode = currentTheme === 'dark';
+  const isShinyMode = currentTheme === 'shiny';
+  const isDarkOrShiny = isDarkMode || isShinyMode;
+  const shinyMonthColors = ['#ff0000', '#ff4000', '#ff8000', '#ffc000', '#ffff00', '#00ff00', '#00ff80', '#00c0ff', '#0000ff', '#4000ff', '#c000ff', '#ff00ff'];
+  const shinyWeekBarColors = ['#ff004c', '#ff7a00', '#ffe600', '#00ff66', '#00c2ff', '#8b00ff', '#ff00ff'];
+  const shinyWeekLabelColors = ['#ff004c', '#ff7a00', '#ffe600', '#00ff66', '#00c2ff', '#8b00ff', '#ff00ff'];
+  const shinyWeekOfMonthColors = [
+    shinyMonthColors[0],
+    shinyMonthColors[1],
+    shinyMonthColors[2],
+    shinyMonthColors[3]
+  ];
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
   const [panelHeight, setPanelHeight] = useState(window.innerHeight * 0.4);
@@ -258,7 +269,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 
   // Calcular tareas por día de la semana
   const tasksByDay = useMemo(() => {
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     const weekData = days.map((day, index) => {
       const dayTasks = tasks.filter(task => {
         const taskDate = new Date(task.completedAt || task.createdAt);
@@ -350,13 +361,18 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 
   return (
     <div className={`simple-progress-panel h-full flex flex-col ${
-      isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
+      isDarkOrShiny ? 'bg-black text-white' : 'bg-white text-black'
     }`}>
       {/* Header */}
-      <div className={`p-2 flex items-center justify-center ${
-        isDarkMode ? '' : 'border-b-2 border-white'
-      }`}>
-        <h2 className="text-xl font-bold">
+      <div
+        className={`p-2 flex items-center justify-center ${
+          (!isDarkMode && !isShinyMode) ? 'border-b-2 border-white' : ''
+        } ${isShinyMode ? 'bg-black border-b-2 border-black' : ''}`}
+      >
+        <h2
+          className={`text-xl font-bold ${isShinyMode ? 'text-white' : ''}`}
+          style={isShinyMode ? { color: '#ffffff' } : undefined}
+        >
           {viewMode === 'year' ? new Date().getFullYear() : viewMode === 'week' ? getCurrentWeekOfMonth() : getCurrentMonthName()}
         </h2>
       </div>
@@ -365,11 +381,21 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
       <div className="flex-1 flex flex-col" style={{ minHeight: '250px' }}>
         {/* Task Count Text Above Chart */}
         <div className="text-center py-0 px-2">
-          <div className={`inline-block px-2 py-0.5 rounded-lg border-0 ${
-            isDarkMode ? 'bg-black/80 text-white' : 'bg-white/80 text-black'
-          } backdrop-blur-sm`}>
+          <div
+            className={`inline-block px-2 py-0.5 rounded-lg border-0 ${
+              isShinyMode
+                ? 'bg-black text-white'
+                : isDarkMode
+                  ? 'bg-black/80 text-white'
+                  : 'bg-white/80 text-black'
+            } backdrop-blur-sm`}
+            style={isShinyMode ? { backgroundColor: '#000000', color: '#ffffff', border: '1px solid #000000' } : undefined}
+          >
             <div className="flex flex-col items-center justify-center min-w-[90px]">
-              <div className="text-4xl font-black leading-none w-full text-center">
+              <div
+                className={`text-4xl font-black leading-none w-full text-center ${isShinyMode ? 'text-white' : ''}`}
+                style={isShinyMode ? { color: '#ffffff' } : undefined}
+              >
                 {viewMode === 'week'
                   ? taskCounts.weekCompleted
                   : viewMode === 'month'
@@ -377,8 +403,15 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                     : taskCounts.yearCompleted
                 }
               </div>
-              <div className="text-sm font-medium opacity-90 mt-0 w-full text-center">
-                tareas hiciste esta semana
+              <div
+                className={`text-sm font-medium opacity-90 mt-0 w-full text-center ${isShinyMode ? 'text-white' : ''}`}
+                style={isShinyMode ? { color: '#ffffff' } : undefined}
+              >
+                {viewMode === 'week'
+                  ? 'tareas hiciste esta semana'
+                  : viewMode === 'month'
+                    ? 'tareas hiciste este mes'
+                    : 'tareas hiciste este año'}
               </div>
             </div>
           </div>
@@ -484,7 +517,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
         <div
           ref={chartContainerRef}
           className={`p-1 rounded-lg flex flex-col relative ${
-            isDarkMode ? 'bg-gray-900 border-0' : 'bg-gray-50 border border-white'
+            isDarkOrShiny ? 'bg-black border-0' : 'bg-gray-50 border border-white'
           }`}
           style={{
             height: 'auto',
@@ -514,17 +547,15 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                     className={`chart-bar w-8 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
                     style={{
                       height: `${dayData.scaledHeight}px`,
-                      backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
-                      background: isDarkMode ? '#FFFFFF' : '#000000',
+                      backgroundColor: isShinyMode ? shinyWeekBarColors[index] ?? '#000000' : (isDarkMode ? '#FFFFFF' : '#000000'),
+                      background: isShinyMode ? shinyWeekBarColors[index] ?? '#000000' : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
                       WebkitAppearance: 'none'
                     }}
                   >
                     {dayData.completed > 0 && (
                       <span
-                        className={`chart-bar-value font-bold flex items-center justify-center ${
-                          isDarkMode ? 'text-black' : 'text-white'
-                        }`}
+                        className={`chart-bar-value font-bold flex items-center justify-center text-white`}
                         style={{
                           fontSize: `${Math.min(12, Math.max(8, dayData.scaledHeight / 3))}px`,
                           lineHeight: 1,
@@ -536,7 +567,14 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                     )}
                   </div>
                   <div className="flex items-center justify-center mt-0 text-xs" style={{ fontSize: '11px' }}>
-                    <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>{dayData.day}</span>
+                    <span
+                      className={`font-medium ${
+                        isShinyMode ? '' : (isDarkOrShiny ? 'text-white' : 'text-black')
+                      }`}
+                      style={isShinyMode ? { color: shinyWeekLabelColors[index] ?? '#ffffff' } : undefined}
+                    >
+                      {dayData.day}
+                    </span>
                   </div>
                 </div>
               ))
@@ -547,17 +585,15 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                     className={`chart-bar w-16 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
                     style={{
                       height: `${weekData.scaledHeight}px`,
-                      backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
-                      background: isDarkMode ? '#FFFFFF' : '#000000',
+                      backgroundColor: isShinyMode ? shinyWeekOfMonthColors[index % shinyWeekOfMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
+                      background: isShinyMode ? shinyWeekOfMonthColors[index % shinyWeekOfMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
                       WebkitAppearance: 'none'
                     }}
                   >
                     {weekData.completed > 0 && (
                       <span
-                        className={`chart-bar-value font-bold flex items-center justify-center ${
-                          isDarkMode ? 'text-black' : 'text-white'
-                        }`}
+                        className={`chart-bar-value font-bold flex items-center justify-center text-white`}
                         style={{
                           fontSize: `${Math.min(14, Math.max(9, weekData.scaledHeight / 3))}px`,
                           lineHeight: 1,
@@ -569,7 +605,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                     )}
                   </div>
                   <div className="flex items-center justify-center mt-1 text-xs" style={{ fontSize: '10px' }}>
-                    <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>{weekData.week}</span>
+                    <span className={`font-medium ${isDarkOrShiny ? 'text-white' : 'text-black'}`}>{weekData.week}</span>
                   </div>
                 </div>
               ))
@@ -580,17 +616,15 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                     className={`chart-bar w-7 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
                     style={{
                       height: `${monthData.scaledHeight}px`,
-                      backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
-                      background: isDarkMode ? '#FFFFFF' : '#000000',
+                      backgroundColor: isShinyMode ? shinyMonthColors[index % shinyMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
+                      background: isShinyMode ? shinyMonthColors[index % shinyMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
                       WebkitAppearance: 'none'
                     }}
                   >
                     {monthData.completed > 0 && (
                       <span
-                        className={`chart-bar-value font-bold flex items-center justify-center ${
-                          isDarkMode ? 'text-black' : 'text-white'
-                        }`}
+                        className={`chart-bar-value font-bold flex items-center justify-center text-white`}
                         style={{
                           fontSize: `${Math.min(9, Math.max(6, monthData.scaledHeight / 4))}px`,
                           lineHeight: 1,
@@ -602,7 +636,12 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                     )}
                   </div>
                   <div className="flex items-center justify-center mt-1 text-xs" style={{ fontSize: '10px' }}>
-                    <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>{monthData.month}</span>
+                    <span
+                      className={`font-medium ${isShinyMode ? '' : (isDarkOrShiny ? 'text-white' : 'text-black')}`}
+                      style={isShinyMode ? { color: shinyMonthColors[index % shinyMonthColors.length] } : undefined}
+                    >
+                      {monthData.month}
+                    </span>
                   </div>
                 </div>
               ))
@@ -611,33 +650,39 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 
           {/* Progress Bar Clone - Justo debajo del texto */}
           <div className={`px-1.5 py-0.5 rounded-lg border mx-2 mb-1 ${
-            isDarkMode ? 'bg-gray-900 border-0' : 'bg-gray-50 border-white'
+            isDarkOrShiny ? 'bg-black border-0' : 'bg-gray-50 border-white'
           }`}>
             <div
               className={`progress-track w-full h-2 rounded-full overflow-hidden relative ${
-                isDarkMode ? 'bg-gray-600' : ''
+                isDarkOrShiny ? 'bg-gray-600' : ''
               }`}
               style={{
-                backgroundColor: isDarkMode ? '#4B5563' : '#E5E7EB'
+                backgroundColor: isDarkOrShiny ? '#4B5563' : '#E5E7EB'
               }}
             >
               <div
                 className={`progress-fill h-full transition-all duration-500 ease-out ${
-                  isDarkMode ? 'bg-white' : ''
+                  isDarkOrShiny ? 'bg-white' : ''
                 }`}
                 style={{
-                  backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
+                  backgroundColor: isDarkOrShiny ? '#FFFFFF' : '#000000',
                   width: `${stats.completionRate}%`,
                   willChange: 'width',
                   minWidth: stats.completionRate > 0 ? '20px' : '0px',
-                  mixBlendMode: isDarkMode ? 'normal' : undefined
+                  mixBlendMode: isDarkOrShiny ? 'normal' : undefined
                 }}
               />
             </div>
             <div className="flex justify-center items-center mt-1">
-              <span className={`text-sm font-medium opacity-70 no-underline ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-700'
-              }`} style={{ textDecoration: 'none' }}>
+              <span
+                className={`text-sm font-medium opacity-70 no-underline ${
+                  isDarkOrShiny ? '' : 'text-gray-700'
+                }`}
+                style={{
+                  textDecoration: 'none',
+                  color: isShinyMode ? '#ffffff' : (isDarkOrShiny ? '#000000' : undefined)
+                }}
+              >
                 {stats.completed} de {stats.total}
               </span>
             </div>
@@ -675,11 +720,9 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 
   
       {/* View Mode Selector at Bottom */}
-      <div className={`p-1.5 flex justify-center ${
-        isDarkMode ? '' : 'border-t border-white'
-      }`}>
-        <div className={`relative flex rounded-full p-0.5 w-full ${
-          isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
+      <div className={`pb-4 px-5 flex justify-center ${(!isDarkMode && !isShinyMode) ? 'border-t border-white' : ''} ${isShinyMode ? 'bg-black border-t border-black' : ''}`}>
+        <div className={`relative flex rounded-full px-4 py-2 w-full ${
+          isShinyMode ? 'bg-black border border-transparent' : isDarkMode ? 'bg-black border border-transparent' : 'bg-gray-100'
         }`}>
           {[
             { value: 'week', label: 'Semana' },
@@ -695,9 +738,13 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   ? `${viewMode === mode.value
                       ? 'selected-button-mode dark-view-mode-btn-selected'
                       : 'dark-view-mode-btn-default'}`
-                  : (viewMode === mode.value
-                    ? 'bg-black text-white shadow-none'
-                    : 'bg-transparent text-black hover:bg-gray-200')
+                  : isShinyMode
+                    ? (viewMode === mode.value
+                      ? 'bg-black text-white shadow-none'
+                      : 'bg-white text-black hover:bg-white')
+                    : (viewMode === mode.value
+                      ? 'bg-black text-white shadow-none'
+                      : 'bg-transparent text-black hover:bg-gray-200')
               } ${index === 0 ? 'rounded-l-full' : ''} ${index === 2 ? 'rounded-r-full' : ''} ${index === 1 ? '-mx-px' : ''}`}
               style={{
                 fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -706,9 +753,9 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   background: '#FFFFFF !important',
                   color: '#000000 !important'
                 }),
-                border: 'none !important',
-                borderWidth: '0 !important',
-                borderColor: 'transparent !important'
+                border: isDarkMode ? '1px solid #000000 !important' : 'none !important',
+                borderWidth: isDarkMode ? '1px !important' : '0 !important',
+                borderColor: isDarkMode ? '#000000 !important' : 'transparent !important'
               }}
             >
               <span>{mode.label}</span>

@@ -1,79 +1,305 @@
-import React from 'react';
-import { X, Coins, Crown, Sparkles } from 'lucide-react';
-import { useUserCredits } from '../hooks/useUserCredits';
-import { useTheme } from '../hooks/useTheme';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  CreditCard,
+  Crown,
+  Loader2,
+  ShieldCheck,
+  Sparkles,
+  X
+} from 'lucide-react';
+import { useUserCredits } from '@/hooks/useUserCredits';
+import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { useMercadoPago } from '@/hooks/useMercadoPago';
+import { createCheckoutPreference, verifyPayment } from '@/services/paymentService';
+import type { CreatePreferenceResponse } from '@/services/paymentService';
+import { DARK_MODE_PLAN_ID, formatPlanPrice } from '@/config/paymentPlans';
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
+
 export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) => {
-  const { userCredits, buyDarkVersion, canBuyDarkVersion, DARK_VERSION_COST } = useUserCredits();
-  const { theme } = useTheme();
+  const { user } = useAuth();
+  const {
+    userCredits,
+    plan,
+    syncWithBackend,
+    isSyncing,
+    syncError
+  } = useUserCredits();
+  const { currentTheme } = useTheme();
 
-  if (!isOpen) return null;
+  const [preference, setPreference] = useState<CreatePreferenceResponse | null>(null);
+  const [checkoutState, setCheckoutState] = useState<'idle' | 'creating' | 'ready' | 'error'>(
+    'idle'
+  );
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [lastSyncMessage, setLastSyncMessage] = useState<string | null>(null);
 
-  const handlePurchase = () => {
-    if (buyDarkVersion()) {
-      onClose();
+  const { status: sdkStatus, instance, error: sdkError } = useMercadoPago(
+    MP_PUBLIC_KEY,
+    isOpen
+  );
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPreference(null);
+      setCheckoutState('idle');
+      setCheckoutError(null);
+      setLastSyncMessage(null);
+    }
+  }, [isOpen]);
+
+  const formattedPrice = useMemo(() => {
+    if (!plan) return '';
+    return formatPlanPrice(plan);
+  }, [plan]);
+
+  const openCheckout = (pref: CreatePreferenceResponse) => {
+    if (instance) {
+      instance.checkout({
+        preference: { id: pref.preferenceId },
+        autoOpen: true,
+        render: {
+          container: 'mercado-pago-button',
+          label: 'Pagar con Mercado Pago'
+        }
+      });
+    } else if (pref.initPoint) {
+      window.open(pref.initPoint, '_blank', 'noopener,noreferrer');
     }
   };
 
+  const handleCreatePreference = async () => {
+    if (!plan) {
+      setCheckoutError('No hay planes configurados.');
+      return;
+    }
 
+    if (!user?.email) {
+      setCheckoutError('Inicia sesión con un email para completar el pago.');
+      return;
+    }
+
+    if (!MP_PUBLIC_KEY) {
+      setCheckoutError('Configura VITE_MERCADOPAGO_PUBLIC_KEY para habilitar el pago.');
+      return;
+    }
+
+    setCheckoutState('creating');
+    setCheckoutError(null);
+
+    try {
+      const preferenceResponse = await createCheckoutPreference({
+        planId: plan.id ?? DARK_MODE_PLAN_ID,
+        userId: user.id,
+        email: user.email,
+        name: user.name || user.nickname
+      });
+      setPreference(preferenceResponse);
+      setCheckoutState('ready');
+      openCheckout(preferenceResponse);
+    } catch (error) {
+      setCheckoutState('error');
+      setCheckoutError(
+        error instanceof Error ? error.message : 'No se pudo iniciar Mercado Pago'
+      );
+    }
+  };
+
+  const handleVerify = async () => {
+    setLastSyncMessage(null);
+
+    try {
+      if (preference?.externalReference || preference?.preferenceId) {
+        await verifyPayment({
+          externalReference: preference.externalReference,
+          preferenceId: preference.preferenceId
+        });
+      }
+    } catch (error) {
+      setLastSyncMessage(
+        error instanceof Error ? error.message : 'No se pudo verificar el pago en Mercado Pago.'
+      );
+    }
+
+    const active = await syncWithBackend();
+    setLastSyncMessage(
+      active
+        ? '¡Compra confirmada! Ya puedes activar el modo DARK.'
+        : 'Todavía no registramos un pago aprobado.'
+    );
+    if (active) {
+      setCheckoutState('idle');
+      setPreference(null);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const isAlreadyUnlocked = userCredits.hasDarkVersion;
+  const requiresLogin = !user?.email;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className={`relative w-full max-w-md rounded-2xl p-6 ${
-        theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-      } shadow-2xl`}>
+      <div
+        className={`relative w-full max-w-lg rounded-2xl p-6 ${
+          currentTheme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
+        } shadow-2xl`}
+      >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Cerrar"
         >
           <X size={20} />
         </button>
 
-
-        <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <Crown className="w-12 h-12 text-black dark:text-white" />
+        <div className="flex flex-col gap-4">
+          <div className="text-center space-y-2">
+            <div className="flex justify-center mb-2">
+              <Crown className="w-12 h-12 text-amber-400" />
             </div>
-            <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
-              Versión <span className="font-bold text-black dark:text-white">DARK</span>
-              <Sparkles className="w-6 h-6 text-black dark:text-white" />
+            <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
+              Versión DARK
+              <Sparkles className="w-6 h-6 text-pink-500" />
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Desbloquea el juego exclusivo de adivinanza con STEEB
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Pagá con Mercado Pago usando tarjetas de crédito o débito.
             </p>
+          </div>
 
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl mb-6 border border-gray-300 dark:border-gray-600">
-              <h3 className="font-bold mb-2">¿Qué incluye?</h3>
-              <ul className="text-sm space-y-1 text-left">
-                <li>• Acceso al juego de adivinanza con STEEB</li>
-                <li>• Tema dark exclusivo</li>
-                <li>• 1 intento gratis incluido</li>
-                <li>• Experiencia premium</li>
+          {plan && (
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm uppercase tracking-wide text-gray-500">{plan.title}</p>
+                  <p className="text-3xl font-extrabold">{formattedPrice}</p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
+                  <CreditCard className="w-4 h-4" />
+                  Pagos con cuotas
+                </div>
+              </div>
+              <ul className="text-sm space-y-1">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500" />
+                    {feature}
+                  </li>
+                ))}
               </ul>
             </div>
+          )}
 
-            <div className="mb-6">
-              <div className="text-3xl font-bold text-black dark:text-white mb-2">DARK MODE</div>
+          {!plan && (
+            <div className="rounded-xl border border-amber-500/50 bg-amber-50 text-amber-900 p-3 text-sm">
+              Configura <code>config/paymentPlans.json</code> para mostrar el plan disponible.
             </div>
+          )}
 
-            <button
-              onClick={handlePurchase}
-              disabled={!canBuyDarkVersion()}
-              className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
-                canBuyDarkVersion()
-                  ? 'bg-black dark:bg-white text-white dark:text-black hover:scale-105 shadow-lg'
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Desbloquear Versión DARK
-            </button>
+          {isAlreadyUnlocked && (
+            <div className="rounded-xl border border-green-500/40 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200 p-3 text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Ya tenés acceso a la versión DARK. Cambiá el tema desde el selector.
+            </div>
+          )}
 
+          {requiresLogin && (
+            <div className="rounded-xl border border-amber-500/50 bg-amber-50 text-amber-900 p-3 text-sm">
+              Inicia sesión con tu email para asociar el pago a tu cuenta.
+            </div>
+          )}
 
+          {sdkError && (
+            <div className="rounded-xl border border-red-500/40 bg-red-50 text-red-900 p-3 text-sm">
+              {sdkError}
+            </div>
+          )}
+
+          {checkoutError && (
+            <div className="rounded-xl border border-red-500/40 bg-red-50 text-red-900 p-3 text-sm">
+              {checkoutError}
+            </div>
+          )}
+
+          {lastSyncMessage && (
+            <div className="rounded-xl border border-blue-500/40 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 p-3 text-sm">
+              {lastSyncMessage}
+            </div>
+          )}
+
+          {!isAlreadyUnlocked && !requiresLogin && plan && (
+            <div className="space-y-3">
+              <button
+                onClick={handleCreatePreference}
+                disabled={checkoutState === 'creating' || sdkStatus === 'loading'}
+                className="w-full py-3 rounded-xl font-semibold bg-black text-white dark:bg-white dark:text-black flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
+              >
+                {checkoutState === 'creating' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Preparando pago…
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    Pagar con Mercado Pago
+                  </>
+                )}
+              </button>
+
+              {preference && (
+                <button
+                  onClick={() => openCheckout(preference)}
+                  className="w-full py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Reabrir checkout
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+              <div id="mercado-pago-button" className="hidden" />
+            </div>
+          )}
+
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">
+              <ShieldCheck className="w-4 h-4" />
+              Seguridad Mercado Pago
+            </div>
+            <p>
+              Al finalizar el pago volverás automáticamente a la app. También podés tocar “Ya pagué,
+              verificar” para sincronizar manualmente.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleVerify}
+                disabled={isSyncing}
+                className="flex-1 py-2 rounded-xl border border-black dark:border-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isSyncing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Verificando…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Ya pagué, verificar
+                  </>
+                )}
+              </button>
+              {syncError && (
+                <p className="text-xs text-red-500 flex-1 self-center sm:text-right">{syncError}</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

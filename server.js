@@ -6,13 +6,130 @@ import cors from 'cors';
 // import sharp from 'sharp'; // Removed: load lazily to avoid startup crash if not installed
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import crypto from 'crypto';
 import 'dotenv/config';
+import { createPurchaseStore } from './server/purchaseStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = 3001;
+const APP_BASE_URL = process.env.APP_BASE_URL || process.env.BASE_URL || `http://localhost:${PORT}`;
+
+const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || '';
+const MERCADOPAGO_PUBLIC_KEY = process.env.MERCADOPAGO_PUBLIC_KEY || '';
+const MP_NOTIFICATION_URL = process.env.MP_NOTIFICATION_URL || `${APP_BASE_URL}/api/payments/webhook`;
+const MP_WEBHOOK_SECRET = process.env.MP_WEBHOOK_SECRET || '';
+
+const paymentPlansPath = path.join(__dirname, 'config', 'paymentPlans.json');
+
+let PAYMENT_PLANS = [];
+try {
+  if (fs.existsSync(paymentPlansPath)) {
+    const planBuffer = fs.readFileSync(paymentPlansPath, 'utf-8');
+    PAYMENT_PLANS = JSON.parse(planBuffer);
+  } else {
+    console.warn('�s���? paymentPlans.json no encontrado en config/.');
+  }
+} catch (error) {
+  console.error('�?O Error leyendo paymentPlans.json:', error);
+}
+
+const PAYMENT_PLAN_MAP = PAYMENT_PLANS.reduce((acc, plan) => {
+  if (plan?.id) acc[plan.id] = plan;
+  return acc;
+}, {});
+
+const purchaseStore = await createPurchaseStore();
+
+const getPlan = (planId) => PAYMENT_PLAN_MAP[planId];
+
+
+const mapPaymentToRecord = (payment) => {
+  if (!payment) return null;
+  const metadata = payment.metadata || {};
+  const additionalInfo = payment.additional_info || {};
+
+  const planId =
+    metadata.planId ||
+    metadata.plan_id ||
+    additionalInfo.items?.[0]?.id ||
+    payment.order?.type;
+
+  return {
+    paymentId: payment.id?.toString(),
+    status: payment.status,
+    statusDetail: payment.status_detail,
+    planId: planId || 'unknown',
+    userId: metadata.userId || metadata.user_id || payment.payer?.id,
+    email: metadata.email || payment.payer?.email || additionalInfo.payer?.email,
+    externalReference: payment.external_reference,
+    preferenceId: payment.preference_id,
+    amount: payment.transaction_amount,
+    currency: payment.currency_id,
+    installments: payment.installments,
+    paymentMethod: payment.payment_method_id,
+    paymentType: payment.payment_type_id,
+    processedAt: payment.date_created,
+    approvedAt: payment.date_approved,
+  };
+};
+
+const mpRequest = async (endpoint, options = {}) => {
+  if (!MERCADOPAGO_ACCESS_TOKEN) {
+    throw new Error('Configura MERCADOPAGO_ACCESS_TOKEN en el servidor.');
+  }
+
+  const url = `https://api.mercadopago.com${endpoint}`;
+  const headers = {
+    Authorization: `Bearer ${MERCADOPAGO_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    ...(options.headers || {})
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Mercado Pago error (${response.status}): ${errorText}`);
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
+};
+
+const fetchPaymentById = async (paymentId) => {
+  if (!paymentId) return null;
+  return mpRequest(`/v1/payments/${paymentId}`, { method: 'GET' });
+};
+
+const searchPayment = async ({ preferenceId, externalReference }) => {
+  const params = new URLSearchParams();
+  if (externalReference) params.append('external_reference', externalReference);
+  if (preferenceId) params.append('preference_id', preferenceId);
+  params.append('sort', 'date_created');
+  params.append('criteria', 'desc');
+
+  const response = await mpRequest(`/v1/payments/search?${params.toString()}`, {
+    method: 'GET',
+  });
+
+  return response.results?.[0] || null;
+};
+
+const persistPaymentFromMercadoPago = async (payment) => {
+  const record = mapPaymentToRecord(payment);
+  if (!record) {
+    throw new Error('Pago no encontrado en Mercado Pago');
+  }
+  await purchaseStore.upsert(record);
+  return record;
+};
 
 // Helper: lazy-load sharp only when needed
 let _sharp = null;
@@ -520,6 +637,184 @@ app.delete('/api/images/:filename', (req, res) => {
   } catch (error) {
     console.error('Error deleting image:', error);
     res.status(500).json({ error: 'Error al eliminar la imagen' });
+  }
+});
+
+// ================================
+// MERCADO PAGO ENDPOINTS
+// ================================
+
+app.post('/api/payments/create-preference', async (req, res) => {
+  try {
+    const { planId, quantity = 1, userId, email, name } = req.body || {};
+
+    if (!planId) {
+      return res.status(400).json({ error: 'planId es requerido' });
+    }
+
+    const plan = getPlan(planId);
+    if (!plan) {
+      return res.status(404).json({ error: 'Plan no encontrado' });
+    }
+
+    if (!MERCADOPAGO_ACCESS_TOKEN) {
+      return res.status(500).json({
+        error: 'Mercado Pago no está configurado correctamente en el servidor.'
+      });
+    }
+
+    const externalReference = `${plan.id}_${userId || 'anon'}_${
+      crypto.randomUUID ? crypto.randomUUID() : Date.now()
+    }`;
+
+    const payer = {};
+    if (email) payer.email = email;
+    if (name) payer.name = name;
+
+    const preferencePayload = {
+      items: [
+        {
+          id: plan.id,
+          title: plan.title,
+          description: plan.description,
+          quantity: Number(quantity) || 1,
+          currency_id: plan.currency || 'ARS',
+          unit_price: Number(plan.price)
+        }
+      ],
+      notification_url: MP_NOTIFICATION_URL,
+      statement_descriptor: 'STEBE',
+      external_reference: externalReference,
+      payer,
+      metadata: {
+        planId: plan.id,
+        userId,
+        email
+      },
+      back_urls: {
+        success: `${APP_BASE_URL}/payments/success`,
+        pending: `${APP_BASE_URL}/payments/pending`,
+        failure: `${APP_BASE_URL}/payments/failure`
+      },
+      auto_return: 'approved'
+    };
+
+    const preference = await mpRequest('/checkout/preferences', {
+      method: 'POST',
+      body: JSON.stringify(preferencePayload)
+    });
+
+    res.json({
+      preferenceId: preference.id,
+      initPoint: preference.init_point,
+      sandboxInitPoint: preference.sandbox_init_point,
+      externalReference,
+      plan
+    });
+  } catch (error) {
+    console.error('�?O Error creando preferencia Mercado Pago:', error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'No se pudo crear la preferencia'
+    });
+  }
+});
+
+app.post('/api/payments/verify', async (req, res) => {
+  try {
+    const { paymentId, externalReference, preferenceId } = req.body || {};
+
+    if (!paymentId && !externalReference && !preferenceId) {
+      return res
+        .status(400)
+        .json({ error: 'Debes enviar paymentId o externalReference/preferenceId' });
+    }
+
+    let payment = null;
+
+    if (paymentId) {
+      payment = await fetchPaymentById(paymentId);
+    } else {
+      payment = await searchPayment({ preferenceId, externalReference });
+    }
+
+    if (!payment) {
+      return res.status(404).json({ error: 'No se encontraron pagos registrados todavía.' });
+    }
+
+    const record = await persistPaymentFromMercadoPago(payment);
+    res.json({
+      ...record,
+      message: record.status === 'approved'
+        ? 'Pago aprobado'
+        : `Estado actual: ${record.status}`
+    });
+  } catch (error) {
+    console.error('�?O Error verificando pago Mercado Pago:', error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'No se pudo verificar el pago'
+    });
+  }
+});
+
+app.get('/api/payments/status', async (req, res) => {
+  try {
+    const { planId, userId, email } = req.query;
+
+    if (!planId) {
+      return res.status(400).json({ error: 'planId es requerido' });
+    }
+
+    if (!userId && !email) {
+      return res
+        .status(400)
+        .json({ error: 'Env??a userId o email para consultar el estado de compra.' });
+    }
+
+    const status = await purchaseStore.getStatus(planId, userId, email);
+    res.json(status);
+  } catch (error) {
+    console.error('????O Error obteniendo estado de pagos:', error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'No se pudo obtener el estado de pago'
+    });
+  }
+});
+
+app.post('/api/payments/webhook', async (req, res) => {
+  try {
+    if (MP_WEBHOOK_SECRET) {
+      const provided = req.query.secret || req.headers['x-webhook-secret'];
+      if (provided !== MP_WEBHOOK_SECRET) {
+        return res.status(401).json({ error: 'Token de webhook inválido' });
+      }
+    }
+
+    const event = req.body || {};
+    const query = req.query || {};
+
+    const topic = event.type || query.type || query.topic;
+    const resourceId =
+      event.data?.id ||
+      event.resource ||
+      query['data.id'] ||
+      query.data_id ||
+      query.id ||
+      event.id;
+
+    if (topic && topic.includes('payment') && resourceId) {
+      try {
+        const payment = await fetchPaymentById(resourceId);
+        await persistPaymentFromMercadoPago(payment);
+        console.log('�Y"" Webhook Mercado Pago procesado:', resourceId);
+      } catch (error) {
+        console.error('�?O Error procesando webhook de Mercado Pago:', error);
+      }
+    }
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error('�?O Error en webhook Mercado Pago:', error);
+    res.status(500).json({ error: 'Error procesando webhook' });
   }
 });
 

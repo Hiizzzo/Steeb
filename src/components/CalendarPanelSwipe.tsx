@@ -226,7 +226,7 @@ const CalendarPanelSwipe: React.FC<CalendarPanelSwipeProps> = ({ onClose }) => {
                   onClick={() => hasTasks && setSelectedDay(day.date)}
                   className={`aspect-square flex flex-col items-center justify-center rounded text-xs relative cursor-pointer transition-all ${
                     isSelected
-                      ? isDarkMode ? 'bg-white text-black' : 'bg-black text-white'
+                      ? isDarkMode ? 'bg-white text-black border border-white' : 'bg-black text-white'
                       : isToday
                       ? isDarkMode ? 'bg-gray-700' : 'bg-gray-300'
                       : isCompleted
@@ -237,7 +237,9 @@ const CalendarPanelSwipe: React.FC<CalendarPanelSwipeProps> = ({ onClose }) => {
                   } ${hasTasks ? 'hover:scale-105' : ''}`}
                   title={`${day.day} - ${day.completed}/${day.total} tareas`}
                 >
-                  <span className="font-medium">{day.day}</span>
+                  <span className={`font-medium ${isDarkMode && isSelected ? 'text-black' : ''}`}>
+                    {day.day}
+                  </span>
                   {hasTasks && (
                     <div className="flex space-x-1 mt-1">
                       {day.completed > 0 && (

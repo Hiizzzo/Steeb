@@ -10,8 +10,6 @@ import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import { useDailyTaskReminder } from '@/hooks/useDailyTaskReminder';
 import { useTheme } from '@/hooks/useTheme';
 import { notificationService } from '@/services/notificationService';
-import TaskCard from '@/components/TaskCard';
-import FloatingButtons from '@/components/FloatingButtons';
 import SteebChatAI from '@/components/SteebChatAI';
 import { Eye, EyeOff, CheckCircle, Trash2, Check, TrendingUp } from 'lucide-react';
 
@@ -21,9 +19,7 @@ import SteveAvatar from '@/components/SteveAvatar';
 import AppUpdateNotification from '@/components/AppUpdateNotification';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
-import TaskCreationCard from '@/components/TaskCreationCard';
 import DailyTaskReminderModal from '@/components/DailyTaskReminderModal';
-import MonthlyCalendar from '@/components/MonthlyCalendar';
 import ShapeIcon from '@/components/ShapeIcon';
 import type { RecurrenceRule, Task, SubTask } from '@/types';
 import ModalAddTask from '@/components/ModalAddTask';
@@ -70,7 +66,6 @@ const Index = () => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [viewMode, setViewMode] = useState<'tasks' | 'calendar'>('tasks');
   const { toast } = useToast();
   const { playTaskCompleteSound, triggerVibration } = useSoundEffects();
   const [showCompletedToday, setShowCompletedToday] = useState(false);
@@ -85,15 +80,14 @@ const Index = () => {
       const isDark = document.documentElement.classList.contains('dark');
       const isShiny = document.documentElement.classList.contains('shiny');
 
-      if (isDark || isShiny) {
-        // Dark/Shiny mode: header blanco con texto negro
+      if (isDark) {
+        // Dark mode: header blanco con texto negro
         headerElements.forEach(el => {
           el.style.setProperty('background-color', '#ffffff', 'important');
           el.style.setProperty('background', '#ffffff', 'important');
           el.style.setProperty('color', '#000000', 'important');
         });
 
-        // Forzar el header principal también
         const headerMain = document.querySelector('.tareas-header');
         if (headerMain) {
           headerMain.style.setProperty('background-color', '#ffffff', 'important');
@@ -101,11 +95,30 @@ const Index = () => {
           headerMain.style.setProperty('color', '#000000', 'important');
         }
 
-        // Forzar específicamente el h1 a texto negro en dark mode
         const h1Element = document.querySelector('.tareas-header h1');
         if (h1Element) {
           h1Element.style.setProperty('color', '#000000', 'important');
           h1Element.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+        }
+      } else if (isShiny) {
+        // Shiny mode: header negro con texto blanco
+        headerElements.forEach(el => {
+          el.style.setProperty('background-color', '#000000', 'important');
+          el.style.setProperty('background', '#000000', 'important');
+          el.style.setProperty('color', '#ffffff', 'important');
+        });
+
+        const headerMain = document.querySelector('.tareas-header');
+        if (headerMain) {
+          headerMain.style.setProperty('background-color', '#000000', 'important');
+          headerMain.style.setProperty('background', '#000000', 'important');
+          headerMain.style.setProperty('color', '#ffffff', 'important');
+        }
+
+        const h1Element = document.querySelector('.tareas-header h1');
+        if (h1Element) {
+          h1Element.style.setProperty('color', '#ffffff', 'important');
+          h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
         }
       } else {
         // Light mode: header negro con texto blanco
@@ -115,7 +128,6 @@ const Index = () => {
           el.style.setProperty('color', '#ffffff', 'important');
         });
 
-        // Forzar el header principal también
         const headerMain = document.querySelector('.tareas-header');
         if (headerMain) {
           headerMain.style.setProperty('background-color', '#000000', 'important');
@@ -123,7 +135,6 @@ const Index = () => {
           headerMain.style.setProperty('color', '#ffffff', 'important');
         }
 
-        // Forzar específicamente el h1 según el modo
         const h1Element = document.querySelector('.tareas-header h1');
         if (h1Element) {
           h1Element.style.setProperty('color', '#ffffff', 'important');
@@ -339,16 +350,6 @@ const Index = () => {
 
   // Hook para recordatorio diario de tareas
   const { showReminder, yesterdayDate, skipReminder, markReminderShown } = useDailyTaskReminder(tasks);
-
-  // Cargar preferencia de vista desde localStorage
-  useEffect(() => {
-    const savedViewMode = localStorage.getItem('steeb-view-mode');
-    if (savedViewMode === 'calendar' || savedViewMode === 'tasks') {
-      setViewMode(savedViewMode);
-      // Limpiar la preferencia después de usarla
-      localStorage.removeItem('steeb-view-mode');
-    }
-  }, []);
 
   // Inicializar servicio de notificaciones
   useEffect(() => {
@@ -611,6 +612,9 @@ const Index = () => {
     const isDark = document.documentElement.classList.contains('dark');
     return { isShiny, isDark };
   });
+
+  const headerBackgroundColor = theme.isShiny ? '#000000' : '#ffffff';
+  const headerTextColor = theme.isShiny ? '#ffffff' : '#000000';
   
   // Actualizar tema cuando cambie
   useEffect(() => {
@@ -736,10 +740,29 @@ const Index = () => {
 
       {/* Header STEEB en la raíz del HTML - arriba de todo */}
       <div className="pb-0.5 fixed top-0 left-0 right-0 z-50" style={{ marginTop: '0', paddingTop: '0' }}>
-        <div className={`tareas-header flex items-center justify-center py-0 relative w-screen bg-white text-black steeb-header-force-white`} style={{ backgroundColor: '#ffffff !important', background: '#ffffff !important', color: '#000000 !important', marginTop: '0', paddingTop: '0', borderRadius: '0 !important', borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important', WebkitBorderRadius: '0 !important', mozBorderRadius: '0 !important', msBorderRadius: '0 !important', OBorderRadius: '0 !important', KhtmlBorderRadius: '0 !important', clipPath: 'none !important', borderRadius: '0 !important', zIndex: '50' }}>
-          <div className="flex items-center justify-center flex-1 px-4 w-full steeb-force-white-child" style={{ backgroundColor: '#ffffff !important', background: '#ffffff !important' }}>
+        <div
+          className={`tareas-header flex items-center justify-center py-0 relative w-screen steeb-header-force-white`}
+          style={{
+            backgroundColor: headerBackgroundColor,
+            background: headerBackgroundColor,
+            color: headerTextColor,
+            marginTop: 0,
+            paddingTop: 0,
+            borderRadius: 0,
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0,
+            clipPath: 'none',
+            zIndex: 50
+          }}
+        >
+          <div
+            className="flex items-center justify-center flex-1 px-4 w-full steeb-force-white-child"
+            style={{ backgroundColor: headerBackgroundColor, background: headerBackgroundColor }}
+          >
             {/* ÍCONO STEEB - IZQUIERDA */}
-            <div className="w-32 h-32 mr-1 flex items-center justify-center flex-shrink-0 steeb-force-white-child" style={{ backgroundColor: '#ffffff !important', background: '#ffffff !important' }}>
+            <div className="w-32 h-32 mr-1 flex items-center justify-center flex-shrink-0 steeb-force-white-child" style={{ backgroundColor: `${headerBackgroundColor} !important`, background: `${headerBackgroundColor} !important` }}>
               <img src="/te-observo.png" alt="Steeb" className="w-full h-full object-contain" style={{
                 filter: theme.isShiny ? 'none' : 'none',
                 opacity: 1,
@@ -748,7 +771,7 @@ const Index = () => {
             </div>
 
             {/* TEXTO FIJO "STEEB" - MÁS CERCA DEL ÍCONO */}
-            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ color: '#000000 !important', fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '8px', paddingLeft: '16px' }}>
+            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ color: `${headerTextColor} !important`, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '8px', paddingLeft: '16px' }}>
               STEEB
             </h1>
 

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { CheckCircle, Trash2 } from 'lucide-react';
+import { CheckCircle, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -7,12 +7,19 @@ interface SimpleSideTasksPanelProps {
   onClose: () => void;
 }
 
+const shinyTaskColors = [
+  '#ff0000', '#ff4000', '#ff8000', '#ffc000', '#ffff00', '#00ff00',
+  '#00ff80', '#00c0ff', '#0000ff', '#4000ff', '#c000ff', '#ff00ff'
+];
+
 const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) => {
   const { currentTheme } = useTheme();
   const { tasks, toggleTask, deleteTask } = useTaskStore();
   const isDarkMode = currentTheme === 'dark';
+  const isShinyMode = currentTheme === 'shiny';
+  const isLightMode = !isDarkMode && !isShinyMode;
+  const [showCompleted, setShowCompleted] = useState(false);
 
-  // Swipe-to-delete logic
   const SWIPE_THRESHOLD = 80;
   const MAX_SWIPE = 160;
   const [rowOffsetById, setRowOffsetById] = useState<Record<string, number>>({});
@@ -21,7 +28,7 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
   const startXRef = useRef(0);
 
   const cancelLongPress = () => {
-    // Cancel long press if needed
+    // placeholder for long press cancel logic
   };
 
   const onRowPointerDown = (id: string) => (e: React.PointerEvent) => {
@@ -39,7 +46,7 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
       const next = Math.min(deltaX, MAX_SWIPE);
       setRowOffsetById(prev => ({ ...prev, [id]: next }));
     } else if (deltaX < 0) {
-      const next = Math.max(0, rowOffsetById[id] + deltaX);
+      const next = Math.max(0, (rowOffsetById[id] ?? 0) + deltaX);
       setRowOffsetById(prev => ({ ...prev, [id]: next }));
     }
   };
@@ -74,117 +81,189 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
   };
 
   const pendingTasks = tasks.filter(t => !t.completed);
+  const completedTasks = tasks.filter(t => t.completed);
+  const hasCompleted = completedTasks.length > 0;
+
+  const getShinyAccentColor = (index: number) => shinyTaskColors[index % shinyTaskColors.length];
+
+  const getCheckboxStyle = (completed: boolean, index: number) => {
+    if (isShinyMode) {
+      const color = getShinyAccentColor(index);
+      return {
+        '--simple-checkbox-border': color,
+        borderColor: color,
+        backgroundColor: completed ? color : 'transparent'
+      } as React.CSSProperties;
+    }
+    const neutral = isDarkMode ? '#ffffff' : '#000000';
+    return {
+      '--simple-checkbox-border': neutral,
+      borderColor: neutral,
+      backgroundColor: completed ? neutral : 'transparent'
+    } as React.CSSProperties;
+  };
 
   return (
-    <div className={`h-full flex flex-col ${
-      isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
-    }`}>
-      {/* Header */}
-      <div className={`p-2 pt-5 flex items-center justify-center ${
-        isDarkMode ? '' : 'border-b-2 border-white'
-      }`}>
+    <div className={`h-full flex flex-col ${isLightMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
+      <div className={`p-1 pt-2 flex items-center justify-center ${isLightMode ? 'border-b-2 border-white' : ''}`}>
         <h2 className="text-3xl font-bold">Tareas</h2>
       </div>
 
-      {/* Tasks List */}
-      <div className="flex-1 overflow-y-auto p-3 pt-12">
+      <div className="flex-1 overflow-y-auto p-2 pt-3 space-y-6">
         {pendingTasks.length > 0 ? (
-          <>
-              <div className="space-y-0">
-              {pendingTasks.map((task) => {
-                const isTaskDeleting = isDeleting[task.id] || false;
+          <div className="space-y-0">
+            {pendingTasks.map((task, index) => {
+              const isTaskDeleting = isDeleting[task.id] || false;
+              const shinyAccentColor = isShinyMode ? getShinyAccentColor(index) : undefined;
 
-                return (
-                  <div key={task.id} className="relative">
-                    {/* Fondo con tacho visible durante swipe */}
-                    <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${
-                      (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
-                    } ${
-                      isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
-                    }`}>
-                      <Trash2 className="w-4 h-4 text-black" />
-                    </div>
-
-                    <div
-                      className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 mb-6 ${
-                        isTaskDeleting
-                          ? 'bg-black dark:bg-white animate-pulse'
-                          : isDarkMode ? 'bg-gray-900 border border-black' : 'bg-gray-50 border border-white'
-                      }`}
-                      style={{
-                        ...(isDarkMode ? {} : { borderLeft: '3px solid black' }),
-                        transform: `translateX(-${rowOffsetById[task.id] || 0}px)`,
-                        transition: activeIdRef.current === task.id ? 'none' : 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                        touchAction: 'pan-y',
-                        userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
-                        // Optimización para calidad de texto - simplificada
-                        WebkitFontSmoothing: 'antialiased',
-                        MozOsxFontSmoothing: 'grayscale',
-                        textRendering: 'optimizeLegibility',
-                        // Margen adicional para separación
-                        marginTop: '24px',
-                      }}
-                      onPointerDown={onRowPointerDown(task.id)}
-                      onPointerMove={onRowPointerMove(task.id)}
-                      onPointerUp={onRowPointerUp(task.id)}
-                      onPointerCancel={onRowPointerUp(task.id)}
-                      onContextMenu={(e) => e.preventDefault()}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-bold break-words leading-tight ${
-                          isTaskDeleting
-                            ? 'text-white dark:text-black'
-                            : ''
-                        }`}>
-                          {task.title}
-                        </p>
-                        <p className={`text-xs opacity-70 mt-1 ${
-                          isTaskDeleting
-                            ? 'text-white dark:text-black'
-                            : ''
-                        }`}>
-                          {task.category || 'Sin categoría'}
-                        </p>
-                      </div>
-
-                      {/* Checkbox */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleTask(task.id).catch(error => {
-                            console.error('Error al completar tarea:', error);
-                          });
-                        }}
-                        className={`simple-task-checkbox flex-shrink-0 w-4 h-4 rounded-full transition-all duration-200 border-2 ${
-                          task.completed ? 'bg-white' : 'bg-transparent'
-                        }`}
-                        title="Completar tarea"
-                      />
-                    </div>
+              return (
+                <div key={task.id} className="relative">
+                  <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${
+                    (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
+                  } ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                    <Trash2 className={`w-4 h-4 ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`} />
                   </div>
-                );
-              })}
-            </div>
-          </>
+
+                  <div
+                    className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 mb-6 ${
+                      isTaskDeleting
+                        ? 'bg-black dark:bg-white animate-pulse'
+                        : isShinyMode
+                          ? 'bg-black border border-black'
+                          : isDarkMode
+                            ? 'bg-black border border-white'
+                            : 'bg-gray-50 border border-white'
+                    }`}
+                    style={{
+                      ...(isShinyMode
+                        ? { borderLeft: `4px solid ${shinyAccentColor}` }
+                        : isLightMode
+                          ? { borderLeft: '3px solid black' }
+                          : {}),
+                      transform: `translateX(-${rowOffsetById[task.id] || 0}px)`,
+                      transition: activeIdRef.current === task.id ? 'none' : 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                      touchAction: 'pan-y',
+                      userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined,
+                      WebkitFontSmoothing: 'antialiased',
+                      MozOsxFontSmoothing: 'grayscale',
+                      textRendering: 'optimizeLegibility',
+                      marginTop: '24px'
+                    }}
+                    onPointerDown={onRowPointerDown(task.id)}
+                    onPointerMove={onRowPointerMove(task.id)}
+                    onPointerUp={onRowPointerUp(task.id)}
+                    onPointerCancel={onRowPointerUp(task.id)}
+                    onContextMenu={(e) => e.preventDefault()}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold break-words leading-tight ${isTaskDeleting ? 'text-white dark:text-black' : ''}`}>
+                        {task.title}
+                      </p>
+                      <p className={`text-xs opacity-70 mt-1 ${isTaskDeleting ? 'text-white dark:text-black' : ''}`}>
+                        {task.category || 'Sin categoria'}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTask(task.id).catch(error => {
+                          console.error('Error al completar tarea:', error);
+                        });
+                      }}
+                      className="simple-task-checkbox flex-shrink-0 w-4 h-4 rounded-full transition-all duration-200 border-2"
+                      title="Completar tarea"
+                      style={getCheckboxStyle(task.completed, index)}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
-            }`}>
-              <CheckCircle className={`w-6 h-6 ${
-                isDarkMode ? 'text-gray-600' : 'text-gray-400'
-              }`} />
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isLightMode ? 'bg-gray-200' : 'bg-gray-800'}`}>
+              <CheckCircle className={`w-6 h-6 ${isLightMode ? 'text-gray-400' : 'text-gray-600'}`} />
             </div>
-            <p className={`text-sm font-medium mb-1 ${
-              isDarkMode ? 'text-white' : 'text-black'
-            }`}>
-              ¡No hay tareas pendientes!
+            <p className={`text-sm font-medium ${isLightMode ? 'text-black' : 'text-white'}`}>
+              No hay tareas pendientes
             </p>
-            <p className={`text-xs ${
-              isDarkMode ? 'text-gray-400' : 'text-gray-600'
-            }`}>
-              Todas tus tareas están completadas
+            <p className={`text-xs ${isLightMode ? 'text-gray-600' : 'text-gray-400'}`}>
+              Todas tus tareas estan completadas
             </p>
+          </div>
+        )}
+
+        <div className="px-1">
+          <button
+            onClick={() => setShowCompleted(prev => !prev)}
+            disabled={!hasCompleted}
+            className={`task-eye-toggle w-full py-2 flex items-center justify-center ${
+              hasCompleted ? '' : 'cursor-not-allowed'
+            }`}
+          >
+            {showCompleted ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {showCompleted && completedTasks.length > 0 && (
+          <div className="space-y-4 pb-6">
+            {completedTasks.map((task, index) => {
+              const shinyAccentColor = isShinyMode ? getShinyAccentColor(index) : undefined;
+              return (
+                <div key={task.id} className="relative">
+                  <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${
+                    (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
+                  } ${isShinyMode ? 'bg-black' : 'bg-gray-800'}`}>
+                    <Trash2 className="w-4 h-4 text-white" />
+                  </div>
+
+                  <div
+                    className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
+                      isShinyMode
+                        ? 'bg-black border border-black text-white'
+                        : isDarkMode
+                          ? 'bg-black border border-white text-white'
+                          : 'bg-white border border-white text-black'
+                    }`}
+                    style={{
+                      ...(isShinyMode
+                        ? { borderLeft: `4px solid ${shinyAccentColor}` }
+                        : isLightMode
+                          ? { borderLeft: '4px solid #000000' }
+                          : {}),
+                      transform: `translateX(-${rowOffsetById[task.id] || 0}px)`,
+                      transition: activeIdRef.current === task.id ? 'none' : 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    }}
+                    onPointerDown={onRowPointerDown(task.id)}
+                    onPointerMove={onRowPointerMove(task.id)}
+                    onPointerUp={onRowPointerUp(task.id)}
+                    onPointerCancel={onRowPointerUp(task.id)}
+                    onContextMenu={(e) => e.preventDefault()}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold break-words leading-tight line-through opacity-70 ${
+                        isLightMode ? 'text-black' : ''
+                      }`}>
+                        {task.title}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTask(task.id).catch(error => {
+                          console.error('Error al completar tarea:', error);
+                        });
+                      }}
+                      className="simple-task-checkbox flex-shrink-0 w-4 h-4 rounded-full transition-all duration-200 border-2"
+                      title="Marcar como pendiente"
+                      style={getCheckboxStyle(task.completed, index)}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

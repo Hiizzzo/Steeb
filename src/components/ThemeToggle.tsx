@@ -149,15 +149,15 @@ const ThemeToggle = () => {
 	const isShiny = currentTheme === "shiny";
 
 	return (
-		<div className="fixed top-8 right-4 z-[60] overflow-hidden rounded-full">
+		<div className={`fixed top-8 right-4 z-[60] overflow-hidden rounded-full ${currentTheme === "shiny" ? 'bg-black shiny-allow-native' : ''}`}>
 			{/* Switch de 3 posiciones deslizable: left=white, middle=shiny, right=black */}
 			<div
 				ref={sliderRef}
-				className={`relative w-16 h-8 rounded-full border-2 transition-all duration-200 cursor-pointer select-none ${
+				className={`relative w-16 h-8 rounded-full border-2 transition-all duration-200 cursor-pointer select-none shiny-toggle shiny-allow-native ${
 					currentTheme === "light"
 						? 'bg-white border-black'
 						: currentTheme === "shiny"
-							? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 border-white'
+							? 'bg-white border-black'
 							: 'bg-black border-black'
 				}`}
 				onClick={handleClick}
@@ -175,8 +175,9 @@ const ThemeToggle = () => {
 					/>
 					<div
 						className={`theme-toggle-dot theme-toggle-dot-middle ${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
-							currentTheme === "shiny" ? 'bg-white' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
+							currentTheme === "shiny" ? '' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
 						} shadow-sm`}
+						style={currentTheme === "shiny" ? { backgroundColor: '#FC0F88' } : undefined}
 					/>
 					<div
 						className={`theme-toggle-dot theme-toggle-dot-right ${currentTheme === "dark" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${

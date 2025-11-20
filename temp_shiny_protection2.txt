@@ -164,13 +164,21 @@
 }
 
 /* Proteger el botón de configuración */
+.shiny .bg-gray-50,
+.shiny .bg-gray-100,
+.shiny .bg-gray-900 {
+  background: #000000 !important;
+  border: 1px solid #000000 !important;
+  color: var(--shiny-text) !important;
+}
+
 /* Proteger los toggles de configuración */
 .shiny .w-12.h-6.rounded-full {
   background: var(--shiny-card-bg) !important;
   border: 1px solid var(--shiny-purple) !important;
 }
 
-.shiny .w-4.h-4.rounded-full:not(.simple-task-checkbox) {
+.shiny .w-4.h-4.rounded-full {
   background: var(--shiny-pink) !important;
   border: none !important;
 }

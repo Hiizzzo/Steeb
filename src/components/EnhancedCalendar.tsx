@@ -769,6 +769,14 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   enableAnimations
 }) => {
   const isHovered = hoveredDate?.toDateString() === calendarDay.date.toDateString();
+  const isSelectedInDarkMode = calendarDay.isSelected && isDark;
+  const dayNumberClassName = `text-lg font-bold ${
+    isSelectedInDarkMode
+      ? 'text-black'
+      : (calendarDay.isSelected || calendarDay.isToday)
+        ? 'text-white'
+        : (isDark ? 'text-white' : 'text-gray-900')
+  }`;
   
   // Animación de rebote para la selección
   const bounceVariants: any = {
@@ -807,7 +815,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
             ) 
           : calendarDay.isSelected
             ? (isDark 
-              ? 'bg-gray-600 text-white shadow-lg' 
+              ? 'bg-white text-black border border-white shadow-lg' 
               : 'bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20')
             : (isDark 
               ? 'bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600' 
@@ -828,11 +836,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
       {/* Número del día con mejor tipografía */}
       <div className="absolute top-3 left-3 right-3 text-center">
         <motion.span 
-          className={`text-lg font-bold ${
-            calendarDay.isToday || calendarDay.isSelected
-              ? 'text-white' 
-              : (isDark ? 'text-white' : 'text-gray-900')
-          }`}
+          className={dayNumberClassName}
           layout
         >
           {calendarDay.day}
@@ -871,9 +875,11 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
               transition={{ delay: 0.3, duration: 0.3 }}
             >
               <span className={`font-medium ${
-                calendarDay.isToday || calendarDay.isSelected
-                  ? 'text-white' 
-                  : (isDark ? 'text-gray-300' : 'text-gray-600')
+                calendarDay.isSelected && isDark
+                  ? 'text-black'
+                  : (calendarDay.isSelected || calendarDay.isToday)
+                    ? 'text-white'
+                    : (isDark ? 'text-gray-300' : 'text-gray-600')
               }`}>
                 {calendarDay.completedTasks}/{calendarDay.totalTasks}
               </span>
@@ -894,9 +900,11 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
           >
             <motion.div 
               className={`w-2 h-2 rounded-full ${
-                calendarDay.isToday || calendarDay.isSelected
-                  ? 'bg-white' 
-                  : 'bg-blue-500'
+                calendarDay.isSelected && isDark
+                  ? 'bg-black'
+                  : (calendarDay.isSelected || calendarDay.isToday)
+                    ? 'bg-white' 
+                    : 'bg-blue-500'
               }`}
               animate={{ 
                 scale: [1, 1.3, 1],

@@ -15,10 +15,12 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
   onClose,
   children,
   onHeightChange,
-  minHeight = 500
+  minHeight = 400
 }) => {
   const { currentTheme } = useTheme();
   const isDarkMode = currentTheme === 'dark';
+  const isShinyMode = currentTheme === 'shiny';
+  const isDarkOrShiny = isDarkMode || isShinyMode;
   const [panelHeight, setPanelHeight] = useState(500);
   const [isDragging, setIsDragging] = useState(false);
   const [isMultiTaskMode, setIsMultiTaskMode] = useState(false);
@@ -144,6 +146,13 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (isOpen) {
+      setPanelHeight(minHeight);
+      setIsMultiTaskMode(false);
+    }
+  }, [isOpen, minHeight]);
+
   return (
     <>
       {/* Overlay eliminado para permitir chat mientras los paneles están abiertos */}
@@ -153,7 +162,7 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
         <div
           className={`fixed left-0 right-0 ${
             isDragging ? 'transition-none' : 'transition-all duration-300 ease-out'
-          } ${isDarkMode ? 'bg-black text-white' : 'bg-white text-black'} ${
+          } ${isDarkOrShiny ? 'bg-black text-white' : 'bg-white text-black'} ${
             isDragging ? 'cursor-ns-resize' : ''
           }`}
           style={{
@@ -170,19 +179,20 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
         >
           {/* Botón de cerrar */}
           <button
+            data-custom-color="true"
             onClick={onClose}
             className={`fixed-panel-close-btn absolute top-3 left-3 z-50 p-1 transition-colors border-0 outline-none focus:outline-none focus:border-none focus:ring-0 ring-0 ${
-              isDarkMode
+              isDarkOrShiny
                 ? 'text-white'
                 : 'text-black'
             }`}
             style={{
-              border: 'none !important',
+              border: isDarkMode ? '1px solid #000000' : 'none',
               outline: 'none !important',
               boxShadow: 'none !important',
-              background: 'transparent',
-              borderWidth: '0px',
-              borderColor: 'transparent'
+              background: isDarkMode ? '#000000' : 'transparent',
+              borderWidth: isDarkMode ? '1px' : '0px',
+              borderColor: isDarkMode ? '#000000' : 'transparent'
             }}
             title="Cerrar panel"
           >
@@ -198,7 +208,7 @@ const FixedPanelContainer: React.FC<FixedPanelContainerProps> = ({
                 </div>
               ) : (
                 <div className={`w-8 h-0.5 rounded-full opacity-30 ${
-                  isDarkMode ? 'bg-gray-600' : 'bg-gray-400'
+                  isDarkOrShiny ? 'bg-gray-600' : 'bg-gray-400'
                 }`}></div>
               )}
             </div>

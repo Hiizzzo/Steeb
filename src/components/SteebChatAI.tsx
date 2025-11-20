@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
-import minimaxDirectService from '@/services/minimaxDirectService';
 import { dailySummaryService } from '@/services/dailySummaryService';
+import { sendMessageToSteeb } from '@/services/steebApi';
 import { useTheme } from '@/hooks/useTheme';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
@@ -22,6 +22,8 @@ const SteebChatAI: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const { currentTheme } = useTheme();
   const isDarkMode = currentTheme === 'dark';
+  const isShinyMode = currentTheme === 'shiny';
+  const shinyMessageColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
 
   // Helper: get task context - moved to top to avoid hoisting issues
@@ -100,16 +102,6 @@ const SteebChatAI: React.FC = () => {
   const [panelHeight, setPanelHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Inicializar MINIMAX Direct Service al cargar
-    useEffect(() => {
-      const initMinimax = async () => {
-        const initialized = await minimaxDirectService.initialize();
-        if (initialized) {
-          }
-      };
-      initMinimax();
-    }, []);
-
   // Manejar resumen diario
   useEffect(() => {
     const checkAndSaveDailySummary = async () => {
@@ -183,26 +175,6 @@ const SteebChatAI: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, [showSideTasks, showProgress, showCalendar]);
-
-  const generateSteebPrompt = async (userMessage: string): Promise<string> => {
-    const taskContext = getTaskContext();
-    
-    // Obtener contexto de días anteriores
-    const previousDaysContext = await dailySummaryService.getContextFromPreviousDays(3);
-    
-    const taskInfo = `TAREAS: ${taskContext.pending} pendientes. Hoy: ${taskContext.completedToday} hechas.${previousDaysContext ? `\n${previousDaysContext}` : ''}`;
-    
-    return `${taskInfo}
-
-"${userMessage}"
-
-STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
-- Sé directo
-- Sin explicaciones largas
-- Una frase nada más
-- Si hay tareas: mantra "una de una"
-- SIN INSULTOS`;
-  };
 
   // Detectar respuestas predefinidas - PR #142
   const getPredefinedResponse = (message: string): string | null => {
@@ -309,68 +281,35 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
     setIsTyping(true);
 
     try {
-      if (!minimaxDirectService.isReady()) {
-        console.log('Inicializando MINIMAX Direct...');
-        await minimaxDirectService.initialize();
-      }
+      const { reply, remainingMessages } = await sendMessageToSteeb(message);
+      const usageNote =
+        typeof remainingMessages === 'number' && Number.isFinite(remainingMessages)
+          ? `\n\nTe quedan ${remainingMessages} mensajes disponibles hoy.`
+          : '';
 
-      const steebPrompt = await generateSteebPrompt(message);
+      const aiMessage: ChatMessage = {
+        id: `msg_${Date.now() + 1}`,
+        role: 'assistant',
+        content: `${reply.trim()}${usageNote}`,
+        timestamp: new Date()
+      };
 
-      // Debug: mostrar el prompt en consola
-      console.log('🔥 Steeb Prompt:', steebPrompt);
-
-      // Usar MINIMAX M2 Direct Service
-      const response = await minimaxDirectService.sendMessage(steebPrompt);
-
-      // Debug: mostrar respuesta de la API
-      console.log('💬 API Response:', response);
-
-      // Dividir respuesta en máximo 2 mensajes
-      const responseLines = response.split('\n').filter(line => line.trim().length > 0);
-      
-      let messagesToAdd: string[] = [];
-      
-      if (responseLines.length > 1) {
-        // Calcular el punto medio para dividir en 2 mensajes
-        const midPoint = Math.ceil(responseLines.length / 2);
-        const firstMessage = responseLines.slice(0, midPoint).join('\n');
-        const secondMessage = responseLines.slice(midPoint).join('\n');
-        messagesToAdd = [firstMessage, secondMessage];
-      } else {
-        // Si es una sola línea, agregar normalmente
-        messagesToAdd = [response];
-      }
-      
-      // Agregar los mensajes
-      setMessages(prev => {
-        let newMessages = [...prev];
-        messagesToAdd.forEach((msg, index) => {
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1 + index}`,
-            role: 'assistant',
-            content: msg.trim(),
-            timestamp: new Date(Date.now() + index * 100)
-          };
-          newMessages.push(aiMessage);
-        });
-        return newMessages;
-      });
-
+      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('❌ Error con Steeb Proxy:', error);
+      console.error('⚠️ Error comunicando con STEEB:', error);
 
-      // Error fallback message
       const errorMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
-        content: '⚠️ Error conectando con el servidor. Pero eso no excusa la procrastinación. Hacé una tarea ahora.',
+        content: 'STEEB no te quiere escuchar            *frota sus lentes*',
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
     }
 
-    setIsTyping(false);
   };
 
   const generateIntelligentResponse = (userMessage: string): string => {
@@ -535,6 +474,8 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
     }
   };
 
+  let shinyAssistantColorIndex = 0;
+
   return (
     <>
       <style jsx>{`
@@ -543,17 +484,19 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
           51%, 100% { opacity: 0; }
         }
       `}</style>
-      <div className={`flex h-full ${isDarkMode ? 'bg-black' : 'bg-white'} flex-col`}>
+      <div className={`flex h-full ${isDarkMode || isShinyMode ? 'bg-black text-white' : 'bg-white text-black'} flex-col`}>
       {/* Main Content - Chat + Side Tasks */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Messages Area */}
         <div
-          className={`overflow-y-auto p-4 transition-all duration-300 absolute left-0 right-0 ${isDarkMode ? 'bg-black' : 'bg-white'}`}
+          className={`overflow-y-auto px-4 pt-4 pb-8 transition-all duration-300 absolute left-0 right-0 ${
+            isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-white'
+          }`}
           style={{
             zIndex: 100,
             top: '0px',
             bottom: panelHeight > 0
-              ? `${panelHeight + 80}px` // Dejar 80px para input + espacio del panel
+              ? `${panelHeight + 60}px` // Dejar 60px para input + espacio del panel
               : '40px' // Dejar solo 40px para input cuando no hay panel (más arriba)
           }}
         >
@@ -569,21 +512,49 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             {/* Message Content with improved colors - PR #143 */}
             <div className={`flex items-end space-x-2 max-w-[85%] ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}>
               {/* Message bubble */}
-              <div
-                className={`px-4 py-3 rounded-2xl relative group ${
+              {(() => {
+                let assistantBubbleStyle: React.CSSProperties | undefined;
+                if (message.role === 'assistant') {
+                  if (isShinyMode) {
+                    assistantBubbleStyle = {
+                      borderColor: shinyMessageColors[shinyAssistantColorIndex++ % shinyMessageColors.length],
+                      borderWidth: '2px'
+                    };
+                  } else {
+                    assistantBubbleStyle = { borderColor: undefined, borderWidth: undefined };
+                  }
+                }
+                return (
+                  <div
+                    className={`px-4 py-3 rounded-2xl relative group ${
                   message.role === 'assistant'
-                    ? `${isDarkMode ? 'bg-black text-white border border-gray-700' : 'bg-white text-black'} shadow-md ${!isDarkMode ? 'border border-gray-300' : ''}`
-                    : `${isDarkMode ? 'bg-gray-400' : 'bg-gray-300 border border-gray-300'} text-black shadow-md`
+                    ? isShinyMode
+                      ? 'bg-black text-white border border-white shadow-md'
+                      : `${isDarkMode ? 'bg-black text-white border-2 border-white' : 'bg-white text-black border border-gray-300'} shadow-md`
+                    : isShinyMode
+                      ? 'bg-white text-black border border-white shadow-md'
+                    : isDarkMode
+                        ? 'bg-gray-400 text-black border border-black shadow-md'
+                        : 'bg-gray-300 border border-gray-300 text-black shadow-md'
                 }`}
-              >
-  
+                    style={assistantBubbleStyle}
+                  >
+
                 <p
               className="text-sm leading-relaxed whitespace-pre-wrap"
               style={{
-                color: isDarkMode ? '#FFFFFF !important' : '#000000 !important',
+                color: message.role === 'assistant'
+                  ? (isDarkMode || isShinyMode ? '#FFFFFF !important' : '#000000 !important')
+                  : isDarkMode
+                    ? '#000000 !important'
+                    : (isShinyMode ? '#000000 !important' : '#000000 !important'),
                 backgroundColor: 'transparent',
                 opacity: 1,
-                WebkitTextFillColor: isDarkMode ? '#FFFFFF' : '#000000'
+                WebkitTextFillColor: message.role === 'assistant'
+                  ? (isDarkMode || isShinyMode ? '#FFFFFF' : '#000000')
+                  : isDarkMode
+                    ? '#000000'
+                    : (isShinyMode ? '#000000' : '#000000')
               }}
             >
                   {message.content}
@@ -593,7 +564,11 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
                 <div className={`text-xs mt-2 flex items-center space-x-1 ${
                   message.role === 'assistant'
                     ? 'text-gray-500 dark:text-gray-400'
-                    : 'text-blue-100'
+                    : isShinyMode
+                      ? 'text-gray-300'
+                      : isDarkMode
+                        ? 'text-gray-200'
+                        : 'text-blue-100'
                 }`}>
                   <Clock className="w-3 h-3" />
                   <span>
@@ -604,22 +579,9 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
                   </span>
                 </div>
 
-                {/* Hover effect for assistant messages */}
-                {message.role === 'assistant' && (
-                  <div
-                  className={`absolute rounded-2xl transition-opacity duration-200 steeb-chat-border steeb-chat-input ${
-                    isDarkMode
-                      ? 'inset-0 !opacity-100 z-10'
-                      : 'inset-0 opacity-0 group-hover:opacity-100'
-                  }`}
-                  onClick={() => {
-                    console.log('currentTheme:', currentTheme);
-                    console.log('isDarkMode:', isDarkMode);
-                    console.log('document.documentElement classes:', document.documentElement.classList.toString());
-                  }}
-                  />
-                )}
               </div>
+                );
+              })()}
             </div>
           </div>
         );
@@ -672,10 +634,14 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
         </FixedPanelContainer>
 
         {/* Enhanced Input Area with improved colors - Positionado arriba de los paneles */}
-        <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0`} style={{
-          zIndex: 100,
-          bottom: panelHeight > 0 ? `${panelHeight}px` : '20px'
-        }}>
+        <div
+          className={`${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-gray-100'} backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0`}
+          style={{
+            zIndex: 100,
+            bottom: panelHeight > 0 ? `${panelHeight}px` : '20px',
+            backgroundColor: isShinyMode ? '#000000' : undefined
+          }}
+        >
           <div className="flex items-end space-x-2">
             <div className="flex-1 relative">
               <input
@@ -685,9 +651,11 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
                 onKeyPress={handleKeyPress}
                 placeholder=""
                 className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${
-                  isDarkMode
-                    ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
-                    : 'bg-white text-black border-gray-300 focus:!border-black'
+                  isShinyMode
+                    ? 'bg-black text-white border-white focus:!border-white'
+                    : isDarkMode
+                      ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
+                      : 'bg-white text-black border-gray-300 focus:!border-black'
                 } ${inputMessage ? 'pl-3' : 'pl-10'}`}
                 style={{
                   fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
@@ -699,7 +667,7 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
               {!inputMessage && (
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                   <div
-                    className={`w-0.5 h-4 ${isDarkMode ? 'bg-white' : 'bg-black'}`}
+                    className={`w-0.5 h-4 ${isShinyMode || isDarkMode ? 'bg-white' : 'bg-black'}`}
                     style={{
                       animation: 'blink 1s step-end infinite'
                     }}
@@ -720,12 +688,15 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
             </div>
 
             <button
+              data-custom-color="true"
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isTyping}
-              className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 ${
-                isDarkMode
-                  ? 'bg-black border-gray-700 hover:bg-gray-800'
-                  : 'bg-white border-white hover:bg-gray-100'
+              className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 ${
+                isShinyMode
+                  ? 'bg-black border-white hover:bg-black'
+                  : isDarkMode
+                    ? 'bg-black border-gray-700 hover:bg-gray-800'
+                    : 'bg-white border-white hover:bg-gray-100'
               }`}
               style={{
                 boxShadow: isDarkMode
@@ -734,12 +705,13 @@ STEEB - Responde EN UNA SOLA LÍNEA. MÁXIMO 25 PALABRAS. PUNTO.
               }}
             >
               <ArrowUp
-                className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-black'}`}
+                className={`w-4 h-4 ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}
                 strokeWidth={2}
                 stroke="currentColor"
                 fill="none"
               />
             </button>
+
           </div>
 
 

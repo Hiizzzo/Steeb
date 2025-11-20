@@ -373,225 +373,32 @@ export const useTaskStore = create<TaskStore>()(
             get().calculateStats();
             ('✅ Estado local actualizado optimistamente');
 
-            // 2. SINCRONIZACIÓN CON FIRESTORE (si hay usuario)
-            const userId = auth.currentUser?.uid;
-            if (userId) {
-              try {
-                // Filtrar campos que no deben enviarse a Firestore
-                const { id: _omitId, createdAt: _omitCreatedAt, updatedAt: _omitUpdatedAt, userId: _omitUserId, ...firestoreUpdates } = (updates || {}) as any;
-
-                await FirestoreTaskService.updateTask(id, firestoreUpdates);
-                ('✅ Sincronización con Firestore exitosa');
-
-                // Verificar si se marcó como completada y tiene recurrencia
-                if (updates.completed === true && previousTask.recurrence && previousTask.scheduledDate) {
-                  ('🔄 Tarea recurrente completada, generando siguiente ocurrencia:', previousTask.title);
-
-                  const baseDate = updates.completedDate ? updates.completedDate.split('T')[0] : previousTask.scheduledDate;
-                  const nextDate = computeNextOccurrenceDate(baseDate, previousTask.recurrence);
-
-                  if (nextDate) {
-                    ('📅 Creando siguiente ocurrencia para:', nextDate);
-
-                    const existingTask = get().tasks.find(t =>
-                      t.title === previousTask.title &&
-                      t.type === previousTask.type &&
-                      t.scheduledDate === nextDate &&
-                      !t.completed
-                    );
-
-                    if (!existingTask) {
-                      const resetSubtasks = previousTask.subtasks?.map(st => ({
-                        ...st,
-                        completed: false,
-                        id: `subtask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                      })) || undefined;
-
-                      await get().addTask({
-                        title: previousTask.title,
-                        type: previousTask.type,
-                        subgroup: previousTask.subgroup,
-                        status: 'pending',
-                        completed: false,
-                        scheduledDate: nextDate,
-                        scheduledTime: previousTask.scheduledTime,
-                        notes: previousTask.notes,
-                        tags: previousTask.tags,
-                        subtasks: resetSubtasks,
-                        recurrence: previousTask.recurrence,
-                        priority: previousTask.priority,
-                        estimatedDuration: previousTask.estimatedDuration,
-                      } as any);
-
-                      ('✨ Nueva ocurrencia creada para:', nextDate);
-                    } else {
-                      ('ℹ️ Ya existe una tarea para la fecha:', nextDate);
-                    }
-                  }
-                }
-
-              } catch (firestoreError) {
-                console.warn('⚠️ Error sincronizando con Firestore (cambio local mantenido):', firestoreError.message);
-                // No revertimos cambios locales, el usuario quiere que la tarea se actualice
-              }
-            } else {
-              ('📱 Modo offline - Cambio guardado localmente');
-            }
-
-          } catch (error) {
-            console.error('❌ Error crítico en updateTask:', error);
-            set({
-              error: error instanceof Error ? error.message : 'Error al actualizar la tarea'
-            });
-            throw error;
-          }
-        },
-
-        deleteTask: async (id) => {
-          const taskToDelete = get().tasks.find(task => task.id === id);
-          if (!taskToDelete) {
-            console.warn('Task not found when trying to delete:', id);
-            return;
-          }
-
-          ('Deleting task (optimistic):', taskToDelete.title);
-
-          set(state => ({
-            tasks: state.tasks.filter(task => task.id !== id),
-            selectedTaskIds: state.selectedTaskIds.filter(taskId => taskId !== id),
-            error: null
-          }));
-
-          get().calculateStats();
-
-          try {
-            const snapshot = get().tasks;
-            localStorageService.saveTasks(snapshot);
-          } catch (storageError) {
-            console.warn('Could not persist tasks locally after delete:', storageError);
-          }
-
-          const userId = auth.currentUser?.uid;
-
-          try {
-            await FirestoreTaskService.deleteTask(id, userId);
-            ('Task deleted from Firestore');
-          } catch (error) {
-            console.error('Error deleting task from Firestore:', error);
-            set(state => ({
-              error: error instanceof Error ? error.message : 'Error al eliminar la tarea',
-              syncStatus: {
-                ...state.syncStatus,
-                hasError: true,
-                pendingChanges: (state.syncStatus?.pendingChanges ?? 0) + 1
-              }
-            }));
-          }
-        },
-
-        // ========== BULK OPERATIONS ==========
-
-        bulkUpdateTasks: async (updates) => {
-          set({ isLoading: true, error: null });
-          
-          try {
-            ('📝 Actualizando tareas en lote offline:', updates.length);
-            
-            // En modo offline, solo aplicamos las actualizaciones localmente
-            set(state => ({
-              tasks: state.tasks.map(task => {
-                const update = updates.find(u => u.id === task.id);
-                return update ? { ...task, ...update.updates, updatedAt: new Date().toISOString() } : task;
-              }),
-              syncStatus: 'offline'
-            }));
-            
-            ('✅ Tareas actualizadas en lote offline exitosamente');
-          } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Failed to update tasks',
-              syncStatus: 'error'
-            });
-          } finally {
-            set({ isLoading: false });
-            get().calculateStats();
-          }
-        },
-
-        bulkDeleteTasks: async (ids) => {
-          set({ isLoading: true, error: null });
-          
-          try {
-            ('🗑️ Eliminando tareas en lote offline:', ids.length);
-            
-            // En modo offline, solo eliminamos localmente
-            set(state => ({
-              tasks: state.tasks.filter(task => !ids.includes(task.id)),
-              selectedTaskIds: state.selectedTaskIds.filter(id => !ids.includes(id)),
-              syncStatus: 'offline'
-            }));
-            
-            ('✅ Tareas eliminadas en lote offline exitosamente');
-          } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Failed to delete tasks',
-              syncStatus: 'error'
-            });
-          } finally {
-            set({ isLoading: false });
-            get().calculateStats();
-          }
-        },
-
-        // ========== TASK STATUS OPERATIONS ==========
-
-        toggleTask: async (id) => {
-          const currentTask = get().tasks.find(t => t.id === id);
-          if (!currentTask) {
-            console.error('❌ Tarea no encontrada para toggle:', id);
-            throw new Error('Tarea no encontrada');
-          }
-
-          const willComplete = !currentTask.completed;
-          const previousState = { ...currentTask };
-
-          try {
-            ('🔄 Toggle task:', currentTask.title, `${previousState.completed} → ${willComplete}`);
-
-            // Actualización optimista local inmediata
-            set(state => ({
-              tasks: state.tasks.map(t =>
-                t.id === id
-                  ? {
-                      ...t,
-                      completed: willComplete,
-                      status: willComplete ? 'completed' : 'pending',
-                      completedDate: willComplete ? new Date().toISOString() : t.completedDate,
-                      updatedAt: new Date().toISOString()
-                    }
-                  : t
-              )
-            }));
-
-            get().calculateStats();
-            ('✅ Estado local actualizado:', currentTask.title, '→', willComplete);
-
             // Sincronización con Firestore si hay usuario
             const userId = auth.currentUser?.uid;
             if (userId) {
-              try {
-                await FirestoreTaskService.updateTask(id, {
-                  completed: willComplete,
-                  status: willComplete ? 'completed' : 'pending',
-                  completedDate: willComplete ? new Date().toISOString() : undefined,
-                });
-                ('✅ Sincronización exitosa con Firestore');
-              } catch (firestoreError) {
-                console.warn('⚠️ Error de sincronización (cambio local mantenido):', firestoreError.message);
-                // El cambio local se mantiene aunque falle Firestore
+              if (!navigator.onLine) {
+                console.warn('Modo offline: toggle en cola local');
+                set(state => ({
+                  syncStatus: {
+                    ...state.syncStatus,
+                    pendingChanges: (state.syncStatus?.pendingChanges ?? 0) + 1
+                  }
+                }));
+              } else {
+                try {
+                  await FirestoreTaskService.updateTask(id, {
+                    completed: willComplete,
+                    status: willComplete ? 'completed' : 'pending',
+                    completedDate: willComplete ? new Date().toISOString() : undefined,
+                  });
+                  ('🔄 Sincronización exitosa con Firestore');
+                } catch (firestoreError) {
+                  console.warn('⚠️ Error de sincronización (cambio local mantenido):', firestoreError.message);
+                  // El cambio local se mantiene aunque falle Firestore
+                }
               }
             } else {
-              ('📱 Modo offline - Cambio guardado localmente');
+              ('💡 Modo offline - Cambio guardado localmente');
             }
 
           } catch (error) {
@@ -1172,3 +979,4 @@ setInterval(() => {
     syncWithServer();
   }
 }, 5 * 60 * 1000);
+

@@ -29,12 +29,10 @@ import { motion } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { AppTrackingTransparency } from 'capacitor-plugin-app-tracking-transparency';
 import Index from "./pages/Index";
-import MonthlyCalendarPage from "./pages/MonthlyCalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
-import ProductivityStatsPage from "./pages/ProductivityStatsPage";
 import ThemeToggle from "./components/ThemeToggle";
 import AuthScreen from "./components/AuthScreen";
 import { NetworkStatus } from "./components/NetworkStatus";
@@ -83,34 +81,34 @@ const initializeTheme = (): Theme => {
 const AppContent = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [isAppLoading, setIsAppLoading] = useState(true);
-  
+
   const handleSkipLoading = () => {
     setIsAppLoading(false);
   };
-  
+
   const handleSkipToTasks = () => {
     // Permitir acceso temporal sin autenticación
     setIsAppLoading(false);
     window.localStorage.setItem('skip-auth-temp', 'true');
   };
-  
+
   // Cargar configuración de texto grande
   useTextSize();
 
   useEffect(() => {
     // INICIALIZACIÓN CRÍTICA: Aplicar tema ANTES que todo lo demás
     const initialTheme = initializeTheme();
-    
+
     // Solicitar permiso de App Tracking Transparency en iOS
     const requestTrackingPermission = async () => {
       if (Capacitor.getPlatform() === 'ios') {
         try {
           const response = await AppTrackingTransparency.requestPermission();
-          
+
           // Guardar el estado del permiso para referencia futura
           localStorage.setItem('att-status', response.status);
         } catch (error) {
-                    localStorage.setItem('att-status', 'denied');
+          localStorage.setItem('att-status', 'denied');
         }
       }
     };
@@ -172,12 +170,10 @@ const AppContent = () => {
       <NetworkStatus />
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/monthly-calendar" element={<MonthlyCalendarPage />} />
-        <Route path="/productivity-stats" element={<ProductivityStatsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/about" element={<AboutPage />} />
 
-                
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
