@@ -52,16 +52,27 @@ const SteebChatAI: React.FC = () => {
     'buenas noches': '¡Buenas noches! 🌙 Terminemos el día fuerte.',
     'cómo estás': '¡Estoy listo para ayudarte! ¿Qué necesitamos hacer?',
     'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. ¡Escribe "tareas" para ver! Los paneles de progreso y calendario se abren sin mensajes.',
-    'tareas': 'Mostrando tus tareas pendientes... ¡Una de una! 🎯',
+    'tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
+    'tarea': 'SPECIAL_COMMAND:OPEN_TASKS',
+    'mis tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
+    'ver tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
+    'lista de tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
+    'que tengo que hacer': 'SPECIAL_COMMAND:OPEN_TASKS',
+    'pendientes': 'SPECIAL_COMMAND:OPEN_TASKS',
     'progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'ver progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'mis estadísticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'estadísticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'métricas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'rendimiento': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'avance': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'estadisticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'metricas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'calendario': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'ver calendario': 'SPECIAL_COMMAND:OPEN_CALENDAR',
     'agenda': 'SPECIAL_COMMAND:OPEN_CALENDAR',
+    'mi calendario': 'SPECIAL_COMMAND:OPEN_CALENDAR',
+    'fechas': 'SPECIAL_COMMAND:OPEN_CALENDAR',
+    'eventos': 'SPECIAL_COMMAND:OPEN_CALENDAR',
     'mes': 'SPECIAL_COMMAND:OPEN_CALENDAR',
     'motírame': '¡Tú puedes! 💪 Cada tarea completada te acerca a tu meta.',
     'gracias': '¡De nada! Estoy aquí para ayudarte a lograr tus metas.',
@@ -75,16 +86,7 @@ const SteebChatAI: React.FC = () => {
   };
 
   const getInitialMessage = () => {
-    const hour = new Date().getHours();
-    const taskContext = getTaskContext();
-
-    if (hour < 12) {
-      return taskContext.hasTasks ? '¡Buenos días! 💪 Listo para conquistar tus tareas?' : '¡Buenos días! ¿Qué desafíos nos esperan hoy?';
-    } else if (hour < 18) {
-      return taskContext.hasTasks ? '¡Buenas tardes! ⚡ Mantengamos el momentum.' : '¡Buenas tardes! ¿Lista/o para ser productiva/o?';
-    } else {
-      return taskContext.hasTasks ? '¡Buenas noches! 🌙 Terminemos el día con energía.' : '¡Buenas noches! ¿Revisamos tu progreso?';
-    }
+    return '¡Hola! Soy STEEB 🚀\n\nDecime "calendario", "tareas" o "progreso" para abrir esos paneles.\n\n¿Cómo te puedo ayudar hoy para cumplir tus metas?';
   };
   
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -223,8 +225,7 @@ const SteebChatAI: React.FC = () => {
       return;
     }
 
-    // Comando de tareas - manejarlo silenciosamente
-    if (message.trim().toUpperCase() === 'TAREAS' || message.toLowerCase().includes('tarea')) {
+    if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_TASKS') {
       console.log('📋 Abriendo panel de tareas sin mensajes...');
       setShowSideTasks(true);
       return;
