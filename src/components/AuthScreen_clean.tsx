@@ -119,21 +119,20 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <h1 className="text-4xl font-bold text-black mb-6">
+          <h1 className="text-3xl font-bold text-black mb-3">
             ¡Bienvenido a STEEB!
           </h1>
+          <p className="text-black text-lg mb-8">
+            Tu compañero para superar la procrastinación
+          </p>
 
           <div className="mb-8 flex justify-center">
             <img
               src="/assets/steeb-icon.png"
               alt="STEEB"
-              className="w-40 h-40 object-contain"
+              className="w-32 h-32 object-contain"
             />
           </div>
-
-          <p className="text-black text-lg mb-8">
-            Tu compañero para superar la procrastinación
-          </p>
 
           <button
             onClick={handleGoogleAuth}
