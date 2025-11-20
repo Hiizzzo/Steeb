@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User } from 'lucide-react';
+import UserRoleBadge from './UserRoleBadge';
+import UpgradeModal from './UpgradeModal';
 
 interface StebeHeaderProps {
   pendingCount?: number;
@@ -8,6 +10,8 @@ interface StebeHeaderProps {
 
 const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeType, setUpgradeType] = useState<'dark' | 'shiny' | 'shinyRoll'>('dark');
   
   // Obtener fecha actual en español
   const today = new Date();
@@ -35,6 +39,13 @@ const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
         {/* Información del usuario y logout */}
         {isAuthenticated && user && (
           <div className="flex items-center gap-3">
+            <UserRoleBadge
+              onUpgradeRequest={(type) => {
+                setUpgradeType(type);
+                setShowUpgradeModal(true);
+              }}
+            />
+
             <div className="flex items-center gap-2">
               {user.avatar ? (
                 <img
@@ -51,7 +62,7 @@ const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
                 {user.nickname || user.name || user.email}
               </span>
             </div>
-            
+
             <button
               onClick={handleLogout}
               className="p-1 rounded hover:bg-white/10 transition-colors"
@@ -61,6 +72,13 @@ const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
             </button>
           </div>
         )}
+
+        {/* Modal de upgrades */}
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          upgradeType={upgradeType}
+        />
       </div>
     </div>
   );

@@ -27,6 +27,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { Capacitor } from '@capacitor/core';
+import { UserRole } from '@/types/user';
 
 export interface User {
   id: string;
@@ -37,6 +38,8 @@ export interface User {
   provider: 'google' | 'manual';
   createdAt: string;
   emailVerified: boolean;
+  role: UserRole;
+  shinyRolls?: number;
 }
 
 interface AuthContextType {
@@ -60,6 +63,10 @@ const mapFirebaseUserToUser = async (fbUser: FirebaseUser): Promise<User> => {
   const ref = doc(db, 'users', fbUser.uid);
   const snap = await getDoc(ref);
   const data = snap.exists() ? snap.data() as any : {};
+
+  // Si el usuario es nuevo, asignar rol WHITE por defecto
+  const userRole: UserRole = data.role || 'white';
+
   return {
     id: fbUser.uid,
     email: fbUser.email || '',
@@ -69,6 +76,8 @@ const mapFirebaseUserToUser = async (fbUser: FirebaseUser): Promise<User> => {
     provider: (fbUser.providerData?.some(p => (p?.providerId || '').includes('google')) ? 'google' : 'manual'),
     createdAt: (data.createdAt?.toDate?.() || new Date()).toISOString(),
     emailVerified: !!fbUser.emailVerified,
+    role: userRole,
+    shinyRolls: data.shinyRolls || 0,
   };
 };
 
