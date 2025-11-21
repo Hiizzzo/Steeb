@@ -36,6 +36,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import AuthScreen from "./components/AuthScreen";
 import { NetworkStatus } from "./components/NetworkStatus";
 import { useAuth } from "./hooks/useAuth";
+import { useAutoPaymentVerification } from "./hooks/useAutoPaymentVerification";
 import { useTextSize } from "./hooks/useTextSize";
 import { initializeRecurrenceManager } from "./utils/recurrenceManager";
 import { AuthProvider } from "./hooks/useAuth";
@@ -93,6 +94,9 @@ const AppContent = () => {
 
   // Cargar configuración de texto grande
   useTextSize();
+
+  // Auto-verificar pagos cuando el usuario vuelve a la app
+  useAutoPaymentVerification();
 
   useEffect(() => {
     // INICIALIZACIÓN CRÍTICA: Aplicar tema ANTES que todo lo demás

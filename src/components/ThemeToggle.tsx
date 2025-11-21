@@ -138,15 +138,12 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 					try {
 						console.log('🚀 Redirigiendo a Mercado Pago');
 
-						const checkoutUrl = preferenceResponse.sandboxInitPoint || preferenceResponse.initPoint;
+						const checkoutUrl = preferenceResponse.initPoint;
 						if (checkoutUrl) {
 							console.log('🛒 Abriendo checkout de Mercado Pago:', checkoutUrl);
 
 							// Abrir en una nueva ventana para el checkout de Mercado Pago
 							window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
-
-							// Mostrar mensaje de instrucciones
-							alert('🛒 Mercado Pago abierto en nueva ventana\n\nCompleta el pago para activar el Dark Mode.\nLuego vuelve y haz clic en "Ya pagué, verificar"');
 						} else {
 							throw new Error('No hay URL de checkout disponible');
 						}
@@ -203,7 +200,7 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 		const relativeX = x - rect.left;
 		const percentage = Math.max(0, Math.min(1, relativeX / rect.width));
 
-	
+
 		if (percentage < 0.33) return "light";
 		if (percentage < 0.66) return "shiny";
 		return "dark";
@@ -236,7 +233,7 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 	const handleMouseDown = (e) => {
 		e.preventDefault();
 		e.stopPropagation(); // Evitar que se dispare el handleClick
-		
+
 		setIsDragging(true);
 		setDragStartX(e.clientX);
 		setCurrentX(e.clientX);
@@ -246,9 +243,9 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 		};
 
 		const handleMouseUp = (moveEvent) => {
-				if (isDragging) {
+			if (isDragging) {
 				const newPosition = getPositionFromX(moveEvent.clientX);
-						handleThemeChange(newPosition);
+				handleThemeChange(newPosition);
 			}
 			setIsDragging(false);
 			document.removeEventListener('mousemove', handleMouseMove);
@@ -297,36 +294,32 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 			{/* Switch de 3 posiciones deslizable: left=white, middle=shiny, right=black */}
 			<div
 				ref={sliderRef}
-				className={`relative w-16 h-8 rounded-full border-2 transition-all duration-200 cursor-pointer select-none shiny-toggle shiny-allow-native ${
-					currentTheme === "light"
+				className={`relative w-16 h-8 rounded-full border-2 transition-all duration-200 cursor-pointer select-none shiny-toggle shiny-allow-native ${currentTheme === "light"
 						? 'bg-white border-black'
 						: currentTheme === "shiny"
 							? 'bg-white border-black'
 							: 'bg-black border-black'
-				}`}
+					}`}
 				onClick={handleClick}
 				onMouseDown={handleMouseDown}
 				onTouchStart={handleTouchStart}
 				aria-label="Toggle theme"
 			>
-				
+
 				{/* Marcadores de posición */}
 				<div className="absolute inset-0 flex items-center justify-between px-1.5 pointer-events-none z-20">
 					<div
-						className={`theme-toggle-dot theme-toggle-dot-left ${currentTheme === "light" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
-							currentTheme === "light" ? 'bg-black' : 'bg-gray-400'
-						} shadow-sm`}
+						className={`theme-toggle-dot theme-toggle-dot-left ${currentTheme === "light" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${currentTheme === "light" ? 'bg-black' : 'bg-gray-400'
+							} shadow-sm`}
 					/>
 					<div
-						className={`theme-toggle-dot theme-toggle-dot-middle ${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
-							currentTheme === "shiny" ? '' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
-						} shadow-sm`}
+						className={`theme-toggle-dot theme-toggle-dot-middle ${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${currentTheme === "shiny" ? '' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
+							} shadow-sm`}
 						style={currentTheme === "shiny" ? { backgroundColor: '#FC0F88' } : undefined}
 					/>
 					<div
-						className={`theme-toggle-dot theme-toggle-dot-right ${currentTheme === "dark" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${
-							currentTheme === "dark" ? 'bg-gray-100 border border-gray-300' : 'bg-gray-400'
-						} shadow-md`}
+						className={`theme-toggle-dot theme-toggle-dot-right ${currentTheme === "dark" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${currentTheme === "dark" ? 'bg-gray-100 border border-gray-300' : 'bg-gray-400'
+							} shadow-md`}
 					/>
 				</div>
 			</div>
@@ -350,7 +343,7 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 				}}
 			/>
 
-					</div>
+		</div>
 	);
 };
 

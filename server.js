@@ -17,6 +17,10 @@ const app = express();
 const PORT = 3001;
 const APP_BASE_URL = process.env.APP_BASE_URL || process.env.BASE_URL || `http://localhost:${PORT}`;
 
+// Configurar CORS y JSON
+app.use(cors());
+app.use(express.json());
+
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || '';
 const MERCADOPAGO_PUBLIC_KEY = process.env.MERCADOPAGO_PUBLIC_KEY || '';
 const MP_NOTIFICATION_URL = process.env.MP_NOTIFICATION_URL || `${APP_BASE_URL}/api/payments/webhook`;
@@ -34,130 +38,29 @@ try {
   }
 } catch (error) {
   console.error('❌ Error leyendo paymentPlans.json:', error);
-}
-
-const PAYMENT_PLAN_MAP = PAYMENT_PLANS.reduce((acc, plan) => {
-  if (plan?.id) acc[plan.id] = plan;
-  return acc;
-}, {});
-
-const purchaseStore = await createPurchaseStore();
-
-// Configurar Mercado Pago SDK con ES modules
-let client;
-try {
-  client = new MercadoPagoConfig({
-    accessToken: MERCADOPAGO_ACCESS_TOKEN,
-    options: { timeout: 5000 }
-  });
-  console.log('✅ Mercado Pago SDK configurado con ES modules');
-} catch (error) {
-  console.warn('⚠️ Error configurando SDK:', error.message);
-}
-
-const getPlan = (planId) => PAYMENT_PLAN_MAP[planId];
-
-const mapPaymentToRecord = (payment) => {
-  if (!payment) return null;
-  const metadata = payment.metadata || {};
-  const additionalInfo = payment.additional_info || {};
-
-  const planId =
-    metadata.planId ||
-    metadata.plan_id ||
-    additionalInfo.items?.[0]?.id ||
-    payment.order?.type;
-
-  return {
-    paymentId: payment.id?.toString(),
-    status: payment.status,
-    statusDetail: payment.status_detail,
-    planId: planId || 'unknown',
-    userId: metadata.userId || metadata.user_id || payment.payer?.id,
-    email: metadata.email || payment.payer?.email || additionalInfo.payer?.email,
-    externalReference: payment.external_reference,
-    preferenceId: payment.preference_id,
-    amount: payment.transaction_amount,
-    currency: payment.currency_id,
-    installments: payment.installments,
-    paymentMethod: payment.payment_method_id,
-    paymentType: payment.payment_type_id,
-    processedAt: payment.date_created,
-    approvedAt: payment.date_approved,
-  };
 };
 
-// Crear preferencia con API directa de Mercado Pago (fallback que funciona)
+const client = new MercadoPagoConfig({ accessToken: MERCADOPAGO_ACCESS_TOKEN });
+
 const createPreference = async (preferenceData) => {
-  try {
-    console.log('🚀 Creando preferencia con API directa de Mercado Pago...');
-    console.log('📋 Datos enviados:', JSON.stringify(preferenceData, null, 2));
-
-    // Usar la API directa que sí funciona
-    const url = 'https://api.mercadopago.com/checkout/preferences';
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MERCADOPAGO_ACCESS_TOKEN}`
-      },
-      body: JSON.stringify(preferenceData)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error ${response.status}: ${JSON.stringify(errorData)}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Preferencia creada con API directa:', result.id);
-    console.log('🔗 Sandbox URL:', result.sandbox_init_point);
-
-    return {
-      id: result.id,
-      init_point: result.init_point,
-      sandbox_init_point: result.sandbox_init_point,
-      external_reference: result.external_reference
-    };
-  } catch (error) {
-    console.error('❌ Error con API directa:');
-    console.error('Mensaje:', error.message);
-    console.error('Stack:', error.stack);
-
-    // ULTIMO RECURSO: URL directa de checkout manual
-    const fallbackId = preferenceData.external_reference || Date.now().toString();
-    const sandboxUrl = `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${fallbackId}`;
-    const productionUrl = `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${fallbackId}`;
-
-    // Usar sandbox para pagos de prueba ($1)
-    const fallbackUrl = sandboxUrl;
-    console.log('🔄 Usando fallback directo:', fallbackUrl);
-
-    return {
-      id: fallbackId,
-      init_point: productionUrl,
-      sandbox_init_point: fallbackUrl,
-      external_reference: preferenceData.external_reference
-    };
-  }
+  const preference = new Preference(client);
+  const result = await preference.create({ body: preferenceData });
+  console.log('✨ Preferencia creada:', result.id);
+  console.log('👉 Init Point:', result.init_point);
+  return result;
 };
 
 const mpRequest = async (endpoint, options = {}) => {
   const url = `https://api.mercadopago.com${endpoint}`;
   const response = await fetch(url, {
+    ...options,
     headers: {
       'Authorization': `Bearer ${MERCADOPAGO_ACCESS_TOKEN}`,
       'Content-Type': 'application/json',
       ...options.headers
-    },
-    ...options
+    }
   });
-  return response.json();
-};
-
-const fetchPaymentById = async (paymentId) => {
-  if (!paymentId) return null;
-  return mpRequest(`/v1/payments/${paymentId}`, { method: 'GET' });
+  return await response.json();
 };
 
 const searchPayment = async ({ preferenceId, externalReference }) => {
@@ -174,18 +77,41 @@ const searchPayment = async ({ preferenceId, externalReference }) => {
   return response.results?.[0] || null;
 };
 
+const mapPaymentToRecord = (payment) => {
+  if (!payment) return null;
+  return {
+    paymentId: payment.id,
+    status: payment.status,
+    statusDetail: payment.status_detail,
+    planId: payment.external_reference?.split('_')[0] || 'unknown',
+    userId: payment.external_reference?.split('_')[1] || null,
+    email: payment.payer?.email,
+    externalReference: payment.external_reference,
+    preferenceId: payment.order?.id,
+    amount: payment.transaction_amount,
+    currency: payment.currency_id,
+    processedAt: payment.date_created,
+    approvedAt: payment.date_approved
+  };
+};
+
 const persistPaymentFromMercadoPago = async (payment) => {
   const record = mapPaymentToRecord(payment);
   if (!record) {
     throw new Error('Pago no encontrado en Mercado Pago');
   }
-  await purchaseStore.upsert(record);
+  const store = await createPurchaseStore();
+  await store.upsert(record);
   return record;
 };
 
-// Configurar CORS y JSON
-app.use(cors());
-app.use(express.json());
+const getPlan = (planId) => {
+  return PAYMENT_PLANS.find(p => p.id === planId);
+};
+
+const fetchPaymentById = async (id) => {
+  return await mpRequest(`/v1/payments/${id}`, { method: 'GET' });
+};
 
 // Configurar multer para uploads
 const storage = multer.diskStorage({
@@ -282,6 +208,7 @@ app.get('/api/images', (req, res) => {
 app.post('/api/payments/create-preference', async (req, res) => {
   try {
     const { planId, quantity = 1, userId, email, name } = req.body || {};
+    console.log('📥 create-preference body:', req.body);
 
     if (!planId) {
       return res.status(400).json({ error: 'planId es requerido' });
@@ -318,11 +245,13 @@ app.post('/api/payments/create-preference', async (req, res) => {
         pending: `${APP_BASE_URL}/payments/pending`,
         failure: `${APP_BASE_URL}/payments/failure`
       },
-      auto_return: 'approved',
+      // auto_return: 'approved',
       external_reference: externalReference
     };
 
+    console.log('📤 Creating preference with payload:', preferencePayload);
     const preference = await createPreference(preferencePayload);
+    console.log('✅ Preference created result:', JSON.stringify(preference, null, 2));
 
     res.json({
       preferenceId: preference.id,
@@ -390,7 +319,8 @@ app.get('/api/payments/status', async (req, res) => {
         .json({ error: 'Envía userId o email para consultar el estado de compra.' });
     }
 
-    const status = await purchaseStore.getStatus(planId, userId, email);
+    const store = await createPurchaseStore();
+    const status = await store.getStatus(planId, userId, email);
     res.json(status);
   } catch (error) {
     console.error('❌ Error obteniendo estado de pagos:', error);

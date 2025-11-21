@@ -63,18 +63,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
 
   const openCheckout = (pref: CreatePreferenceResponse) => {
     console.log('🎯 openCheckout llamado con:', pref);
+    console.log('📍 initPoint:', pref.initPoint);
+    console.log('📍 sandboxInitPoint:', pref.sandboxInitPoint);
 
-    // 🔥 SOLUCIÓN TEMPORAL: Usar una preferencia real que sabemos funciona
-    const workingPreferenceId = '249173215-f1bd8f39-3d98-4e06-b945-ba11e9fe470c';
-    const workingCheckoutUrl = `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${workingPreferenceId}`;
+    const checkoutUrl = pref.initPoint;
+    console.log('🔗 URL final seleccionada:', checkoutUrl);
 
-    console.log('🛒 Abriendo checkout de Mercado Pago (URL funcional):', workingCheckoutUrl);
-    window.open(workingCheckoutUrl, '_blank', 'noopener,noreferrer');
-
-    // Opcional: también intentar con la preferencia generada
-    const generatedUrl = pref.sandboxInitPoint || pref.initPoint;
-    if (generatedUrl && !generatedUrl.includes('dark-mode-premium')) {
-      console.log('🛒 También abriendo checkout generado:', generatedUrl);
+    if (checkoutUrl) {
+      console.log('🛒 Abriendo checkout de Mercado Pago:', checkoutUrl);
+      window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      console.error('❌ No se recibió una URL de checkout válida', pref);
+      setCheckoutError('Error: Mercado Pago no devolvió una URL de pago válida.');
     }
   };
 
@@ -151,9 +151,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div
-        className={`relative w-full max-w-lg rounded-2xl p-6 ${
-          currentTheme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
-        } shadow-2xl`}
+        className={`relative w-full max-w-lg rounded-2xl p-6 ${currentTheme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
+          } shadow-2xl`}
       >
         <button
           onClick={onClose}
