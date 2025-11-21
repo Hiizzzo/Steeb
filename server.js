@@ -257,7 +257,8 @@ app.post('/api/payments/create-preference', async (req, res) => {
         failure: `${APP_BASE_URL}/payments/failure`
       },
       // auto_return: 'approved',
-      external_reference: externalReference
+      external_reference: externalReference,
+      notification_url: MP_NOTIFICATION_URL
     };
 
     console.log('📤 Creating preference with payload:', preferencePayload);
