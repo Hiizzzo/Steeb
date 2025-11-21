@@ -139,11 +139,21 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 						console.log('🚀 Redirigiendo a Mercado Pago');
 
 						const checkoutUrl = preferenceResponse.initPoint;
-						if (checkoutUrl) {
-							console.log('🛒 Abriendo checkout de Mercado Pago:', checkoutUrl);
+						const sandboxUrl = preferenceResponse.sandboxInitPoint;
+
+						console.log('🛒 URLs disponibles:');
+						console.log('- Init Point (producción):', checkoutUrl);
+						console.log('- Sandbox Init Point (prueba):', sandboxUrl);
+
+						// Para desarrollo, usar sandbox; para producción, usar initPoint
+						const finalUrl = process.env.NODE_ENV === 'development' ? sandboxUrl : checkoutUrl;
+
+						if (finalUrl) {
+							console.log('🛒 Abriendo checkout de Mercado Pago:', finalUrl);
+							console.log('🔧 Modo:', process.env.NODE_ENV === 'development' ? 'DESARROLLO (sandbox)' : 'PRODUCCIÓN');
 
 							// Abrir en una nueva ventana para el checkout de Mercado Pago
-							window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+							window.open(finalUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
 						} else {
 							throw new Error('No hay URL de checkout disponible');
 						}
@@ -156,16 +166,16 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 				} catch (error) {
 					console.error('❌ Error en el proceso de pago:', error);
 
-					// Fallback final: abrir Mercado Pago
-					window.open('https://www.mercadopago.com.ar', '_blank');
-					console.log('🔄 Fallback final: abriendo Mercado Pago manualmente');
+					// Mostrar error detallado al usuario
+					alert('❌ Error en el proceso de pago: ' + (error.message || 'Error desconocido') + '\n\nPor favor, contacta a soporte o intenta más tarde.');
+					return;
 				}
 			} else {
 				console.log('⚠️ Mercado Pago no está listo:', mpStatus);
 
-				// Fallback si el SDK no carga
-				window.open('https://www.mercadopago.com.ar', '_blank');
-				console.log('🔄 Mercado Pago no listo, abriendo manualmente');
+				// Mostrar error claro si el SDK no carga
+				alert('⚠️ El sistema de pagos no está disponible\n\nPor favor, recarga la página e intenta nuevamente.\nSi el problema persiste, contacta a soporte.');
+				return;
 			}
 		};
 

@@ -21,9 +21,14 @@ const APP_BASE_URL = process.env.APP_BASE_URL || process.env.BASE_URL || `http:/
 app.use(cors());
 app.use(express.json());
 
-const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || '';
-const MERCADOPAGO_PUBLIC_KEY = process.env.MERCADOPAGO_PUBLIC_KEY || '';
+const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MP_ACCESS_TOKEN || '';
+const MERCADOPAGO_PUBLIC_KEY = process.env.MERCADOPAGO_PUBLIC_KEY || process.env.MP_PUBLIC_KEY || '';
 const MP_NOTIFICATION_URL = process.env.MP_NOTIFICATION_URL || `${APP_BASE_URL}/api/payments/webhook`;
+
+console.log('🔧 Configuración Mercado Pago:');
+console.log('- Access Token:', MERCADOPAGO_ACCESS_TOKEN ? '✅ Configurado' : '❌ NO CONFIGURADO');
+console.log('- Public Key:', MERCADOPAGO_PUBLIC_KEY ? '✅ Configurado' : '❌ NO CONFIGURADO');
+console.log('- Base URL:', APP_BASE_URL);
 const MP_WEBHOOK_SECRET = process.env.MP_WEBHOOK_SECRET || '';
 
 const paymentPlansPath = path.join(__dirname, 'config', 'paymentPlans.json');
@@ -43,10 +48,16 @@ try {
 const client = new MercadoPagoConfig({ accessToken: MERCADOPAGO_ACCESS_TOKEN });
 
 const createPreference = async (preferenceData) => {
+  if (!MERCADOPAGO_ACCESS_TOKEN) {
+    throw new Error('❌ MERCADOPAGO_ACCESS_TOKEN no está configurado en el servidor');
+  }
+
+  console.log('🚀 Creando preferencia con datos:', preferenceData);
   const preference = new Preference(client);
   const result = await preference.create({ body: preferenceData });
   console.log('✨ Preferencia creada:', result.id);
   console.log('👉 Init Point:', result.init_point);
+  console.log('👉 Sandbox Init Point:', result.sandbox_init_point);
   return result;
 };
 
