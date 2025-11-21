@@ -68,12 +68,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
     const checkoutUrl = pref.initPoint;
     console.log('🔗 URL DE PRODUCCIÓN REAL:', checkoutUrl);
 
-    if (checkoutUrl) {
-      console.log('🛒 Abriendo checkout REAL de Mercado Pago:', checkoutUrl);
-      window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
-    } else {
+    if (!checkoutUrl) {
       console.error('❌ No se recibió una URL de checkout válida', pref);
       setCheckoutError('Error: Mercado Pago no devolvió una URL de pago válida.');
+      return;
+    }
+
+    try {
+      console.log('🛒 Abriendo checkout REAL de Mercado Pago:', checkoutUrl);
+      const popup = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+
+      // Algunos navegadores móviles bloquean las nuevas ventanas. Si eso pasa,
+      // redirigimos en la misma pestaña para evitar el error "Load failed".
+      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+        console.warn('⚠️ window.open bloqueado, redirigiendo en la misma pestaña');
+        window.location.href = checkoutUrl;
+      }
+    } catch (err) {
+      console.error('❌ No se pudo abrir el checkout de Mercado Pago:', err);
+      setCheckoutError('No pudimos abrir Mercado Pago. Probá nuevamente.');
+      window.location.href = checkoutUrl;
     }
   };
 
