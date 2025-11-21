@@ -139,21 +139,17 @@ El modo Shiny es exclusivo - solo accesible mediante el juego de adivinanza (1% 
 						console.log('🚀 Redirigiendo a Mercado Pago');
 
 						const checkoutUrl = preferenceResponse.initPoint;
-						const sandboxUrl = preferenceResponse.sandboxInitPoint;
 
-						console.log('🛒 URLs disponibles:');
-						console.log('- Init Point (producción):', checkoutUrl);
-						console.log('- Sandbox Init Point (prueba):', sandboxUrl);
+						console.log('🛒 URL de producción:');
+						console.log('- Init Point (PRODUCCIÓN REAL):', checkoutUrl);
 
-						// Para desarrollo, usar sandbox; para producción, usar initPoint
-						const finalUrl = process.env.NODE_ENV === 'development' ? sandboxUrl : checkoutUrl;
+						// SIEMPRE usar producción real - NO sandbox
+						if (checkoutUrl) {
+							console.log('🛒 Abriendo checkout REAL de Mercado Pago:', checkoutUrl);
+							console.log('🔧 MODO: PRODUCCIÓN REAL - PAGOS REALES');
 
-						if (finalUrl) {
-							console.log('🛒 Abriendo checkout de Mercado Pago:', finalUrl);
-							console.log('🔧 Modo:', process.env.NODE_ENV === 'development' ? 'DESARROLLO (sandbox)' : 'PRODUCCIÓN');
-
-							// Abrir en una nueva ventana para el checkout de Mercado Pago
-							window.open(finalUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+							// Abrir en una nueva ventana para el checkout de Mercado Pago REAL
+							window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
 						} else {
 							throw new Error('No hay URL de checkout disponible');
 						}

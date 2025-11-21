@@ -63,14 +63,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
 
   const openCheckout = (pref: CreatePreferenceResponse) => {
     console.log('🎯 openCheckout llamado con:', pref);
-    console.log('📍 initPoint:', pref.initPoint);
-    console.log('📍 sandboxInitPoint:', pref.sandboxInitPoint);
 
+    // SIEMPRE usar producción real - NO sandbox
     const checkoutUrl = pref.initPoint;
-    console.log('🔗 URL final seleccionada:', checkoutUrl);
+    console.log('🔗 URL DE PRODUCCIÓN REAL:', checkoutUrl);
 
     if (checkoutUrl) {
-      console.log('🛒 Abriendo checkout de Mercado Pago:', checkoutUrl);
+      console.log('🛒 Abriendo checkout REAL de Mercado Pago:', checkoutUrl);
       window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
     } else {
       console.error('❌ No se recibió una URL de checkout válida', pref);
