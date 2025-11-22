@@ -1,5 +1,8 @@
-// Servicio para integración con Mercado Pago - VERSIÓN LIMPIA DE PRODUCCIÓN
-// SIN SIMULACIÓN, SIN TESTING, SIN BASURA
+// Servicio para integración con Mercado Pago - VERSIÓN ACTUALIZADA
+// Con conexión al backend real y Firebase
+
+import { apiClient } from '@/api/client';
+import { getAuth } from 'firebase/auth';
 
 export interface PaymentPreference {
   title: string;
@@ -19,11 +22,77 @@ export interface MercadoPagoResponse {
   plan?: any;
 }
 
+export interface PaymentUserData {
+  userId: string;
+  email: string;
+  name: string;
+}
+
 export const mercadoPagoService = {
-  // Crear preferencia de pago - PRODUCCIÓN
+  // Crear pago con datos de usuario de Firebase
+  createPayment: async (userData: PaymentUserData): Promise<MercadoPagoResponse> => {
+    try {
+      console.log('🚀 Creando pago para usuario:', userData);
+
+      const response = await apiClient.post('/payments/create-preference', {
+        planId: 'dark-mode-premium',
+        quantity: 1,
+        ...userData
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || 'Error creando preferencia de pago');
+      }
+
+      console.log('✅ Pago creado exitosamente:', response.data);
+      return response.data as MercadoPagoResponse;
+
+    } catch (error) {
+      console.error('❌ Error creating payment:', error);
+
+      // Si el apiClient falla, intentar con fetch directo
+      try {
+        console.log('🔄 Intentando con fetch directo...');
+        const apiBaseUrl = 'https://v0-steeb-api-backend.vercel.app/api';
+
+        const fetchResponse = await fetch(`${apiBaseUrl}/payments/create-preference`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            planId: 'dark-mode-premium',
+            quantity: 1,
+            ...userData
+          }),
+          mode: 'cors'
+        });
+
+        if (!fetchResponse.ok) {
+          throw new Error(`HTTP ${fetchResponse.status}: ${fetchResponse.statusText}`);
+        }
+
+        const data = await fetchResponse.json();
+        console.log('✅ Pago creado con fetch directo:', data);
+        return data;
+
+      } catch (fetchError) {
+        console.error('❌ Error con fetch directo:', fetchError);
+        throw new Error(`Error de conexión: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
+      }
+    }
+  },
+
+  // Crear preferencia de pago (compatibilidad con código existente)
   createPreference: async (preference: PaymentPreference): Promise<MercadoPagoResponse> => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://v0-steeb-api-backend.vercel.app/api';
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        throw new Error('Usuario no autenticado');
+      }
 
       // Convertir upgradeType a planId
       const planIdMap = {
@@ -34,25 +103,19 @@ export const mercadoPagoService = {
 
       const planId = planIdMap[preference.upgradeType] || 'dark-mode-premium';
 
-      const response = await fetch(`${apiBaseUrl}/api/payments/create-preference`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          planId: planId,
-          userId: preference.userId,
-          email: `user_${preference.userId}@steeb.app`,
-          name: 'Usuario STEEB'
-        })
+      const response = await apiClient.post('/payments/create-preference', {
+        planId: planId,
+        userId: preference.userId,
+        email: currentUser.email || `user_${preference.userId}@steeb.app`,
+        name: currentUser.displayName || 'Usuario STEEB',
+        quantity: preference.quantity
       });
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      if (!response.success) {
+        throw new Error(response.error || 'Error creando preferencia de pago');
       }
 
-      const data = await response.json();
-      return data;
+      return response.data as MercadoPagoResponse;
 
     } catch (error) {
       console.error('Error creating payment preference:', error);
@@ -64,7 +127,7 @@ export const mercadoPagoService = {
   redirectToCheckout: (response: MercadoPagoResponse) => {
     console.log('🚀 Redirigiendo a Mercado Pago:', response);
 
-    const checkoutUrl = response.sandboxInitPoint || response.initPoint;
+    const checkoutUrl = response.initPoint; // Usar solo initPoint (producción)
     if (checkoutUrl) {
       console.log('🛒 Abriendo checkout:', checkoutUrl);
       window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
@@ -73,17 +136,50 @@ export const mercadoPagoService = {
     }
   },
 
-  // Procesar pago exitoso - PRODUCCIÓN
+  // Flujo de pago completo
+  handlePayment: async (userData: PaymentUserData) => {
+    try {
+      console.log('🚀 Iniciando flujo de pago para:', userData);
+
+      // 1. Crear preferencia de pago
+      const paymentData = await mercadoPagoService.createPayment(userData);
+
+      // 2. Redirigir a Mercado Pago
+      mercadoPagoService.redirectToCheckout(paymentData);
+
+      return paymentData;
+
+    } catch (error) {
+      console.error('❌ Error en proceso de pago:', error);
+      throw error;
+    }
+  },
+
+  // Procesar pago exitoso - ahora maneja verificación de rol
   processPaymentSuccess: async (preferenceId: string, userId: string) => {
     try {
-      console.log('Procesando pago exitoso:', { preferenceId, userId });
+      console.log('✅ Procesando pago exitoso:', { preferenceId, userId });
 
-      // Aquí se verificaría el estado del pago con la API de Mercado Pago
-      // y se activaría el upgrade correspondiente
+      // El backend ya maneja la activación del rol
+      // Solo necesitamos verificar el estado
+      const response = await apiClient.get(`/users/role?userId=${userId}`);
 
-      return true;
+      if (response.success && response.data) {
+        const userRole = response.data;
+        console.log('🎉 Rol actualizado:', userRole);
+
+        return {
+          success: true,
+          role: userRole.role,
+          permissions: userRole.permissions,
+          isPremium: userRole.role === 'premium'
+        };
+      }
+
+      throw new Error('No se pudo verificar el rol del usuario');
+
     } catch (error) {
-      console.error('Error processing payment success:', error);
+      console.error('❌ Error procesando pago exitoso:', error);
       throw error;
     }
   }

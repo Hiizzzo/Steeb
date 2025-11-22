@@ -1,13 +1,8 @@
 import type { PaymentPlan } from '@/config/paymentPlans';
 
-const sanitizeBaseUrl = (url?: string | null): string | null => {
-  if (!url) return null;
-  return url.replace(/\/+$/, '');
-};
-
-const apiBaseUrl = sanitizeBaseUrl(import.meta.env.VITE_API_URL);
-const BASE_PATH = apiBaseUrl ? `${apiBaseUrl}/api/payments` : '/api/payments';
-const buildUrl = (path: string) => `${BASE_PATH}${path}`;
+// Usar la URL correcta del backend sin doble /api
+const API_BASE_URL = 'https://v0-steeb-api-backend.vercel.app/api';
+const buildUrl = (path: string) => `${API_BASE_URL}${path}`;
 
 export interface CreatePreferenceInput {
   planId: string;
@@ -67,10 +62,11 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 export const createCheckoutPreference = async (
   payload: CreatePreferenceInput
 ): Promise<CreatePreferenceResponse> => {
-  const response = await fetch(buildUrl('/create-preference'), {
+  const response = await fetch(buildUrl('/payments/create-preference'), {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: JSON.stringify(payload)
   });
@@ -81,10 +77,11 @@ export const createCheckoutPreference = async (
 export const verifyPayment = async (
   payload: VerifyPaymentInput
 ): Promise<PaymentRecord & { message?: string }> => {
-  const response = await fetch(buildUrl('/verify'), {
+  const response = await fetch(buildUrl('/payments/verify'), {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: JSON.stringify(payload)
   });
@@ -92,19 +89,19 @@ export const verifyPayment = async (
   return handleResponse(response);
 };
 
-export const getPaymentStatus = async (params: {
-  planId: string;
-  userId?: string | null;
-  email?: string | null;
-}): Promise<PaymentStatusResponse> => {
-  const searchParams = new URLSearchParams({ planId: params.planId });
-  if (params.userId) {
-    searchParams.append('userId', params.userId);
-  }
-  if (params.email) {
-    searchParams.append('email', params.email);
-  }
+// Nuevo método para verificar rol del usuario (reemplaza a getPaymentStatus)
+export const getUserRole = async (userId: string): Promise<{ role: string; permissions: string[] }> => {
+  const response = await fetch(buildUrl(`/users/role?userId=${userId}`), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
+  });
 
-  const response = await fetch(buildUrl(`/status?${searchParams.toString()}`));
-  return handleResponse(response);
+  const data = await handleResponse<any>(response);
+  return {
+    role: data.data?.role || 'free',
+    permissions: data.data?.permissions || []
+  };
 };

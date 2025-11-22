@@ -9,105 +9,41 @@ import {
   Sparkles,
   X
 } from 'lucide-react';
-import { useUserCredits } from '@/hooks/useUserCredits';
 import { useTheme } from '@/hooks/useTheme';
-import { useAuth } from '@/hooks/useAuth';
-import { useMercadoPago } from '@/hooks/useMercadoPago';
-import { useUserRole } from '@/hooks/useUserRole';
 import { useUnifiedUserAccess } from '@/hooks/useUnifiedUserAccess';
-import { createCheckoutPreference, verifyPayment } from '@/services/paymentService';
-import type { CreatePreferenceResponse } from '@/services/paymentService';
-import { DARK_MODE_PLAN_ID, formatPlanPrice } from '@/config/paymentPlans';
+import { mercadoPagoService } from '@/services/mercadoPagoService';
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
-
 export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
   const {
-    userCredits,
-    plan,
-    syncWithBackend,
-    isSyncing,
-    syncError
-  } = useUserCredits();
-  const { updateUserRole } = useUserRole();
-  const { hasDarkAccess } = useUnifiedUserAccess();
+    hasDarkAccess,
+    canBuyDarkMode,
+    user,
+    isLoading,
+    waitForActivation,
+    checkUserRole
+  } = useUnifiedUserAccess();
   const { currentTheme } = useTheme();
 
-  const [preference, setPreference] = useState<CreatePreferenceResponse | null>(null);
-  const [checkoutState, setCheckoutState] = useState<'idle' | 'creating' | 'ready' | 'error'>(
-    'idle'
-  );
+  const [checkoutState, setCheckoutState] = useState<'idle' | 'creating' | 'verifying' | 'error'>('idle');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [lastSyncMessage, setLastSyncMessage] = useState<string | null>(null);
 
-  const { status: sdkStatus, instance, error: sdkError } = useMercadoPago(
-    MP_PUBLIC_KEY,
-    isOpen
-  );
-
   useEffect(() => {
     if (!isOpen) {
-      setPreference(null);
       setCheckoutState('idle');
       setCheckoutError(null);
       setLastSyncMessage(null);
     }
   }, [isOpen]);
 
-  const formattedPrice = useMemo(() => {
-    if (!plan) return '';
-    return formatPlanPrice(plan);
-  }, [plan]);
-
-  const openCheckout = (pref: CreatePreferenceResponse) => {
-    console.log('🎯 openCheckout llamado con:', pref);
-
-    // SIEMPRE usar producción real - NO sandbox
-    const checkoutUrl = pref.initPoint;
-    console.log('🔗 URL DE PRODUCCIÓN REAL:', checkoutUrl);
-
-    if (!checkoutUrl) {
-      console.error('❌ No se recibió una URL de checkout válida', pref);
-      setCheckoutError('Error: Mercado Pago no devolvió una URL de pago válida.');
-      return;
-    }
-
-    try {
-      console.log('🛒 Abriendo checkout REAL de Mercado Pago:', checkoutUrl);
-      const popup = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
-
-      // Algunos navegadores móviles bloquean las nuevas ventanas. Si eso pasa,
-      // redirigimos en la misma pestaña para evitar el error "Load failed".
-      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-        console.warn('⚠️ window.open bloqueado, redirigiendo en la misma pestaña');
-        window.location.href = checkoutUrl;
-      }
-    } catch (err) {
-      console.error('❌ No se pudo abrir el checkout de Mercado Pago:', err);
-      setCheckoutError('No pudimos abrir Mercado Pago. Probá nuevamente.');
-      window.location.href = checkoutUrl;
-    }
-  };
-
-  const handleCreatePreference = async () => {
-    if (!plan) {
-      setCheckoutError('No hay planes configurados.');
-      return;
-    }
-
-    if (!user?.email) {
+  const handlePayment = async () => {
+    if (!user?.email || !user.uid) {
       setCheckoutError('Inicia sesión con un email para completar el pago.');
-      return;
-    }
-
-    if (!MP_PUBLIC_KEY) {
-      setCheckoutError('Configura VITE_MERCADOPAGO_PUBLIC_KEY para habilitar el pago.');
       return;
     }
 
@@ -115,62 +51,49 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
     setCheckoutError(null);
 
     try {
-      const preferenceResponse = await createCheckoutPreference({
-        planId: plan.id ?? DARK_MODE_PLAN_ID,
-        userId: user.id,
+      const userData = {
+        userId: user.uid,
         email: user.email,
-        name: user.name || user.nickname
-      });
-      setPreference(preferenceResponse);
-      setCheckoutState('ready');
-      openCheckout(preferenceResponse);
+        name: user.displayName || 'Usuario STEEB'
+      };
+
+      // 1. Iniciar proceso de pago
+      await mercadoPagoService.handlePayment(userData);
+      setCheckoutState('idle');
     } catch (error) {
       setCheckoutState('error');
       setCheckoutError(
-        error instanceof Error ? error.message : 'No se pudo iniciar Mercado Pago'
+        error instanceof Error ? error.message : 'No se pudo iniciar el pago'
       );
     }
   };
 
-  const handleVerify = async () => {
-    setLastSyncMessage(null);
-
-    try {
-      // 1. Verificar el pago en Mercado Pago
-      if (preference?.externalReference || preference?.preferenceId) {
-        await verifyPayment({
-          externalReference: preference.externalReference,
-          preferenceId: preference.preferenceId
-        });
-      }
-    } catch (error) {
-      setLastSyncMessage(
-        error instanceof Error ? error.message : 'No se pudo verificar el pago en Mercado Pago.'
-      );
+  const handleVerifyPayment = async () => {
+    if (!user?.uid) {
+      setCheckoutError('Usuario no identificado.');
       return;
     }
 
-    try {
-      // 2. Verificar el estado con el backend
-      const active = await syncWithBackend();
+    setCheckoutState('verifying');
+    setCheckoutError(null);
+    setLastSyncMessage('⏳ Verificando estado del pago...');
 
-      if (active) {
-        // 3. 🎯 ACTIVAR EL ROL DARK (Paso que faltaba!)
-        try {
-          await updateUserRole('dark');
-          setLastSyncMessage('🎉 ¡Pago confirmado y rol DARK activado! Ya puedes usar el modo oscuro.');
-          setCheckoutState('idle');
-          setPreference(null);
-        } catch (roleError) {
-          console.error('Error activando rol dark:', roleError);
-          setLastSyncMessage('✅ Pago confirmado pero hubo un error activando el rol. Contactá soporte.');
-        }
-      } else {
-        setLastSyncMessage('Todavía no registramos un pago aprobado. Esperá unos segundos y volvé a intentar.');
+    try {
+      // 1. Esperar activación del premium con polling
+      const userRole = await waitForActivation(user.uid, 10); // Máximo 30 segundos
+
+      if (userRole.isPremium) {
+        setLastSyncMessage('🎉 ¡Pago confirmado! Ya tienes acceso al modo DARK.');
+        setCheckoutState('idle');
+
+        // Cerrar modal después de 2 segundos
+        setTimeout(() => {
+          onClose();
+        }, 2000);
       }
-    } catch (syncError) {
-      console.error('Error en sincronización:', syncError);
-      setLastSyncMessage('Error verificando el estado del pago. Intentalo nuevamente.');
+    } catch (error) {
+      setCheckoutState('error');
+      setLastSyncMessage('❌ El pago aún no fue procesado. Espera unos minutos y volvé a intentar.');
     }
   };
 
@@ -204,38 +127,37 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
               <Sparkles className="w-6 h-6 text-pink-500" />
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Pagá con Mercado Pago usando tarjetas de crédito o débito.
+              Desbloqueá el modo oscuro con Mercado Pago.
             </p>
           </div>
 
-          {plan && (
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm uppercase tracking-wide text-gray-500">{plan.title}</p>
-                  <p className="text-3xl font-extrabold">{formattedPrice}</p>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
-                  <CreditCard className="w-4 h-4" />
-                  Pagos con cuotas
-                </div>
+          {/* Plan de pago fijo */}
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-wide text-gray-500">Modo DARK Premium</p>
+                <p className="text-3xl font-extrabold">$1 USD</p>
               </div>
-              <ul className="text-sm space-y-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
+                <CreditCard className="w-4 h-4" />
+                Pago único
+              </div>
             </div>
-          )}
-
-          {!plan && (
-            <div className="rounded-xl border border-amber-500/50 bg-amber-50 text-amber-900 p-3 text-sm">
-              Configura <code>config/paymentPlans.json</code> para mostrar el plan disponible.
-            </div>
-          )}
+            <ul className="text-sm space-y-1">
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500" />
+                Modo oscuro permanente
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500" />
+                Acceso a futuras actualizaciones
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-500" />
+                Soporte prioritario
+              </li>
+            </ul>
+          </div>
 
           {isAlreadyUnlocked && (
             <div className="rounded-xl border border-green-500/40 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200 p-3 text-sm flex items-center gap-2">
@@ -250,12 +172,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
             </div>
           )}
 
-          {sdkError && (
-            <div className="rounded-xl border border-red-500/40 bg-red-50 text-red-900 p-3 text-sm">
-              {sdkError}
-            </div>
-          )}
-
           {checkoutError && (
             <div className="rounded-xl border border-red-500/40 bg-red-50 text-red-900 p-3 text-sm">
               {checkoutError}
@@ -263,16 +179,20 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
           )}
 
           {lastSyncMessage && (
-            <div className="rounded-xl border border-blue-500/40 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 p-3 text-sm">
+            <div className={`rounded-xl border p-3 text-sm ${
+              lastSyncMessage.includes('🎉')
+                ? 'border-green-500/40 bg-green-50 text-green-900 dark:bg-green-900/20 dark:text-green-100'
+                : 'border-blue-500/40 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100'
+            }`}>
               {lastSyncMessage}
             </div>
           )}
 
-          {!isAlreadyUnlocked && !requiresLogin && plan && (
+          {!isAlreadyUnlocked && !requiresLogin && (
             <div className="space-y-3">
               <button
-                onClick={handleCreatePreference}
-                disabled={checkoutState === 'creating' || sdkStatus === 'loading'}
+                onClick={handlePayment}
+                disabled={checkoutState === 'creating' || isLoading}
                 className="w-full py-3 rounded-xl font-semibold bg-black text-white dark:bg-white dark:text-black flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
               >
                 {checkoutState === 'creating' ? (
@@ -287,17 +207,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
                   </>
                 )}
               </button>
-
-              {preference && (
-                <button
-                  onClick={() => openCheckout(preference)}
-                  className="w-full py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  Reabrir checkout
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-              <div id="mercado-pago-button" className="hidden" />
             </div>
           )}
 
@@ -307,16 +216,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
               Seguridad Mercado Pago
             </div>
             <p>
-              Al finalizar el pago volverás automáticamente a la app. También podés tocar “Ya pagué,
-              verificar” para sincronizar manualmente.
+              Al finalizar el pago, volvé a esta pantalla y tocá "Ya pagué, verificar" para activar el modo DARK.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={handleVerify}
-                disabled={isSyncing}
+                onClick={handleVerifyPayment}
+                disabled={checkoutState === 'verifying'}
                 className="flex-1 py-2 rounded-xl border border-black dark:border-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {isSyncing ? (
+                {checkoutState === 'verifying' ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Verificando…
@@ -328,9 +236,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
                   </>
                 )}
               </button>
-              {syncError && (
-                <p className="text-xs text-red-500 flex-1 self-center sm:text-right">{syncError}</p>
-              )}
             </div>
           </div>
         </div>

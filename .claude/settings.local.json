@@ -86,7 +86,8 @@
       "WebFetch(domain:www.mercadopago.com.ar)",
       "Bash(start http://localhost:8082)",
       "Bash(tasklist:*)",
-      "WebFetch(domain:v0-steeb-api-backend.vercel.app)"
+      "WebFetch(domain:v0-steeb-api-backend.vercel.app)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []

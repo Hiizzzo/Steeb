@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Colección de usuarios - PROTEGIDA
+    match /users/{userId} {
+      // SOLO LECTURA desde el frontend
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // NUNCA permitir escritura desde el frontend
+      allow write: if false;
+
+      // Los campos críticos solo pueden ser escritos por admin/backend
+      allow update: if false;
+      allow create: if false;
+      allow delete: if false;
+    }
+
+    // Otras colecciones - permitir operaciones normales
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

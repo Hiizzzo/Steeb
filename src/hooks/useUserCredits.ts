@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { DARK_MODE_PLAN_ID, getPaymentPlan } from '@/config/paymentPlans';
-import { getPaymentStatus } from '@/services/paymentService';
+import { getUserRole } from '@/services/paymentService';
 
 interface UserCredits {
   hasDarkVersion: boolean;
@@ -103,18 +103,14 @@ export const useUserCredits = () => {
     setSyncError(null);
 
     try {
-      const response = await getPaymentStatus({
-        planId: DARK_MODE_PLAN_ID,
-        userId: user?.id,
-        email: user?.email
-      });
+      const userRole = await getUserRole(user?.id);
 
       setUserCredits(prev => ({
         ...prev,
-        hasDarkVersion: response.active
+        hasDarkVersion: userRole.role === 'premium'
       }));
 
-      return response.active;
+      return userRole.role === 'premium';
     } catch (error) {
       setSyncError(
         error instanceof Error
