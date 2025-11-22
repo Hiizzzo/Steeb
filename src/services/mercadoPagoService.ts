@@ -23,7 +23,7 @@ export const mercadoPagoService = {
   // Crear preferencia de pago - PRODUCCIÓN
   createPreference: async (preference: PaymentPreference): Promise<MercadoPagoResponse> => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://v0-steeb-api-backend.vercel.app/api';
 
       // Convertir upgradeType a planId
       const planIdMap = {

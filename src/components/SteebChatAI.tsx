@@ -367,10 +367,7 @@ const SteebChatAI: React.FC = () => {
 
     try {
       const { reply, remainingMessages } = await sendMessageToSteeb(message);
-      const usageNote =
-        typeof remainingMessages === 'number' && Number.isFinite(remainingMessages)
-          ? `\n\nTe quedan ${remainingMessages} mensajes disponibles hoy.`
-          : '';
+      const usageNote = ''; // Eliminado: ya no muestra contador de mensajes
 
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,

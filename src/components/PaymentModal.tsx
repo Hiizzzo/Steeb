@@ -13,6 +13,8 @@ import { useUserCredits } from '@/hooks/useUserCredits';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useMercadoPago } from '@/hooks/useMercadoPago';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useUnifiedUserAccess } from '@/hooks/useUnifiedUserAccess';
 import { createCheckoutPreference, verifyPayment } from '@/services/paymentService';
 import type { CreatePreferenceResponse } from '@/services/paymentService';
 import { DARK_MODE_PLAN_ID, formatPlanPrice } from '@/config/paymentPlans';
@@ -33,6 +35,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
     isSyncing,
     syncError
   } = useUserCredits();
+  const { updateUserRole } = useUserRole();
+  const { hasDarkAccess } = useUnifiedUserAccess();
   const { currentTheme } = useTheme();
 
   const [preference, setPreference] = useState<CreatePreferenceResponse | null>(null);
@@ -118,6 +122,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
     setLastSyncMessage(null);
 
     try {
+      // 1. Verificar el pago en Mercado Pago
       if (preference?.externalReference || preference?.preferenceId) {
         await verifyPayment({
           externalReference: preference.externalReference,
@@ -128,23 +133,37 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
       setLastSyncMessage(
         error instanceof Error ? error.message : 'No se pudo verificar el pago en Mercado Pago.'
       );
+      return;
     }
 
-    const active = await syncWithBackend();
-    setLastSyncMessage(
-      active
-        ? '¡Compra confirmada! Ya puedes activar el modo DARK.'
-        : 'Todavía no registramos un pago aprobado.'
-    );
-    if (active) {
-      setCheckoutState('idle');
-      setPreference(null);
+    try {
+      // 2. Verificar el estado con el backend
+      const active = await syncWithBackend();
+
+      if (active) {
+        // 3. 🎯 ACTIVAR EL ROL DARK (Paso que faltaba!)
+        try {
+          await updateUserRole('dark');
+          setLastSyncMessage('🎉 ¡Pago confirmado y rol DARK activado! Ya puedes usar el modo oscuro.');
+          setCheckoutState('idle');
+          setPreference(null);
+        } catch (roleError) {
+          console.error('Error activando rol dark:', roleError);
+          setLastSyncMessage('✅ Pago confirmado pero hubo un error activando el rol. Contactá soporte.');
+        }
+      } else {
+        setLastSyncMessage('Todavía no registramos un pago aprobado. Esperá unos segundos y volvé a intentar.');
+      }
+    } catch (syncError) {
+      console.error('Error en sincronización:', syncError);
+      setLastSyncMessage('Error verificando el estado del pago. Intentalo nuevamente.');
     }
   };
 
   if (!isOpen) return null;
 
-  const isAlreadyUnlocked = userCredits.hasDarkVersion;
+  // Verificar acceso real unificado
+  const isAlreadyUnlocked = hasDarkAccess;
   const requiresLogin = !user?.email;
 
   return (
