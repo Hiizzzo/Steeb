@@ -61,14 +61,14 @@ export const useUnifiedUserAccess = () => {
   // Leer datos del usuario desde Firestore
   const loadUserData = async (userId: string) => {
     try {
-      console.log('🔍 Leyendo datos del usuario desde Firestore:', userId);
+      // console.log('🔍 Leyendo datos del usuario desde Firestore:', userId);
 
       const userDocRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
         const userData = userDoc.data() as UserData;
-        console.log('📊 Datos del usuario en Firestore:', userData);
+        // console.log('📊 Datos del usuario en Firestore:', userData);
 
         const tipoUsuario = userData.tipoUsuario || 'White';
         const hasDarkVersion = userData.hasDarkVersion || false;
@@ -84,11 +84,11 @@ export const useUnifiedUserAccess = () => {
           userData
         };
 
-        console.log('✅ Rol calculado desde Firestore:', roleData);
+        // console.log('✅ Rol calculado desde Firestore:', roleData);
         setUserRole(roleData);
         return roleData;
       } else {
-        console.log('⚠️ Usuario no existe en Firestore, usando valores por defecto');
+        // console.log('⚠️ Usuario no existe en Firestore, usando valores por defecto');
         const defaultRole: UserRole = {
           role: 'free',
           permissions: [],
@@ -129,7 +129,7 @@ export const useUnifiedUserAccess = () => {
         const unsubscribeFirestore = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
             const userData = doc.data() as UserData;
-            console.log('🔄 Cambio detectado en Firestore:', userData);
+            // console.log('🔄 Cambio detectado en Firestore:', userData);
 
             const tipoUsuario = userData.tipoUsuario || 'White';
             const hasDarkVersion = userData.hasDarkVersion || false;
@@ -145,7 +145,7 @@ export const useUnifiedUserAccess = () => {
               userData
             };
 
-            console.log('✅ Rol actualizado en tiempo real:', roleData);
+            // console.log('✅ Rol actualizado en tiempo real:', roleData);
             setUserRole(roleData);
           }
         });

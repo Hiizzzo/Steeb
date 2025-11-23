@@ -21,7 +21,7 @@ export const useFirebaseRoleCheck = () => {
       return 'free';
     }
 
-    console.log('🔍 Verificando rol en Firebase para usuario:', currentUser.uid);
+    // console.log('🔍 Verificando rol en Firebase para usuario:', currentUser.uid);
     setIsLoading(true);
     setError(null);
 
@@ -35,18 +35,18 @@ export const useFirebaseRoleCheck = () => {
         const role = userData?.role || 'free';
         const userTheme = userData?.tipoUsuario || 'white';
 
-        console.log('📋 Rol encontrado en Firebase:', role);
-        console.log('🎨 Tipo de usuario encontrado:', userTheme);
-        console.log('📧 Email usuario:', userData.email);
-        console.log('👤 UID usuario:', currentUser.uid);
-        console.log('📄 Datos completos:', JSON.stringify(userData, null, 2));
+        // console.log('📋 Rol encontrado en Firebase:', role);
+        // console.log('🎨 Tipo de usuario encontrado:', userTheme);
+        // console.log('📧 Email usuario:', userData.email);
+        // console.log('👤 UID usuario:', currentUser.uid);
+        // console.log('📄 Datos completos:', JSON.stringify(userData, null, 2));
 
         setUserRole(role);
         setTipoUsuario(userTheme);
         setIsLoading(false);
         return role;
       } else {
-        console.log('⚠️ Usuario no existe en Firebase');
+        // console.log('⚠️ Usuario no existe en Firebase');
         // Solo lectura - no crear documentos automáticamente
         setUserRole('free');
         setTipoUsuario('white');
@@ -71,7 +71,7 @@ export const useFirebaseRoleCheck = () => {
       setUser(currentUser);
 
       if (currentUser) {
-        console.log('👤 Usuario autenticado:', currentUser.uid);
+        // console.log('👤 Usuario autenticado:', currentUser.uid);
 
         // Escuchar cambios en el documento del usuario
         const userDocRef = doc(db, 'users', currentUser.uid);
@@ -82,7 +82,7 @@ export const useFirebaseRoleCheck = () => {
             const newTipoUsuario = userData?.tipoUsuario || 'white';
 
             if (newRole !== userRole) {
-              console.log('🔄 Cambio de rol detectado:', userRole, '→', newRole);
+              // console.log('🔄 Cambio de rol detectado:', userRole, '→', newRole);
               setUserRole(newRole);
 
               // Enviar evento de cambio de rol
@@ -97,7 +97,7 @@ export const useFirebaseRoleCheck = () => {
             }
 
             if (newTipoUsuario !== tipoUsuario) {
-              console.log('🎨 Cambio de tipo de usuario detectado:', tipoUsuario, '→', newTipoUsuario);
+              // console.log('🎨 Cambio de tipo de usuario detectado:', tipoUsuario, '→', newTipoUsuario);
               setTipoUsuario(newTipoUsuario);
             }
           }
@@ -109,7 +109,7 @@ export const useFirebaseRoleCheck = () => {
           unsubscribeUser();
         };
       } else {
-        console.log('❌ No hay usuario autenticado');
+        // console.log('❌ No hay usuario autenticado');
         setUserRole('free');
         setTipoUsuario('white');
       }
