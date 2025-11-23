@@ -31,9 +31,9 @@ export interface PaymentUserData {
 
 export const mercadoPagoService = {
   // Crear pago con datos de usuario de Firebase
-  createPayment: async (userData: PaymentUserData): Promise<MercadoPagoResponse> => {
+  createPayment: async (userData: PaymentUserData, planId: string = 'black-user-plan', quantity: number = 1): Promise<MercadoPagoResponse> => {
     try {
-      console.log('🚀 Creando pago para usuario:', userData);
+      console.log('🚀 Creando pago para usuario:', userData, 'Plan:', planId, 'Qty:', quantity);
 
       const auth = getAuth();
       const currentUid = auth.currentUser?.uid;
@@ -44,8 +44,8 @@ export const mercadoPagoService = {
       }
 
       const payload = {
-        planId: 'black-user-plan',
-        quantity: 1,
+        planId,
+        quantity,
         ...userData,
         userId: finalUserId // Ensure userId is explicit
       };
@@ -82,8 +82,8 @@ export const mercadoPagoService = {
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            planId: 'black-user-plan',
-            quantity: 1,
+            planId,
+            quantity,
             ...userData,
             userId: finalUserId
           }),
@@ -158,12 +158,12 @@ export const mercadoPagoService = {
   },
 
   // Flujo de pago completo
-  handlePayment: async (userData: PaymentUserData) => {
+  handlePayment: async (userData: PaymentUserData, planId: string = 'black-user-plan', quantity: number = 1) => {
     try {
       console.log('🚀 Iniciando flujo de pago para:', userData);
 
       // 1. Crear preferencia de pago
-      const paymentData = await mercadoPagoService.createPayment(userData);
+      const paymentData = await mercadoPagoService.createPayment(userData, planId, quantity);
 
       // 2. Redirigir a Mercado Pago
       mercadoPagoService.redirectToCheckout(paymentData);

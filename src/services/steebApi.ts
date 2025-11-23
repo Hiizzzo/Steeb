@@ -1,4 +1,5 @@
 const API_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/steeb';
+const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/shiny-game';
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 type SteebApiSuccess = {
@@ -74,4 +75,53 @@ export async function sendMessageToSteeb(message: string): Promise<SteebApiSucce
     messageCount,
     remainingMessages
   };
+}
+
+export type ShinyGameResponse = {
+  success: boolean;
+  won?: boolean;
+  secret?: number;
+  message: string;
+  remainingRolls?: number;
+  nextAttemptIn?: number;
+  alreadyWon?: boolean;
+};
+
+export async function playShinyGame(guess: number): Promise<ShinyGameResponse> {
+  const userId = await getPersistentUserId();
+
+  console.log('🎲 SHINY GAME → Jugando con número:', guess);
+
+  let response: Response;
+
+  try {
+    response = await fetch(SHINY_GAME_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId,
+        guess
+      })
+    });
+  } catch {
+    throw new Error('No pudimos contactar al servidor de juego. Revisa tu conexión.');
+  }
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    // Si es error 429 (límite diario), devolvemos la data para manejar el tiempo restante
+    if (response.status === 429) {
+      return {
+        success: false,
+        message: data.message || 'Límite diario alcanzado',
+        nextAttemptIn: data.nextAttemptIn
+      };
+    }
+    throw new Error(data.message || 'Error al jugar Shiny Game');
+  }
+
+  return data as ShinyGameResponse;
 }
