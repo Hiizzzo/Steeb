@@ -3,7 +3,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useMercadoPago } from "@/hooks/useMercadoPago";
 import { useFirebaseRoleCheck } from "@/hooks/useFirebaseRoleCheck";
-import ShinyGreetingModal from "@/components/ShinyGreetingModal";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -13,7 +12,6 @@ const ThemeToggle = () => {
 	const { user } = useAuth();
 	const { tipoUsuario } = useFirebaseRoleCheck();
 	const [mounted, setMounted] = useState(false);
-	const [showGame, setShowGame] = useState(false);
 
 	// Mercado Pago configuration - usando tus credenciales reales de TEST
 	const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY || 'APP_USR-040fe15b-62b7-4999-926c-08c2ae46c5bb';
@@ -48,9 +46,9 @@ const ThemeToggle = () => {
 		// WHITE: solo light
 		if (normalizedTipo === 'white') return theme === 'light';
 
-		// BLACK o DARK: light + dark + tiradas shiny
+		// BLACK o DARK: light + dark
 		if (normalizedTipo === 'black' || normalizedTipo === 'dark') {
-			return theme === 'light' || theme === 'dark' || theme === 'shiny';
+			return theme === 'light' || theme === 'dark';
 		}
 
 		// SHINY: todo
@@ -74,15 +72,18 @@ const ThemeToggle = () => {
 				};
 				window.dispatchEvent(new CustomEvent('steeb-message-with-button', { detail: message }));
 			} else if (newTheme === 'shiny') {
-				sendMessageToSteebChat('Para Shiny Mode necesitás Dark Mode primero ✨');
+				const message = {
+					type: 'theme-info-with-options',
+					content: '¿Vas a probar suerte para desbloquear el modo Shiny? ✨\n\nElegí tu paquete de tiradas:',
+					timestamp: new Date(),
+					paymentOptions: [
+						{ id: '1-roll', label: '1 tirada', price: '$1', action: 'buy-shiny-rolls', planId: 'shiny-roll-1' },
+						{ id: '15-rolls', label: '15 tiradas', price: '$15', action: 'buy-shiny-rolls', planId: 'shiny-roll-15' },
+						{ id: '30-rolls', label: '30 tiradas', price: '$30', action: 'buy-shiny-rolls', planId: 'shiny-roll-30' }
+					]
+				};
+				window.dispatchEvent(new CustomEvent('steeb-message-with-options', { detail: message }));
 			}
-			return;
-		}
-
-		// Usuario BLACK o DARK quiere Shiny - mostrar juego
-		const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
-		if ((normalizedTipo === 'black' || normalizedTipo === 'dark') && newTheme === 'shiny') {
-			setShowGame(true);
 			return;
 		}
 
@@ -121,8 +122,42 @@ const ThemeToggle = () => {
 			}
 		};
 
+		// Listener para compra de tiradas Shiny
+		const handleBuyShinyRolls = async (event: CustomEvent) => {
+			const { planId } = event.detail;
+			const currentUserId = user?.id || userProfile?.uid;
+
+			if (!currentUserId) {
+				alert('Debes iniciar sesión para comprar tiradas Shiny.');
+				return;
+			}
+
+			if (mpInstance && mpStatus === 'ready') {
+				try {
+					const { createCheckoutPreference } = await import('@/services/paymentService');
+					const preferenceResponse = await createCheckoutPreference({
+						planId: planId,
+						quantity: 1,
+						userId: currentUserId,
+						email: user?.email || userProfile?.email,
+						name: user?.name || userProfile?.name || userProfile?.nickname,
+						avatar: user?.avatar || userProfile?.avatar
+					});
+
+					window.open(preferenceResponse.initPoint, '_blank', 'noopener,noreferrer,width=800,height=600');
+				} catch (error) {
+					alert('Error procesando el pago: ' + error.message);
+				}
+			}
+		};
+
 		window.addEventListener('buy-dark-mode', handleBuyDarkMode as EventListener);
-		return () => window.removeEventListener('buy-dark-mode', handleBuyDarkMode as EventListener);
+		window.addEventListener('buy-shiny-rolls', handleBuyShinyRolls as EventListener);
+		
+		return () => {
+			window.removeEventListener('buy-dark-mode', handleBuyDarkMode as EventListener);
+			window.removeEventListener('buy-shiny-rolls', handleBuyShinyRolls as EventListener);
+		};
 	}, [mpInstance, mpStatus, userProfile]);
 
 	// Efecto de seguridad: Forzar Light Mode si el usuario no tiene permisos
@@ -267,17 +302,6 @@ const ThemeToggle = () => {
 			</div>
 
 
-
-			{/* Modal del juego de adivinanza */}
-			<ShinyGreetingModal
-				open={showGame}
-				onOpenChange={setShowGame}
-				onWin={() => {
-					localStorage.setItem('stebe-shiny-unlocked', 'true');
-					handleThemeChange('dark');
-					setShowGame(false);
-				}}
-			/>
 
 		</div>
 	);
