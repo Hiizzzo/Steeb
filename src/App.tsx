@@ -31,6 +31,8 @@ import { AppTrackingTransparency } from 'capacitor-plugin-app-tracking-transpare
 import Index from "./pages/Index";
 import SettingsPage from "./pages/SettingsPage";
 import AboutPage from "./pages/AboutPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentTestPage from "./pages/PaymentTestPage";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import AuthScreen from "./components/AuthScreen";
@@ -174,7 +176,8 @@ const AppContent = () => {
         <Route path="/" element={<Index />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/about" element={<AboutPage />} />
-
+        <Route path="/payments/success" element={<PaymentSuccessPage />} />
+        <Route path="/payments/test" element={<PaymentTestPage />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

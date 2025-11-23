@@ -5,9 +5,12 @@ import { useMercadoPago } from "@/hooks/useMercadoPago";
 import { useFirebaseRoleCheck } from "@/hooks/useFirebaseRoleCheck";
 import ShinyGreetingModal from "@/components/ShinyGreetingModal";
 
+import { useAuth } from "@/hooks/useAuth";
+
 const ThemeToggle = () => {
 	const { currentTheme, toggleTheme } = useTheme();
 	const { userProfile } = useUserRole();
+	const { user } = useAuth();
 	const { tipoUsuario } = useFirebaseRoleCheck();
 	const [mounted, setMounted] = useState(false);
 	const [showGame, setShowGame] = useState(false);
@@ -37,17 +40,27 @@ const ThemeToggle = () => {
 
 	// Acceso directo según tipoUsuario de Firebase
 	const canUseThemeMode = (theme: 'light' | 'dark' | 'shiny') => {
+		console.log('🔍 canUseThemeMode - tipoUsuario:', tipoUsuario, 'theme:', theme);
+
+		// Normalizar tipoUsuario a minúsculas para comparación
+		const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+
 		// WHITE: solo light
-		if (tipoUsuario === 'white') return theme === 'light';
-		// BLACK: light + dark + tiradas shiny
-		if (tipoUsuario === 'black') return theme === 'light' || theme === 'dark' || theme === 'shiny';
+		if (normalizedTipo === 'white') return theme === 'light';
+
+		// BLACK o DARK: light + dark + tiradas shiny
+		if (normalizedTipo === 'black' || normalizedTipo === 'dark') {
+			return theme === 'light' || theme === 'dark' || theme === 'shiny';
+		}
+
 		// SHINY: todo
-		if (tipoUsuario === 'shiny') return true;
+		if (normalizedTipo === 'shiny') return true;
+
 		// Default: solo light
 		return theme === 'light';
 	};
 
-	
+
 	// Callback simple de cambio de tema
 	const handleThemeChange = (newTheme: 'light' | 'dark' | 'shiny') => {
 		if (!canUseThemeMode(newTheme)) {
@@ -66,8 +79,9 @@ const ThemeToggle = () => {
 			return;
 		}
 
-		// Usuario BLACK quiere Shiny - mostrar juego
-		if (tipoUsuario === 'black' && newTheme === 'shiny') {
+		// Usuario BLACK o DARK quiere Shiny - mostrar juego
+		const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+		if ((normalizedTipo === 'black' || normalizedTipo === 'dark') && newTheme === 'shiny') {
 			setShowGame(true);
 			return;
 		}
@@ -81,15 +95,23 @@ const ThemeToggle = () => {
 
 		// Listener simple para compra de Dark Mode
 		const handleBuyDarkMode = async (event: CustomEvent) => {
+			const currentUserId = user?.id || userProfile?.uid;
+
+			if (!currentUserId) {
+				alert('Debes iniciar sesión para comprar el modo Dark.');
+				return;
+			}
+
 			if (mpInstance && mpStatus === 'ready') {
 				try {
 					const { createCheckoutPreference } = await import('@/services/paymentService');
 					const preferenceResponse = await createCheckoutPreference({
-						planId: 'dark-mode-premium',
+						planId: 'black-user-plan',
 						quantity: 1,
-						userId: userProfile?.id || 'anon',
-						email: userProfile?.email,
-						name: userProfile?.name || userProfile?.nickname
+						userId: currentUserId,
+						email: user?.email || userProfile?.email,
+						name: user?.name || userProfile?.name || userProfile?.nickname,
+						avatar: user?.avatar || userProfile?.avatar
 					});
 
 					window.open(preferenceResponse.initPoint, '_blank', 'noopener,noreferrer,width=800,height=600');
@@ -215,10 +237,10 @@ const ThemeToggle = () => {
 			<div
 				ref={sliderRef}
 				className={`relative w-16 h-8 rounded-full border-2 transition-all duration-200 cursor-pointer select-none shiny-toggle shiny-allow-native ${currentTheme === "light"
+					? 'bg-white border-black'
+					: currentTheme === "shiny"
 						? 'bg-white border-black'
-						: currentTheme === "shiny"
-							? 'bg-white border-black'
-							: 'bg-black border-black'
+						: 'bg-black border-black'
 					}`}
 				onClick={handleClick}
 				onMouseDown={handleMouseDown}
@@ -244,8 +266,8 @@ const ThemeToggle = () => {
 				</div>
 			</div>
 
-			
-			
+
+
 			{/* Modal del juego de adivinanza */}
 			<ShinyGreetingModal
 				open={showGame}

@@ -26,6 +26,7 @@ export interface PaymentUserData {
   userId: string;
   email: string;
   name: string;
+  avatar?: string;
 }
 
 export const mercadoPagoService = {
@@ -34,11 +35,22 @@ export const mercadoPagoService = {
     try {
       console.log('🚀 Creando pago para usuario:', userData);
 
-      const response = await apiClient.post('/payments/create-preference', {
-        planId: 'dark-mode-premium',
+      const auth = getAuth();
+      const currentUid = auth.currentUser?.uid;
+      const finalUserId = userData.userId || currentUid;
+
+      if (!finalUserId) {
+        throw new Error('User ID is required for payment');
+      }
+
+      const payload = {
+        planId: 'black-user-plan',
         quantity: 1,
-        ...userData
-      });
+        ...userData,
+        userId: finalUserId // Ensure userId is explicit
+      };
+
+      const response = await apiClient.post('/payments/create-preference', payload);
 
       if (!response.success) {
         throw new Error(response.error || 'Error creando preferencia de pago');
@@ -55,6 +67,14 @@ export const mercadoPagoService = {
         console.log('🔄 Intentando con fetch directo...');
         const apiBaseUrl = 'https://v0-steeb-api-backend.vercel.app/api';
 
+        const auth = getAuth();
+        const currentUid = auth.currentUser?.uid;
+        const finalUserId = userData.userId || currentUid;
+
+        if (!finalUserId) {
+          throw new Error('User ID is required for payment');
+        }
+
         const fetchResponse = await fetch(`${apiBaseUrl}/payments/create-preference`, {
           method: 'POST',
           headers: {
@@ -62,9 +82,10 @@ export const mercadoPagoService = {
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            planId: 'dark-mode-premium',
+            planId: 'black-user-plan',
             quantity: 1,
-            ...userData
+            ...userData,
+            userId: finalUserId
           }),
           mode: 'cors'
         });
@@ -96,12 +117,12 @@ export const mercadoPagoService = {
 
       // Convertir upgradeType a planId
       const planIdMap = {
-        'dark': 'dark-mode-premium',
+        'dark': 'black-user-plan',
         'shiny': 'shiny-mode-premium',
         'shinyRoll': 'shiny-roll-premium'
       };
 
-      const planId = planIdMap[preference.upgradeType] || 'dark-mode-premium';
+      const planId = planIdMap[preference.upgradeType] || 'black-user-plan';
 
       const response = await apiClient.post('/payments/create-preference', {
         planId: planId,

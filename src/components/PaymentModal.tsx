@@ -54,7 +54,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
       const userData = {
         userId: user.uid,
         email: user.email,
-        name: user.displayName || 'Usuario STEEB'
+        name: user.displayName || 'Usuario STEEB',
+        avatar: user.photoURL
       };
 
       // 1. Iniciar proceso de pago

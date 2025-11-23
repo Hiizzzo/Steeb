@@ -10,6 +10,7 @@ export interface CreatePreferenceInput {
   userId?: string | null;
   email?: string | null;
   name?: string | null;
+  avatar?: string | null;
 }
 
 export interface CreatePreferenceResponse {
@@ -62,6 +63,10 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 export const createCheckoutPreference = async (
   payload: CreatePreferenceInput
 ): Promise<CreatePreferenceResponse> => {
+  if (!payload.userId || payload.userId === 'anon') {
+    throw new Error('User ID is required for payment');
+  }
+
   const response = await fetch(buildUrl('/payments/create-preference'), {
     method: 'POST',
     headers: {

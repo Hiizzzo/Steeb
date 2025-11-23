@@ -17,7 +17,7 @@ const PAYMENT_PLAN_MAP = PAYMENT_PLANS.reduce<Record<string, PaymentPlan>>((acc,
   return acc;
 }, {});
 
-export const DARK_MODE_PLAN_ID = 'dark-mode-premium';
+export const DARK_MODE_PLAN_ID = 'black-user-plan';
 
 export const getPaymentPlan = (planId: string): PaymentPlan | undefined => {
   return PAYMENT_PLAN_MAP[planId];
