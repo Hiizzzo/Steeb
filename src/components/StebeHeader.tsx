@@ -30,12 +30,24 @@ const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
 
   return (
     <div className="bg-transparent mb-2 mt-16">
-      <div className={`flex items-center justify-between py-2 px-4 ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>
+      <div
+        className={`flex items-center justify-between py-2 px-4 ${isDark ? 'steeb-header-force-white' : ''}`}
+        style={{
+          backgroundColor: isDark ? '#ffffff' : '#000000',
+          color: isDark ? '#000000' : '#ffffff'
+        }}
+      >
         <div className="flex items-center">
           <div className="h-5 w-1.5 rounded-r mr-2" style={{ backgroundColor: 'var(--accent-color)' }}></div>
-          <h1 className={`text-xl font-light tracking-wide ${isDark ? 'text-black' : 'text-white'}`} style={{
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-          }}>TAREAS</h1>
+          <h1
+            className="text-xl font-light tracking-wide"
+            style={{
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              color: isDark ? '#000000' : '#ffffff'
+            }}
+          >
+            TAREAS
+          </h1>
         </div>
 
         {/* Información del usuario y logout */}
@@ -56,21 +68,31 @@ const StebeHeader: React.FC<StebeHeaderProps> = ({ pendingCount }) => {
                   className="w-6 h-6 rounded-full object-cover"
                 />
               ) : (
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isDark ? 'bg-black/20' : 'bg-white/20'}`}>
-                  <User size={14} className={isDark ? 'text-black' : 'text-white'} />
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)' }}
+                >
+                  <User size={14} style={{ color: isDark ? '#000000' : '#ffffff' }} />
                 </div>
               )}
-              <span className={`text-sm font-medium hidden sm:block ${isDark ? 'text-black' : 'text-white'}`}>
+              <span
+                className="text-sm font-medium hidden sm:block"
+                style={{ color: isDark ? '#000000' : '#ffffff' }}
+              >
                 {user.nickname || user.name || user.email}
               </span>
             </div>
 
             <button
               onClick={handleLogout}
-              className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-black/10' : 'hover:bg-white/10'}`}
+              className="p-1 rounded transition-colors"
+              style={{
+                backgroundColor: 'transparent',
+                color: isDark ? '#000000' : '#ffffff'
+              }}
               title="Cerrar sesión"
             >
-              <LogOut size={16} className={isDark ? 'text-black' : 'text-white'} />
+              <LogOut size={16} style={{ color: isDark ? '#000000' : '#ffffff' }} />
             </button>
           </div>
         )}
