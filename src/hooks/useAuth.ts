@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const configurePersistence = async () => {
       if (!isFirebaseConfigured) return;
-      
+
       try {
         await setPersistence(auth, browserLocalPersistence);
         ('🔄 Persistencia local configurada correctamente');
@@ -104,14 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let unsubscribeTaskListener: (() => void) | null = null;
-    
+
     if (!isFirebaseConfigured) {
       ('🔄 Firebase no configurado');
       setUser(null);
       setIsLoading(false);
       return;
     }
-    
+
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
       if (!fbUser) {
         setUser(null);
@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return;
       }
-      
+
       // Set estado rápido con datos mínimos para no bloquear el primer render
       setUser({
         id: fbUser.uid,
@@ -136,18 +136,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emailVerified: !!fbUser.emailVerified,
       });
       setIsLoading(false);
-      
+
       // Configurar listener de tareas en tiempo real
       ('🔄 Configurando listener de tareas para usuario:', fbUser.uid);
       unsubscribeTaskListener = setupRealtimeListener(fbUser.uid);
-      
+
       // Cargar tareas iniciales
       try {
         await loadTasks();
       } catch (error) {
         console.error('❌ Error cargando tareas iniciales:', error);
       }
-      
+
       // Completar datos desde Firestore en segundo plano
       try {
         const mapped = await mapFirebaseUserToUser(fbUser);
@@ -156,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // si falla Firestore, dejamos el estado rápido ya mostrado
       }
     });
-    
+
     return () => {
       unsub();
       if (unsubscribeTaskListener) {
@@ -213,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async (forceAccountPicker: boolean = false) => {
     ensureConfigured();
-    
+
     // En plataformas nativas (Capacitor Android/iOS), intentar flujo nativo
     if (Capacitor.isNativePlatform()) {
       try {
@@ -223,7 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Inicialización opcional (no falla si no es necesaria)
           try {
             await Google.initialize();
-          } catch {}
+          } catch { }
           const gRes = await Google.signIn();
           const idToken = gRes?.authentication?.idToken || gRes?.idToken;
           if (!idToken) throw new Error('No se obtuvo idToken de Google');
@@ -247,26 +247,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           return;
         }
-        
+
         // Para iOS, si el plugin no está disponible, usar redirect con configuración específica
         if (Capacitor.getPlatform() === 'ios') {
           ('🍎 iOS: Usando signInWithRedirect para Google Auth');
           await signInWithRedirect(auth, googleProvider);
           return;
         }
-        
+
         // Para Android, intentar redirect como fallback
         ('🤖 Android: Usando signInWithRedirect como fallback');
         await signInWithRedirect(auth, googleProvider);
         return;
       } catch (error) {
         console.error('❌ Error en autenticación nativa:', error);
-        
-        // Para iOS, mostrar error específico y sugerir solución
+
+        // Para iOS, usar redirect como fallback en lugar de mostrar error
         if (Capacitor.getPlatform() === 'ios') {
-          throw new Error('Para usar Google Sign-In en iOS, instala el plugin de Google Sign-In nativo. Mientras tanto, usa Email/Contraseña.');
+          console.warn('⚠️ Plugin nativo no disponible en iOS, usando signInWithRedirect');
+          try {
+            await signInWithRedirect(auth, googleProvider);
+            return;
+          } catch (redirectError) {
+            throw new Error('No se pudo autenticar con Google. Por favor, usa Email/Contraseña.');
+          }
         }
-        
+
         // Último recurso: intentar redirect
         try {
           await signInWithRedirect(auth, googleProvider);
@@ -276,7 +282,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     }
-    
+
     // En web, usar popup
     // Si forceAccountPicker es true, crear un nuevo provider para forzar el selector
     const provider = forceAccountPicker ? new GoogleAuthProvider() : googleProvider;
@@ -388,7 +394,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const Google: any = (globalThis as any)?.Capacitor?.Plugins?.GoogleAuth || (globalThis as any)?.Capacitor?.Plugins?.Google;
         if (Google?.signIn) {
-          try { await Google.initialize?.(); } catch {}
+          try { await Google.initialize?.(); } catch { }
           const gRes = await Google.signIn();
           const idToken = gRes?.authentication?.idToken || gRes?.idToken;
           if (!idToken) throw new Error('No se obtuvo idToken de Google');
