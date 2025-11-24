@@ -151,7 +151,26 @@ export const mercadoPagoService = {
     const checkoutUrl = response.initPoint; // Usar solo initPoint (producción)
     if (checkoutUrl) {
       console.log('🛒 Abriendo checkout:', checkoutUrl);
-      window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+      
+      // Detectar si es móvil o PWA para cambiar estrategia
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      // @ts-ignore - standalone es propiedad específica de iOS
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+      if (isMobile || isPWA) {
+         // En móviles y PWA, es mejor navegar directamente para evitar bloqueo de popups
+         // y permitir deep linking a la app de Mercado Pago si está instalada
+         window.location.href = checkoutUrl;
+      } else {
+         // En desktop, intentar abrir en nueva pestaña
+         const newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+         
+         // Fallback si el popup fue bloqueado
+         if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            console.warn('Popup bloqueado, redirigiendo en la misma ventana');
+            window.location.href = checkoutUrl;
+         }
+      }
     } else {
       throw new Error('No hay URL de checkout disponible');
     }

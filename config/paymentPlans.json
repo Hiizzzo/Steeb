@@ -30,7 +30,7 @@
     "id": "shiny-roll-15",
     "title": "15 Tiradas Shiny",
     "description": "15 oportunidades para desbloquear el modo Shiny.",
-    "price": 15,
+    "price": 1,
     "currency": "ARS",
     "features": [
       "15 intentos para el juego Shiny"
@@ -42,7 +42,7 @@
     "id": "shiny-roll-30",
     "title": "30 Tiradas Shiny",
     "description": "30 oportunidades para desbloquear el modo Shiny.",
-    "price": 30,
+    "price": 1,
     "currency": "ARS",
     "features": [
       "30 intentos para el juego Shiny"
