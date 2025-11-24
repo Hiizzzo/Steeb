@@ -50,8 +50,9 @@ const SteebChatAI: React.FC = () => {
             key={`shiny-${index}`}
             className="shiny-word"
             style={{
-              background: 'linear-gradient(90deg, #ff0055, #ff66b2, #ff9900, #00d4ff, #7a5fff)',
-              backgroundSize: '400% 100%',
+              // 7 colores del calendario shiny: rojo, naranja, amarillo, verde, cian, violeta, magenta
+              background: 'linear-gradient(90deg, #ff004c, #ff7a00, #ffe600, #00ff66, #00c2ff, #8b00ff, #ff00ff)',
+              backgroundSize: '500% 100%',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               animation: 'shinyShift 4s ease-in-out infinite',
