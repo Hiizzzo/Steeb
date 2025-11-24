@@ -951,7 +951,8 @@ const SteebChatAI: React.FC = () => {
                             ? 'bg-black text-white border-0 hover:bg-[#0f0f0f]'
                             : 'bg-white text-black border-0 hover:bg-gray-100'
                         }`}
-                  >
+                        style={isShinyMode || isDarkMode ? { backgroundColor: '#000', border: 'none' } : { border: 'none' }}
+                      >
                     <span>{option.label}</span>
                     <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}>
                       {option.price}
