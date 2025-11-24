@@ -104,7 +104,7 @@ const SteebChatAI: React.FC = () => {
   };
 
   const getInitialMessage = () => {
-    return '¡Hola! Soy STEEB 🚀\n\nDecime "calendario", "tareas" o "progreso" para abrir esos paneles.\n\n¿Cómo te puedo ayudar hoy para cumplir tus metas?';
+    return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
   };
   
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -614,7 +614,7 @@ const SteebChatAI: React.FC = () => {
         ];
         return responses[Math.floor(Math.random() * responses.length)];
       } else {
-        return '¡Excelente! Sin tareas pendientes. Eso es productividad real. Agregá nuevos desafíos o disfruta tu victoria.';
+        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
       }
     }
 
@@ -639,23 +639,23 @@ const SteebChatAI: React.FC = () => {
     }
 
     if (message.includes('ayuda') || message.includes('ayúdame')) {
-      return 'Soy Steeb, tu destructor de procrastinación. Puedo analizar tus tareas, darte motivación o planificar tu día. ¿Qué necesitas conquistar hoy?';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('cómo') || message.includes('cómo')) {
-      return 'El "cómo" es simple: 1) Elegí una tarea, 2) Empezá ahora, 3) No pares hasta terminarla. El resto son excusas.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('gracias') || message.includes('thank')) {
-      return 'Las gracias no completan tareas. La acción sí. ¿Qué sigue en tu lista de conquistas?';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('cansado') || message.includes('fatiga') || message.includes('agotado')) {
-      return 'El cansancio es mental. 10 minutos de acción generan 2 horas de energía. Empezá con la tarea más pequeña.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('difícil') || message.includes('imposible') || message.includes('no puedo')) {
-      return '"No puedo" es la frase favorita de los que fracasan. Reemplazala por "¿Cómo puedo?". La respuesta está en la acción.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('plan') || message.includes('organizar')) {
@@ -671,7 +671,7 @@ const SteebChatAI: React.FC = () => {
       setShowCalendar(true);
       setShowSideTasks(false);
       setShowProgress(false);
-      return 'Aquí está tu calendario. Planificá tu semana como un campeón. Sin excusas.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('progreso') || message.includes('estadísticas') || message.includes('gráfico')) {
@@ -679,7 +679,7 @@ const SteebChatAI: React.FC = () => {
       setShowProgress(true);
       setShowSideTasks(false);
       setShowCalendar(false);
-      return 'Tus estadísticas de productividad. Mirá lo que podés lograr cuando dejás de procrastinar.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('tiempo') || message.includes('cuánto')) {
@@ -715,28 +715,28 @@ const SteebChatAI: React.FC = () => {
       if (taskContext.pending > 0) {
         return `Tenés ${taskContext.pending} tareas pendientes. Elegí una y empezá ahora. No pienses, hacé.`;
       } else {
-        return '¡Excelente! Sin tareas pendientes. Agregá un nuevo desafío o disfruta tu productividad.';
+        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
       }
     }
 
     if (message.includes('calendario') || message.includes('calendario')) {
       // Abrir panel de calendario sin cerrar otros paneles
       setShowCalendar(true);
-      return 'Aquí está tu calendario. Planificá tu semana como un campeón. Sin excusas.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('progreso') || message.includes('estadísticas') || message.includes('gráfico')) {
       // Abrir panel de progreso sin cerrar otros paneles
       setShowProgress(true);
-      return 'Tus estadísticas de productividad. Mirá lo que podés lograr cuando dejás de procrastinar.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('procrastinar') || message.includes('postergar')) {
-      return 'El "después" no existe en el vocabulario de los ganadores. Empezá ahora, con la tarea más pequeña.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     if (message.includes('motivación') || message.includes('ánimo')) {
-      return 'La motivación no aparece, se construye. Cada tarea completada es un ladrillo en tu éxito.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
     }
 
     const fallbacks = [
@@ -1060,3 +1060,5 @@ const SteebChatAI: React.FC = () => {
 };
 
 export default SteebChatAI;
+
+
