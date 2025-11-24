@@ -35,6 +35,10 @@ const SteebChatAI: React.FC = () => {
   const isShinyMode = currentTheme === 'shiny';
   const shinyMessageColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
+  
+  // Estado para el juego Shiny
+  const [shinyGameState, setShinyGameState] = useState<'idle' | 'confirming' | 'playing'>('idle');
+  const [shinyRolls, setShinyRolls] = useState<number | null>(null);
 
   // Helper: get task context - moved to top to avoid hoisting issues
   const getTaskContext = () => {
@@ -260,6 +264,187 @@ const SteebChatAI: React.FC = () => {
 
     const message = inputMessage.trim();
     setInputMessage('');
+
+    // --- LÓGICA DEL JUEGO SHINY ---
+    if (shinyGameState === 'confirming') {
+      const lowerMsg = message.toLowerCase();
+      if (lowerMsg.includes('si') || lowerMsg.includes('sí') || lowerMsg.includes('dale') || lowerMsg.includes('ok')) {
+        setShinyGameState('playing');
+        const userMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
+
+        setTimeout(() => {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: '¡Excelente! Estoy pensando en un número del 1 al 100... 🤔\n\n¿Cuál crees que es? ¡Escribí tu número!',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }, 500);
+        return;
+      } else {
+        setShinyGameState('idle');
+        const userMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
+        
+        setTimeout(() => {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: 'Entendido. Avísame cuando quieras intentar desbloquear el modo Shiny. ✨',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }, 500);
+        return;
+      }
+    }
+
+    if (shinyGameState === 'playing') {
+      const guess = parseInt(message);
+      const userMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'user',
+        content: message,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
+
+      if (isNaN(guess) || guess < 1 || guess > 100) {
+        setTimeout(() => {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: 'Eso no parece un número válido entre 1 y 100. Intenta de nuevo. 🔢',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }, 500);
+        return;
+      }
+
+      // Enviar intento al backend
+      setIsTyping(true);
+      try {
+        // Importar dinámicamente para evitar problemas de dependencias circulares si las hubiera
+        const { playShinyGame } = await import('@/services/steebApi');
+        const result = await playShinyGame(guess);
+        
+        setIsTyping(false);
+        
+        if (result.success) {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: result.message, // El backend ya devuelve el mensaje con pistas
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+
+          if (result.won) {
+             setShinyGameState('idle');
+             // Recargar página o notificar cambio de tema tras un breve delay
+             setTimeout(() => {
+               window.location.reload();
+             }, 3000);
+          } else {
+             // Si perdió, preguntar si quiere jugar de nuevo si tiene tiradas
+             if (result.remainingRolls > 0) {
+               setTimeout(() => {
+                 const retryMessage: ChatMessage = {
+                   id: `msg_${Date.now() + 2}`,
+                   role: 'assistant',
+                   content: `Te quedan ${result.remainingRolls} tiradas. ¿Querés intentar de nuevo?`,
+                   timestamp: new Date(),
+                   category: 'general'
+                 };
+                 setMessages(prev => [...prev, retryMessage]);
+                 setShinyGameState('confirming');
+               }, 1000);
+             } else {
+               setShinyGameState('idle');
+               setTimeout(() => {
+                 const noRollsMessage: ChatMessage = {
+                   id: `msg_${Date.now() + 2}`,
+                   role: 'assistant',
+                   content: 'Te quedaste sin tiradas por hoy. ¡Podés comprar más para seguir intentando! 💎',
+                   timestamp: new Date(),
+                   category: 'general',
+                   showMercadoPagoButton: true
+                 };
+                 setMessages(prev => [...prev, noRollsMessage]);
+               }, 1000);
+             }
+          }
+        } else {
+          // Error del backend (ej: sin permisos, sin tiradas)
+          setShinyGameState('idle');
+          const errorMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: result.message || 'Hubo un problema procesando tu intento.',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, errorMessage]);
+        }
+
+      } catch (error) {
+        setIsTyping(false);
+        setShinyGameState('idle');
+        console.error('Error jugando Shiny:', error);
+        const errorMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'Ocurrió un error de conexión. Intenta más tarde.',
+          timestamp: new Date(),
+          category: 'general'
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+      return;
+    }
+
+    // Detectar intención de jugar Shiny
+    const lowerMsg = message.toLowerCase();
+    if (lowerMsg.includes('shiny') && (lowerMsg.includes('jugar') || lowerMsg.includes('desbloquear') || lowerMsg.includes('modo') || lowerMsg.includes('tirada'))) {
+       setShinyGameState('confirming');
+       const userMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
+
+        setTimeout(() => {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: '¿Querés gastar una de tus tiradas para intentar desbloquear el modo Shiny? 🎲',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }, 500);
+        return;
+    }
+    // -----------------------------
 
     // Detectar si es un comando de panel ANTES de agregar mensaje de usuario
     const predefinedResponse = getPredefinedResponse(message);
@@ -572,12 +757,13 @@ const SteebChatAI: React.FC = () => {
 
   return (
     <>
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes blink {
           0%, 50% { opacity: 1; }
           51%, 100% { opacity: 0; }
         }
-      `}</style>
+      `}} />
       <div className={`flex h-full ${isDarkMode || isShinyMode ? 'bg-black text-white' : 'bg-white text-black'} flex-col`}>
       {/* Main Content - Chat + Side Tasks */}
       <div className="flex flex-col flex-1 overflow-hidden">
