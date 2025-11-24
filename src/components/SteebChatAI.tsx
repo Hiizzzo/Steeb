@@ -4,6 +4,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
 import { sendMessageToSteeb } from '@/services/steebApi';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
@@ -36,6 +37,7 @@ const SteebChatAI: React.FC = () => {
   const isShinyMode = currentTheme === 'shiny';
   const shinyMessageColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
+  const { user } = useAuth();
   
   // Estado para el juego Shiny
   const [shinyGameState, setShinyGameState] = useState<'idle' | 'confirming' | 'playing'>('idle');
@@ -397,7 +399,8 @@ const SteebChatAI: React.FC = () => {
       try {
         // Importar dinÃ¡micamente para evitar problemas de dependencias circulares si las hubiera
         const { playShinyGame } = await import('@/services/steebApi');
-        const result = await playShinyGame(guess);
+        // Pasar el ID del usuario autenticado si existe
+        const result = await playShinyGame(guess, user?.id);
         
         setIsTyping(false);
         

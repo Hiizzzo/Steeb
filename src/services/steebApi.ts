@@ -87,10 +87,10 @@ export type ShinyGameResponse = {
   alreadyWon?: boolean;
 };
 
-export async function playShinyGame(guess: number): Promise<ShinyGameResponse> {
-  const userId = await getPersistentUserId();
+export async function playShinyGame(guess: number, userIdOverride?: string): Promise<ShinyGameResponse> {
+  const userId = userIdOverride || await getPersistentUserId();
 
-  console.log('🎲 SHINY GAME → Jugando con número:', guess);
+  console.log('🎲 SHINY GAME → Jugando con número:', guess, 'User:', userId);
 
   let response: Response;
 

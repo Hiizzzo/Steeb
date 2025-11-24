@@ -6,6 +6,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useUserCredits } from "../hooks/useUserCredits";
+import { useAuth } from "../hooks/useAuth";
 import { PaymentModal } from "./PaymentModal";
 import { ShinyRollsPaymentModal } from "./ShinyRollsPaymentModal";
 import { Crown } from "lucide-react";
@@ -31,6 +32,7 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const { userCredits } = useUserCredits();
+  const { user } = useAuth();
 
   const steebGreeting = useMemo(() => {
     return "Qué ansiedad me daría que adivines el número que estoy pensando del 1 al 100 para desbloquear la versión Shiny.";
@@ -64,7 +66,7 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
     setMessage("Consultando a los astros...");
 
     try {
-      const result = await playShinyGame(n);
+      const result = await playShinyGame(n, user?.id);
 
       if (result.success) {
         setAttempted(true);
