@@ -1,5 +1,5 @@
 const API_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/steeb';
-const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/shiny-game';
+const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/shiny-game.js';
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 type SteebApiSuccess = {
