@@ -40,6 +40,30 @@ const SteebChatAI: React.FC = () => {
   // Estado para el juego Shiny
   const [shinyGameState, setShinyGameState] = useState<'idle' | 'confirming' | 'playing'>('idle');
   const [shinyRolls, setShinyRolls] = useState<number | null>(null);
+  // Render helper: resaltar la palabra Shiny con gradiente animado
+  const renderMessageContent = (text: string) => {
+    const parts = text.split(/(Shiny)/i);
+    return parts.map((part, index) => {
+      if (part.toLowerCase() === 'shiny') {
+        return (
+          <span
+            key={`shiny-${index}`}
+            className="shiny-word"
+            style={{
+              background: 'linear-gradient(90deg, #ff0055, #ff9900, #ffea00, #00d4ff, #7a5fff)',
+              backgroundSize: '300% 100%',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'shinyShift 3s linear infinite'
+            }}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
 
   // Helper: get task context - moved to top to avoid hoisting issues
   const getTaskContext = () => {
@@ -122,6 +146,22 @@ const SteebChatAI: React.FC = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [panelHeight, setPanelHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Inyectar keyframes para el gradiente animado (una sola vez)
+  useEffect(() => {
+    const styleId = 'shiny-shift-keyframes';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @keyframes shinyShift {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 100% 50%; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
 
   // Manejar resumen diario
   useEffect(() => {
@@ -841,7 +881,7 @@ const SteebChatAI: React.FC = () => {
                     : (isShinyMode ? '#000000' : '#000000')
               }}
             >
-                  {message.content}
+                  {renderMessageContent(message.content)}
                 </p>
 
                 {/* Timestamp with improved styling */}
