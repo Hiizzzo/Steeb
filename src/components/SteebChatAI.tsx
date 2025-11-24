@@ -50,14 +50,16 @@ const SteebChatAI: React.FC = () => {
             key={`shiny-${index}`}
             className="shiny-word"
             style={{
-              background: 'linear-gradient(90deg, #ff0055, #ff9900, #ffea00, #00d4ff, #7a5fff)',
+              background: 'linear-gradient(90deg, #ff0055, #ff9900, #00d4ff, #7a5fff)',
               backgroundSize: '300% 100%',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              animation: 'shinyShift 3s linear infinite'
+              animation: 'shinyShift 3s linear infinite',
+              fontWeight: 700,
+              textTransform: 'uppercase'
             }}
           >
-            {part}
+            SHINY
           </span>
         );
       }
