@@ -15,6 +15,7 @@ interface PaymentOption {
   price: string;
   action: string;
   planId: string;
+  className?: string;
 }
 
 interface ChatMessage {
@@ -901,20 +902,26 @@ const SteebChatAI: React.FC = () => {
                           });
                           window.dispatchEvent(event);
                         }}
-                        className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 shadow-sm border ${
-                          isShinyMode || isDarkMode
-                            ? 'bg-gray-800 text-white border-gray-700 hover:bg-gray-700'
-                            : 'bg-white text-black border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span>{option.label}</span>
-                        <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-                          {option.price}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                    className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 shadow-sm border ${
+                      isShinyMode || isDarkMode
+                        ? 'bg-gray-800 text-white border-gray-700 hover:bg-gray-700'
+                        : 'bg-white text-black border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>{option.label}</span>
+                    <span
+                      className={`font-bold ${
+                        option.className
+                          ? option.className
+                          : (isShinyMode || isDarkMode ? 'text-white' : 'text-black')
+                      }`}
+                    >
+                      {option.price}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
               </div>
                 );
