@@ -9,6 +9,14 @@ import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
 import SimpleCalendarPanel from './SimpleCalendarPanel';
 
+interface PaymentOption {
+  id: string;
+  label: string;
+  price: string;
+  action: string;
+  planId: string;
+}
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -17,6 +25,7 @@ interface ChatMessage {
   isTyping?: boolean;
   category?: 'general' | 'task' | 'productivity' | 'motivation';
   showMercadoPagoButton?: boolean; // Nueva propiedad para mostrar botón
+  paymentOptions?: PaymentOption[]; // Opciones de pago múltiples
 }
 
 const SteebChatAI: React.FC = () => {
@@ -156,16 +165,17 @@ const SteebChatAI: React.FC = () => {
   // Escuchar mensajes del ThemeToggle
   useEffect(() => {
     const handleSteebMessage = (event: CustomEvent) => {
-      const { type, content, timestamp, showMercadoPagoButton } = event.detail;
+      const { type, content, timestamp, showMercadoPagoButton, paymentOptions } = event.detail;
 
-      if (type === 'theme-info' || type === 'theme-info-with-button') {
+      if (type === 'theme-info' || type === 'theme-info-with-button' || type === 'theme-info-with-options') {
         const aiMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
           role: 'assistant',
           content: content,
           timestamp: timestamp || new Date(),
           category: 'general',
-          showMercadoPagoButton: showMercadoPagoButton || false
+          showMercadoPagoButton: showMercadoPagoButton || false,
+          paymentOptions: paymentOptions || undefined
         };
 
         setMessages(prev => [...prev, aiMessage]);
@@ -180,11 +190,13 @@ const SteebChatAI: React.FC = () => {
     // Escuchar los eventos personalizados
     window.addEventListener('steeb-message', handleSteebMessage as EventListener);
     window.addEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
+    window.addEventListener('steeb-message-with-options', handleSteebMessage as EventListener);
 
     // Limpiar los event listeners al desmontar
     return () => {
       window.removeEventListener('steeb-message', handleSteebMessage as EventListener);
       window.removeEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
+      window.removeEventListener('steeb-message-with-options', handleSteebMessage as EventListener);
     };
   }, []);
 
@@ -286,7 +298,7 @@ const SteebChatAI: React.FC = () => {
       const confirmationMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
-        content: '¡Excelente decisión! Estoy abriendo el proceso de compra para el Dark Mode por $3.000. Te dará acceso inmediato + 1 intento gratis para Shiny. 🌙',
+        content: '¡Excelente decisión! Estoy abriendo el proceso de compra para el Dark Mode por $1. Te dará acceso inmediato + 1 intento gratis para Shiny. 🌙',
         timestamp: new Date(),
         category: 'general'
       };
@@ -297,7 +309,7 @@ const SteebChatAI: React.FC = () => {
         const mercadoPagoMessage: ChatMessage = {
           id: `msg_${Date.now() + 1}`,
           role: 'assistant',
-          content: `# $3.000
+          content: `# $1
 
 ### 1 intento gratis del modo SHINY`,
           timestamp: new Date(),
@@ -683,6 +695,36 @@ const SteebChatAI: React.FC = () => {
                     <CreditCard className="w-4 h-4" />
                     Pagar con Mercado Pago
                   </button>
+                )}
+
+                {/* Opciones de pago múltiples */}
+                {message.paymentOptions && (
+                  <div className="mt-3 space-y-2">
+                    {message.paymentOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => {
+                          const event = new CustomEvent(option.action, {
+                            detail: {
+                              planId: option.planId,
+                              timestamp: new Date()
+                            }
+                          });
+                          window.dispatchEvent(event);
+                        }}
+                        className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 shadow-sm border ${
+                          isShinyMode || isDarkMode
+                            ? 'bg-gray-800 text-white border-gray-700 hover:bg-gray-700'
+                            : 'bg-white text-black border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                        <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                          {option.price}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 )}
 
               </div>

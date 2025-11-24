@@ -79,15 +79,15 @@ const Index = () => {
       const isShiny = document.documentElement.classList.contains('shiny');
 
       // Aplicar solo al header principal y sus elementos directos (excluyendo ThemeToggle)
-      const headerMain = document.querySelector('.tareas-header');
-      const h1Element = document.querySelector('.tareas-header h1');
+      const headerMain = document.querySelector('.tareas-header') as HTMLElement;
+      const h1Element = document.querySelector('.tareas-header h1') as HTMLElement;
 
       if (headerMain) {
         if (isDark) {
-          // Dark mode: header negro con texto blanco
-          headerMain.style.setProperty('background-color', '#000000', 'important');
-          headerMain.style.setProperty('background', '#000000', 'important');
-          headerMain.style.setProperty('color', '#ffffff', 'important');
+          // Dark mode: header blanco con texto negro
+          headerMain.style.setProperty('background-color', '#ffffff', 'important');
+          headerMain.style.setProperty('background', '#ffffff', 'important');
+          headerMain.style.setProperty('color', '#000000', 'important');
         } else if (isShiny) {
           // Shiny mode: header negro con texto blanco
           headerMain.style.setProperty('background-color', '#000000', 'important');
@@ -103,8 +103,8 @@ const Index = () => {
 
       if (h1Element) {
         if (isDark) {
-          h1Element.style.setProperty('color', '#ffffff', 'important');
-          h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+          h1Element.style.setProperty('color', '#000000', 'important');
+          h1Element.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
         } else if (isShiny) {
           h1Element.style.setProperty('color', '#ffffff', 'important');
           h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
@@ -581,8 +581,8 @@ const Index = () => {
     return { isShiny, isDark };
   });
 
-  const headerBackgroundColor = '#000000';
-  const headerTextColor = '#ffffff';
+  const headerBackgroundColor = theme.isDark ? '#ffffff' : '#000000';
+  const headerTextColor = theme.isDark ? '#000000' : '#ffffff';
   
   // Actualizar tema cuando cambie
   useEffect(() => {

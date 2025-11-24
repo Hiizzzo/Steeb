@@ -95,7 +95,7 @@ export const verifyPayment = async (
 };
 
 // Nuevo método para verificar rol del usuario (reemplaza a getPaymentStatus)
-export const getUserRole = async (userId: string): Promise<{ role: string; permissions: string[] }> => {
+export const getUserRole = async (userId: string): Promise<{ role: string; permissions: string[]; shinyRolls?: number }> => {
   const response = await fetch(buildUrl(`/users/role?userId=${userId}`), {
     method: 'GET',
     headers: {
@@ -107,6 +107,25 @@ export const getUserRole = async (userId: string): Promise<{ role: string; permi
   const data = await handleResponse<any>(response);
   return {
     role: data.data?.role || 'free',
-    permissions: data.data?.permissions || []
+    permissions: data.data?.permissions || [],
+    shinyRolls: data.data?.shinyRolls || 0
+  };
+};
+
+// Método para consumir una tirada Shiny
+export const consumeShinyRoll = async (userId: string): Promise<{ success: boolean; remainingRolls: number }> => {
+  const response = await fetch(buildUrl('/users/consume-shiny-roll'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ userId })
+  });
+
+  const data = await handleResponse<any>(response);
+  return {
+    success: data.success,
+    remainingRolls: data.data?.remainingRolls || 0
   };
 };
