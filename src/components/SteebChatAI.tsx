@@ -420,9 +420,12 @@ const SteebChatAI: React.FC = () => {
       return;
     }
 
-    // Detectar intención de jugar Shiny
+    // Detectar intención de jugar Shiny (PRIORIDAD ALTA)
     const lowerMsg = message.toLowerCase();
-    if (lowerMsg.includes('shiny') && (lowerMsg.includes('jugar') || lowerMsg.includes('desbloquear') || lowerMsg.includes('modo') || lowerMsg.includes('tirada'))) {
+    const shinyKeywords = ['shiny', 'jugar', 'desbloquear', 'modo', 'tirada', 'tiradas', 'intentar', 'probar'];
+    const isShinyIntent = lowerMsg.includes('shiny') || (lowerMsg.includes('tirada') && lowerMsg.includes('jugar'));
+
+    if (isShinyIntent) {
        setShinyGameState('confirming');
        const userMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
