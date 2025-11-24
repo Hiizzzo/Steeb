@@ -949,12 +949,24 @@ const SteebChatAI: React.FC = () => {
                         className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${
                           isShinyMode || isDarkMode
                             ? 'text-white'
-                            : 'bg-white text-black border-0 hover:bg-gray-100'
+                            : 'bg-white text-black'
                         }`}
                         style={
                           isShinyMode || isDarkMode
-                            ? { backgroundColor: '#000000', border: 'none', boxShadow: 'none', filter: 'none' }
-                            : { border: 'none', boxShadow: 'none', filter: 'none' }
+                            ? {
+                                backgroundColor: '#000000',
+                                border: 'none',
+                                boxShadow: 'none',
+                                filter: 'none',
+                                opacity: 1
+                              }
+                            : {
+                                backgroundColor: '#ffffff',
+                                border: 'none',
+                                boxShadow: 'none',
+                                filter: 'none',
+                                opacity: 1
+                              }
                         }
                       >
                     <span>{option.label}</span>
