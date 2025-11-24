@@ -946,7 +946,7 @@ const SteebChatAI: React.FC = () => {
                           });
                           window.dispatchEvent(event);
                         }}
-                        className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 shadow-sm ${
+                        className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${
                           isShinyMode || isDarkMode
                             ? 'bg-black text-white border-0 hover:bg-[#0f0f0f]'
                             : 'bg-white text-black border-0 hover:bg-gray-100'
