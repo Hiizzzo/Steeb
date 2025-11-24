@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
@@ -24,8 +24,8 @@ interface ChatMessage {
   timestamp: Date;
   isTyping?: boolean;
   category?: 'general' | 'task' | 'productivity' | 'motivation';
-  showMercadoPagoButton?: boolean; // Nueva propiedad para mostrar botón
-  paymentOptions?: PaymentOption[]; // Opciones de pago múltiples
+  showMercadoPagoButton?: boolean; // Nueva propiedad para mostrar botÃ³n
+  paymentOptions?: PaymentOption[]; // Opciones de pago mÃºltiples
 }
 
 const SteebChatAI: React.FC = () => {
@@ -60,12 +60,12 @@ const SteebChatAI: React.FC = () => {
 
   // Respuestas predefinidas para mejor UX - PR #142
   const predefinedResponses: Record<string, string> = {
-    'hola': '¡Hola! ¿Qué tareitas tenemos para hoy?',
-    'buenos días': '¡Buenos días! 💪 Empecemos el día con energía.',
-    'buenas tardes': '¡Buenas tardes! ¿Cómo va tu productividad hoy?',
-    'buenas noches': '¡Buenas noches! 🌙 Terminemos el día fuerte.',
-    'cómo estás': '¡Estoy listo para ayudarte! ¿Qué necesitamos hacer?',
-    'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. ¡Escribe "tareas" para ver! Los paneles de progreso y calendario se abren sin mensajes.',
+    'hola': 'Â¡Hola! Â¿QuÃ© tareitas tenemos para hoy?',
+    'buenos dÃ­as': 'Â¡Buenos dÃ­as! ðŸ’ª Empecemos el dÃ­a con energÃ­a.',
+    'buenas tardes': 'Â¡Buenas tardes! Â¿CÃ³mo va tu productividad hoy?',
+    'buenas noches': 'Â¡Buenas noches! ðŸŒ™ Terminemos el dÃ­a fuerte.',
+    'cÃ³mo estÃ¡s': 'Â¡Estoy listo para ayudarte! Â¿QuÃ© necesitamos hacer?',
+    'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. Â¡Escribe "tareas" para ver! Los paneles de progreso y calendario se abren sin mensajes.',
     'tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
     'tarea': 'SPECIAL_COMMAND:OPEN_TASKS',
     'mis tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
@@ -75,9 +75,9 @@ const SteebChatAI: React.FC = () => {
     'pendientes': 'SPECIAL_COMMAND:OPEN_TASKS',
     'progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'ver progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'mis estadísticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'estadísticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'métricas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'mis estadÃ­sticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'estadÃ­sticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
+    'mÃ©tricas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'rendimiento': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'avance': 'SPECIAL_COMMAND:OPEN_PROGRESS',
     'estadisticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
@@ -88,15 +88,15 @@ const SteebChatAI: React.FC = () => {
     'fechas': 'SPECIAL_COMMAND:OPEN_CALENDAR',
     'eventos': 'SPECIAL_COMMAND:OPEN_CALENDAR',
     'mes': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'motírame': '¡Tú puedes! 💪 Cada tarea completada te acerca a tu meta.',
-    'gracias': '¡De nada! Estoy aquí para ayudarte a lograr tus metas.',
-    'adiós': '¡Hasta luego! Termina bien tus tareas.',
-    'ok': '¡Perfecto! Vamos por ello.',
-    'estoy cansado': 'Descansa un poco, ¡pero no te rindas! 🚀',
-    'no sé qué hacer': 'Empecemos con algo pequeño. ¿Cuál es la tarea más sencilla que puedes hacer ahora?',
-    'estoy aburrido': '¡Perfecto momento para avanzar en esas tareas pendientes! 📋',
-    'feliz': '¡Me encanta tu energía! Canalízala en una tarea y verás resultados. ⚡',
-    'triste': '¡No te preocupes! Una pequeña tarea puede mejorar tu estado de ánimo. 💙',
+    'motÃ­rame': 'Â¡TÃº puedes! ðŸ’ª Cada tarea completada te acerca a tu meta.',
+    'gracias': 'Â¡De nada! Estoy aquÃ­ para ayudarte a lograr tus metas.',
+    'adiÃ³s': 'Â¡Hasta luego! Termina bien tus tareas.',
+    'ok': 'Â¡Perfecto! Vamos por ello.',
+    'estoy cansado': 'Descansa un poco, Â¡pero no te rindas! ðŸš€',
+    'no sÃ© quÃ© hacer': 'Empecemos con algo pequeÃ±o. Â¿CuÃ¡l es la tarea mÃ¡s sencilla que puedes hacer ahora?',
+    'estoy aburrido': 'Â¡Perfecto momento para avanzar en esas tareas pendientes! ðŸ“‹',
+    'feliz': 'Â¡Me encanta tu energÃ­a! CanalÃ­zala en una tarea y verÃ¡s resultados. âš¡',
+    'triste': 'Â¡No te preocupes! Una pequeÃ±a tarea puede mejorar tu estado de Ã¡nimo. ðŸ’™',
     'comprar dark mode': 'SPECIAL_COMMAND:BUY_DARK_MODE',
     'comprar modo dark': 'SPECIAL_COMMAND:BUY_DARK_MODE',
     'quiero dark mode': 'SPECIAL_COMMAND:BUY_DARK_MODE',
@@ -104,7 +104,7 @@ const SteebChatAI: React.FC = () => {
   };
 
   const getInitialMessage = () => {
-    return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+    return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
   };
   
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -128,10 +128,10 @@ const SteebChatAI: React.FC = () => {
       const today = new Date().toISOString().split('T')[0];
       const lastSummaryDate = localStorage.getItem('steeb_last_summary_date');
       
-      // Si ya se guardó un resumen hoy, no hacer nada
+      // Si ya se guardÃ³ un resumen hoy, no hacer nada
       if (lastSummaryDate === today) return;
       
-      // Si hay un resumen del día anterior, guardarlo
+      // Si hay un resumen del dÃ­a anterior, guardarlo
       if (lastSummaryDate) {
         const keyMessages = messages
           .filter(m => m.role === 'user')
@@ -208,11 +208,11 @@ const SteebChatAI: React.FC = () => {
   const handlePanelHeightChange = (height: number) => {
     setPanelHeight(height);
 
-    // Si el panel ocupa más del 85% de la pantalla, el chat casi no se ve
+    // Si el panel ocupa mÃ¡s del 85% de la pantalla, el chat casi no se ve
     const screenHeight = window.innerHeight;
     const threshold = screenHeight * 0.85;
 
-    // Scroll al fondo con un pequeño delay para que la transición se complete
+    // Scroll al fondo con un pequeÃ±o delay para que la transiciÃ³n se complete
     setTimeout(() => {
       scrollToBottom();
     }, 100);
@@ -229,7 +229,7 @@ const SteebChatAI: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       scrollToBottom();
-    }, 300); // Pequeño delay para que la transición del panel se complete
+    }, 300); // PequeÃ±o delay para que la transiciÃ³n del panel se complete
 
     return () => clearTimeout(timer);
   }, [showSideTasks, showProgress, showCalendar]);
@@ -238,24 +238,24 @@ const SteebChatAI: React.FC = () => {
   const getPredefinedResponse = (message: string): string | null => {
     const normalizedMessage = message.toLowerCase().trim();
 
-    console.log('🔍 Debug - Mensaje normalizado:', `"${normalizedMessage}"`);
-    console.log('🔍 Debug - Respuestas disponibles:', Object.keys(predefinedResponses));
+    console.log('ðŸ” Debug - Mensaje normalizado:', `"${normalizedMessage}"`);
+    console.log('ðŸ” Debug - Respuestas disponibles:', Object.keys(predefinedResponses));
 
     // Buscar coincidencia exacta
     if (predefinedResponses[normalizedMessage]) {
-      console.log('✅ Debug - Coincidencia exacta encontrada:', normalizedMessage);
+      console.log('âœ… Debug - Coincidencia exacta encontrada:', normalizedMessage);
       return predefinedResponses[normalizedMessage];
     }
 
     // Buscar coincidencias parciales
     for (const [key, response] of Object.entries(predefinedResponses)) {
       if (normalizedMessage.includes(key) || key.includes(normalizedMessage)) {
-        console.log('✅ Debug - Coincidencia parcial encontrada:', key, '->', response);
+        console.log('âœ… Debug - Coincidencia parcial encontrada:', key, '->', response);
         return response;
       }
     }
 
-    console.log('❌ Debug - No se encontró respuesta predefinida para:', normalizedMessage);
+    console.log('âŒ Debug - No se encontrÃ³ respuesta predefinida para:', normalizedMessage);
     return null;
   };
 
@@ -265,10 +265,10 @@ const SteebChatAI: React.FC = () => {
     const message = inputMessage.trim();
     setInputMessage('');
 
-    // --- LÓGICA DEL JUEGO SHINY ---
+    // --- LÃ“GICA DEL JUEGO SHINY ---
     if (shinyGameState === 'confirming') {
       const lowerMsg = message.toLowerCase();
-      if (lowerMsg.includes('si') || lowerMsg.includes('sí') || lowerMsg.includes('dale') || lowerMsg.includes('ok')) {
+      if (lowerMsg.includes('si') || lowerMsg.includes('sÃ­') || lowerMsg.includes('dale') || lowerMsg.includes('ok')) {
         setShinyGameState('playing');
         const userMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
@@ -282,7 +282,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: '¡Excelente! Estoy pensando en un número del 1 al 100... 🤔\n\n¿Cuál crees que es? ¡Escribí tu número!',
+            content: 'Â¡Excelente! Estoy pensando en un nÃºmero del 1 al 100... ðŸ¤”\n\nÂ¿CuÃ¡l crees que es? Â¡EscribÃ­ tu nÃºmero!',
             timestamp: new Date(),
             category: 'general'
           };
@@ -303,7 +303,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: 'Entendido. Avísame cuando quieras intentar desbloquear el modo Shiny. ✨',
+            content: 'Entendido. AvÃ­same cuando quieras intentar desbloquear el modo Shiny. âœ¨',
             timestamp: new Date(),
             category: 'general'
           };
@@ -328,7 +328,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: 'Eso no parece un número válido entre 1 y 100. Intenta de nuevo. 🔢',
+            content: 'Eso no parece un nÃºmero vÃ¡lido entre 1 y 100. Intenta de nuevo. ðŸ”¢',
             timestamp: new Date(),
             category: 'general'
           };
@@ -340,7 +340,7 @@ const SteebChatAI: React.FC = () => {
       // Enviar intento al backend
       setIsTyping(true);
       try {
-        // Importar dinámicamente para evitar problemas de dependencias circulares si las hubiera
+        // Importar dinÃ¡micamente para evitar problemas de dependencias circulares si las hubiera
         const { playShinyGame } = await import('@/services/steebApi');
         const result = await playShinyGame(guess);
         
@@ -358,18 +358,18 @@ const SteebChatAI: React.FC = () => {
 
           if (result.won) {
              setShinyGameState('idle');
-             // Recargar página o notificar cambio de tema tras un breve delay
+             // Recargar pÃ¡gina o notificar cambio de tema tras un breve delay
              setTimeout(() => {
                window.location.reload();
              }, 3000);
           } else {
-             // Si perdió, preguntar si quiere jugar de nuevo si tiene tiradas
+             // Si perdiÃ³, preguntar si quiere jugar de nuevo si tiene tiradas
              if (result.remainingRolls > 0) {
                setTimeout(() => {
                  const retryMessage: ChatMessage = {
                    id: `msg_${Date.now() + 2}`,
                    role: 'assistant',
-                   content: `Te quedan ${result.remainingRolls} tiradas. ¿Querés intentar de nuevo?`,
+                   content: `Te quedan ${result.remainingRolls} tiradas. Â¿QuerÃ©s intentar de nuevo?`,
                    timestamp: new Date(),
                    category: 'general'
                  };
@@ -382,7 +382,7 @@ const SteebChatAI: React.FC = () => {
                  const noRollsMessage: ChatMessage = {
                    id: `msg_${Date.now() + 2}`,
                    role: 'assistant',
-                   content: 'Te quedaste sin tiradas por hoy. ¡Podés comprar más para seguir intentando! 💎',
+                   content: 'Te quedaste sin tiradas por hoy. Â¡PodÃ©s comprar mÃ¡s para seguir intentando! ðŸ’Ž',
                    timestamp: new Date(),
                    category: 'general',
                    showMercadoPagoButton: true
@@ -411,7 +411,7 @@ const SteebChatAI: React.FC = () => {
         const errorMessage: ChatMessage = {
           id: `msg_${Date.now() + 1}`,
           role: 'assistant',
-          content: 'Ocurrió un error de conexión. Intenta más tarde.',
+          content: 'OcurriÃ³ un error de conexiÃ³n. Intenta mÃ¡s tarde.',
           timestamp: new Date(),
           category: 'general'
         };
@@ -420,7 +420,7 @@ const SteebChatAI: React.FC = () => {
       return;
     }
 
-    // Detectar intención de jugar Shiny (PRIORIDAD ALTA)
+    // Detectar intenciÃ³n de jugar Shiny (PRIORIDAD ALTA)
     const lowerMsg = message.toLowerCase();
     const shinyKeywords = ['shiny', 'jugar', 'desbloquear', 'modo', 'tirada', 'tiradas', 'intentar', 'probar'];
     const isShinyIntent = lowerMsg.includes('shiny') || (lowerMsg.includes('tirada') && lowerMsg.includes('jugar'));
@@ -439,7 +439,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: '¿Querés gastar una de tus tiradas para intentar desbloquear el modo Shiny? 🎲',
+            content: 'Â¿QuerÃ©s gastar una de tus tiradas para intentar desbloquear el modo Shiny? ðŸŽ²',
             timestamp: new Date(),
             category: 'general'
           };
@@ -454,25 +454,25 @@ const SteebChatAI: React.FC = () => {
 
     // Comandos que abren paneles - manejarlos silenciosamente
     if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_PROGRESS') {
-      console.log('🚀 Abriendo panel de progreso sin mensajes...');
+      console.log('ðŸš€ Abriendo panel de progreso sin mensajes...');
       setShowProgress(true);
       return;
     }
 
     if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_CALENDAR') {
-      console.log('📅 Abriendo panel de calendario sin mensajes...');
+      console.log('ðŸ“… Abriendo panel de calendario sin mensajes...');
       setShowCalendar(true);
       return;
     }
 
     if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_TASKS') {
-      console.log('📋 Abriendo panel de tareas sin mensajes...');
+      console.log('ðŸ“‹ Abriendo panel de tareas sin mensajes...');
       setShowSideTasks(true);
       return;
     }
 
     if (predefinedResponse === 'SPECIAL_COMMAND:BUY_DARK_MODE') {
-      console.log('💳 Comprando Dark Mode...');
+      console.log('ðŸ’³ Comprando Dark Mode...');
 
       // Enviar un evento global para que el ThemeToggle abra el modal de pago
       const buyDarkEvent = new CustomEvent('buy-dark-mode', {
@@ -486,13 +486,13 @@ const SteebChatAI: React.FC = () => {
       const confirmationMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
-        content: '¡Excelente decisión! Estoy abriendo el proceso de compra para el Dark Mode por $1. Te dará acceso inmediato + 1 intento gratis para Shiny. 🌙',
+        content: 'Â¡Excelente decisiÃ³n! Estoy abriendo el proceso de compra para el Dark Mode por $1. Te darÃ¡ acceso inmediato + 1 intento gratis para Shiny. ðŸŒ™',
         timestamp: new Date(),
         category: 'general'
       };
       setMessages(prev => [...prev, confirmationMessage]);
 
-      // Enviar segundo mensaje con botón de Mercado Pago
+      // Enviar segundo mensaje con botÃ³n de Mercado Pago
       setTimeout(() => {
         const mercadoPagoMessage: ChatMessage = {
           id: `msg_${Date.now() + 1}`,
@@ -502,7 +502,7 @@ const SteebChatAI: React.FC = () => {
 ### 1 intento gratis del modo SHINY`,
           timestamp: new Date(),
           category: 'general',
-          showMercadoPagoButton: true // Nueva propiedad para mostrar el botón
+          showMercadoPagoButton: true // Nueva propiedad para mostrar el botÃ³n
         };
         setMessages(prev => [...prev, mercadoPagoMessage]);
 
@@ -526,7 +526,7 @@ const SteebChatAI: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
 
     // Ya detectamos respuestas predefinidas arriba, pero ya excluimos los comandos de paneles
-    // Si llegamos aquí, es porque no es un comando de panel, pero puede tener respuesta predefinida
+    // Si llegamos aquÃ­, es porque no es un comando de panel, pero puede tener respuesta predefinida
     if (predefinedResponse && predefinedResponse !== 'SPECIAL_COMMAND:OPEN_PROGRESS' && predefinedResponse !== 'SPECIAL_COMMAND:OPEN_CALENDAR') {
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
@@ -544,7 +544,7 @@ const SteebChatAI: React.FC = () => {
     const taskMatch = message.match(taskRegex);
     if (taskMatch) {
       const taskTitle = taskMatch[1].trim();
-      // NO esperar - crear tarea en background, mostrar confirmación instantáneamente
+      // NO esperar - crear tarea en background, mostrar confirmaciÃ³n instantÃ¡neamente
       addTask({
         title: taskTitle,
         completed: false,
@@ -555,7 +555,7 @@ const SteebChatAI: React.FC = () => {
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
-        content: `✅ "${taskTitle}" creada`,
+        content: `âœ… "${taskTitle}" creada`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiMessage]);
@@ -578,7 +578,7 @@ const SteebChatAI: React.FC = () => {
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('⚠️ Error comunicando con STEEB:', error);
+      console.error('âš ï¸ Error comunicando con STEEB:', error);
 
       const errorMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
@@ -598,64 +598,64 @@ const SteebChatAI: React.FC = () => {
     const message = userMessage.toLowerCase();
     const taskContext = getTaskContext();
     const currentHour = new Date().getHours();
-    const timeOfDay = currentHour < 12 ? 'mañana' : currentHour < 18 ? 'tarde' : 'noche';
+    const timeOfDay = currentHour < 12 ? 'maÃ±ana' : currentHour < 18 ? 'tarde' : 'noche';
 
     // Enhanced pattern matching for more intelligent responses
-    if (message.includes('hola') || message.includes('buen día') || message.includes('hey')) {
-      return `¡Buen ${timeOfDay}! Es hora de acción. Tenés ${taskContext.pending} tareas pendientes. ¿Cuál vas a conquistar hoy?`;
+    if (message.includes('hola') || message.includes('buen dÃ­a') || message.includes('hey')) {
+      return `Â¡Buen ${timeOfDay}! Es hora de acciÃ³n. TenÃ©s ${taskContext.pending} tareas pendientes. Â¿CuÃ¡l vas a conquistar hoy?`;
     }
 
     if (message.includes('tarea') || message.includes('tareas')) {
       if (taskContext.pending > 0) {
         const responses = [
-          `Tenés ${taskContext.pending} tareas esperando. La procrastinación es tu enemiga. Elegí una y dominala ahora.`,
-          `${taskContext.pending} tareas pendientes. Cada una es una oportunidad para ser mejor. Empezá con la más fácil.`,
-          `Vi ${taskContext.pending} tareas sin completar. El éxito se construye tarea por tarea. ¿Cuál empieza hoy?`
+          `TenÃ©s ${taskContext.pending} tareas esperando. La procrastinaciÃ³n es tu enemiga. ElegÃ­ una y dominala ahora.`,
+          `${taskContext.pending} tareas pendientes. Cada una es una oportunidad para ser mejor. EmpezÃ¡ con la mÃ¡s fÃ¡cil.`,
+          `Vi ${taskContext.pending} tareas sin completar. El Ã©xito se construye tarea por tarea. Â¿CuÃ¡l empieza hoy?`
         ];
         return responses[Math.floor(Math.random() * responses.length)];
       } else {
-        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
       }
     }
 
-    if (message.includes('procrastinar') || message.includes('postergar') || message.includes('después')) {
+    if (message.includes('procrastinar') || message.includes('postergar') || message.includes('despuÃ©s')) {
       const responses = [
-        'El "después" es el idioma de los mediocres. Los ganadores hablan en "ahora". ¿Cuál elegís?',
-        'Cada minuto que postergás es un minuto que le regalás a la mediocridad. Recuperalo ahora.',
-        'La procrastinación es el impuesto que pagás por no vivir tu potencial. ¿Vas a seguir pagando?',
-        'El momento perfecto fue hace 5 minutos. El segundo mejor momento es ahora. Actuá.'
+        'El "despuÃ©s" es el idioma de los mediocres. Los ganadores hablan en "ahora". Â¿CuÃ¡l elegÃ­s?',
+        'Cada minuto que postergÃ¡s es un minuto que le regalÃ¡s a la mediocridad. Recuperalo ahora.',
+        'La procrastinaciÃ³n es el impuesto que pagÃ¡s por no vivir tu potencial. Â¿Vas a seguir pagando?',
+        'El momento perfecto fue hace 5 minutos. El segundo mejor momento es ahora. ActuÃ¡.'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
 
-    if (message.includes('motivación') || message.includes('ánimo') || message.includes('energía')) {
+    if (message.includes('motivaciÃ³n') || message.includes('Ã¡nimo') || message.includes('energÃ­a')) {
       const responses = [
-        'La motivación no aparece mágicamente. Se construye con cada tarea completada. Hacé la primera.',
-        'El ánimo es subproducto de la acción. Movete, aunque sea un paso pequeño. La energía seguirá.',
-        'La motivación es para principiantes. Los profesionales usan disciplina. Empezá ahora.',
-        'Tu energía mental es como un músculo: cuanto más lo ejercitas actuar, más fuerte se vuelve.'
+        'La motivaciÃ³n no aparece mÃ¡gicamente. Se construye con cada tarea completada. HacÃ© la primera.',
+        'El Ã¡nimo es subproducto de la acciÃ³n. Movete, aunque sea un paso pequeÃ±o. La energÃ­a seguirÃ¡.',
+        'La motivaciÃ³n es para principiantes. Los profesionales usan disciplina. EmpezÃ¡ ahora.',
+        'Tu energÃ­a mental es como un mÃºsculo: cuanto mÃ¡s lo ejercitas actuar, mÃ¡s fuerte se vuelve.'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
 
-    if (message.includes('ayuda') || message.includes('ayúdame')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+    if (message.includes('ayuda') || message.includes('ayÃºdame')) {
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
-    if (message.includes('cómo') || message.includes('cómo')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+    if (message.includes('cÃ³mo') || message.includes('cÃ³mo')) {
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
     if (message.includes('gracias') || message.includes('thank')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
     if (message.includes('cansado') || message.includes('fatiga') || message.includes('agotado')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
-    if (message.includes('difícil') || message.includes('imposible') || message.includes('no puedo')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+    if (message.includes('difÃ­cil') || message.includes('imposible') || message.includes('no puedo')) {
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
     if (message.includes('plan') || message.includes('organizar')) {
@@ -663,7 +663,7 @@ const SteebChatAI: React.FC = () => {
       setShowSideTasks(true);
       setShowCalendar(false);
       setShowProgress(false);
-      return `Tu plan es simple: ${taskContext.pending > 0 ? `1) Completar ${taskContext.pending} tareas pendientes` : '1) Agregar nuevas metas'}, 2) Celebrar cada victoria, 3) Repetir mañana. ¿Necesitas más detalles?`;
+      return `Tu plan es simple: ${taskContext.pending > 0 ? `1) Completar ${taskContext.pending} tareas pendientes` : '1) Agregar nuevas metas'}, 2) Celebrar cada victoria, 3) Repetir maÃ±ana. Â¿Necesitas mÃ¡s detalles?`;
     }
 
     if (message.includes('calendario') || message.includes('calendario')) {
@@ -671,35 +671,35 @@ const SteebChatAI: React.FC = () => {
       setShowCalendar(true);
       setShowSideTasks(false);
       setShowProgress(false);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
-    if (message.includes('progreso') || message.includes('estadísticas') || message.includes('gráfico')) {
+    if (message.includes('progreso') || message.includes('estadÃ­sticas') || message.includes('grÃ¡fico')) {
       // Abrir panel de progreso y cerrar otros paneles
       setShowProgress(true);
       setShowSideTasks(false);
       setShowCalendar(false);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
-    if (message.includes('tiempo') || message.includes('cuánto')) {
+    if (message.includes('tiempo') || message.includes('cuÃ¡nto')) {
       const responses = [
         'El tiempo que gastas pensando en hacer la tarea es suficiente para completarla.',
-        'No tienes tiempo para procrastinar, pero sí para triunfar. Usalo sabiamente.',
-        'El tiempo es tu recurso más valioso. Cada minuto que usas productivamente es una inversión en tu futuro.'
+        'No tienes tiempo para procrastinar, pero sÃ­ para triunfar. Usalo sabiamente.',
+        'El tiempo es tu recurso mÃ¡s valioso. Cada minuto que usas productivamente es una inversiÃ³n en tu futuro.'
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
 
     // Default intelligent responses
     const defaultResponses = [
-      'Hacelo ahora y después nos preocupamos.',
-      'Empezá por la más fácil y sigamos.',
+      'Hacelo ahora y despuÃ©s nos preocupamos.',
+      'EmpezÃ¡ por la mÃ¡s fÃ¡cil y sigamos.',
       'Una por una, no hay otro secreto.',
-      '¿Y si empezamos ya y vemos qué pasa?',
-      'Hoy es buen día para terminar estas cosas.',
+      'Â¿Y si empezamos ya y vemos quÃ© pasa?',
+      'Hoy es buen dÃ­a para terminar estas cosas.',
       'Vamos, son apenas 10 minutos de foco.',
-      'Después de esto seguimos con lo nuestro.'
+      'DespuÃ©s de esto seguimos con lo nuestro.'
     ];
 
     return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
@@ -713,37 +713,37 @@ const SteebChatAI: React.FC = () => {
       // Abrir panel de tareas sin cerrar otros paneles
       setShowSideTasks(true);
       if (taskContext.pending > 0) {
-        return `Tenés ${taskContext.pending} tareas pendientes. Elegí una y empezá ahora. No pienses, hacé.`;
+        return `TenÃ©s ${taskContext.pending} tareas pendientes. ElegÃ­ una y empezÃ¡ ahora. No pienses, hacÃ©.`;
       } else {
-        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
       }
     }
 
     if (message.includes('calendario') || message.includes('calendario')) {
       // Abrir panel de calendario sin cerrar otros paneles
       setShowCalendar(true);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
-    if (message.includes('progreso') || message.includes('estadísticas') || message.includes('gráfico')) {
+    if (message.includes('progreso') || message.includes('estadÃ­sticas') || message.includes('grÃ¡fico')) {
       // Abrir panel de progreso sin cerrar otros paneles
       setShowProgress(true);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
     if (message.includes('procrastinar') || message.includes('postergar')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
-    if (message.includes('motivación') || message.includes('ánimo')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir� la ventana de cada una para que organices tu d�a conmigo.';
+    if (message.includes('motivaciÃ³n') || message.includes('Ã¡nimo')) {
+      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
     }
 
     const fallbacks = [
       'Hacelo ahora y listo, seguimos.',
-      'Empezá, después vemos el resto.',
-      'Una a la vez, así se va.',
-      'Vamos, terminemos esto rápidamente.'
+      'EmpezÃ¡, despuÃ©s vemos el resto.',
+      'Una a la vez, asÃ­ se va.',
+      'Vamos, terminemos esto rÃ¡pidamente.'
     ];
 
     return fallbacks[Math.floor(Math.random() * fallbacks.length)];
@@ -780,7 +780,7 @@ const SteebChatAI: React.FC = () => {
             top: '0px',
             bottom: panelHeight > 0
               ? `${panelHeight + 60}px` // Dejar 60px para input + espacio del panel
-              : '40px' // Dejar solo 40px para input cuando no hay panel (más arriba)
+              : '40px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
           }}
         >
         {messages.map((message, index) => {
@@ -862,7 +862,7 @@ const SteebChatAI: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Botón de Mercado Pago */}
+                {/* BotÃ³n de Mercado Pago */}
                 {message.showMercadoPagoButton && (
                   <button
                     onClick={() => {
@@ -886,7 +886,7 @@ const SteebChatAI: React.FC = () => {
                   </button>
                 )}
 
-                {/* Opciones de pago múltiples */}
+                {/* Opciones de pago mÃºltiples */}
                 {message.paymentOptions && (
                   <div className="mt-3 space-y-2">
                     {message.paymentOptions.map((option) => (
@@ -1000,7 +1000,7 @@ const SteebChatAI: React.FC = () => {
                   fontSize: '16px'
                 }}
               />
-              {/* Cursor clásico parpadeante */}
+              {/* Cursor clÃ¡sico parpadeante */}
               {!inputMessage && (
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                   <div
@@ -1060,5 +1060,6 @@ const SteebChatAI: React.FC = () => {
 };
 
 export default SteebChatAI;
+
 
 
