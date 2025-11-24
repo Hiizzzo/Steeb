@@ -77,9 +77,9 @@ const ThemeToggle = () => {
 					content: '¿Vas a probar suerte para desbloquear el modo Shiny? ✨\n\nElegí tu paquete de tiradas:',
 					timestamp: new Date(),
 					paymentOptions: [
-						{ id: '1-roll', label: '1 tirada', price: '$1', action: 'buy-shiny-rolls', planId: 'shiny-roll-1' },
-						{ id: '15-rolls', label: '15 tiradas', price: '$15', action: 'buy-shiny-rolls', planId: 'shiny-roll-15' },
-						{ id: '30-rolls', label: '30 tiradas', price: '$30', action: 'buy-shiny-rolls', planId: 'shiny-roll-30' }
+						{ id: '1-roll', label: '1 tirada', price: '$300', action: 'buy-shiny-rolls', planId: 'shiny-roll-1' },
+						{ id: '15-rolls', label: '15 tiradas', price: '$4000', action: 'buy-shiny-rolls', planId: 'shiny-roll-15' },
+						{ id: '30-rolls', label: '30 tiradas', price: '$8000', action: 'buy-shiny-rolls', planId: 'shiny-roll-30' }
 					]
 				};
 				window.dispatchEvent(new CustomEvent('steeb-message-with-options', { detail: message }));

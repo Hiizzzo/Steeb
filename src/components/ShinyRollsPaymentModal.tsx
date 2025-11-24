@@ -18,10 +18,9 @@ interface ShinyRollsPaymentModalProps {
 }
 
 const ROLL_PACKS = [
-  { quantity: 1, price: 1, label: '1 Tirada' },
-  { quantity: 5, price: 1, label: '5 Tiradas' },
-  { quantity: 15, price: 1, label: '15 Tiradas' },
-  { quantity: 30, price: 1, label: '30 Tiradas' },
+  { quantity: 1, price: 300, label: '1 Tirada' },
+  { quantity: 15, price: 4000, label: '15 Tiradas' },
+  { quantity: 30, price: 8000, label: '30 Tiradas' },
 ];
 
 export const ShinyRollsPaymentModal: React.FC<ShinyRollsPaymentModalProps> = ({ isOpen, onClose }) => {
@@ -150,7 +149,7 @@ export const ShinyRollsPaymentModal: React.FC<ShinyRollsPaymentModalProps> = ({ 
                   }`}
               >
                 <span className="font-bold text-lg">{pack.label}</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">${pack.price} USD</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">${pack.price}</span>
               </button>
             ))}
           </div>
