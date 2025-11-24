@@ -948,10 +948,14 @@ const SteebChatAI: React.FC = () => {
                         }}
                         className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${
                           isShinyMode || isDarkMode
-                            ? 'bg-black text-white border-0 hover:bg-[#0f0f0f]'
+                            ? 'text-white'
                             : 'bg-white text-black border-0 hover:bg-gray-100'
                         }`}
-                        style={isShinyMode || isDarkMode ? { backgroundColor: '#000', border: 'none' } : { border: 'none' }}
+                        style={
+                          isShinyMode || isDarkMode
+                            ? { backgroundColor: '#000000', border: 'none', boxShadow: 'none', filter: 'none' }
+                            : { border: 'none', boxShadow: 'none', filter: 'none' }
+                        }
                       >
                     <span>{option.label}</span>
                     <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}>
