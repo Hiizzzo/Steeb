@@ -50,11 +50,11 @@ const SteebChatAI: React.FC = () => {
             key={`shiny-${index}`}
             className="shiny-word"
             style={{
-              background: 'linear-gradient(90deg, #ff0055, #ff9900, #00d4ff, #7a5fff)',
-              backgroundSize: '300% 100%',
+              background: 'linear-gradient(90deg, #ff0055, #ff66b2, #ff9900, #00d4ff, #7a5fff)',
+              backgroundSize: '400% 100%',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              animation: 'shinyShift 3s linear infinite',
+              animation: 'shinyShift 4s ease-in-out infinite',
               fontWeight: 700,
               textTransform: 'uppercase'
             }}
@@ -158,7 +158,8 @@ const SteebChatAI: React.FC = () => {
       style.textContent = `
         @keyframes shinyShift {
           0% { background-position: 0% 50%; }
-          100% { background-position: 100% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
         }
       `;
       document.head.appendChild(style);
