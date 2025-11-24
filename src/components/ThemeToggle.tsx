@@ -74,7 +74,7 @@ const ThemeToggle = () => {
 			} else if (newTheme === 'shiny') {
 				const message = {
 					type: 'theme-info-with-options',
-					content: '¿Vas a probar suerte para desbloquear el modo Shiny? ✨\n\nElegí tu paquete de tiradas:',
+					content: '¿Vas a probar suerte para desbloquear el modo Shiny?\n\nElegí tu paquete de tiradas:',
 					timestamp: new Date(),
 					paymentOptions: [
 						{ id: '1-roll', label: '1 tirada', price: '$300', action: 'buy-shiny-rolls', planId: 'shiny-roll-1', className: 'text-black dark:text-white' },
