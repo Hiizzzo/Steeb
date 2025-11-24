@@ -909,13 +909,7 @@ const SteebChatAI: React.FC = () => {
                     }`}
                   >
                     <span>{option.label}</span>
-                    <span
-                      className={`font-bold ${
-                        option.className
-                          ? option.className
-                          : (isShinyMode || isDarkMode ? 'text-white' : 'text-black')
-                      }`}
-                    >
+                    <span className="font-bold text-black dark:text-white">
                       {option.price}
                     </span>
                   </button>
