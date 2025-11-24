@@ -162,6 +162,20 @@ const SteebChatAI: React.FC = () => {
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
+        .shiny .shiny-option-btn {
+          background: #000 !important;
+          border: none !important;
+          box-shadow: none !important;
+          filter: none !important;
+          opacity: 1 !important;
+        }
+        .dark .shiny-option-btn {
+          background: #000 !important;
+          border: none !important;
+          box-shadow: none !important;
+          filter: none !important;
+          opacity: 1 !important;
+        }
       `;
       document.head.appendChild(style);
     }
@@ -230,9 +244,7 @@ const SteebChatAI: React.FC = () => {
         setMessages(prev => [...prev, aiMessage]);
 
         // Scroll al final para mostrar el nuevo mensaje
-        setTimeout(() => {
-          scrollToBottom();
-        }, 100);
+        scrollToBottom();
       }
     };
 
@@ -258,9 +270,7 @@ const SteebChatAI: React.FC = () => {
     const threshold = screenHeight * 0.85;
 
     // Scroll al fondo con un pequeÃ±o delay para que la transiciÃ³n se complete
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
+    scrollToBottom();
   };
 
   // Resetear altura del panel cuando se cierra
@@ -552,9 +562,7 @@ const SteebChatAI: React.FC = () => {
         setMessages(prev => [...prev, mercadoPagoMessage]);
 
         // Scroll al final para mostrar el nuevo mensaje
-        setTimeout(() => {
-          scrollToBottom();
-        }, 100);
+        scrollToBottom();
       }, 1000); // Esperar 1 segundo para enviar el segundo mensaje
 
       return;
@@ -824,8 +832,8 @@ const SteebChatAI: React.FC = () => {
             zIndex: 100,
             top: '0px',
             bottom: panelHeight > 0
-              ? `${panelHeight + 60}px` // Dejar 60px para input + espacio del panel
-              : '40px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
+              ? `${panelHeight + 12}px` // Dejar 60px para input + espacio del panel
+              : '32px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
           }}
         >
         {messages.map((message, index) => {
@@ -889,15 +897,13 @@ const SteebChatAI: React.FC = () => {
                 </p>
 
                 {/* Timestamp with improved styling */}
-                <div className={`text-xs mt-2 flex items-center space-x-1 ${
-                  message.role === 'assistant'
-                    ? 'text-gray-500 dark:text-gray-400'
-                    : isShinyMode
-                      ? 'text-gray-300'
-                      : isDarkMode
-                        ? 'text-gray-200'
-                        : 'text-blue-100'
-                }`}>
+                <div
+                  className={`text-xs mt-2 flex items-center space-x-1 ${
+                    message.role === 'assistant'
+                      ? (isShinyMode || isDarkMode ? 'text-gray-300' : 'text-gray-500')
+                      : 'text-white'
+                  }`}
+                >
                   <Clock className="w-3 h-3" />
                   <span>
                     {message.timestamp.toLocaleTimeString('es-ES', {
@@ -946,28 +952,12 @@ const SteebChatAI: React.FC = () => {
                           });
                           window.dispatchEvent(event);
                         }}
-                        className={`w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${
+                        className={`shiny-option-btn w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${
                           isShinyMode || isDarkMode
-                            ? 'text-white'
-                            : 'bg-white text-black'
+                            ? 'bg-black text-white border-0'
+                            : 'bg-white text-black border-0'
                         }`}
-                        style={
-                          isShinyMode || isDarkMode
-                            ? {
-                                backgroundColor: '#000000',
-                                border: 'none',
-                                boxShadow: 'none',
-                                filter: 'none',
-                                opacity: 1
-                              }
-                            : {
-                                backgroundColor: '#ffffff',
-                                border: 'none',
-                                boxShadow: 'none',
-                                filter: 'none',
-                                opacity: 1
-                              }
-                        }
+                        style={isShinyMode || isDarkMode ? { backgroundColor: '#000000' } : undefined}
                       >
                     <span>{option.label}</span>
                     <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}>
@@ -1037,7 +1027,7 @@ const SteebChatAI: React.FC = () => {
           className={`${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-gray-100'} backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0`}
           style={{
             zIndex: 100,
-            bottom: panelHeight > 0 ? `${panelHeight}px` : '20px',
+            bottom: panelHeight > 0 ? `${Math.max(panelHeight - 10, 12)}px` : '16px',
             backgroundColor: isShinyMode ? '#000000' : undefined
           }}
         >
@@ -1122,6 +1112,12 @@ const SteebChatAI: React.FC = () => {
 };
 
 export default SteebChatAI;
+
+
+
+
+
+
 
 
 

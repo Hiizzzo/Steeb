@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { BarChart3, Target, CheckCircle, Flame, Trophy } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTheme } from '@/hooks/useTheme';
@@ -87,7 +87,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     resizeObserverRef.current = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const newHeight = entry.contentRect.height;
-        // Actualización inmediata en tiempo real - SIN DELAY
+        // ActualizaciÃ³n inmediata en tiempo real - SIN DELAY
         if (Math.abs(newHeight - actualContainerHeight) > 2) {
           setActualContainerHeight(newHeight);
         }
@@ -112,7 +112,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, [actualContainerHeight]);
 
-  // Actualización ULTRA RÁPIDA durante el drag para tiempo real
+  // ActualizaciÃ³n ULTRA RÃPIDA durante el drag para tiempo real
   useEffect(() => {
     if (isDragging && chartContainerRef.current) {
       const updateDuringDrag = () => {
@@ -125,7 +125,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
       // Actualizar inmediatamente al iniciar drag
       updateDuringDrag();
 
-      // Actualizar a 120fps para máxima fluidez durante el drag
+      // Actualizar a 120fps para mÃ¡xima fluidez durante el drag
       const interval = setInterval(updateDuringDrag, 8);
 
       return () => clearInterval(interval);
@@ -194,7 +194,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, [tasks]);
 
-  // Calcular estadísticas
+  // Calcular estadÃ­sticas
   const stats = useMemo(() => {
     const now = new Date();
     let filteredTasks = tasks;
@@ -253,7 +253,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, [tasks, viewMode]);
 
-  // Función de escalado para todas las vistas
+  // FunciÃ³n de escalado para todas las vistas
   const getScaledHeight = useMemo(() => {
     return (maxTasks: number, taskCount: number, containerHeight: number) => {
       const reservedSpace = 50;
@@ -267,9 +267,9 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, []);
 
-  // Calcular tareas por día de la semana
+  // Calcular tareas por dÃ­a de la semana
   const tasksByDay = useMemo(() => {
-    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const days = ['Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado', 'Domingo'];
     const weekData = days.map((day, index) => {
       const dayTasks = tasks.filter(task => {
         const taskDate = new Date(task.completedAt || task.createdAt);
@@ -330,7 +330,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     }));
   }, [tasks, actualContainerHeight, getScaledHeight]);
 
-  // Calcular tareas por mes del año
+  // Calcular tareas por mes del aÃ±o
   const tasksByMonth = useMemo(() => {
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const now = new Date();
@@ -544,13 +544,17 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               tasksByDay.map((dayData, index) => (
                 <div key={index} className="flex flex-col items-center flex-shrink-0">
                   <div
-                    className={`chart-bar w-8 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
+                    className="chart-bar w-8 rounded flex items-center justify-center relative overflow-hidden"
                     style={{
                       height: `${dayData.scaledHeight}px`,
                       backgroundColor: isShinyMode ? shinyWeekBarColors[index] ?? '#000000' : (isDarkMode ? '#FFFFFF' : '#000000'),
                       background: isShinyMode ? shinyWeekBarColors[index] ?? '#000000' : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
-                      WebkitAppearance: 'none'
+                      WebkitAppearance: 'none',
+                      transition: 'height 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
+                      willChange: 'height, transform',
+                      transformOrigin: 'bottom',
+                      transform: 'translateZ(0)'
                     }}
                   >
                     {dayData.completed > 0 && (
@@ -582,13 +586,17 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               tasksByWeek.map((weekData, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div
-                    className={`chart-bar w-16 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
+                    className="chart-bar w-16 rounded flex items-center justify-center relative overflow-hidden"
                     style={{
                       height: `${weekData.scaledHeight}px`,
                       backgroundColor: isShinyMode ? shinyWeekOfMonthColors[index % shinyWeekOfMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       background: isShinyMode ? shinyWeekOfMonthColors[index % shinyWeekOfMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
-                      WebkitAppearance: 'none'
+                      WebkitAppearance: 'none',
+                      transition: 'height 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
+                      willChange: 'height, transform',
+                      transformOrigin: 'bottom',
+                      transform: 'translateZ(0)'
                     }}
                   >
                     {weekData.completed > 0 && (
@@ -613,13 +621,17 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               tasksByMonth.map((monthData, index) => (
                 <div key={index} className="flex flex-col items-center flex-shrink-0">
                   <div
-                    className={`chart-bar w-7 rounded flex items-center justify-center relative overflow-hidden transition-all duration-300 ease-out`}
+                    className="chart-bar w-7 rounded flex items-center justify-center relative overflow-hidden"
                     style={{
                       height: `${monthData.scaledHeight}px`,
                       backgroundColor: isShinyMode ? shinyMonthColors[index % shinyMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       background: isShinyMode ? shinyMonthColors[index % shinyMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
-                      WebkitAppearance: 'none'
+                      WebkitAppearance: 'none',
+                      transition: 'height 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
+                      willChange: 'height, transform',
+                      transformOrigin: 'bottom',
+                      transform: 'translateZ(0)'
                     }}
                   >
                     {monthData.completed > 0 && (
@@ -722,45 +734,44 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
       {/* View Mode Selector at Bottom */}
       <div className={`pb-4 px-5 flex justify-center ${(!isDarkMode && !isShinyMode) ? 'border-t border-white' : ''} ${isShinyMode ? 'bg-black border-t border-black' : ''}`}>
         <div className={`relative flex rounded-full px-4 py-2 w-full ${
-          isShinyMode ? 'bg-black border border-transparent' : isDarkMode ? 'bg-black border border-transparent' : 'bg-gray-100'
+          (isShinyMode || isDarkMode) ? 'bg-black border border-transparent' : 'bg-gray-100'
         }`}>
           {[
             { value: 'week', label: 'Semana' },
             { value: 'month', label: 'Mes' },
             { value: 'year', label: 'Año' }
-          ].map((mode, index) => (
+          ].map((mode, index) => {
+            const isSelected = viewMode === mode.value;
+            const modeClasses = (() => {
+              if (isDarkMode) {
+                return isSelected
+                  ? 'bg-white text-black shadow-none'
+                  : 'bg-black text-white shadow-none';
+              }
+              if (isShinyMode) {
+                return isSelected
+                  ? 'bg-black text-white shadow-none'
+                  : 'bg-white text-black hover:bg-white';
+              }
+              return isSelected
+                ? 'bg-black text-white shadow-none'
+                : 'bg-transparent text-black hover:bg-gray-200';
+            })();
+
+            return (
             <button
               key={mode.value}
               data-custom-color="true"
               onClick={() => setViewMode(mode.value as any)}
-              className={`view-mode-btn relative flex-1 py-1.5 text-base font-sans font-medium transition-all duration-200 ease-in-out ${
-                isDarkMode
-                  ? `${viewMode === mode.value
-                      ? 'selected-button-mode dark-view-mode-btn-selected'
-                      : 'dark-view-mode-btn-default'}`
-                  : isShinyMode
-                    ? (viewMode === mode.value
-                      ? 'bg-black text-white shadow-none'
-                      : 'bg-white text-black hover:bg-white')
-                    : (viewMode === mode.value
-                      ? 'bg-black text-white shadow-none'
-                      : 'bg-transparent text-black hover:bg-gray-200')
-              } ${index === 0 ? 'rounded-l-full' : ''} ${index === 2 ? 'rounded-r-full' : ''} ${index === 1 ? '-mx-px' : ''}`}
+              className={`view-mode-btn ${modeClasses} relative flex-1 py-1.5 text-base font-sans font-medium transition-all duration-200 ease-in-out ${index === 0 ? 'rounded-l-full' : ''} ${index === 2 ? 'rounded-r-full' : ''} ${index === 1 ? '-mx-px' : ''}`}
               style={{
-                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                ...(viewMode === mode.value && isDarkMode && {
-                  backgroundColor: '#FFFFFF !important',
-                  background: '#FFFFFF !important',
-                  color: '#000000 !important'
-                }),
-                border: isDarkMode ? '1px solid #000000 !important' : 'none !important',
-                borderWidth: isDarkMode ? '1px !important' : '0 !important',
-                borderColor: isDarkMode ? '#000000 !important' : 'transparent !important'
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
             >
               <span>{mode.label}</span>
             </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -768,3 +779,5 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 };
 
 export default SimpleProgressPanel;
+
+
