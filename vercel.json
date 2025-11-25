@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "devCommand": "vite",
   "env": {
-    "VITE_API_URL": "https://v0-steeb-api-backend.vercel.app/api"
+    "VITE_API_URL": "https://v0-steeb-api-backend-production.up.railway.app/api"
   },
   "headers": [
     {

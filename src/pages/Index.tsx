@@ -105,12 +105,18 @@ const Index = () => {
         if (isDark) {
           h1Element.style.setProperty('color', '#000000', 'important');
           h1Element.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+          h1Element.style.background = 'none';
+          h1Element.style.animation = 'none';
         } else if (isShiny) {
           h1Element.style.setProperty('color', '#ffffff', 'important');
           h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+          h1Element.style.background = 'none';
+          h1Element.style.animation = 'none';
         } else {
           h1Element.style.setProperty('color', '#ffffff', 'important');
           h1Element.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+          h1Element.style.background = 'none';
+          h1Element.style.animation = 'none';
         }
       }
     };
@@ -731,15 +737,33 @@ const Index = () => {
           >
             {/* ÍCONO STEEB - IZQUIERDA */}
             <div className="w-32 h-32 mr-1 flex items-center justify-center flex-shrink-0 steeb-force-white-child" style={{ backgroundColor: `${headerBackgroundColor} !important`, background: `${headerBackgroundColor} !important` }}>
-              <img src="/te-observo.png" alt="Steeb" className="w-full h-full object-contain" style={{
-                filter: theme.isShiny ? 'none' : 'none',
-                opacity: 1,
-                backgroundColor: 'transparent'
-              }} />
+              {theme.isShiny ? (
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <div
+                    className="absolute inset-3 border-2 border-white rounded-[2.2rem] z-0"
+                    style={{
+                      background: 'linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff00cc, #ff004c, #ff0000)',
+                      backgroundSize: '200% 100%',
+                      animation: 'shinyShiftHorizontal 3s linear infinite'
+                    }}
+                  ></div>
+                  <img src="/steve-jobs-shiny.png" alt="Steeb" className="w-full h-full object-contain relative z-10 scale-110" style={{
+                    filter: 'none',
+                    opacity: 1,
+                    backgroundColor: 'transparent'
+                  }} />
+                </div>
+              ) : (
+                <img src="/te-observo.png" alt="Steeb" className="w-full h-full object-contain" style={{
+                  filter: 'none',
+                  opacity: 1,
+                  backgroundColor: 'transparent'
+                }} />
+              )}
             </div>
 
             {/* TEXTO FIJO "STEEB" - MÁS CERCA DEL ÍCONO */}
-            <h1 className="text-3xl font-normal tracking-wide text-center" style={{ color: `${headerTextColor} !important`, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '8px', paddingLeft: '16px' }}>
+            <h1 className="text-3xl font-normal tracking-wide text-center steeb-main-title" style={{ color: `${headerTextColor} !important`, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '700', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', height: '100%', paddingTop: '8px', paddingLeft: '16px' }}>
               STEEB
             </h1>
 
@@ -824,15 +848,29 @@ const Index = () => {
           setSelectedTask(null);
         }}
         onEdit={handleEditTask}
+        onToggle={handleToggleTask}
+        onToggleSubtask={handleToggleSubtask}
       />
 
       {/* Recordatorio diario para revisar tareas de ayer */}
       {showReminder && yesterdayDate && (
         <DailyTaskReminderModal
+          open={showReminder}
+          onOpenChange={(open) => !open && skipReminder()}
           tasks={tasks}
           yesterdayDate={yesterdayDate}
-          onClose={skipReminder}
-          onMarkComplete={markReminderShown}
+          onMarkCompleted={(taskIds, date) => {
+            // Marcar tareas como completadas
+            taskIds.forEach(id => {
+              const task = tasks.find(t => t.id === id);
+              if (task) {
+                // Usar la fecha de ayer para completedDate
+                const completedDate = new Date(date).toISOString();
+                updateTask(id, { ...task, completed: true, completedDate });
+              }
+            });
+            markReminderShown();
+          }}
         />
       )}
 
@@ -841,9 +879,7 @@ const Index = () => {
         <DailyTasksConfig
           isOpen={true}
           onClose={() => setShowConfigModal(false)}
-          onSave={(dailyTasks) => {
-                  setShowConfigModal(false);
-          }}
+          onAddTask={handleAddTask}
         />
       )}
 

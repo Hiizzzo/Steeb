@@ -65,7 +65,7 @@ export const mercadoPagoService = {
       // Si el apiClient falla, intentar con fetch directo
       try {
         console.log('🔄 Intentando con fetch directo...');
-        const apiBaseUrl = 'https://v0-steeb-api-backend.vercel.app/api';
+        const apiBaseUrl = 'https://v0-steeb-api-backend-production.up.railway.app/api';
 
         const auth = getAuth();
         const currentUid = auth.currentUser?.uid;
@@ -205,7 +205,7 @@ export const mercadoPagoService = {
       const response = await apiClient.get(`/users/role?userId=${userId}`);
 
       if (response.success && response.data) {
-        const userRole = response.data;
+        const userRole = response.data as any;
         console.log('🎉 Rol actualizado:', userRole);
 
         return {

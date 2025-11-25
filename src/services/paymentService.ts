@@ -1,7 +1,7 @@
 import type { PaymentPlan } from '@/config/paymentPlans';
 
 // Usar la URL correcta del backend sin doble /api
-const API_BASE_URL = 'https://v0-steeb-api-backend.vercel.app/api';
+const API_BASE_URL = 'https://v0-steeb-api-backend-production.up.railway.app/api';
 const buildUrl = (path: string) => `${API_BASE_URL}${path}`;
 
 export interface CreatePreferenceInput {

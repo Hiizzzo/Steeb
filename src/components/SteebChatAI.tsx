@@ -5,6 +5,7 @@ import { dailySummaryService } from '@/services/dailySummaryService';
 import { sendMessageToSteeb } from '@/services/steebApi';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
+import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
@@ -38,15 +39,19 @@ const SteebChatAI: React.FC = () => {
   const shinyMessageColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
   const { user } = useAuth();
+  const { tipoUsuario } = useFirebaseRoleCheck();
   
   // Estado para el juego Shiny
   const [shinyGameState, setShinyGameState] = useState<'idle' | 'confirming' | 'playing'>('idle');
   const [shinyRolls, setShinyRolls] = useState<number | null>(null);
   // Render helper: resaltar la palabra Shiny con gradiente animado
   const renderMessageContent = (text: string) => {
-    const parts = text.split(/(Shiny)/i);
+    // Regex para detectar Shiny y BLACK (con o sin asteriscos)
+    const parts = text.split(/(Shiny|\*\*BLACK\*\*|BLACK)/i);
     return parts.map((part, index) => {
-      if (part.toLowerCase() === 'shiny') {
+      const lowerPart = part.toLowerCase();
+      
+      if (lowerPart === 'shiny') {
         return (
           <span
             key={`shiny-${index}`}
@@ -66,6 +71,33 @@ const SteebChatAI: React.FC = () => {
           </span>
         );
       }
+      
+      if (lowerPart === 'black' || lowerPart === '**black**') {
+        return (
+          <span
+            key={`black-${index}`}
+            style={{
+              fontFamily: '"Reverie", cursive',
+              fontWeight: 400,
+              fontStyle: 'normal',
+              textTransform: 'none',
+              letterSpacing: '0.05em',
+              fontSize: '2.0em',
+              lineHeight: '0.8',
+              verticalAlign: 'middle',
+              margin: '0 8px', // Más espacio
+              // Si es dark mode, blanco brillante; si es light, negro intenso
+              color: isDarkMode || isShinyMode ? '#ffffff' : '#000000',
+              textShadow: isDarkMode || isShinyMode
+                ? '0 0 10px rgba(255,255,255,0.5)'
+                : '0 0 1px rgba(0,0,0,0.1)'
+            }}
+          >
+            Black
+          </span>
+        );
+      }
+
       return part;
     });
   };
@@ -75,7 +107,7 @@ const SteebChatAI: React.FC = () => {
     const pendingTasks = tasks.filter(task => !task.completed);
     const completedToday = tasks.filter(task =>
       task.completed &&
-      new Date(task.completedAt || task.createdAt).toDateString() === new Date().toDateString()
+      new Date(task.completedDate || task.createdAt).toDateString() === new Date().toDateString()
     );
 
     return {
@@ -450,7 +482,7 @@ const SteebChatAI: React.FC = () => {
              }
           }
         } else {
-          // Error del backend (ej: sin permisos, sin tiradas)
+          // Error del backend (ej: sin permisos, sin tiradas, límite diario)
           setShinyGameState('idle');
           const errorMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
@@ -460,6 +492,9 @@ const SteebChatAI: React.FC = () => {
             category: 'general'
           };
           setMessages(prev => [...prev, errorMessage]);
+
+          // Si es límite diario y tiene nextAttemptIn, podríamos mostrar algo más específico si quisiéramos,
+          // pero el mensaje del backend ya viene formateado.
         }
 
       } catch (error) {
@@ -484,6 +519,30 @@ const SteebChatAI: React.FC = () => {
     const isShinyIntent = lowerMsg.includes('shiny') || (lowerMsg.includes('tirada') && lowerMsg.includes('jugar'));
 
     if (isShinyIntent) {
+       const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+       
+       if (normalizedTipo === 'white') {
+          const userMessage: ChatMessage = {
+            id: `msg_${Date.now()}`,
+            role: 'user',
+            content: message,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, userMessage]);
+
+          setTimeout(() => {
+            const aiMessage: ChatMessage = {
+              id: `msg_${Date.now() + 1}`,
+              role: 'assistant',
+              content: 'Para acceder al modo SHINY, primero necesitas ser usuario **Black**.',
+              timestamp: new Date(),
+              category: 'general'
+            };
+            setMessages(prev => [...prev, aiMessage]);
+          }, 500);
+          return;
+       }
+
        setShinyGameState('confirming');
        const userMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
@@ -504,6 +563,87 @@ const SteebChatAI: React.FC = () => {
           setMessages(prev => [...prev, aiMessage]);
         }, 500);
         return;
+    }
+
+    // Detectar pregunta sobre tiradas restantes
+    const rollsKeywords = ['cuantas tiradas', 'cuántas tiradas', 'mis tiradas', 'tengo tiradas', 'intentos me quedan', 'intentos quedan'];
+    const isRollsQuery = rollsKeywords.some(keyword => lowerMsg.includes(keyword));
+
+    if (isRollsQuery) {
+      const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+      
+      if (normalizedTipo === 'white') {
+         const userMessage: ChatMessage = {
+           id: `msg_${Date.now()}`,
+           role: 'user',
+           content: message,
+           timestamp: new Date()
+         };
+         setMessages(prev => [...prev, userMessage]);
+
+         setTimeout(() => {
+           const aiMessage: ChatMessage = {
+             id: `msg_${Date.now() + 1}`,
+             role: 'assistant',
+             content: 'Para tener tiradas del modo SHINY, primero necesitas ser usuario **Black**.',
+             timestamp: new Date(),
+             category: 'general'
+           };
+           setMessages(prev => [...prev, aiMessage]);
+         }, 500);
+         return;
+      }
+
+      const userMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'user',
+        content: message,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setIsTyping(true);
+
+      try {
+        const { getShinyStatus } = await import('@/services/steebApi');
+        const status = await getShinyStatus(user?.id);
+        
+        setIsTyping(false);
+        
+        if (status.isShiny) {
+           const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: '¡Ya sos usuario Shiny! 🌟 No necesitas más tiradas, ya tenés acceso ilimitado.',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        } else {
+          const dailyText = status.dailyAttemptAvailable ? '✅ 1 intento diario disponible' : '❌ Intento diario usado';
+          const extraText = status.extraRolls > 0 ? `💎 ${status.extraRolls} tiradas extra compradas` : '0 tiradas extra';
+          
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: `Estado de tus tiradas Shiny:\n\n${dailyText}\n${extraText}\n\nTotal disponible ahora: ${status.totalAvailable} intentos. 🎲`,
+            timestamp: new Date(),
+            category: 'general',
+            showMercadoPagoButton: status.totalAvailable === 0 // Mostrar botón de compra si no tiene tiradas
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }
+      } catch (error) {
+        setIsTyping(false);
+        const errorMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'No pude verificar tus tiradas en este momento. Intenta más tarde.',
+          timestamp: new Date(),
+          category: 'general'
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+      return;
     }
     // -----------------------------
 
@@ -903,12 +1043,12 @@ const SteebChatAI: React.FC = () => {
                 <div
                   className={`text-xs mt-2 flex items-center space-x-1 ${
                     message.role === 'assistant'
-                      ? (isShinyMode || isDarkMode ? 'text-gray-300' : 'text-gray-500')
-                      : 'text-white'
+                      ? (isShinyMode ? 'text-white !important' : isDarkMode ? 'text-gray-300' : 'text-gray-500')
+                      : (isShinyMode ? 'text-black !important' : 'text-white')
                   }`}
                 >
-                  <Clock className="w-3 h-3" />
-                  <span>
+                  <Clock className={`w-3 h-3 ${isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}`} />
+                  <span className={isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}>
                     {message.timestamp.toLocaleTimeString('es-ES', {
                       hour: '2-digit',
                       minute: '2-digit'
@@ -1044,7 +1184,7 @@ const SteebChatAI: React.FC = () => {
                 placeholder=""
                 className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${
                   isShinyMode
-                    ? 'bg-black text-white border-white focus:!border-white'
+                    ? 'bg-white text-black border-white focus:!border-white'
                     : isDarkMode
                       ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
                       : 'bg-white text-black border-gray-300 focus:!border-black'
@@ -1059,7 +1199,7 @@ const SteebChatAI: React.FC = () => {
               {!inputMessage && (
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                   <div
-                    className={`w-0.5 h-4 ${isShinyMode || isDarkMode ? 'bg-white' : 'bg-black'}`}
+                    className={`w-0.5 h-4 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-white' : 'bg-black'}`}
                     style={{
                       animation: 'blink 1s step-end infinite'
                     }}
@@ -1083,25 +1223,56 @@ const SteebChatAI: React.FC = () => {
               data-custom-color="true"
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isTyping}
-              className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 shadow-md border-2 ${
+              className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 border-2 ${
                 isShinyMode
                   ? 'bg-black border-white hover:bg-black'
                   : isDarkMode
                     ? 'bg-black border-gray-700 hover:bg-gray-800'
                     : 'bg-white border-white hover:bg-gray-100'
               }`}
-              style={{
-                boxShadow: isDarkMode
-                  ? '10px 12px 25px -10px rgba(255,255,255,0.45), 0 18px 22px -10px rgba(0,0,0,0.65)'
-                  : undefined
-              }}
             >
-              <ArrowUp
-                className={`w-4 h-4 ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}
-                strokeWidth={2}
-                stroke="currentColor"
-                fill="none"
-              />
+              {isShinyMode ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="url(#shiny-arrow-gradient)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-5 h-5"
+                >
+                  <defs>
+                    <linearGradient id="shiny-arrow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#ff004c">
+                        <animate attributeName="stop-color" values="#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff;#ff004c" dur="4s" repeatCount="indefinite" />
+                      </stop>
+                      <stop offset="100%" stopColor="#ff00ff">
+                        <animate attributeName="stop-color" values="#ff00ff;#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff" dur="4s" repeatCount="indefinite" />
+                      </stop>
+                    </linearGradient>
+                  </defs>
+                  <path d="m5 12 7-7 7 7" />
+                  <path d="M12 19V5" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`}
+                >
+                  <path d="m5 12 7-7 7 7" />
+                </svg>
+              )}
             </button>
 
           </div>

@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
-const API_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/steeb';
+const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 let cachedUserId: string | null = null;

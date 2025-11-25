@@ -38,3 +38,4 @@ yarn-error.log
 # Native folders (Expo managed workflow)
 ios/
 android/
+.vercel

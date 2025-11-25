@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
 import { UserProfile, UserRole, USER_ROLES, ROLE_PERMISSIONS, ShinyRoll } from '@/types/user';
@@ -17,33 +17,32 @@ export const useUserRole = () => {
       return;
     }
 
-    const fetchUserProfile = async () => {
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
+    const userDocRef = doc(db, 'users', user.id);
 
-        if (userDoc.exists()) {
-          const data = userDoc.data() as Omit<UserProfile, 'uid' | 'email' | 'createdAt' | 'lastLoginAt'>;
+    const unsubscribe = onSnapshot(userDocRef, async (docSnapshot) => {
+      try {
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data();
           setUserProfile({
-            uid: user.uid,
+            uid: user.id,
             email: user.email || '',
-            name: data.name || user.displayName || '',
+            name: data.name || user.name || '',
             nickname: data.nickname || '',
             role: data.role || USER_ROLES.WHITE,
-            avatar: data.avatar || user.photoURL || '',
+            avatar: data.avatar || user.avatar || '',
             shinyRolls: data.shinyRolls || 0,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            lastLoginAt: data.lastLoginAt?.toDate() || new Date()
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            lastLoginAt: data.lastLoginAt?.toDate ? data.lastLoginAt.toDate() : new Date()
           });
         } else {
           // Crear perfil de usuario nuevo - por defecto es WHITE
           const newProfile: UserProfile = {
-            uid: user.uid,
+            uid: user.id,
             email: user.email || '',
-            name: user.displayName || '',
-            nickname: user.displayName || '',
+            name: user.name || '',
+            nickname: user.nickname || user.name || '',
             role: USER_ROLES.WHITE, // Todos empiezan como WHITE
-            avatar: user.photoURL || '',
+            avatar: user.avatar || '',
             shinyRolls: 0,
             createdAt: new Date(),
             lastLoginAt: new Date()
@@ -58,13 +57,16 @@ export const useUserRole = () => {
           setUserProfile(newProfile);
         }
       } catch (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('Error processing user profile snapshot:', error);
       } finally {
         setIsLoading(false);
       }
-    };
+    }, (error) => {
+      console.error('Error listening to user profile:', error);
+      setIsLoading(false);
+    });
 
-    fetchUserProfile();
+    return () => unsubscribe();
   }, [user]);
 
   // Actualizar último login
@@ -72,7 +74,7 @@ export const useUserRole = () => {
     if (!user || !userProfile) return;
 
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, 'users', user.id);
       await updateDoc(userDocRef, {
         lastLoginAt: serverTimestamp()
       });
@@ -117,12 +119,12 @@ export const useUserRole = () => {
     // Aquí iría la integración con Mercado Pago u otro sistema de pago
     // Por ahora, simulamos la compra
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, 'users', user.id);
 
       // Crear registro de la tirada comprada
-      const shinyRollRef = doc(db, 'shinyRolls', `${user.uid}_${Date.now()}`);
+      const shinyRollRef = doc(db, 'shinyRolls', `${user.id}_${Date.now()}`);
       await setDoc(shinyRollRef, {
-        userId: user.uid,
+        userId: user.id,
         purchasedAt: serverTimestamp(),
         used: false,
         price: 500 // Precio fijo por ahora
@@ -134,11 +136,7 @@ export const useUserRole = () => {
         shinyRolls: newShinyRollsCount
       });
 
-      setUserProfile(prev => prev ? {
-        ...prev,
-        shinyRolls: newShinyRollsCount
-      } : null);
-
+      // No need to manually update state, onSnapshot will handle it
       return true;
     } catch (error) {
       console.error('Error buying shiny roll:', error);
@@ -153,18 +151,18 @@ export const useUserRole = () => {
     }
 
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, 'users', user.id);
 
       // Buscar la primera tirada shiny no usada
       const shinyRollsQuery = await getDoc(
-        doc(db, 'shinyRolls', `${user.uid}_unused`)
+        doc(db, 'shinyRolls', `${user.id}_unused`)
       );
 
       if (!shinyRollsQuery.exists()) {
         // Crear una tirada shiny si no existe (fallback)
-        const shinyRollRef = doc(db, 'shinyRolls', `${user.uid}_${Date.now()}`);
+        const shinyRollRef = doc(db, 'shinyRolls', `${user.id}_${Date.now()}`);
         await setDoc(shinyRollRef, {
-          userId: user.uid,
+          userId: user.id,
           purchasedAt: serverTimestamp(),
           used: true,
           usedAt: serverTimestamp(),
@@ -184,11 +182,7 @@ export const useUserRole = () => {
         shinyRolls: newShinyRollsCount
       });
 
-      setUserProfile(prev => prev ? {
-        ...prev,
-        shinyRolls: newShinyRollsCount
-      } : null);
-
+      // No need to manually update state, onSnapshot will handle it
       return true;
     } catch (error) {
       console.error('Error using shiny roll:', error);
@@ -203,16 +197,12 @@ export const useUserRole = () => {
     }
 
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, 'users', user.id);
       await updateDoc(userDocRef, {
         role: newRole
       });
 
-      setUserProfile(prev => prev ? {
-        ...prev,
-        role: newRole
-      } : null);
-
+      // No need to manually update state, onSnapshot will handle it
       return true;
     } catch (error) {
       console.error('Error updating user role:', error);

@@ -1,5 +1,6 @@
-const API_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/steeb';
-const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend.vercel.app/api/shiny-game';
+const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
+const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/shiny-game';
+const SHINY_STATUS_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/users/shiny-status';
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 type SteebApiSuccess = {
@@ -124,4 +125,34 @@ export async function playShinyGame(guess: number, userIdOverride?: string): Pro
   }
 
   return data as ShinyGameResponse;
+}
+
+export type ShinyStatusResponse = {
+  success: boolean;
+  dailyAttemptAvailable: boolean;
+  extraRolls: number;
+  totalAvailable: number;
+  isShiny: boolean;
+};
+
+export async function getShinyStatus(userIdOverride?: string): Promise<ShinyStatusResponse> {
+  const userId = userIdOverride || await getPersistentUserId();
+
+  try {
+    const response = await fetch(`${SHINY_STATUS_ENDPOINT}?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Error fetching shiny status');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting shiny status:', error);
+    throw error;
+  }
 }

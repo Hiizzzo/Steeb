@@ -13,8 +13,8 @@ const ThemeToggle = () => {
 	const { tipoUsuario } = useFirebaseRoleCheck();
 	const [mounted, setMounted] = useState(false);
 
-	// Mercado Pago configuration - usando tus credenciales reales de TEST
-	const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY || 'APP_USR-040fe15b-62b7-4999-926c-08c2ae46c5bb';
+	// Mercado Pago configuration - Producción
+	const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
 	const { status: mpStatus, instance: mpInstance } = useMercadoPago(MP_PUBLIC_KEY);
 
 	// Función para enviar mensaje al chat de Steeb
@@ -61,28 +61,37 @@ const ThemeToggle = () => {
 
 	// Callback simple de cambio de tema
 	const handleThemeChange = (newTheme: 'light' | 'dark' | 'shiny') => {
+		const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+
 		if (!canUseThemeMode(newTheme)) {
 			// Usuario WHITE sin acceso
 			if (newTheme === 'dark') {
 				const message = {
 					type: 'theme-info-with-button',
-					content: '¡Querés el Dark Mode 🔥\n\nAcceso por $1 USD - Desbloqueá Dark Mode + tiradas Shiny',
+					content: '¿Querés ser usuario **Black**?\n\n-Acceso al DARK mode.\n-Acceso al juego SHINY, ademas de una tirada gratis.\n-Lo mas imporante no se te va arruinar la vista cada vez que entres a la app.\n\nTodo esto a tan solo $3000',
 					timestamp: new Date(),
 					showMercadoPagoButton: true
 				};
 				window.dispatchEvent(new CustomEvent('steeb-message-with-button', { detail: message }));
 			} else if (newTheme === 'shiny') {
-				const message = {
-					type: 'theme-info-with-options',
-					content: '¿Vas a probar suerte para desbloquear el modo Shiny?\n\nElegí tu paquete de tiradas:',
-					timestamp: new Date(),
-					paymentOptions: [
-						{ id: '1-roll', label: '1 tirada', price: '$300', action: 'buy-shiny-rolls', planId: 'shiny-roll-1', className: 'text-black dark:text-white' },
-						{ id: '15-rolls', label: '15 tiradas', price: '$4000', action: 'buy-shiny-rolls', planId: 'shiny-roll-15', className: 'text-black dark:text-white' },
-						{ id: '30-rolls', label: '30 tiradas', price: '$8000', action: 'buy-shiny-rolls', planId: 'shiny-roll-30', className: 'text-black dark:text-white' }
-					]
-				};
-				window.dispatchEvent(new CustomEvent('steeb-message-with-options', { detail: message }));
+				// Si es usuario WHITE, mostrar mensaje de que necesita ser BLACK
+				if (normalizedTipo === 'white') {
+					sendMessageToSteebChat('Para acceder al modo SHINY, primero necesitas ser usuario **Black**.');
+				} else {
+					// Si ya es BLACK o DARK pero no SHINY, mostrar opciones de tiradas
+					const rolls = userProfile?.shinyRolls || 0;
+					const message = {
+						type: 'theme-info-with-options',
+						content: `¿Vas a probar suerte para desbloquear el modo SHINY?\n\nTe quedan ${rolls} tiradas.\n\nElegí tu paquete de tiradas:`,
+						timestamp: new Date(),
+						paymentOptions: [
+							{ id: '1-roll', label: '1 tirada', price: '$300', action: 'buy-shiny-rolls', planId: 'shiny-roll-1', className: 'text-black dark:text-white' },
+							{ id: '15-rolls', label: '15 tiradas', price: '$4000', action: 'buy-shiny-rolls', planId: 'shiny-roll-15', className: 'text-black dark:text-white' },
+							{ id: '30-rolls', label: '30 tiradas', price: '$8000', action: 'buy-shiny-rolls', planId: 'shiny-roll-30', className: 'text-black dark:text-white' }
+						]
+					};
+					window.dispatchEvent(new CustomEvent('steeb-message-with-options', { detail: message }));
+				}
 			}
 			return;
 		}
@@ -267,7 +276,7 @@ const ThemeToggle = () => {
 	const isShiny = currentTheme === "shiny";
 
 	return (
-		<div className={`fixed top-8 right-4 z-[60] overflow-hidden rounded-full ${currentTheme === "shiny" ? 'bg-black shiny-allow-native' : ''}`}>
+		<div className={`fixed top-8 right-4 z-[60] overflow-hidden rounded-full ${currentTheme === "shiny" ? 'shiny-allow-native' : ''}`}>
 			{/* Switch de 3 posiciones deslizable: left=white, middle=shiny, right=black */}
 			<div
 				ref={sliderRef}
@@ -290,9 +299,8 @@ const ThemeToggle = () => {
 							} shadow-sm`}
 					/>
 					<div
-						className={`theme-toggle-dot theme-toggle-dot-middle ${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${currentTheme === "shiny" ? '' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
+						className={`theme-toggle-dot theme-toggle-dot-middle ${currentTheme === "shiny" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${currentTheme === "shiny" ? 'bg-black' : currentTheme === "light" ? 'bg-gray-300' : 'bg-gray-400'
 							} shadow-sm`}
-						style={currentTheme === "shiny" ? { backgroundColor: '#FC0F88' } : undefined}
 					/>
 					<div
 						className={`theme-toggle-dot theme-toggle-dot-right ${currentTheme === "dark" ? "w-3 h-3" : "w-2 h-2"} rounded-full ${currentTheme === "dark" ? 'bg-gray-100 border border-gray-300' : 'bg-gray-400'

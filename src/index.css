@@ -1,3 +1,15 @@
+@font-face {
+  font-family: 'Bolina';
+  src: url('/fonts/Bolina.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Reverie';
+  src: url('/fonts/REVERIE.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 @import './styles/shiny-protection.css';
 @import './styles/theme-reset.css';
@@ -673,12 +685,12 @@ html, body {
 }
 
 .shiny .tareas-header::after { content: none !important; }
-.shiny .tareas-header h1:not(.tareas-multicolor) {
-  color: #000000 !important;
-  -webkit-text-fill-color: #000000 !important;
-  background: none !important;
-  background-image: none !important;
-    text-shadow: none !important;
+.shiny .tareas-header h1:not(.tareas-multicolor):not(.steeb-main-title) {
+/* color: #000000 !important; */
+/* -webkit-text-fill-color: #000000 !important; */
+/* background: none !important; */
+/* background-image: none !important; */
+  text-shadow: none !important;
 }
 
 .shiny .tasks-list .task-title {
@@ -1044,3 +1056,19 @@ html, body {
     filter: none !important;
   }
 
+
+@keyframes shinyShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shinyShiftVertical {
+  0% { background-position: 50% 0%; }
+  100% { background-position: 50% 200%; }
+}
+
+@keyframes shinyShiftHorizontal {
+  0% { background-position: 100% 0%; }
+  100% { background-position: -100% 0%; }
+}

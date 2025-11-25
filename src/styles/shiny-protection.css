@@ -147,7 +147,7 @@
 
 /* Proteger el header y navegación */
 /* Proteger textos principales */
-.shiny h1:not(.tareas-multicolor),
+.shiny h1:not(.tareas-multicolor):not(.steeb-main-title),
 .shiny h2,
 .shiny h3 {
   color: var(--shiny-text) !important;

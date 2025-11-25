@@ -9,7 +9,7 @@ class ApiClient {
   private headers: Record<string, string>;
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'https://v0-steeb-api-backend.vercel.app/api';
+    this.baseURL = import.meta.env.VITE_API_URL || 'https://v0-steeb-api-backend-production.up.railway.app/api';
     this.headers = {
       'Content-Type': 'application/json',
     };
