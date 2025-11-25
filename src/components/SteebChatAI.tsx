@@ -1,8 +1,8 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
-import { sendMessageToSteeb } from '@/services/steebApi';
+import { sendMessageToSteeb, SteebAction } from '@/services/steebApi';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
@@ -251,13 +251,145 @@ const SteebChatAI: React.FC = () => {
     }
   }, [messages, tasks]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
+
+  const appendAssistantMessage = useCallback(
+    (content: string) => {
+      if (!content || !content.trim()) return;
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `msg_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          role: 'assistant',
+          content: content.trim(),
+          timestamp: new Date(),
+          category: 'general'
+        }
+      ]);
+      setTimeout(() => scrollToBottom(), 50);
+    },
+    [scrollToBottom]
+  );
+
+  const handleSteebActions = useCallback(
+    async (actions: SteebAction[] = []) => {
+      if (!actions.length) return;
+
+      for (const action of actions) {
+        if (!action?.type) continue;
+
+        try {
+          switch (action.type) {
+            case 'OPEN_CALENDAR': {
+              setShowCalendar(true);
+              setShowSideTasks(false);
+              setShowProgress(false);
+
+              const planItems = Array.isArray(action.payload?.plan) ? action.payload.plan : [];
+              if (planItems.length) {
+                const planLines = planItems
+                  .map((block: any, index: number) => {
+                    const label =
+                      typeof block?.label === 'string' && block.label.trim().length
+                        ? block.label.trim()
+                        : `Bloque ${index + 1}`;
+                    const durationText =
+                      typeof block?.duration === 'number' && block.duration > 0
+                        ? ` (${block.duration} min)`
+                        : '';
+                    return `${index + 1}. ${label}${durationText}`;
+                  })
+                  .join('\n');
+                const notes =
+                  typeof action.payload?.notes === 'string' && action.payload.notes.trim().length
+                    ? `\nNotas: ${action.payload.notes.trim()}`
+                    : '';
+                appendAssistantMessage(`Plan listo:\n${planLines}${notes}`);
+              }
+              break;
+            }
+            case 'OPEN_TASKS':
+              setShowSideTasks(true);
+              setShowCalendar(false);
+              setShowProgress(false);
+              break;
+            case 'OPEN_PROGRESS':
+              setShowProgress(true);
+              setShowSideTasks(false);
+              break;
+            case 'CREATE_TASK': {
+              const title =
+                typeof action.payload?.title === 'string' && action.payload.title.trim().length
+                  ? action.payload.title.trim()
+                  : 'Tarea sugerida por Steeb';
+
+              await addTask({
+                title,
+                description:
+                  typeof action.payload?.description === 'string'
+                    ? action.payload.description
+                    : undefined,
+                type: 'extra',
+                status: 'pending',
+                completed: false,
+                scheduledDate:
+                  typeof action.payload?.date === 'string' ? action.payload.date : undefined,
+                scheduledTime:
+                  typeof action.payload?.time === 'string' ? action.payload.time : undefined
+              });
+
+              appendAssistantMessage(`Tarea creada: ${title}`);
+              break;
+            }
+            case 'BUY_DARK_MODE':
+              window.dispatchEvent(
+                new CustomEvent('buy-dark-mode', {
+                  detail: { source: 'steeb-ai', ...(action.payload || {}) }
+                })
+              );
+              break;
+            case 'BUY_SHINY_ROLLS': {
+              const planId =
+                typeof action.payload?.planId === 'string' && action.payload.planId.trim().length
+                  ? action.payload.planId
+                  : 'shiny-roll-1';
+              window.dispatchEvent(
+                new CustomEvent('buy-shiny-rolls', {
+                  detail: { source: 'steeb-ai', planId }
+                })
+              );
+              break;
+            }
+            case 'PLAY_SHINY_GAME':
+              setShinyGameState('confirming');
+              break;
+            case 'SHOW_MOTIVATION': {
+              const note =
+                typeof action.payload?.note === 'string' && action.payload.note.trim().length
+                  ? action.payload.note.trim()
+                  : '';
+              if (note) {
+                appendAssistantMessage(note);
+              }
+              break;
+            }
+            default:
+              break;
+          }
+        } catch (actionError) {
+          console.error('Error ejecutando accion de STEEB:', action, actionError);
+        }
+      }
+    },
+    [addTask, appendAssistantMessage, setShowCalendar, setShowProgress, setShowSideTasks, setShinyGameState]
+  );
+
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   // Escuchar mensajes del ThemeToggle
   useEffect(() => {
@@ -312,7 +444,7 @@ const SteebChatAI: React.FC = () => {
     if (!showSideTasks && !showProgress && !showCalendar) {
       setPanelHeight(0);
     }
-  }, [showSideTasks, showProgress, showCalendar]);
+  }, [showSideTasks, showProgress, showCalendar, scrollToBottom]);
 
   // Scroll al fondo cuando se abre/cierra un panel para ajustar la vista
   useEffect(() => {
@@ -321,7 +453,7 @@ const SteebChatAI: React.FC = () => {
     }, 300); // PequeÃ±o delay para que la transiciÃ³n del panel se complete
 
     return () => clearTimeout(timer);
-  }, [showSideTasks, showProgress, showCalendar]);
+  }, [showSideTasks, showProgress, showCalendar, scrollToBottom]);
 
   // Detectar respuestas predefinidas - PR #142
   const getPredefinedResponse = (message: string): string | null => {
@@ -762,17 +894,17 @@ const SteebChatAI: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const { reply, remainingMessages } = await sendMessageToSteeb(message);
-      const usageNote = ''; // Eliminado: ya no muestra contador de mensajes
+      const { reply, actions } = await sendMessageToSteeb(message);
 
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
-        content: `${reply.trim()}${usageNote}`,
+        content: reply.trim(),
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      await handleSteebActions(actions);
     } catch (error) {
       console.error('âš ï¸ Error comunicando con STEEB:', error);
 

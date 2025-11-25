@@ -3,13 +3,53 @@ import * as SecureStore from 'expo-secure-store';
 const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
+const ACTION_TYPES: SteebActionType[] = [
+  'OPEN_CALENDAR',
+  'OPEN_TASKS',
+  'OPEN_PROGRESS',
+  'CREATE_TASK',
+  'BUY_DARK_MODE',
+  'BUY_SHINY_ROLLS',
+  'PLAY_SHINY_GAME',
+  'SHOW_MOTIVATION'
+];
+
+const normalizeActions = (raw: any): SteebAction[] => {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((action) => {
+      if (!action || typeof action !== 'object') return null;
+      const typeValue = typeof action.type === 'string' ? action.type.toUpperCase() : '';
+      const matched = ACTION_TYPES.find((allowed) => allowed === typeValue);
+      if (!matched) return null;
+      const payload = action.payload && typeof action.payload === 'object' ? action.payload : {};
+      return { type: matched, payload };
+    })
+    .filter(Boolean) as SteebAction[];
+};
+
 let cachedUserId: string | null = null;
 let secureStoreAvailable: boolean | null = null;
 
+export type SteebActionType =
+  | 'OPEN_CALENDAR'
+  | 'OPEN_TASKS'
+  | 'OPEN_PROGRESS'
+  | 'CREATE_TASK'
+  | 'BUY_DARK_MODE'
+  | 'BUY_SHINY_ROLLS'
+  | 'PLAY_SHINY_GAME'
+  | 'SHOW_MOTIVATION';
+
+export interface SteebAction {
+  type: SteebActionType;
+  payload?: Record<string, any>;
+}
+
 type SteebApiSuccess = {
   reply: string;
-  messageCount: number;
-  remainingMessages: number;
+  actions: SteebAction[];
 };
 
 const generateUserId = () =>
@@ -139,15 +179,15 @@ export async function sendMessageToSteeb(
     );
   }
 
-  const reply: string = payload?.data?.reply ?? '';
-  const messageCount: number = payload?.data?.user?.messageCount ?? 0;
-  const remainingMessages: number =
-    payload?.data?.user?.remainingMessages ?? 0;
+  const reply: string =
+    typeof payload?.data?.reply === 'string' && payload.data.reply.trim().length > 0
+      ? payload.data.reply.trim()
+      : (typeof payload?.message === 'string' ? payload.message : 'Listo, hacelo ahora.');
+
+  const actions = normalizeActions(payload?.data?.actions);
 
   return {
     reply,
-    messageCount,
-    remainingMessages,
+    actions,
   };
 }
-
