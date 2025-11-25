@@ -4,13 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'ios/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'capacitor.config.ts'
-      - '.github/workflows/ios-simulator-build.yml'
+    # Run on any change in main to avoid missing builds when only config files change.
 
 jobs:
   build-ios-simulator:

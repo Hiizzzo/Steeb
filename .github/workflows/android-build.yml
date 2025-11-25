@@ -4,13 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'android/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'capacitor.config.ts'
-      - '.github/workflows/android-build.yml'
+    # Run on any change in main to avoid missing builds when only config files change.
 
 jobs:
   build-android:
