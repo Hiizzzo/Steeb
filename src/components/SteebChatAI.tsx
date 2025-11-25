@@ -6,6 +6,7 @@ import { sendMessageToSteeb, SteebAction } from '@/services/steebApi';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
+import { useUserRole } from '@/hooks/useUserRole';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
@@ -57,10 +58,24 @@ const SteebChatAI: React.FC = () => {
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
   const { user } = useAuth();
   const { tipoUsuario } = useFirebaseRoleCheck();
+  const { userProfile } = useUserRole();
   
   // Estado para el juego Shiny
   const [shinyGameState, setShinyGameState] = useState<'idle' | 'confirming' | 'playing'>('idle');
   const [shinyRolls, setShinyRolls] = useState<number | null>(null);
+  const getBestRollsCount = useCallback((...values: Array<number | null | undefined>) => {
+    const valid = values.filter(
+      (value): value is number => typeof value === 'number' && !Number.isNaN(value)
+    );
+    if (!valid.length) return 0;
+    return Math.max(...valid);
+  }, []);
+
+  useEffect(() => {
+    if (typeof userProfile?.shinyRolls === 'number') {
+      setShinyRolls((prev) => getBestRollsCount(prev, userProfile.shinyRolls));
+    }
+  }, [getBestRollsCount, userProfile?.shinyRolls]);
   // Render helper: resaltar la palabra Shiny con gradiente animado
   const renderMessageContent = (text: string) => {
     // Regex para detectar Shiny y BLACK (con o sin asteriscos)
@@ -723,14 +738,25 @@ const SteebChatAI: React.FC = () => {
       }
 
       setShinyGameState('confirming');
-      let availableRolls = shinyRolls || 0;
+      const realtimeRolls = typeof userProfile?.shinyRolls === 'number' ? userProfile.shinyRolls : null;
+      let availableRolls = getBestRollsCount(shinyRolls, realtimeRolls);
       try {
         const { getShinyStatus } = await import('@/services/steebApi');
         const status = await getShinyStatus(user?.id);
-        availableRolls = status.totalAvailable;
-        setShinyRolls(status.totalAvailable);
+        const totalFromStatus = typeof status?.totalAvailable === 'number' ? status.totalAvailable : undefined;
+        const combinedRolls = getBestRollsCount(
+          totalFromStatus,
+          typeof realtimeRolls === 'number'
+            ? realtimeRolls + (status.dailyAttemptAvailable ? 1 : 0)
+            : undefined,
+          availableRolls
+        );
+        availableRolls = combinedRolls;
+        setShinyRolls(combinedRolls);
       } catch (statusError) {
         console.error('Error obteniendo estado shiny:', statusError);
+        availableRolls = getBestRollsCount(availableRolls, realtimeRolls);
+        setShinyRolls(availableRolls);
       }
       const userMessage: ChatMessage = {
          id: `msg_${Date.now()}`,
@@ -794,7 +820,15 @@ const SteebChatAI: React.FC = () => {
       try {
         const { getShinyStatus } = await import('@/services/steebApi');
         const status = await getShinyStatus(user?.id);
-        setShinyRolls(status.totalAvailable);
+        const realtimeRolls = typeof userProfile?.shinyRolls === 'number' ? userProfile.shinyRolls : null;
+        const effectiveExtraRolls = status.extraRolls > 0 ? status.extraRolls : (realtimeRolls ?? 0);
+        const combinedTotal = getBestRollsCount(
+          status.totalAvailable,
+          effectiveExtraRolls + (status.dailyAttemptAvailable ? 1 : 0),
+          shinyRolls,
+          realtimeRolls
+        );
+        setShinyRolls(combinedTotal);
         
         setIsTyping(false);
         
@@ -809,15 +843,15 @@ const SteebChatAI: React.FC = () => {
           setMessages(prev => [...prev, aiMessage]);
         } else {
           const dailyText = status.dailyAttemptAvailable ? '✅ 1 intento diario disponible' : '❌ Intento diario usado';
-          const extraText = status.extraRolls > 0 ? `💎 ${status.extraRolls} tiradas extra compradas` : '0 tiradas extra';
+          const extraText = effectiveExtraRolls > 0 ? `💎 ${effectiveExtraRolls} tiradas extra compradas` : '0 tiradas extra';
           
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: `Estado de tus tiradas Shiny:\n\n${dailyText}\n${extraText}\n\nTotal disponible ahora: ${status.totalAvailable} intentos. 🎲`,
+            content: `Estado de tus tiradas Shiny:\n\n${dailyText}\n${extraText}\n\nTotal disponible ahora: ${combinedTotal} intentos. 🎲`,
             timestamp: new Date(),
             category: 'general',
-            showMercadoPagoButton: status.totalAvailable === 0 // Mostrar botón de compra si no tiene tiradas
+            showMercadoPagoButton: combinedTotal === 0 // Mostrar botón de compra si no tiene tiradas
           };
           setMessages(prev => [...prev, aiMessage]);
         }
