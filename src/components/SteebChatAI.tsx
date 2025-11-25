@@ -935,14 +935,14 @@ const SteebChatAI: React.FC = () => {
     }
 
     // Add user message (solo para mensajes que no son comandos de paneles)
-    const userMessage: ChatMessage = {
+    const userChatMessage: ChatMessage = {
       id: `msg_${Date.now()}`,
       role: 'user',
       content: message,
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userChatMessage]);
 
     // Ya detectamos respuestas predefinidas arriba, pero ya excluimos los comandos de paneles
     // Si llegamos aquÃ­, es porque no es un comando de panel, pero puede tener respuesta predefinida
