@@ -11,7 +11,8 @@ const ACTION_TYPES: SteebActionType[] = [
   'BUY_DARK_MODE',
   'BUY_SHINY_ROLLS',
   'PLAY_SHINY_GAME',
-  'SHOW_MOTIVATION'
+  'SHOW_MOTIVATION',
+  'GET_SHINY_STATS'
 ];
 
 const normalizeActions = (raw: any): SteebAction[] => {
@@ -40,7 +41,8 @@ export type SteebActionType =
   | 'BUY_DARK_MODE'
   | 'BUY_SHINY_ROLLS'
   | 'PLAY_SHINY_GAME'
-  | 'SHOW_MOTIVATION';
+  | 'SHOW_MOTIVATION'
+  | 'GET_SHINY_STATS';
 
 export interface SteebAction {
   type: SteebActionType;

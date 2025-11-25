@@ -31,6 +31,23 @@ interface ChatMessage {
   paymentOptions?: PaymentOption[]; // Opciones de pago mÃºltiples
 }
 
+const formatOrdinalEs = (position: number) => {
+  if (!position || position < 1) return 'primer';
+  const map: Record<number, string> = {
+    1: 'primer',
+    2: 'segundo',
+    3: 'tercer',
+    4: 'cuarto',
+    5: 'quinto',
+    6: 'sexto',
+    7: 'septimo',
+    8: 'octavo',
+    9: 'noveno',
+    10: 'decimo'
+  };
+  return map[position] || `${position}?`;
+};
+
 const SteebChatAI: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const { currentTheme } = useTheme();
@@ -365,25 +382,47 @@ const SteebChatAI: React.FC = () => {
             case 'PLAY_SHINY_GAME':
               setShinyGameState('confirming');
               break;
-            case 'SHOW_MOTIVATION': {
-              const note =
-                typeof action.payload?.note === 'string' && action.payload.note.trim().length
-                  ? action.payload.note.trim()
-                  : '';
-              if (note) {
-                appendAssistantMessage(note);
-              }
-              break;
+          case 'SHOW_MOTIVATION': {
+            const note =
+              typeof action.payload?.note === 'string' && action.payload.note.trim().length
+                ? action.payload.note.trim()
+                : '';
+            if (note) {
+              appendAssistantMessage(note);
             }
-            default:
-              break;
+            break;
           }
-        } catch (actionError) {
-          console.error('Error ejecutando accion de STEEB:', action, actionError);
+          case 'GET_SHINY_STATS': {
+            try {
+              const stats = await getGlobalShinyStats(user?.id);
+              const total = stats.totalShinyUsers;
+              let summary =
+                total === 0
+                  ? 'Todavía nadie desbloqueó el modo SHINY. Podés ser el primer usuario en lograrlo.'
+                  : `Solo ${total} personas tienen el modo SHINY.`;
+
+              if (stats.userStats?.isShiny) {
+                summary += ` Vos sos el ${formatOrdinalEs(stats.userStats.position)} usuario en conseguirlo.`;
+              } else {
+                summary += ` Podrías ser el ${formatOrdinalEs(total + 1)} si ganás.`;
+              }
+
+              appendAssistantMessage(summary);
+            } catch (statsError) {
+              console.error('Error consultando stats shiny:', statsError);
+              appendAssistantMessage('No pude consultar las estadísticas shiny ahora mismo.');
+            }
+            break;
+          }
+          default:
+            break;
         }
+      } catch (actionError) {
+        console.error('Error ejecutando accion de STEEB:', action, actionError);
       }
-    },
-    [addTask, appendAssistantMessage, setShowCalendar, setShowProgress, setShowSideTasks, setShinyGameState]
+    }
+  },
+    [addTask, appendAssistantMessage, setShowCalendar, setShowProgress, setShowSideTasks, setShinyGameState, user?.id]
   );
 
 
@@ -503,7 +542,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: 'Â¡Excelente! Estoy pensando en un nÃºmero del 1 al 100... ðŸ¤”\n\nÂ¿CuÃ¡l crees que es? Â¡EscribÃ­ tu nÃºmero!',
+            content: '¡Excelente! Estoy pensando en un número del 1 al 100...\n\n¿Cuál crees que es? ¡Escribe tu número!',
             timestamp: new Date(),
             category: 'general'
           };
@@ -688,7 +727,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: 'Â¿QuerÃ©s gastar una de tus tiradas para intentar desbloquear el modo Shiny? ðŸŽ²',
+            content: `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${shinyRolls || 0} tiradas disponibles.`,
             timestamp: new Date(),
             category: 'general'
           };

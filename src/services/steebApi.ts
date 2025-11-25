@@ -1,6 +1,7 @@
 const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
 const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/shiny-game';
 const SHINY_STATUS_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/users/shiny-status';
+const SHINY_STATS_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/shiny-stats';
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 const ACTION_TYPES: SteebActionType[] = [
@@ -11,7 +12,8 @@ const ACTION_TYPES: SteebActionType[] = [
   'BUY_DARK_MODE',
   'BUY_SHINY_ROLLS',
   'PLAY_SHINY_GAME',
-  'SHOW_MOTIVATION'
+  'SHOW_MOTIVATION',
+  'GET_SHINY_STATS'
 ];
 
 const normalizeActions = (raw: any): SteebAction[] => {
@@ -37,7 +39,8 @@ export type SteebActionType =
   | 'BUY_DARK_MODE'
   | 'BUY_SHINY_ROLLS'
   | 'PLAY_SHINY_GAME'
-  | 'SHOW_MOTIVATION';
+  | 'SHOW_MOTIVATION'
+  | 'GET_SHINY_STATS';
 
 export interface SteebAction {
   type: SteebActionType;
@@ -48,6 +51,31 @@ type SteebApiSuccess = {
   reply: string;
   actions: SteebAction[];
 };
+
+export interface GlobalShinyStats {
+  totalShinyUsers: number;
+  isExclusive: boolean;
+  recentlyJoined: Array<{
+    userId: string;
+    userName: string;
+    userAvatar?: string | null;
+    unlockedAt?: string;
+  }>;
+  totalUsersWithAvatars: number;
+  userStats?: {
+    position: number;
+    isShiny: boolean;
+    unlockedAt?: string;
+    percentile?: string;
+  };
+}
+
+export interface ShinyWinStats {
+  position: number;
+  totalShinyUsers: number;
+  isExclusive?: boolean;
+  isNewShiny?: boolean;
+}
 
 const generateUserId = () => `steeb-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 
@@ -128,6 +156,7 @@ export type ShinyGameResponse = {
   remainingRolls?: number;
   nextAttemptIn?: number;
   alreadyWon?: boolean;
+  shinyStats?: ShinyWinStats;
 };
 
 export async function playShinyGame(guess: number, userIdOverride?: string): Promise<ShinyGameResponse> {
@@ -195,6 +224,30 @@ export async function getShinyStatus(userIdOverride?: string): Promise<ShinyStat
     return await response.json();
   } catch (error) {
     console.error('Error getting shiny status:', error);
+    throw error;
+  }
+}
+
+export async function getGlobalShinyStats(userId?: string): Promise<GlobalShinyStats> {
+  try {
+    const url = userId ? `${SHINY_STATS_ENDPOINT}?userId=${encodeURIComponent(userId)}` : SHINY_STATS_ENDPOINT;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const payload = await response.json();
+
+    if (!response.ok || payload?.success === false) {
+      const errorMessage = payload?.message || 'No se pudieron obtener las estadísticas shiny.';
+      throw new Error(errorMessage);
+    }
+
+    return payload.data as GlobalShinyStats;
+  } catch (error) {
+    console.error('Error getting global shiny stats:', error);
     throw error;
   }
 }
