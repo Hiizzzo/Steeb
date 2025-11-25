@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
@@ -707,7 +707,10 @@ const SteebChatAI: React.FC = () => {
         };
         setMessages(prev => [...prev, errorMessage]);
       }
-    // Detectar intenciÃ³n de jugar Shiny (PRIORIDAD ALTA)
+      return;
+    }
+
+    // Detectar intención de jugar Shiny (PRIORIDAD ALTA)
     const lowerMsg = message.toLowerCase();
     const shinyKeywords = ['shiny', 'jugar', 'desbloquear', 'modo', 'tirada', 'tiradas', 'intentar', 'probar'];
     const isShinyIntent = lowerMsg.includes('shiny') || (lowerMsg.includes('tirada') && lowerMsg.includes('jugar'));
