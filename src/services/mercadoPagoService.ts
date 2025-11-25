@@ -39,6 +39,16 @@ const openLinkFallback = (url: string) => {
   anchor.remove();
 };
 
+const submitHiddenForm = (url: string) => {
+  const form = document.createElement('form');
+  form.method = 'GET';
+  form.action = url;
+  form.target = '_self';
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
+};
+
 export const mercadoPagoService = {
   // Crear pago con datos de usuario de Firebase
   createPayment: async (userData: PaymentUserData, planId: string = 'black-user-plan', quantity: number = 1): Promise<MercadoPagoResponse> => {
@@ -172,7 +182,8 @@ export const mercadoPagoService = {
     // En movil/PWA priorizar navegacion directa y fallback si no cambia visibilidad
     if (isMobile || isPWA) {
       const previousVisibility = document.visibilityState;
-      window.location.assign(checkoutUrl);
+      // Form submit suele evitar bloqueos de navegación en PWA/iOS
+      submitHiddenForm(checkoutUrl);
       setTimeout(() => {
         if (document.visibilityState === previousVisibility) {
           console.warn('Navegacion a Mercado Pago no cambio visibilidad, aplicando fallback.');
