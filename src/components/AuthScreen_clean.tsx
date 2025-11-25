@@ -196,7 +196,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
                 type="text"
                 value={formData.name}
                 onChange={(e) => inputChange('name', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
                 placeholder="Ej: Juan Pérez"
                 required
               />
@@ -210,7 +210,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
                 type="text"
                 value={formData.nickname}
                 onChange={(e) => inputChange('nickname', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
                 placeholder="Ej: Juan, Juancho, JP..."
                 required
               />
@@ -226,13 +226,13 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
                   <input
                     id="onb-password"
                     type="password"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
                     placeholder="Contraseña (mín. 6 caracteres)"
                   />
                   <input
                     id="onb-password2"
                     type="password"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
                     placeholder="Repite la contraseña"
                   />
                 </div>

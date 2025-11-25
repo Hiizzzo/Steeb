@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useMercadoPago } from "@/hooks/useMercadoPago";
 import { useFirebaseRoleCheck } from "@/hooks/useFirebaseRoleCheck";
 
 import { useAuth } from "@/hooks/useAuth";
+import { mercadoPagoService } from "@/services/mercadoPagoService";
 
 const ThemeToggle = () => {
 	const { currentTheme, toggleTheme } = useTheme();
@@ -12,10 +12,6 @@ const ThemeToggle = () => {
 	const { user } = useAuth();
 	const { tipoUsuario } = useFirebaseRoleCheck();
 	const [mounted, setMounted] = useState(false);
-
-	// Mercado Pago configuration - Producción
-	const MP_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
-	const { status: mpStatus, instance: mpInstance } = useMercadoPago(MP_PUBLIC_KEY);
 
 	// Función para enviar mensaje al chat de Steeb
 	const sendMessageToSteebChat = (message: string) => {
@@ -103,71 +99,70 @@ const ThemeToggle = () => {
 	useEffect(() => {
 		setMounted(true);
 
-		// Listener simple para compra de Dark Mode
-		const handleBuyDarkMode = async (event: CustomEvent) => {
+		const resolveUserData = () => {
 			const currentUserId = user?.id || userProfile?.uid;
 
 			if (!currentUserId) {
+				return null;
+			}
+
+			return {
+				userId: currentUserId,
+				email: user?.email || userProfile?.email || `user_${currentUserId}@steeb.app`,
+				name: user?.name || userProfile?.name || userProfile?.nickname || 'Usuario STEEB',
+				avatar: user?.avatar || userProfile?.avatar
+			};
+		};
+
+		// Listener simple para compra de Dark Mode
+		const handleBuyDarkMode = async () => {
+			const userData = resolveUserData();
+
+			if (!userData) {
 				alert('Debes iniciar sesión para comprar el modo Dark.');
 				return;
 			}
 
-			if (mpInstance && mpStatus === 'ready') {
-				try {
-					const { createCheckoutPreference } = await import('@/services/paymentService');
-					const preferenceResponse = await createCheckoutPreference({
-						planId: 'black-user-plan',
-						quantity: 1,
-						userId: currentUserId,
-						email: user?.email || userProfile?.email,
-						name: user?.name || userProfile?.name || userProfile?.nickname,
-						avatar: user?.avatar || userProfile?.avatar
-					});
-
-					window.open(preferenceResponse.initPoint, '_blank', 'noopener,noreferrer,width=800,height=600');
-				} catch (error) {
-					alert('Error procesando el pago: ' + error.message);
-				}
+			try {
+				await mercadoPagoService.handlePayment(userData, 'black-user-plan', 1);
+			} catch (error) {
+				const message = error instanceof Error ? error.message : 'Error desconocido';
+				alert('Error procesando el pago: ' + message);
 			}
 		};
 
 		// Listener para compra de tiradas Shiny
-		const handleBuyShinyRolls = async (event: CustomEvent) => {
-			const { planId } = event.detail;
-			const currentUserId = user?.id || userProfile?.uid;
+		const handleBuyShinyRolls = async (event: CustomEvent<{ planId: string }>) => {
+			const userData = resolveUserData();
 
-			if (!currentUserId) {
+			if (!userData) {
 				alert('Debes iniciar sesión para comprar tiradas Shiny.');
 				return;
 			}
 
-			if (mpInstance && mpStatus === 'ready') {
-				try {
-					const { createCheckoutPreference } = await import('@/services/paymentService');
-					const preferenceResponse = await createCheckoutPreference({
-						planId: planId,
-						quantity: 1,
-						userId: currentUserId,
-						email: user?.email || userProfile?.email,
-						name: user?.name || userProfile?.name || userProfile?.nickname,
-						avatar: user?.avatar || userProfile?.avatar
-					});
+			const planId = event?.detail?.planId;
 
-					window.open(preferenceResponse.initPoint, '_blank', 'noopener,noreferrer,width=800,height=600');
-				} catch (error) {
-					alert('Error procesando el pago: ' + error.message);
-				}
+			if (!planId) {
+				alert('No se pudo determinar el paquete de tiradas.');
+				return;
+			}
+
+			try {
+				await mercadoPagoService.handlePayment(userData, planId, 1);
+			} catch (error) {
+				const message = error instanceof Error ? error.message : 'Error desconocido';
+				alert('Error procesando el pago: ' + message);
 			}
 		};
 
 		window.addEventListener('buy-dark-mode', handleBuyDarkMode as EventListener);
 		window.addEventListener('buy-shiny-rolls', handleBuyShinyRolls as EventListener);
-		
+
 		return () => {
 			window.removeEventListener('buy-dark-mode', handleBuyDarkMode as EventListener);
 			window.removeEventListener('buy-shiny-rolls', handleBuyShinyRolls as EventListener);
 		};
-	}, [mpInstance, mpStatus, userProfile]);
+	}, [user, userProfile]);
 
 	// Efecto de seguridad: Forzar Light Mode si el usuario no tiene permisos
 	useEffect(() => {

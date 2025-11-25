@@ -173,7 +173,7 @@ export const mercadoPagoService = {
       throw new Error('No hay URL de checkout disponible');
     }
 
-    console.log('?Y>' Abriendo checkout:', checkoutUrl);
+    console.log('Abriendo checkout:', checkoutUrl);
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     // @ts-ignore - standalone es propiedad especifica de iOS
