@@ -1,3 +1,6 @@
+@import './styles/shiny-protection.css';
+@import './styles/theme-reset.css';
+@reference "tailwindcss";
 @font-face {
   font-family: 'Bolina';
   src: url('/fonts/Bolina.otf') format('opentype');
@@ -10,10 +13,6 @@
   font-weight: normal;
   font-style: normal;
 }
-
-@import './styles/shiny-protection.css';
-@import './styles/theme-reset.css';
-@reference "tailwindcss";
 
 @tailwind base;
 @tailwind components;
