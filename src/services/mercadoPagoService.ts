@@ -29,6 +29,16 @@ export interface PaymentUserData {
   avatar?: string;
 }
 
+const openLinkFallback = (url: string) => {
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.target = '_top';
+  anchor.rel = 'noopener noreferrer';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+};
+
 export const mercadoPagoService = {
   // Crear pago con datos de usuario de Firebase
   createPayment: async (userData: PaymentUserData, planId: string = 'black-user-plan', quantity: number = 1): Promise<MercadoPagoResponse> => {
@@ -144,35 +154,39 @@ export const mercadoPagoService = {
     }
   },
 
-  // Redirigir al checkout de Mercado Pago - PRODUCCIÓN
+  // Redirigir al checkout de Mercado Pago - PRODUCCION
   redirectToCheckout: (response: MercadoPagoResponse) => {
-    console.log('🚀 Redirigiendo a Mercado Pago:', response);
+    console.log('?Ys? Redirigiendo a Mercado Pago:', response);
 
-    const checkoutUrl = response.initPoint; // Usar solo initPoint (producción)
-    if (checkoutUrl) {
-      console.log('🛒 Abriendo checkout:', checkoutUrl);
-      
-      // Detectar si es móvil o PWA para cambiar estrategia
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      // @ts-ignore - standalone es propiedad específica de iOS
-      const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-      if (isMobile || isPWA) {
-         // En móviles y PWA, es mejor navegar directamente para evitar bloqueo de popups
-         // y permitir deep linking a la app de Mercado Pago si está instalada
-         window.location.href = checkoutUrl;
-      } else {
-         // En desktop, intentar abrir en nueva pestaña
-         const newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
-         
-         // Fallback si el popup fue bloqueado
-         if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-            console.warn('Popup bloqueado, redirigiendo en la misma ventana');
-            window.location.href = checkoutUrl;
-         }
-      }
-    } else {
+    const checkoutUrl = response.initPoint || response.sandboxInitPoint;
+    if (!checkoutUrl) {
       throw new Error('No hay URL de checkout disponible');
+    }
+
+    console.log('?Y>' Abriendo checkout:', checkoutUrl);
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // @ts-ignore - standalone es propiedad especifica de iOS
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    // En movil/PWA priorizar navegacion directa y fallback si no cambia visibilidad
+    if (isMobile || isPWA) {
+      const previousVisibility = document.visibilityState;
+      window.location.assign(checkoutUrl);
+      setTimeout(() => {
+        if (document.visibilityState === previousVisibility) {
+          console.warn('Navegacion a Mercado Pago no cambio visibilidad, aplicando fallback.');
+          openLinkFallback(checkoutUrl);
+        }
+      }, 350);
+      return;
+    }
+
+    // Desktop: intentar popup y fallback a la misma pestana
+    const newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      console.warn('Popup bloqueado, redirigiendo en la misma ventana');
+      window.location.assign(checkoutUrl);
     }
   },
 
@@ -224,3 +238,4 @@ export const mercadoPagoService = {
     }
   }
 };
+
