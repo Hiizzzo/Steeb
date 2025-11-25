@@ -618,8 +618,13 @@ const SteebChatAI: React.FC = () => {
           setMessages(prev => [...prev, aiMessage]);
 
           if (result.won) {
+             if (result.shinyStats) {
+               appendAssistantMessage(
+                 `Sos el ${formatOrdinalEs(result.shinyStats.position)} usuario en desbloquear el modo SHINY. Solo ${result.shinyStats.totalShinyUsers} personas lo tienen.`
+               );
+             }
              setShinyGameState('idle');
-             // Recargar pÃ¡gina o notificar cambio de tema tras un breve delay
+             // Recargar página o notificar cambio de tema tras un breve delay
              setTimeout(() => {
                window.location.reload();
              }, 3000);
