@@ -40,12 +40,12 @@ const formatOrdinalEs = (position: number) => {
     4: 'cuarto',
     5: 'quinto',
     6: 'sexto',
-    7: 'septimo',
+    7: 'séptimo',
     8: 'octavo',
     9: 'noveno',
-    10: 'decimo'
+    10: 'décimo'
   };
-  return map[position] || `${position}?`;
+  return map[position] || `${position}º`;
 };
 
 const SteebChatAI: React.FC = () => {
@@ -563,7 +563,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: 'Entendido. AvÃ­same cuando quieras intentar desbloquear el modo Shiny. âœ¨',
+            content: 'Entendido. Avisame cuando quieras intentar desbloquear el modo SHINY.',
             timestamp: new Date(),
             category: 'general'
           };
@@ -616,6 +616,9 @@ const SteebChatAI: React.FC = () => {
             category: 'general'
           };
           setMessages(prev => [...prev, aiMessage]);
+          if (typeof result.remainingRolls === 'number') {
+            setShinyRolls(result.remainingRolls);
+          }
 
           if (result.won) {
              if (result.shinyStats) {
@@ -695,11 +698,11 @@ const SteebChatAI: React.FC = () => {
     const isShinyIntent = lowerMsg.includes('shiny') || (lowerMsg.includes('tirada') && lowerMsg.includes('jugar'));
 
     if (isShinyIntent) {
-       const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
-       
-       if (normalizedTipo === 'white') {
-          const userMessage: ChatMessage = {
-            id: `msg_${Date.now()}`,
+      const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+      
+      if (normalizedTipo === 'white') {
+         const userMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
             role: 'user',
             content: message,
             timestamp: new Date()
@@ -717,14 +720,23 @@ const SteebChatAI: React.FC = () => {
             setMessages(prev => [...prev, aiMessage]);
           }, 500);
           return;
-       }
+      }
 
-       setShinyGameState('confirming');
-       const userMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'user',
-          content: message,
-          timestamp: new Date()
+      setShinyGameState('confirming');
+      let availableRolls = shinyRolls || 0;
+      try {
+        const { getShinyStatus } = await import('@/services/steebApi');
+        const status = await getShinyStatus(user?.id);
+        availableRolls = status.totalAvailable;
+        setShinyRolls(status.totalAvailable);
+      } catch (statusError) {
+        console.error('Error obteniendo estado shiny:', statusError);
+      }
+      const userMessage: ChatMessage = {
+         id: `msg_${Date.now()}`,
+         role: 'user',
+         content: message,
+         timestamp: new Date()
         };
         setMessages(prev => [...prev, userMessage]);
 
@@ -732,7 +744,7 @@ const SteebChatAI: React.FC = () => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${shinyRolls || 0} tiradas disponibles.`,
+            content: `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`,
             timestamp: new Date(),
             category: 'general'
           };
@@ -782,6 +794,7 @@ const SteebChatAI: React.FC = () => {
       try {
         const { getShinyStatus } = await import('@/services/steebApi');
         const status = await getShinyStatus(user?.id);
+        setShinyRolls(status.totalAvailable);
         
         setIsTyping(false);
         
