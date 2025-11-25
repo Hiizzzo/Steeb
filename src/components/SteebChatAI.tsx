@@ -698,15 +698,15 @@ const SteebChatAI: React.FC = () => {
         const errorMessage: ChatMessage = {
           id: `msg_${Date.now() + 1}`,
           role: 'assistant',
-          content: 'OcurriÃ³ un error de conexiÃ³n. Intenta mÃ¡s tarde.',
+          content:
+            error instanceof Error && error.message
+              ? `No pude completar la tirada: ${error.message}`
+              : 'Ocurrió un error de conexión. Intenta más tarde.',
           timestamp: new Date(),
           category: 'general'
         };
         setMessages(prev => [...prev, errorMessage]);
       }
-      return;
-    }
-
     // Detectar intenciÃ³n de jugar Shiny (PRIORIDAD ALTA)
     const lowerMsg = message.toLowerCase();
     const shinyKeywords = ['shiny', 'jugar', 'desbloquear', 'modo', 'tirada', 'tiradas', 'intentar', 'probar'];
@@ -1509,6 +1509,7 @@ const SteebChatAI: React.FC = () => {
 };
 
 export default SteebChatAI;
+
 
 
 

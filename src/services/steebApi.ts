@@ -1,4 +1,4 @@
-const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
+﻿const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
 const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/shiny-game';
 const SHINY_STATUS_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/users/shiny-status';
 const SHINY_STATS_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/shiny-stats';
@@ -99,8 +99,8 @@ const getPersistentUserId = async (): Promise<string> => {
 export async function sendMessageToSteeb(message: string): Promise<SteebApiSuccess> {
   const userId = await getPersistentUserId();
 
-  console.log(' STEEB → Endpoint usado:', API_ENDPOINT);
-  console.log(' STEEB → Enviando mensaje:', message);
+  console.log(' STEEB â†’ Endpoint usado:', API_ENDPOINT);
+  console.log(' STEEB â†’ Enviando mensaje:', message);
 
   let response: Response;
 
@@ -116,18 +116,18 @@ export async function sendMessageToSteeb(message: string): Promise<SteebApiSucce
       })
     });
   } catch {
-    throw new Error('No pudimos contactar al servidor de STEEB. Revisa tu conexión e intenta nuevamente.');
+    throw new Error('No pudimos contactar al servidor de STEEB. Revisa tu conexiÃ³n e intenta nuevamente.');
   }
 
   const rawText = await response.text();
-  console.log(' STEEB → Status:', response.status);
-  console.log(' STEEB → Raw:', rawText.slice(0, 200));
+  console.log(' STEEB â†’ Status:', response.status);
+  console.log(' STEEB â†’ Raw:', rawText.slice(0, 200));
 
   let payload: any;
   try {
     payload = rawText ? JSON.parse(rawText) : null;
   } catch {
-    throw new Error(`STEEB devolvió una respuesta inválida. (status ${response.status})`);
+    throw new Error(`STEEB devolviÃ³ una respuesta invÃ¡lida. (status ${response.status})`);
   }
 
   if (!response.ok || payload?.success === false) {
@@ -164,10 +164,8 @@ export async function playShinyGame(guess: number, userIdOverride?: string): Pro
 
   console.log('🎲 SHINY GAME → Jugando con número:', guess, 'User:', userId);
 
-  let response: Response;
-
   try {
-    response = await fetch(SHINY_GAME_ENDPOINT, {
+    const response = await fetch(SHINY_GAME_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -177,27 +175,41 @@ export async function playShinyGame(guess: number, userIdOverride?: string): Pro
         guess
       })
     });
-  } catch {
-    throw new Error('No pudimos contactar al servidor de juego. Revisa tu conexión.');
-  }
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    // Si es error 429 (límite diario), devolvemos la data para manejar el tiempo restante
-    if (response.status === 429) {
+    let data: any = null;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error('Error parseando respuesta de shiny-game:', parseError);
       return {
         success: false,
-        message: data.message || 'Límite diario alcanzado',
-        nextAttemptIn: data.nextAttemptIn
+        message: 'Respuesta inválida del servidor de juego.'
       };
     }
-    throw new Error(data.message || 'Error al jugar Shiny Game');
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        return {
+          success: false,
+          message: data?.message || 'Límite diario alcanzado',
+          nextAttemptIn: data?.nextAttemptIn
+        };
+      }
+      return {
+        success: false,
+        message: data?.message || 'Error al jugar Shiny Game'
+      };
+    }
+
+    return data as ShinyGameResponse;
+  } catch (error) {
+    console.error('Error en playShinyGame:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'No pudimos contactar al servidor de juego. Revisa tu conexión.'
+    };
   }
-
-  return data as ShinyGameResponse;
 }
-
 export type ShinyStatusResponse = {
   success: boolean;
   dailyAttemptAvailable: boolean;
@@ -241,7 +253,7 @@ export async function getGlobalShinyStats(userId?: string): Promise<GlobalShinyS
     const payload = await response.json();
 
     if (!response.ok || payload?.success === false) {
-      const errorMessage = payload?.message || 'No se pudieron obtener las estadísticas shiny.';
+      const errorMessage = payload?.message || 'No se pudieron obtener las estadÃ­sticas shiny.';
       throw new Error(errorMessage);
     }
 
@@ -251,3 +263,5 @@ export async function getGlobalShinyStats(userId?: string): Promise<GlobalShinyS
     throw error;
   }
 }
+
+
