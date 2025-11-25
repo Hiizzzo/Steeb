@@ -6,8 +6,8 @@
 .shiny [class*="FloatingButtons"]:not(.floating-border),
 .shiny .absolute.-top-\[140px\],
 .shiny .absolute.-top-\[140px\] *,
-.shiny .w-40.h-40:not(.floating-border),
-.shiny .sm\\:w-56.sm\\:h-56:not(.floating-border) {
+.shiny [class*="w-40"][class*="h-40"]:not(.floating-border),
+.shiny [class*="sm:w-56"][class*="sm:h-56"]:not(.floating-border) {
   background: inherit !important;
   /* border: inherit !important; */
   box-shadow: inherit !important;
@@ -104,8 +104,8 @@
 /* Proteger los checkboxes de tareas */
 
 /* Proteger el icono del checkbox completado */
-.shiny .w-4.h-4.text-white,
-.shiny .w-4.h-4.dark\\:text-black {
+.shiny [class*="w-4"][class*="h-4"][class*="text-white"],
+.shiny [class*="w-4"][class*="h-4"][class*="dark:text-black"] {
   color: white !important;
   filter: none !important;
   animation: none !important;
