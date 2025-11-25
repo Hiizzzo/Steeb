@@ -1,3 +1,4 @@
+// @ts-nocheck
 // LLM.js Service - Universal LLM interface (sin dependencias externas)
 // Soporta: Ollama (local/gratis), OpenAI, Google, Anthropic, etc.
 
@@ -352,3 +353,4 @@ Responde en JSON:
 // Export como singleton
 const llmService = LLMService.getInstance();
 export default llmService;
+

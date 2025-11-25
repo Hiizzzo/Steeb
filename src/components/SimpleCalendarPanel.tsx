@@ -4,6 +4,18 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useTheme } from '@/hooks/useTheme';
 import { Task } from '@/types';
 
+interface DayData {
+  date: Date;
+  day: number;
+  tasks: Task[];
+  completedTasks: Task[];
+  pendingTasks: Task[];
+  total: number;
+  completed: number;
+  pending: number;
+  tasksByType: Record<string, { total: number; completed: number }>;
+}
+
 interface SimpleCalendarPanelProps {
   onClose: () => void;
 }
@@ -38,7 +50,7 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
   const startXRef = useRef(0);
 
   // Obtener días del mes actual con tareas
-  const monthData = useMemo(() => {
+  const monthData = useMemo<(DayData | null)[]>(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
 
@@ -103,14 +115,14 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
 
   // Estadísticas del mes
   const stats = useMemo(() => {
-    const validDays = monthData.filter(day => day !== null);
-    const totalTasks = validDays.reduce((sum, day) => sum + day!.total, 0);
-    const completedTasks = validDays.reduce((sum, day) => sum + day!.completed, 0);
+    const validDays = monthData.filter((day): day is DayData => day !== null);
+    const totalTasks = validDays.reduce((sum, day) => sum + day.total, 0);
+    const completedTasks = validDays.reduce((sum, day) => sum + day.completed, 0);
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     const typeStats: Record<string, { total: number; completed: number }> = {};
     validDays.forEach(day => {
-      Object.entries(day!.tasksByType).forEach(([type, stats]) => {
+      Object.entries(day.tasksByType).forEach(([type, stats]) => {
         if (!typeStats[type]) {
           typeStats[type] = { total: 0, completed: 0 };
         }

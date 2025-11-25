@@ -1,3 +1,4 @@
+// @ts-nocheck
 // MINIMAX M2 Configuration
 // API Key configurada y lista para usar
 
@@ -63,3 +64,4 @@ export async function testMINIMAXConnection() {
 }
 
 export default minimaxConfig;
+

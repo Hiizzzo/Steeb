@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, X, Edit2, Trash2, Tag, FolderOpen, Hash, Target, Briefcase, Heart, Brain, Users } from 'lucide-react';

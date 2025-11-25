@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { auth, db, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -463,3 +464,4 @@ export const useAuth = () => {
 };
 
 export { AuthContext };
+

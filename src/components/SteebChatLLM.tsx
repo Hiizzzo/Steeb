@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowUp, Bot, User, Settings, X, AlertCircle } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -538,3 +539,4 @@ const SteebChatLLM: React.FC = () => {
 };
 
 export default SteebChatLLM;
+

@@ -47,6 +47,11 @@ export interface Task {
   updatedAt: string;
   userId?: string; // Para funcionalidad futura de usuarios
   sharedWith?: string[]; // Para funcionalidad de compartir
+  category?: string; // Categor�a opcional para agrupar tareas
+  scheduledFor?: string; // Compatibilidad con antiguos campos
+  dueDate?: string; // Compatibilidad con servicios que usan dueDate
+  ownerUid?: string; // Compatibilidad con servicios que setean owner
+  completedAt?: string; // Alias de completedDate para vistas que lo requieren
   attachments?: TaskAttachment[];
   reminders?: TaskReminder[];
   recurrence?: RecurrenceRule;

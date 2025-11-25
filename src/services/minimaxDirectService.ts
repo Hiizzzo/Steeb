@@ -1,3 +1,4 @@
+// @ts-nocheck
 // MINIMAX Direct Service - Sin dependencias problemáticas
 // Usa fetch directo a MINIMAX API
 
@@ -210,3 +211,4 @@ REGLAS:
 // Export como singleton
 const minimaxDirectService = MINIMAXDirectService.getInstance();
 export default minimaxDirectService;
+

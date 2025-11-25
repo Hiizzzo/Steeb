@@ -2,7 +2,7 @@
 import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
-import { sendMessageToSteeb, SteebAction } from '@/services/steebApi';
+import { sendMessageToSteeb, SteebAction, getGlobalShinyStats } from '@/services/steebApi';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';

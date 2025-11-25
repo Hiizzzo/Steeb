@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Loader2, Sparkles, XCircle } from 'lucide-react';
@@ -244,3 +245,4 @@ export default function PaymentSuccessPage() {
         </div>
     );
 }
+

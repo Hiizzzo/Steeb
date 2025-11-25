@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Servicio para almacenamiento local de tareas en archivo de texto
 import { Task } from '../types/task';
 

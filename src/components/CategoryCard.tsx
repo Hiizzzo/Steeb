@@ -5,7 +5,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 
 interface CategoryCardProps {
   type: Task['type'];
-  title: string;
+  title?: string;
   image?: string;
   count?: number;
   onClick?: () => void;

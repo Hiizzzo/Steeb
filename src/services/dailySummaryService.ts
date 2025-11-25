@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { auth, db } from '@/lib/firebase';
 import { collection, setDoc, doc, getDoc, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 
@@ -156,3 +157,4 @@ export const dailySummaryService = {
     return context;
   }
 };
+

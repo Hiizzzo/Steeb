@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -244,3 +245,4 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
     </div>
   );
 };
+

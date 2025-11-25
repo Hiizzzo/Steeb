@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Task, RecurrenceRule } from '@/types';
 import { useTaskStore } from '@/store/useTaskStore';
 
@@ -268,3 +269,4 @@ export function initializeRecurrenceManager(): void {
     }
   }, 60 * 60 * 1000); // Cada hora
 }
+

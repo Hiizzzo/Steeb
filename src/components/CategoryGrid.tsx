@@ -35,9 +35,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
   ];
 
   // Configuración para responsive grid
-  const gridClasses = currentTheme === 'mobile'
-    ? 'grid-cols-2 gap-3'
-    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
+  const gridClasses = 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
 
   const handleCategoryClick = (type: Task['type']) => {
     setSelectedCategory(type);
