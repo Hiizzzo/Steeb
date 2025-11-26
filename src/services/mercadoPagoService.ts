@@ -166,39 +166,17 @@ export const mercadoPagoService = {
 
   // Redirigir al checkout de Mercado Pago - PRODUCCION
   redirectToCheckout: (response: MercadoPagoResponse) => {
-    console.log('?Ys? Redirigiendo a Mercado Pago:', response);
+    console.log('?? Redirigiendo a Mercado Pago:', response);
 
     const checkoutUrl = response.initPoint || response.sandboxInitPoint;
     if (!checkoutUrl) {
       throw new Error('No hay URL de checkout disponible');
     }
 
-    console.log('Abriendo checkout:', checkoutUrl);
+    console.log('Abriendo checkout en la misma pesta?a:', checkoutUrl);
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    // @ts-ignore - standalone es propiedad especifica de iOS
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-    // En movil/PWA priorizar navegacion directa y fallback si no cambia visibilidad
-    if (isMobile || isPWA) {
-      const previousVisibility = document.visibilityState;
-      // Form submit suele evitar bloqueos de navegación en PWA/iOS
-      submitHiddenForm(checkoutUrl);
-      setTimeout(() => {
-        if (document.visibilityState === previousVisibility) {
-          console.warn('Navegacion a Mercado Pago no cambio visibilidad, aplicando fallback.');
-          openLinkFallback(checkoutUrl);
-        }
-      }, 350);
-      return;
-    }
-
-    // Desktop: intentar popup y fallback a la misma pestana
-    const newWindow = window.open(checkoutUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
-    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-      console.warn('Popup bloqueado, redirigiendo en la misma ventana');
-      window.location.assign(checkoutUrl);
-    }
+    // Mantener la misma pesta?a nos permite mostrar el mensaje final al regresar
+    window.location.assign(checkoutUrl);
   },
 
   // Flujo de pago completo
