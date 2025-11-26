@@ -5,7 +5,7 @@ import { useAuth } from './useAuth';
 const PENDING_FLAG = 'steeb-pending-dark-upgrade';
 const SESSION_FLAG = 'steeb-session-dark-upgrade';
 const welcomeKeyForUser = (userId?: string) =>
-  userId ? steeb-dark-welcome- : 'steeb-dark-welcome';
+  userId ? `steeb-dark-welcome-${userId}` : 'steeb-dark-welcome';
 
 /**
  * Hook que muestra el mensaje de bienvenida BLACK apenas detectamos que el usuario ya tiene acceso,
