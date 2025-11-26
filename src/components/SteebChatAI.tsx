@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
 import { useUserRole } from '@/hooks/useUserRole';
+import { DARK_WELCOME_QUEUE_KEY } from '@/hooks/useAutoPaymentVerification';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
@@ -305,6 +306,30 @@ const SteebChatAI: React.FC = () => {
     [scrollToBottom]
   );
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let queuedValue: string | null = null;
+    try {
+      queuedValue = localStorage.getItem(DARK_WELCOME_QUEUE_KEY);
+      if (!queuedValue) return;
+      let parsed: { content?: string } | null = null;
+      try {
+        parsed = JSON.parse(queuedValue);
+      } catch {
+        parsed = { content: queuedValue };
+      }
+      if (parsed?.content) {
+        appendAssistantMessage(parsed.content);
+      }
+    } finally {
+      try {
+        localStorage.removeItem(DARK_WELCOME_QUEUE_KEY);
+      } catch {
+        // ignore storage issues
+      }
+    }
+  }, [appendAssistantMessage]);
+
   const handleSteebActions = useCallback(
     async (actions: SteebAction[] = []) => {
       if (!actions.length) return;
@@ -445,12 +470,14 @@ const SteebChatAI: React.FC = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Escuchar mensajes del ThemeToggle
+  // Escuchar mensajes del ThemeToggle y otros eventos globales
   useEffect(() => {
     const handleSteebMessage = (event: CustomEvent) => {
-      const { type, content, timestamp, showMercadoPagoButton, paymentOptions } = event.detail;
+      const { type, content, timestamp, showMercadoPagoButton, paymentOptions } = event.detail || {};
+      const isThemeMessage =
+        type === 'theme-info' || type === 'theme-info-with-button' || type === 'theme-info-with-options';
 
-      if (type === 'theme-info' || type === 'theme-info-with-button' || type === 'theme-info-with-options') {
+      if (isThemeMessage) {
         const aiMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
           role: 'assistant',
@@ -462,24 +489,30 @@ const SteebChatAI: React.FC = () => {
         };
 
         setMessages(prev => [...prev, aiMessage]);
-
-        // Scroll al final para mostrar el nuevo mensaje
         scrollToBottom();
+      } else if (typeof content === 'string' && content.trim().length) {
+        appendAssistantMessage(content);
+      }
+
+      if (type === 'payment-success') {
+        try {
+          localStorage.removeItem(DARK_WELCOME_QUEUE_KEY);
+        } catch {
+          // ignore storage issues
+        }
       }
     };
 
-    // Escuchar los eventos personalizados
     window.addEventListener('steeb-message', handleSteebMessage as EventListener);
     window.addEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
     window.addEventListener('steeb-message-with-options', handleSteebMessage as EventListener);
 
-    // Limpiar los event listeners al desmontar
     return () => {
       window.removeEventListener('steeb-message', handleSteebMessage as EventListener);
       window.removeEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
       window.removeEventListener('steeb-message-with-options', handleSteebMessage as EventListener);
     };
-  }, []);
+  }, [appendAssistantMessage, scrollToBottom]);
 
   // Manejar cambios de altura del panel
   const handlePanelHeightChange = (height: number) => {
