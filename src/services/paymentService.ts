@@ -95,7 +95,21 @@ export const verifyPayment = async (
 };
 
 // Nuevo método para verificar rol del usuario (reemplaza a getPaymentStatus)
-export const getUserRole = async (userId: string): Promise<{ role: string; permissions: string[]; shinyRolls?: number }> => {
+interface UserRoleResponse {
+  role: 'free' | 'premium';
+  permissions: string[];
+  shinyRolls?: number;
+  tipoUsuario?: string;
+}
+
+const mapTipoUsuarioToRole = (tipoUsuario?: string): 'free' | 'premium' => {
+  if (!tipoUsuario) return 'free';
+  const normalized = tipoUsuario.toLowerCase();
+  const premiumTypes = ['black', 'dark', 'shiny', 'premium'];
+  return premiumTypes.includes(normalized) ? 'premium' : 'free';
+};
+
+export const getUserRole = async (userId: string): Promise<UserRoleResponse> => {
   const response = await fetch(buildUrl(`/users/role?userId=${userId}`), {
     method: 'GET',
     headers: {
@@ -105,10 +119,13 @@ export const getUserRole = async (userId: string): Promise<{ role: string; permi
   });
 
   const data = await handleResponse<any>(response);
+  const tipoUsuario = data.data?.tipoUsuario;
+
   return {
-    role: data.data?.role || 'free',
+    role: mapTipoUsuarioToRole(tipoUsuario),
     permissions: data.data?.permissions || [],
-    shinyRolls: data.data?.shinyRolls || 0
+    shinyRolls: data.data?.shinyRolls || 0,
+    tipoUsuario
   };
 };
 
