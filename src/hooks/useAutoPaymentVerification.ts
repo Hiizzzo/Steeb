@@ -36,7 +36,7 @@ export const useAutoPaymentVerification = () => {
                     const event = new CustomEvent('steeb-message', {
                         detail: {
                             type: 'payment-success',
-                            content: '🎉 ¡Pago confirmado! Ahora sos usuario BLACK y te regalé una tirada para el juego SHINY. Mandá "jugar shiny" si querés usarla. 😎',
+                            content: '🎉 ¡Ahora sos usuario BLACK! Recordá que en el selector de temas (arriba a la derecha) el botón de la derecha activa el modo DARK y el del medio te deja jugar el modo SHINY. De regalo te sumé una tirada: escribí "jugar shiny" cuando quieras usarla. 😎',
                             timestamp: new Date()
                         }
                     });

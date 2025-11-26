@@ -85,7 +85,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
       const userRole = await waitForActivation(user.uid, 10); // Máximo 30 segundos
 
       if (userRole.isPremium) {
-        setLastSyncMessage('🎉 ¡Pago confirmado! Ya tienes acceso al modo DARK.');
+      setLastSyncMessage('🎉 ¡Ahora sos usuario BLACK! Recordá que en el selector de temas (arriba a la derecha) el botón de la derecha activa el modo DARK y el del medio te deja jugar SHINY. De regalo sumé una tirada: escribí "jugar shiny" cuando quieras usarla.');
         setCheckoutState('idle');
 
         // Cerrar modal después de 2 segundos
