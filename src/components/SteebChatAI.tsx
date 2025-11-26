@@ -7,7 +7,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
 import { useUserRole } from '@/hooks/useUserRole';
-import { DARK_WELCOME_QUEUE_KEY } from '@/hooks/useAutoPaymentVerification';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
@@ -306,30 +305,6 @@ const SteebChatAI: React.FC = () => {
     [scrollToBottom]
   );
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let queuedValue: string | null = null;
-    try {
-      queuedValue = localStorage.getItem(DARK_WELCOME_QUEUE_KEY);
-      if (!queuedValue) return;
-      let parsed: { content?: string } | null = null;
-      try {
-        parsed = JSON.parse(queuedValue);
-      } catch {
-        parsed = { content: queuedValue };
-      }
-      if (parsed?.content) {
-        appendAssistantMessage(parsed.content);
-      }
-    } finally {
-      try {
-        localStorage.removeItem(DARK_WELCOME_QUEUE_KEY);
-      } catch {
-        // ignore storage issues
-      }
-    }
-  }, [appendAssistantMessage]);
-
   const handleSteebActions = useCallback(
     async (actions: SteebAction[] = []) => {
       if (!actions.length) return;
@@ -494,13 +469,6 @@ const SteebChatAI: React.FC = () => {
         appendAssistantMessage(content);
       }
 
-      if (type === 'payment-success') {
-        try {
-          localStorage.removeItem(DARK_WELCOME_QUEUE_KEY);
-        } catch {
-          // ignore storage issues
-        }
-      }
     };
 
     window.addEventListener('steeb-message', handleSteebMessage as EventListener);

@@ -4,11 +4,10 @@ import { useAuth } from './useAuth';
 
 const PENDING_FLAG = 'steeb-pending-dark-upgrade';
 const SESSION_FLAG = 'steeb-session-dark-upgrade';
-export const DARK_WELCOME_QUEUE_KEY = 'steeb-dark-welcome-queue';
 const welcomeKeyForUser = (userId?: string) =>
   userId ? `steeb-dark-welcome-${userId}` : 'steeb-dark-welcome';
 const BLACK_WELCOME_MESSAGE =
-  'Felicitaciones, ahora sos usuario BLACK. Tocá el tercer círculo del selector de temas (arriba a la derecha) para encender el modo DARK y acordate que el del medio te deja jugar SHINY. De regalo te sumé una tirada: escribí "jugar shiny" para usarla cuando quieras.';
+  '🎉 ¡Felicitaciones, ahora sos usuario BLACK! Tocá el tercer círculo del selector de temas (arriba a la derecha) para activar el modo DARK y acordate que el del medio te deja jugar SHINY. De regalo sumé una tirada: escribí "jugar shiny" cuando quieras usarla. 😎';
 
 /**
  * Hook que muestra el mensaje de bienvenida BLACK apenas detectamos que el usuario ya tiene acceso,
@@ -37,13 +36,6 @@ export const useAutoPaymentVerification = () => {
         localStorage.removeItem(PENDING_FLAG);
         sessionStorage.removeItem(SESSION_FLAG);
         localStorage.setItem(welcomeKey, new Date().toISOString());
-        localStorage.setItem(
-          DARK_WELCOME_QUEUE_KEY,
-          JSON.stringify({
-            content: BLACK_WELCOME_MESSAGE,
-            timestamp: new Date().toISOString()
-          })
-        );
       } catch {
         // ignore storage issues
       }
