@@ -24,113 +24,34 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     shinyMonthColors[3]
   ];
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const resizeHandleRef = useRef<HTMLDivElement>(null);
-  const [panelHeight, setPanelHeight] = useState(window.innerHeight * 0.4);
-  const [isDragging, setIsDragging] = useState(false);
-  const [actualContainerHeight, setActualContainerHeight] = useState(window.innerHeight * 0.4);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const startYRef = useRef<number>(0);
-  const currentHeightRef = useRef<number>(window.innerHeight * 0.4);
+  // Usar una altura fija base para los cálculos iniciales, luego se ajustará con el ResizeObserver si cambia el tamaño de ventana
+  const [actualContainerHeight, setActualContainerHeight] = useState(250);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Handle snap positions - half screen and full screen
+  // Efecto de entrada para las barras
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      e.preventDefault();
+    setIsAnimating(true);
+    const timer = setTimeout(() => setIsAnimating(false), 100);
+    return () => clearTimeout(timer);
+  }, [viewMode]); // Re-animar cuando cambia la vista
 
-      const deltaY = startYRef.current - e.clientY;
-      const threshold = 80;
-
-      if (deltaY > threshold && !isFullScreen) {
-        setIsFullScreen(true);
-        setPanelHeight(window.innerHeight * 0.75);
-        currentHeightRef.current = window.innerHeight * 0.75;
-      }
-      else if (deltaY < -threshold && isFullScreen) {
-        setIsFullScreen(false);
-        setPanelHeight(window.innerHeight * 0.4);
-        currentHeightRef.current = window.innerHeight * 0.4;
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (!isDragging) return;
-      setIsDragging(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-
-    if (isDragging) {
-      document.body.style.cursor = 'ns-resize';
-      document.body.style.userSelect = 'none';
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isDragging, isFullScreen]);
-
-  // Monitor actual container height for dynamic sizing - TIEMPO REAL
+  // Monitor actual container height for dynamic sizing (solo al redimensionar ventana)
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    if (resizeObserverRef.current) {
-      resizeObserverRef.current.disconnect();
-    }
-
-    resizeObserverRef.current = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const newHeight = entry.contentRect.height;
-        // ActualizaciÃ³n inmediata en tiempo real - SIN DELAY
-        if (Math.abs(newHeight - actualContainerHeight) > 2) {
+        if (Math.abs(newHeight - actualContainerHeight) > 5) {
           setActualContainerHeight(newHeight);
         }
       }
     });
 
-    resizeObserverRef.current.observe(chartContainerRef.current);
+    observer.observe(chartContainerRef.current);
 
-    const updateHeight = () => {
-      if (chartContainerRef.current) {
-        const height = chartContainerRef.current.getBoundingClientRect().height;
-        setActualContainerHeight(height);
-      }
-    };
-
-    updateHeight();
-
-    return () => {
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect();
-      }
-    };
-  }, [actualContainerHeight]);
-
-  // ActualizaciÃ³n ULTRA RÃPIDA durante el drag para tiempo real
-  useEffect(() => {
-    if (isDragging && chartContainerRef.current) {
-      const updateDuringDrag = () => {
-        if (chartContainerRef.current) {
-          const height = chartContainerRef.current.getBoundingClientRect().height;
-          setActualContainerHeight(height);
-        }
-      };
-
-      // Actualizar inmediatamente al iniciar drag
-      updateDuringDrag();
-
-      // Actualizar a 120fps para mÃ¡xima fluidez durante el drag
-      const interval = setInterval(updateDuringDrag, 8);
-
-      return () => clearInterval(interval);
-    }
-  }, [isDragging]);
+    return () => observer.disconnect();
+  }, []);
 
   // Function to get current month name in Spanish
   const getCurrentMonthName = () => {
@@ -194,7 +115,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, [tasks]);
 
-  // Calcular estadÃ­sticas
+  // Calcular estadísticas
   const stats = useMemo(() => {
     const now = new Date();
     let filteredTasks = tasks;
@@ -253,7 +174,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, [tasks, viewMode]);
 
-  // FunciÃ³n de escalado para todas las vistas
+  // Función de escalado para todas las vistas
   const getScaledHeight = useMemo(() => {
     return (maxTasks: number, taskCount: number, containerHeight: number) => {
       const reservedSpace = 50;
@@ -267,9 +188,9 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     };
   }, []);
 
-  // Calcular tareas por dÃ­a de la semana
+  // Calcular tareas por día de la semana
   const tasksByDay = useMemo(() => {
-    const days = ['Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado', 'Domingo'];
+    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     const weekData = days.map((day, index) => {
       const dayTasks = tasks.filter(task => {
         const taskDate = new Date(task.completedAt || task.createdAt);
@@ -330,7 +251,7 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
     }));
   }, [tasks, actualContainerHeight, getScaledHeight]);
 
-  // Calcular tareas por mes del aÃ±o
+  // Calcular tareas por mes del año
   const tasksByMonth = useMemo(() => {
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const now = new Date();
@@ -546,13 +467,13 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   <div
                     className="chart-bar w-8 rounded flex items-center justify-center relative overflow-hidden"
                     style={{
-                      height: `${dayData.scaledHeight}px`,
+                      height: isAnimating ? '0px' : `${dayData.scaledHeight}px`,
                       backgroundColor: isShinyMode ? shinyWeekBarColors[index] ?? '#000000' : (isDarkMode ? '#FFFFFF' : '#000000'),
                       background: isShinyMode ? shinyWeekBarColors[index] ?? '#000000' : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
                       WebkitAppearance: 'none',
-                      transition: 'height 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
-                      willChange: 'height, transform',
+                      transition: `height 800ms cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 50}ms`,
+                      willChange: 'height',
                       transformOrigin: 'bottom',
                       transform: 'translateZ(0)'
                     }}
@@ -588,13 +509,13 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   <div
                     className="chart-bar w-16 rounded flex items-center justify-center relative overflow-hidden"
                     style={{
-                      height: `${weekData.scaledHeight}px`,
+                      height: isAnimating ? '0px' : `${weekData.scaledHeight}px`,
                       backgroundColor: isShinyMode ? shinyWeekOfMonthColors[index % shinyWeekOfMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       background: isShinyMode ? shinyWeekOfMonthColors[index % shinyWeekOfMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
                       WebkitAppearance: 'none',
-                      transition: 'height 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
-                      willChange: 'height, transform',
+                      transition: `height 800ms cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 100}ms`,
+                      willChange: 'height',
                       transformOrigin: 'bottom',
                       transform: 'translateZ(0)'
                     }}
@@ -623,13 +544,13 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
                   <div
                     className="chart-bar w-7 rounded flex items-center justify-center relative overflow-hidden"
                     style={{
-                      height: `${monthData.scaledHeight}px`,
+                      height: isAnimating ? '0px' : `${monthData.scaledHeight}px`,
                       backgroundColor: isShinyMode ? shinyMonthColors[index % shinyMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       background: isShinyMode ? shinyMonthColors[index % shinyMonthColors.length] : (isDarkMode ? '#FFFFFF' : '#000000'),
                       backgroundClip: 'padding-box',
                       WebkitAppearance: 'none',
-                      transition: 'height 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
-                      willChange: 'height, transform',
+                      transition: `height 800ms cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 30}ms`,
+                      willChange: 'height',
                       transformOrigin: 'bottom',
                       transform: 'translateZ(0)'
                     }}
@@ -700,33 +621,8 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
             </div>
           </div>
 
-          {/* Drag Handle for resizing */}
-          <div
-            ref={resizeHandleRef}
-            className={`absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity ${
-              isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/10'
-            }`}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              startYRef.current = e.clientY;
-              currentHeightRef.current = panelHeight;
-              setIsDragging(true);
-            }}
-          >
-            <div className={`flex items-center justify-center space-x-1 ${
-              isDarkMode ? 'bg-white/30' : 'bg-black/30'
-            } px-2 py-0.5 rounded-full`}>
-              <div className={`w-1 h-1 rounded-full ${
-                isDarkMode ? 'bg-white' : 'bg-black'
-              }`}></div>
-              <div className={`w-1 h-1 rounded-full ${
-                isDarkMode ? 'bg-white' : 'bg-black'
-              }`}></div>
-              <div className={`w-1 h-1 rounded-full ${
-                isDarkMode ? 'bg-white' : 'bg-black'
-              }`}></div>
-            </div>
-          </div>
+          {/* Spacer instead of drag handle */}
+          <div className="h-2 w-full"></div>
         </div>
       </div>
 
@@ -779,5 +675,3 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
 };
 
 export default SimpleProgressPanel;
-
-
