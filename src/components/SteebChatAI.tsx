@@ -635,20 +635,23 @@ const SteebChatAI: React.FC = () => {
             setShinyRolls(result.remainingRolls);
           }
 
-          if (result.won) {
+          if (result.won || result.alreadyWon) {
              if (result.shinyStats) {
                appendAssistantMessage(
                  `Sos el ${formatOrdinalEs(result.shinyStats.position)} usuario en desbloquear el modo SHINY. Solo ${result.shinyStats.totalShinyUsers} personas lo tienen.`
                );
              }
              setShinyGameState('idle');
-             // Recargar página o notificar cambio de tema tras un breve delay
-             setTimeout(() => {
-               window.location.reload();
-             }, 3000);
+             
+             // Solo recargar si acaba de ganar (won=true), no si ya lo tenía (alreadyWon=true)
+             if (result.won) {
+               setTimeout(() => {
+                 window.location.reload();
+               }, 3000);
+             }
           } else {
              // Si perdiÃ³, preguntar si quiere jugar de nuevo si tiene tiradas
-             if (result.remainingRolls > 0) {
+             if (result.remainingRolls !== undefined && result.remainingRolls > 0) {
                setTimeout(() => {
                  const retryMessage: ChatMessage = {
                    id: `msg_${Date.now() + 2}`,
