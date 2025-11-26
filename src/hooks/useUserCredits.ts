@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { DARK_MODE_PLAN_ID, getPaymentPlan } from '@/config/paymentPlans';
-import { getUserRole, consumeShinyRoll } from '@/services/paymentService';
+import { getUserRole, consumeShinyRoll, UserRoleResponse } from '@/services/paymentService';
 
 interface UserCredits {
   hasDarkVersion: boolean;
@@ -20,6 +20,7 @@ export const useUserCredits = () => {
   const { user } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [userRoleDetails, setUserRoleDetails] = useState<UserRoleResponse | null>(null);
 
   const defaultCredits = useMemo<UserCredits>(() => ({
     hasDarkVersion: false,
@@ -110,6 +111,7 @@ export const useUserCredits = () => {
 
     try {
       const userRole = await getUserRole(user?.id);
+      setUserRoleDetails(userRole);
 
       setUserCredits(prev => ({
         ...prev,
@@ -214,6 +216,7 @@ export const useUserCredits = () => {
       lastShinyAttemptDate: null,
       shinyRolls: 0
     });
+    setUserRoleDetails(null);
   };
 
   return {
@@ -229,6 +232,7 @@ export const useUserCredits = () => {
     resetUserData,
     syncWithBackend,
     DARK_VERSION_COST,
-    GAME_COST
+    GAME_COST,
+    userRoleDetails
   };
 };

@@ -95,11 +95,15 @@ export const verifyPayment = async (
 };
 
 // Nuevo método para verificar rol del usuario (reemplaza a getPaymentStatus)
-interface UserRoleResponse {
+export interface UserRoleResponse {
   role: 'free' | 'premium';
   permissions: string[];
   shinyRolls?: number;
   tipoUsuario?: string;
+  darkClubNumber?: number | null;
+  darkModeUnlockedAt?: string | null;
+  darkModeEnabled?: boolean;
+  darkWelcomeMessageVersion?: number | null;
 }
 
 const mapTipoUsuarioToRole = (tipoUsuario?: string): 'free' | 'premium' => {
@@ -125,7 +129,11 @@ export const getUserRole = async (userId: string): Promise<UserRoleResponse> => 
     role: mapTipoUsuarioToRole(tipoUsuario),
     permissions: data.data?.permissions || [],
     shinyRolls: data.data?.shinyRolls || 0,
-    tipoUsuario
+    tipoUsuario,
+    darkClubNumber: data.data?.darkClubNumber ?? null,
+    darkModeUnlockedAt: data.data?.darkModeUnlockedAt ?? null,
+    darkModeEnabled: data.data?.darkModeEnabled ?? false,
+    darkWelcomeMessageVersion: data.data?.darkWelcomeMessageVersion ?? null
   };
 };
 
