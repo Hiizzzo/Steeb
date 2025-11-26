@@ -42,6 +42,7 @@ const buildSuccessMessage = (planType: PlanType, rollsCount: number | null) => {
 
 export default function PaymentSuccessPage() {
     const [searchParams] = useSearchParams();
+    const searchParamsKey = searchParams.toString();
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
     const { checkUserRole, user } = useUnifiedUserAccess();
@@ -52,25 +53,44 @@ export default function PaymentSuccessPage() {
     const [planType, setPlanType] = useState<PlanType>('unknown');
     const [rollsCount, setRollsCount] = useState<number | null>(null);
 
-    const hasRunVerification = useRef(false);
+    const triggeredVerificationsRef = useRef<Set<string>>(new Set());
+    const checkUserRoleRef = useRef(checkUserRole);
+    const userRef = useRef(user);
 
     useEffect(() => {
-        if (hasRunVerification.current) {
+        checkUserRoleRef.current = checkUserRole;
+    }, [checkUserRole]);
+
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
+
+    useEffect(() => {
+        return () => {
+            triggeredVerificationsRef.current.clear();
+        };
+    }, []);
+
+    useEffect(() => {
+        const paymentId = searchParams.get('payment_id');
+        const preferenceId = searchParams.get('preference_id');
+        const externalReference = searchParams.get('external_reference');
+
+        if (!paymentId && !preferenceId && !externalReference) {
+            setStatus('error');
+            setMessage('No se encontro informacion del pago en la URL.');
             return;
         }
-        hasRunVerification.current = true;
+
+        const verificationKey = `${paymentId || ''}|${preferenceId || ''}|${externalReference || ''}`;
+        if (triggeredVerificationsRef.current.has(verificationKey)) {
+            return;
+        }
+        triggeredVerificationsRef.current.add(verificationKey);
+
+        let isCancelled = false;
 
         const verifyPaymentFromUrl = async () => {
-            const paymentId = searchParams.get('payment_id');
-            const preferenceId = searchParams.get('preference_id');
-            const externalReference = searchParams.get('external_reference');
-
-            if (!paymentId && !preferenceId && !externalReference) {
-                setStatus('error');
-                setMessage('No se encontro informacion del pago en la URL.');
-                return;
-            }
-
             try {
                 setStatus('verifying');
                 setMessage('Verificando tu pago con Mercado Pago...');
@@ -80,6 +100,8 @@ export default function PaymentSuccessPage() {
                     preferenceId: preferenceId || undefined,
                     externalReference: externalReference || undefined
                 });
+
+                if (isCancelled) return;
 
                 const detectedPlanType = getPlanType(result.planId);
                 const detectedRollsCount = getRollsCount(result.planId);
@@ -101,9 +123,10 @@ export default function PaymentSuccessPage() {
                         }
                     }
 
-                    if (user?.uid) {
+                    const currentUser = userRef.current;
+                    if (currentUser?.uid) {
                         setTimeout(async () => {
-                            await checkUserRole(user.uid);
+                            await checkUserRoleRef.current(currentUser.uid);
                         }, 2000);
                     }
 
@@ -121,6 +144,8 @@ export default function PaymentSuccessPage() {
                     setMessage(`Estado del pago: ${result.status}`);
                 }
             } catch (error) {
+                if (isCancelled) return;
+
                 console.error('Error verificando pago:', error);
                 setStatus('error');
                 setMessage(
@@ -132,7 +157,11 @@ export default function PaymentSuccessPage() {
         };
 
         verifyPaymentFromUrl();
-    }, [searchParams, navigate, checkUserRole, user]);
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [searchParamsKey, navigate]);
 
     const getStatusIcon = () => {
         switch (status) {
