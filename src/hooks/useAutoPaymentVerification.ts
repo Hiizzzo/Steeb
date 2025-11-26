@@ -1,23 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { useUserCredits } from './useUserCredits';
 import { useAuth } from './useAuth';
+import {
+  buildDarkWelcomeMessage,
+  dispatchDarkWelcomeMessage,
+  welcomeKeyForUser
+} from '@/utils/steebMessaging';
 
 const PENDING_FLAG = 'steeb-pending-dark-upgrade';
 const SESSION_FLAG = 'steeb-session-dark-upgrade';
-const welcomeKeyForUser = (userId?: string) =>
-  userId ? `steeb-dark-welcome-${userId}` : 'steeb-dark-welcome';
 
 const isDarkTipo = (tipo?: string | null) => {
   if (!tipo) return false;
   const normalized = tipo.toLowerCase();
   return normalized === 'black' || normalized === 'dark';
-};
-
-const buildDarkWelcomeMessage = (clubNumber?: number | null) => {
-  const numberText = clubNumber
-    ? `Sos el usuario BLACK numero ${clubNumber}.`
-    : 'Sos parte del club BLACK.';
-  return `Steeb aca: ${numberText} Bienvenido al club. Ya tenes Dark Mode y no se te quema la vista cada vez que entras. Te deje una tirada para el juego SHINY: escribime "jugar shiny" cuando quieras usarla.`;
 };
 
 /**
@@ -40,7 +36,7 @@ export const useAutoPaymentVerification = () => {
     const welcomeKey = welcomeKeyForUser(user?.id);
     const alreadyWelcomed = localStorage.getItem(welcomeKey);
 
-    const showWelcomeMessage = (message: string) => {
+    const showWelcomeMessage = (clubNumber?: number | null) => {
       if (hasShownRef.current) return;
       hasShownRef.current = true;
       try {
@@ -51,26 +47,8 @@ export const useAutoPaymentVerification = () => {
         // ignore storage issues
       }
 
-      const payload = {
-        type: 'payment-success',
-        content: message,
-        timestamp: new Date()
-      };
-
-      try {
-        const globalWindow = window as unknown as { __steebPendingMessages?: Array<any> };
-        if (!Array.isArray(globalWindow.__steebPendingMessages)) {
-          globalWindow.__steebPendingMessages = [];
-        }
-        globalWindow.__steebPendingMessages.push(payload);
-      } catch {
-        // ignore queue errors
-      }
-
-      const event = new CustomEvent('steeb-message', {
-        detail: payload
-      });
-      window.dispatchEvent(event);
+      const message = buildDarkWelcomeMessage(clubNumber);
+      dispatchDarkWelcomeMessage(clubNumber);
     };
 
     // Si detectamos que el usuario volvio del pago pero todavia no vemos el upgrade, forzar sincronizacion
@@ -87,8 +65,7 @@ export const useAutoPaymentVerification = () => {
     // Mostrar mensaje si tenemos el flag o si nunca lo mostramos y la cuenta ya es BLACK
     if (userCredits.hasDarkVersion && isDarkUser) {
       if (pendingFlag || (!alreadyWelcomed && !hasShownRef.current)) {
-        const message = buildDarkWelcomeMessage(userRoleDetails?.darkClubNumber);
-        showWelcomeMessage(message);
+        showWelcomeMessage(userRoleDetails?.darkClubNumber);
       }
     } else {
       // Resetear refs si salio de premium para permitir futuros mensajes

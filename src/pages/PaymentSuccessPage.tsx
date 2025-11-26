@@ -5,6 +5,10 @@ import { ArrowLeft, CheckCircle2, Loader2, Sparkles, XCircle } from 'lucide-reac
 import { useTheme } from '@/hooks/useTheme';
 import { PaymentRecord, verifyPayment } from '@/services/paymentService';
 import { useUnifiedUserAccess } from '@/hooks/useUnifiedUserAccess';
+import {
+    dispatchDarkWelcomeMessage,
+    welcomeKeyForUser
+} from '@/utils/steebMessaging';
 
 type VerificationStatus = 'verifying' | 'approved' | 'pending' | 'rejected' | 'error';
 type PlanType = 'dark' | 'shiny' | 'shiny-rolls' | 'unknown';
@@ -42,10 +46,12 @@ const buildSuccessMessage = (planType: PlanType, rollsCount: number | null) => {
 
 export default function PaymentSuccessPage() {
     const [searchParams] = useSearchParams();
+    const PENDING_FLAG = 'steeb-pending-dark-upgrade';
+    const SESSION_FLAG = 'steeb-session-dark-upgrade';
     const searchParamsKey = searchParams.toString();
     const navigate = useNavigate();
     const { currentTheme } = useTheme();
-    const { checkUserRole, user } = useUnifiedUserAccess();
+    const { checkUserRole, user, userData } = useUnifiedUserAccess();
 
     const [status, setStatus] = useState<VerificationStatus>('verifying');
     const [message, setMessage] = useState<string>('Verificando tu pago...');
@@ -56,6 +62,7 @@ export default function PaymentSuccessPage() {
     const triggeredVerificationsRef = useRef<Set<string>>(new Set());
     const checkUserRoleRef = useRef(checkUserRole);
     const userRef = useRef(user);
+    const userDataRef = useRef(userData);
 
     useEffect(() => {
         checkUserRoleRef.current = checkUserRole;
@@ -64,6 +71,10 @@ export default function PaymentSuccessPage() {
     useEffect(() => {
         userRef.current = user;
     }, [user]);
+
+    useEffect(() => {
+        userDataRef.current = userData;
+    }, [userData]);
 
     useEffect(() => {
         return () => {
@@ -114,16 +125,33 @@ export default function PaymentSuccessPage() {
                     setStatus('approved');
                     setMessage(buildSuccessMessage(detectedPlanType, detectedRollsCount));
 
+                    const currentUser = userRef.current;
+
                     if (detectedPlanType === 'dark') {
+                        let darkClubNumber: number | null = null;
                         try {
-                            localStorage.setItem('steeb-pending-dark-upgrade', '1');
-                            sessionStorage.setItem('steeb-session-dark-upgrade', '1');
+                            localStorage.removeItem(PENDING_FLAG);
+                            sessionStorage.removeItem(SESSION_FLAG);
+                            const welcomeKey = welcomeKeyForUser(currentUser?.uid);
+                            localStorage.setItem(welcomeKey, new Date().toISOString());
                         } catch {
                             // ignore storage errors
                         }
+
+                        if (currentUser?.uid) {
+                            try {
+                                const refreshedRole = await checkUserRoleRef.current(currentUser.uid);
+                                darkClubNumber = refreshedRole?.userData?.darkClubNumber ?? null;
+                            } catch {
+                                darkClubNumber = userDataRef.current?.darkClubNumber ?? null;
+                            }
+                        } else {
+                            darkClubNumber = userDataRef.current?.darkClubNumber ?? null;
+                        }
+
+                        dispatchDarkWelcomeMessage(darkClubNumber);
                     }
 
-                    const currentUser = userRef.current;
                     if (currentUser?.uid) {
                         setTimeout(async () => {
                             await checkUserRoleRef.current(currentUser.uid);

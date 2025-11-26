@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
 import { useUserRole } from '@/hooks/useUserRole';
+import { flushPendingSteebMessages } from '@/utils/steebMessaging';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
@@ -483,23 +484,15 @@ const SteebChatAI: React.FC = () => {
     window.addEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
     window.addEventListener('steeb-message-with-options', handleSteebMessage as EventListener);
 
+    flushPendingSteebMessages((detail) => {
+      processSteebMessage(detail);
+    });
+
     return () => {
       window.removeEventListener('steeb-message', handleSteebMessage as EventListener);
       window.removeEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
       window.removeEventListener('steeb-message-with-options', handleSteebMessage as EventListener);
     };
-  }, [processSteebMessage]);
-
-  // Procesar mensajes pendientes si se emitieron antes de que el listener estuviera listo
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const globalWindow = window as unknown as { __steebPendingMessages?: Array<any> };
-    const queue = globalWindow.__steebPendingMessages;
-    if (Array.isArray(queue) && queue.length) {
-      const pending = [...queue];
-      queue.length = 0;
-      pending.forEach(processSteebMessage);
-    }
   }, [processSteebMessage]);
 
   // Manejar cambios de altura del panel
