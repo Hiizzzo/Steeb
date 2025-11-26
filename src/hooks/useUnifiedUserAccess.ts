@@ -171,12 +171,17 @@ export const useUnifiedUserAccess = () => {
   }, []);
 
   // Refrescar datos manualmente
+  const checkUserRole = async (userId?: string) => {
+    const targetId = userId || user?.uid;
+    if (!targetId) return null;
+    setIsLoading(true);
+    const result = await loadUserData(targetId);
+    setIsLoading(false);
+    return result;
+  };
+
   const refreshUserData = async () => {
-    if (user?.uid) {
-      setIsLoading(true);
-      await loadUserData(user.uid);
-      setIsLoading(false);
-    }
+    await checkUserRole();
   };
 
   // Determinar acceso a modos
@@ -212,5 +217,6 @@ export const useUnifiedUserAccess = () => {
     // Métodos
     refreshUserData,
     loadUserData,
+    checkUserRole,
   };
 };
