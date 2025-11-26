@@ -721,6 +721,29 @@ const SteebChatAI: React.FC = () => {
     if (isShinyIntent) {
       const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
       
+      // Si ya es Shiny, no dejar jugar y felicitar
+      if (normalizedTipo === 'shiny') {
+         const userMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+            role: 'user',
+            content: message,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, userMessage]);
+
+          setTimeout(() => {
+            const aiMessage: ChatMessage = {
+              id: `msg_${Date.now() + 1}`,
+              role: 'assistant',
+              content: '¡Wowowow amigo! 🌟 ¡Ya sos usuario SHINY! No necesitas jugar más, ya sos parte de la élite.',
+              timestamp: new Date(),
+              category: 'general'
+            };
+            setMessages(prev => [...prev, aiMessage]);
+          }, 500);
+          return;
+      }
+
       if (normalizedTipo === 'white') {
          const userMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
