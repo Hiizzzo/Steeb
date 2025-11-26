@@ -187,6 +187,15 @@ export const mercadoPagoService = {
       // 1. Crear preferencia de pago
       const paymentData = await mercadoPagoService.createPayment(userData, planId, quantity);
 
+      // Guardar flag para mostrar mensaje al volver si se compró DARK/BLACK
+      try {
+        if (typeof window !== 'undefined' && planId.toLowerCase().includes('black')) {
+          localStorage.setItem('steeb-pending-dark-upgrade', '1');
+        }
+      } catch (storageError) {
+        console.warn('⚠️ No se pudo guardar flag de upgrade BLACK:', storageError);
+      }
+
       // 2. Redirigir a Mercado Pago
       mercadoPagoService.redirectToCheckout(paymentData);
 

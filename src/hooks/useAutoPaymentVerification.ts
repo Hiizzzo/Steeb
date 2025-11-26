@@ -1,60 +1,67 @@
 import { useEffect, useRef } from 'react';
 import { useUserCredits } from './useUserCredits';
+import { useAuth } from './useAuth';
+
+const PENDING_FLAG = 'steeb-pending-dark-upgrade';
+const welcomeKeyForUser = (userId?: string) =>
+  userId ? `steeb-dark-welcome-${userId}` : 'steeb-dark-welcome';
 
 /**
- * Hook para verificar automÃ¡ticamente el pago cuando el usuario vuelve a la app
- * Se ejecuta cada vez que la ventana recibe foco
+ * Hook que muestra el mensaje de bienvenida BLACK apenas detectamos que el usuario ya tiene acceso,
+ * incluso si volvió desde otra pestaña/luego de una redirección completa.
  */
 export const useAutoPaymentVerification = () => {
-    const { syncWithBackend, userCredits } = useUserCredits();
-    const lastCheckRef = useRef<number>(0);
-    const COOLDOWN_MS = 10000; // 10 segundos entre verificaciones
+  const { syncWithBackend, userCredits } = useUserCredits();
+  const { user } = useAuth();
+  const hasShownRef = useRef(false);
+  const syncAttemptedRef = useRef(false);
 
-    useEffect(() => {
-        // Si el usuario ya tiene Dark Mode, no verificar mÃ¡s
-        if (userCredits.hasDarkVersion) {
-            return;
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const pendingFlag = localStorage.getItem(PENDING_FLAG);
+    const welcomeKey = welcomeKeyForUser(user?.id);
+    const alreadyWelcomed = localStorage.getItem(welcomeKey);
+
+    const showWelcomeMessage = () => {
+      if (hasShownRef.current) return;
+      hasShownRef.current = true;
+      try {
+        localStorage.removeItem(PENDING_FLAG);
+        localStorage.setItem(welcomeKey, new Date().toISOString());
+      } catch {
+        // ignore storage issues
+      }
+
+      const event = new CustomEvent('steeb-message', {
+        detail: {
+          type: 'payment-success',
+          content:
+            '?? ¡Ahora sos usuario BLACK! Recordá que en el selector de temas (arriba a la derecha) el botón de la derecha activa el modo DARK y el del medio te deja jugar el modo SHINY. De regalo sumé una tirada: escribí "jugar shiny" cuando quieras usarla. ??',
+          timestamp: new Date()
         }
+      });
+      window.dispatchEvent(event);
+    };
 
-        const handleFocus = async () => {
-            const now = Date.now();
+    // Si detectamos que el usuario volvió del pago pero todavía no vemos el upgrade, forzar una sincronización
+    if (pendingFlag && !userCredits.hasDarkVersion) {
+      if (!syncAttemptedRef.current) {
+        syncAttemptedRef.current = true;
+        syncWithBackend();
+      }
+      return;
+    }
 
-            // Cooldown para evitar spam
-            if (now - lastCheckRef.current < COOLDOWN_MS) {
-                return;
-            }
-
-            lastCheckRef.current = now;
-
-            console.log('ðŸ‘ï¸ Usuario volviÃ³ a la app, verificando pago...');
-
-            try {
-                const hasAccess = await syncWithBackend();
-                if (hasAccess) {
-                    console.log('âœ… Pago detectado! Dark Mode desbloqueado');
-                    // Mostrar notificaciÃ³n de Ã©xito
-                    const event = new CustomEvent('steeb-message', {
-                        detail: {
-                            type: 'payment-success',
-                            content: 'ðŸŽ‰ Â¡Ahora sos usuario BLACK! RecordÃ¡ que en el selector de temas (arriba a la derecha) el botÃ³n de la derecha activa el modo DARK y el del medio te deja jugar el modo SHINY. De regalo te sumÃ© una tirada: escribÃ­ "jugar shiny" cuando quieras usarla. ðŸ˜Ž',
-                            timestamp: new Date()
-                        }
-                    });
-                    window.dispatchEvent(event);
-                }
-            } catch (error) {
-                console.error('âŒ Error verificando pago:', error);
-            }
-        };
-
-        // Verificar cuando la ventana recibe foco
-        window.addEventListener('focus', handleFocus);
-
-        // Verificar al montar el componente (por si acaba de volver)
-        handleFocus();
-
-        return () => {
-            window.removeEventListener('focus', handleFocus);
-        };
-    }, [syncWithBackend, userCredits.hasDarkVersion]);
+    // Mostrar mensaje si tenemos el flag o si nunca lo mostramos y la cuenta ya es BLACK
+    if (userCredits.hasDarkVersion) {
+      if (pendingFlag || (!alreadyWelcomed && !hasShownRef.current)) {
+        showWelcomeMessage();
+      }
+    } else {
+      // Resetear refs si salió de premium para permitir futuros mensajes
+      hasShownRef.current = false;
+      syncAttemptedRef.current = false;
+    }
+  }, [syncWithBackend, userCredits.hasDarkVersion, user?.id]);
 };
