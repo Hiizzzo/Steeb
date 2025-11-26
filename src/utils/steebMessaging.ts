@@ -52,9 +52,9 @@ export const welcomeKeyForUser = (userId?: string) =>
 
 export const buildDarkWelcomeMessage = (clubNumber?: number | null) => {
   const numberText = clubNumber
-    ? `Sos el usuario BLACK numero ${clubNumber}.`
-    : 'Sos parte del club BLACK.';
-  return `Steeb aca: ${numberText} Bienvenido al club. Ya tenes Dark Mode y no se te quema la vista cada vez que entras. Te deje una tirada para el juego SHINY: escribime "jugar shiny" cuando quieras usarla.`;
+    ? `Sos el BLACK #${clubNumber}.`
+    : 'Te ganaste el pase BLACK.';
+  return `Steeb aca. ${numberText} Ya tenes el modo oscuro clavado para siempre y te regale una tirada para SHINY. Cuando quieras quemarla escribime: jugar "shiny". Bienvenido y no aflojes.`;
 };
 
 export const dispatchDarkWelcomeMessage = (clubNumber?: number | null) => {
