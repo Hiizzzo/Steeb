@@ -256,33 +256,6 @@ const SteebChatAI: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    if (profileOnboardingStep !== 'idle') return;
-
-    const storedProfile = getLocalUserProfile(user.id);
-    const knownName = (user.name || storedProfile?.name || '').trim();
-    const knownNickname = (user.nickname || storedProfile?.nickname || '').trim();
-
-    if (!knownName) {
-      setProfileOnboardingStep('asking-name');
-      setTimeout(() => {
-        appendAssistantMessage('Me llamo Steeb, ¿cómo es tu nombre?');
-      }, 400);
-      return;
-    }
-
-    onboardingNameRef.current = knownName;
-
-    if (!knownNickname) {
-      setProfileOnboardingStep('asking-nickname');
-      setTimeout(() => {
-        appendAssistantMessage('Ese es tu nombre, buen nombre. Pero a todos nos gustan que nos llamen con nuestro apodo, ¿cómo te gusta que te digan?');
-      }, 400);
-    } else {
-      setProfileOnboardingStep('completed');
-    }
-  }, [user, profileOnboardingStep, appendAssistantMessage]);
 
   // Manejar resumen diario
   useEffect(() => {
@@ -341,6 +314,34 @@ const SteebChatAI: React.FC = () => {
     },
     [scrollToBottom]
   );
+
+  useEffect(() => {
+    if (!user) return;
+    if (profileOnboardingStep !== 'idle') return;
+
+    const storedProfile = getLocalUserProfile(user.id);
+    const knownName = (user.name || storedProfile?.name || '').trim();
+    const knownNickname = (user.nickname || storedProfile?.nickname || '').trim();
+
+    if (!knownName) {
+      setProfileOnboardingStep('asking-name');
+      setTimeout(() => {
+        appendAssistantMessage('Me llamo Steeb, ¿cómo es tu nombre?');
+      }, 400);
+      return;
+    }
+
+    onboardingNameRef.current = knownName;
+
+    if (!knownNickname) {
+      setProfileOnboardingStep('asking-nickname');
+      setTimeout(() => {
+        appendAssistantMessage('Ese es tu nombre, buen nombre. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?');
+      }, 400);
+    } else {
+      setProfileOnboardingStep('completed');
+    }
+  }, [user, profileOnboardingStep, appendAssistantMessage]);
 
   const processSteebMessage = useCallback(
     (detail: any) => {
