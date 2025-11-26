@@ -101,6 +101,7 @@ export interface UserRoleResponse {
   shinyRolls?: number;
   tipoUsuario?: string;
   darkClubNumber?: number | null;
+  darkClubNickname?: string | null;
   darkModeUnlockedAt?: string | null;
   darkModeEnabled?: boolean;
   darkWelcomeMessageVersion?: number | null;
@@ -131,6 +132,7 @@ export const getUserRole = async (userId: string): Promise<UserRoleResponse> => 
     shinyRolls: data.data?.shinyRolls || 0,
     tipoUsuario,
     darkClubNumber: data.data?.darkClubNumber ?? null,
+    darkClubNickname: data.data?.darkClubNickname ?? null,
     darkModeUnlockedAt: data.data?.darkModeUnlockedAt ?? null,
     darkModeEnabled: data.data?.darkModeEnabled ?? false,
     darkWelcomeMessageVersion: data.data?.darkWelcomeMessageVersion ?? null

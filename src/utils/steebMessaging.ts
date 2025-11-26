@@ -50,17 +50,18 @@ export const flushPendingSteebMessages = (
 export const welcomeKeyForUser = (userId?: string) =>
   userId ? `steeb-dark-welcome-${userId}` : 'steeb-dark-welcome';
 
-export const buildDarkWelcomeMessage = (clubNumber?: number | null) => {
+export const buildDarkWelcomeMessage = (clubNumber?: number | null, nickname?: string | null) => {
+  const safeNick = nickname?.trim().length ? nickname.trim() : 'Che';
   const numberText = clubNumber
-    ? `Sos el BLACK #${clubNumber}.`
-    : 'Te ganaste el pase BLACK.';
-  return `Steeb aca. ${numberText} Ya tenes el modo oscuro clavado para siempre y te regale una tirada para SHINY. Cuando quieras quemarla escribime: jugar "shiny". Bienvenido y no aflojes.`;
+    ? `sos el usuario BLACK #${clubNumber}`
+    : 'ya sos usuario BLACK';
+  return `${safeNick}, ${numberText}. Bienvenido al club: el botón de Dark Mode está arriba a la derecha para que no te quemes los ojos. Además te regalo una tirada SHINY; cuando quieras usarla escribime jugar "shiny".`;
 };
 
-export const dispatchDarkWelcomeMessage = (clubNumber?: number | null) => {
+export const dispatchDarkWelcomeMessage = (clubNumber?: number | null, nickname?: string | null) => {
   dispatchSteebMessage({
     type: 'payment-success',
-    content: buildDarkWelcomeMessage(clubNumber),
+    content: buildDarkWelcomeMessage(clubNumber, nickname),
     timestamp: new Date()
   });
 };

@@ -36,7 +36,7 @@ export const useAutoPaymentVerification = () => {
     const welcomeKey = welcomeKeyForUser(user?.id);
     const alreadyWelcomed = localStorage.getItem(welcomeKey);
 
-    const showWelcomeMessage = (clubNumber?: number | null) => {
+    const showWelcomeMessage = (clubNumber?: number | null, nickname?: string | null) => {
       if (hasShownRef.current) return;
       hasShownRef.current = true;
       try {
@@ -47,8 +47,8 @@ export const useAutoPaymentVerification = () => {
         // ignore storage issues
       }
 
-      const message = buildDarkWelcomeMessage(clubNumber);
-      dispatchDarkWelcomeMessage(clubNumber);
+      const message = buildDarkWelcomeMessage(clubNumber, nickname);
+      dispatchDarkWelcomeMessage(clubNumber, nickname);
     };
 
     // Si detectamos que el usuario volvio del pago pero todavia no vemos el upgrade, forzar sincronizacion
@@ -65,7 +65,10 @@ export const useAutoPaymentVerification = () => {
     // Mostrar mensaje si tenemos el flag o si nunca lo mostramos y la cuenta ya es BLACK
     if (userCredits.hasDarkVersion && isDarkUser) {
       if (pendingFlag || (!alreadyWelcomed && !hasShownRef.current)) {
-        showWelcomeMessage(userRoleDetails?.darkClubNumber);
+        showWelcomeMessage(
+          userRoleDetails?.darkClubNumber,
+          userRoleDetails?.darkClubNickname || user?.nickname || null
+        );
       }
     } else {
       // Resetear refs si salio de premium para permitir futuros mensajes

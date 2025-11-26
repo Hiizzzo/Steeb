@@ -138,18 +138,27 @@ export default function PaymentSuccessPage() {
                             // ignore storage errors
                         }
 
+                        let darkNickname =
+                            userDataRef.current?.nickname ||
+                            currentUser?.displayName ||
+                            currentUser?.email ||
+                            null;
+
                         if (currentUser?.uid) {
                             try {
                                 const refreshedRole = await checkUserRoleRef.current(currentUser.uid);
-                                darkClubNumber = refreshedRole?.userData?.darkClubNumber ?? null;
+                                darkClubNumber = refreshedRole?.userData?.darkClubNumber ?? darkClubNumber;
+                                darkNickname =
+                                    refreshedRole?.userData?.nickname ||
+                                    darkNickname;
                             } catch {
-                                darkClubNumber = userDataRef.current?.darkClubNumber ?? null;
+                                darkClubNumber = userDataRef.current?.darkClubNumber ?? darkClubNumber;
                             }
                         } else {
-                            darkClubNumber = userDataRef.current?.darkClubNumber ?? null;
+                            darkClubNumber = userDataRef.current?.darkClubNumber ?? darkClubNumber;
                         }
 
-                        dispatchDarkWelcomeMessage(darkClubNumber);
+                        dispatchDarkWelcomeMessage(darkClubNumber, darkNickname);
                     }
 
                     if (currentUser?.uid) {
