@@ -139,6 +139,7 @@ export default function PaymentSuccessPage() {
                         }
 
                         let darkNickname =
+                            userDataRef.current?.apodo ||
                             userDataRef.current?.nickname ||
                             currentUser?.displayName ||
                             currentUser?.email ||
@@ -149,6 +150,7 @@ export default function PaymentSuccessPage() {
                                 const refreshedRole = await checkUserRoleRef.current(currentUser.uid);
                                 darkClubNumber = refreshedRole?.userData?.darkClubNumber ?? darkClubNumber;
                                 darkNickname =
+                                    refreshedRole?.userData?.apodo ||
                                     refreshedRole?.userData?.nickname ||
                                     darkNickname;
                             } catch {

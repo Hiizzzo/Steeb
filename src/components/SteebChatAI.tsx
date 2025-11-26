@@ -654,8 +654,7 @@ const SteebChatAI: React.FC = () => {
                const shinyNickname =
                  user?.nickname ||
                  user?.displayName ||
-                 user?.email ||
-                 'Pibe';
+                 'Campeón';
                appendAssistantMessage(
                  `¡¡¡¡WOOWOWOWOOOWWWOWOWOOW SHINY!!!! Sos el ${formatOrdinalEs(result.shinyStats.position)} usuario en desbloquear el modo SHINY. Qué suerte la tuya, ${shinyNickname}.`
                );

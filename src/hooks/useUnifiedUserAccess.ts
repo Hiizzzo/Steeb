@@ -9,6 +9,10 @@ interface UserData {
   categoria: string;
   email?: string;
   displayName?: string;
+  nombre?: string;
+  apodo?: string;
+  name?: string;
+  nickname?: string;
 }
 
 interface UserRole {

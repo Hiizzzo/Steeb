@@ -71,8 +71,8 @@ const mapFirebaseUserToUser = async (fbUser: FirebaseUser): Promise<User> => {
   return {
     id: fbUser.uid,
     email: fbUser.email || '',
-    name: data.name || '',
-    nickname: data.nickname || '',
+    name: data.name || data.nombre || '',
+    nickname: data.nickname || data.apodo || '',
     avatar: fbUser.photoURL || data.avatar,
     provider: (fbUser.providerData?.some(p => (p?.providerId || '').includes('google')) ? 'google' : 'manual'),
     createdAt: (data.createdAt?.toDate?.() || new Date()).toISOString(),
@@ -323,7 +323,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(ref, {
         email,
         name,
+        nombre: name,
         nickname,
+        apodo: nickname,
         avatar: cred.user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
         provider: 'manual',
         ownerUid: uid,
@@ -358,7 +360,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const ref = doc(db, 'users', uid);
         // No permitir modificar ownerUid en actualizaciones
-        await updateDoc(ref, { name, nickname, updatedAt: serverTimestamp() });
+        await updateDoc(ref, {
+          name,
+          nombre: name,
+          nickname,
+          apodo: nickname,
+          updatedAt: serverTimestamp()
+        });
       } catch (e) {
         // Si falla, mantén el estado local; se puede reintentar luego
         console.warn('No se pudo guardar el perfil en Firestore ahora mismo.', e);
