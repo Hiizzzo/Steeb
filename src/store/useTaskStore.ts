@@ -348,74 +348,64 @@ export const useTaskStore = create<TaskStore>()(
             throw new Error('Tarea no encontrada');
           }
 
-          ('📝 Actualizando tarea:', id, 'Updates:', Object.keys(updates));
+          // 1. ACTUALIZACIÓN OPTIMISTA LOCAL INMEDIATA
+          const updatedTask = {
+            ...previousTask,
+            ...updates,
+            updatedAt: new Date().toISOString()
+          };
 
-          // Validar que haya cambios reales
-          const hasRealChanges = Object.keys(updates).some(key => {
-            const prevValue = previousTask[key as keyof Task];
-            const newValue = updates[key as keyof Task];
-            return prevValue !== newValue;
-          });
+          set(state => ({
+            tasks: state.tasks.map(task => task.id === id ? updatedTask : task),
+            error: null
+          }));
 
-          if (!hasRealChanges) {
-            ('ℹ️ No hay cambios reales para actualizar');
-            return;
-          }
+          get().calculateStats();
 
-          try {
-            // 1. ACTUALIZACIÓN OPTIMISTA LOCAL INMEDIATA
-            const updatedTask = {
-              ...previousTask,
-              ...updates,
-              updatedAt: new Date().toISOString()
-            };
-
-            set(state => ({
-              tasks: state.tasks.map(task => task.id === id ? updatedTask : task),
-              error: null
-            }));
-
-            get().calculateStats();
-            ('✅ Estado local actualizado optimistamente');
-
-            // Sincronización con Firestore si hay usuario
-            const userId = auth.currentUser?.uid;
-            if (userId) {
-              if (!navigator.onLine) {
-                console.warn('Modo offline: toggle en cola local');
-                set(state => ({
-                  syncStatus: {
-                    ...state.syncStatus,
-                    pendingChanges: (state.syncStatus?.pendingChanges ?? 0) + 1
-                  }
-                }));
-              } else {
-                try {
-                  await FirestoreTaskService.updateTask(id, {
-                    completed: willComplete,
-                    status: willComplete ? 'completed' : 'pending',
-                    completedDate: willComplete ? new Date().toISOString() : undefined,
-                  });
-                  ('🔄 Sincronización exitosa con Firestore');
-                } catch (firestoreError) {
-                  console.warn('⚠️ Error de sincronización (cambio local mantenido):', firestoreError.message);
-                  // El cambio local se mantiene aunque falle Firestore
+          // Sincronización con Firestore si hay usuario
+          const userId = auth.currentUser?.uid;
+          if (userId) {
+            if (!navigator.onLine) {
+              set(state => ({
+                syncStatus: {
+                  ...state.syncStatus,
+                  pendingChanges: (state.syncStatus?.pendingChanges ?? 0) + 1
                 }
-              }
+              }));
             } else {
-              ('💡 Modo offline - Cambio guardado localmente');
+              try {
+                await FirestoreTaskService.updateTask(id, updates);
+              } catch (firestoreError) {
+                console.warn('⚠️ Error de sincronización:', firestoreError);
+              }
             }
+          }
+        },
 
-          } catch (error) {
-            // Revertir estado local si algo falla gravemente
-            console.error('❌ Error crítico en toggleTask - Revirtiendo estado:', error);
-            set(state => ({
-              tasks: state.tasks.map(t =>
-                t.id === id ? previousState : t
-              )
-            }));
-            get().calculateStats();
-            throw error; // Re-lanzar para que el componente maneje el error
+        deleteTask: async (id) => {
+          const previousTasks = get().tasks;
+          
+          // 1. ACTUALIZACIÓN OPTIMISTA LOCAL
+          set(state => ({
+            tasks: state.tasks.filter(task => task.id !== id),
+            error: null
+          }));
+          
+          get().calculateStats();
+          
+          // 2. SINCRONIZACIÓN CON FIREBASE
+          const userId = auth.currentUser?.uid;
+          if (userId) {
+            try {
+              await FirestoreTaskService.deleteTask(id);
+              ('✅ Tarea eliminada de Firestore');
+            } catch (error) {
+              console.error('❌ Error eliminando tarea de Firestore:', error);
+              // Revertir si es crítico, o dejar en cola si es offline
+              if (navigator.onLine) {
+                set({ tasks: previousTasks, error: 'Error al eliminar la tarea' });
+              }
+            }
           }
         },
 
