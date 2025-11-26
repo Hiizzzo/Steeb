@@ -659,9 +659,12 @@ const SteebChatAI: React.FC = () => {
              
              // Solo recargar si acaba de ganar (won=true), no si ya lo tenía (alreadyWon=true)
              if (result.won) {
-               setTimeout(() => {
-                 window.location.reload();
-               }, 3000);
+               // Refresh user role/tier in background without recargar toda la app
+               try {
+                 window.dispatchEvent(new CustomEvent('steeb-refresh-role'));
+               } catch {
+                 // ignore
+               }
              }
           } else {
              // Si perdiÃ³, preguntar si quiere jugar de nuevo si tiene tiradas
