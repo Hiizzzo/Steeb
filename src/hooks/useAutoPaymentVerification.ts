@@ -51,12 +51,24 @@ export const useAutoPaymentVerification = () => {
         // ignore storage issues
       }
 
-      const event = new CustomEvent('steeb-message', {
-        detail: {
-          type: 'payment-success',
-          content: message,
-          timestamp: new Date()
+      const payload = {
+        type: 'payment-success',
+        content: message,
+        timestamp: new Date()
+      };
+
+      try {
+        const globalWindow = window as unknown as { __steebPendingMessages?: Array<any> };
+        if (!Array.isArray(globalWindow.__steebPendingMessages)) {
+          globalWindow.__steebPendingMessages = [];
         }
+        globalWindow.__steebPendingMessages.push(payload);
+      } catch {
+        // ignore queue errors
+      }
+
+      const event = new CustomEvent('steeb-message', {
+        detail: payload
       });
       window.dispatchEvent(event);
     };

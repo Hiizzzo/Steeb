@@ -305,6 +305,33 @@ const SteebChatAI: React.FC = () => {
     [scrollToBottom]
   );
 
+  const processSteebMessage = useCallback(
+    (detail: any) => {
+      if (!detail) return;
+      const { type, content, timestamp, showMercadoPagoButton, paymentOptions } = detail || {};
+      const isThemeMessage =
+        type === 'theme-info' || type === 'theme-info-with-button' || type === 'theme-info-with-options';
+
+      if (isThemeMessage) {
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: content,
+          timestamp: timestamp || new Date(),
+          category: 'general',
+          showMercadoPagoButton: showMercadoPagoButton || false,
+          paymentOptions: paymentOptions || undefined
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+        scrollToBottom();
+      } else if (typeof content === 'string' && content.trim().length) {
+        appendAssistantMessage(content);
+      }
+    },
+    [appendAssistantMessage, scrollToBottom]
+  );
+
   const handleSteebActions = useCallback(
     async (actions: SteebAction[] = []) => {
       if (!actions.length) return;
@@ -447,28 +474,9 @@ const SteebChatAI: React.FC = () => {
 
   // Escuchar mensajes del ThemeToggle y otros eventos globales
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handleSteebMessage = (event: CustomEvent) => {
-      const { type, content, timestamp, showMercadoPagoButton, paymentOptions } = event.detail || {};
-      const isThemeMessage =
-        type === 'theme-info' || type === 'theme-info-with-button' || type === 'theme-info-with-options';
-
-      if (isThemeMessage) {
-        const aiMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'assistant',
-          content: content,
-          timestamp: timestamp || new Date(),
-          category: 'general',
-          showMercadoPagoButton: showMercadoPagoButton || false,
-          paymentOptions: paymentOptions || undefined
-        };
-
-        setMessages(prev => [...prev, aiMessage]);
-        scrollToBottom();
-      } else if (typeof content === 'string' && content.trim().length) {
-        appendAssistantMessage(content);
-      }
-
+      processSteebMessage(event.detail);
     };
 
     window.addEventListener('steeb-message', handleSteebMessage as EventListener);
@@ -480,7 +488,19 @@ const SteebChatAI: React.FC = () => {
       window.removeEventListener('steeb-message-with-button', handleSteebMessage as EventListener);
       window.removeEventListener('steeb-message-with-options', handleSteebMessage as EventListener);
     };
-  }, [appendAssistantMessage, scrollToBottom]);
+  }, [processSteebMessage]);
+
+  // Procesar mensajes pendientes si se emitieron antes de que el listener estuviera listo
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const globalWindow = window as unknown as { __steebPendingMessages?: Array<any> };
+    const queue = globalWindow.__steebPendingMessages;
+    if (Array.isArray(queue) && queue.length) {
+      const pending = [...queue];
+      queue.length = 0;
+      pending.forEach(processSteebMessage);
+    }
+  }, [processSteebMessage]);
 
   // Manejar cambios de altura del panel
   const handlePanelHeightChange = (height: number) => {
