@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Loader2, Sparkles, XCircle } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
@@ -52,7 +52,14 @@ export default function PaymentSuccessPage() {
     const [planType, setPlanType] = useState<PlanType>('unknown');
     const [rollsCount, setRollsCount] = useState<number | null>(null);
 
+    const hasRunVerification = useRef(false);
+
     useEffect(() => {
+        if (hasRunVerification.current) {
+            return;
+        }
+        hasRunVerification.current = true;
+
         const verifyPaymentFromUrl = async () => {
             const paymentId = searchParams.get('payment_id');
             const preferenceId = searchParams.get('preference_id');
