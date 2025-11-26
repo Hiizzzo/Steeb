@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
-const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://v0-steeb-api-backend-production.up.railway.app/api';
+const API_ENDPOINT = `${BASE_URL}/steeb`;
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 const ACTION_TYPES: SteebActionType[] = [

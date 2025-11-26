@@ -1,7 +1,9 @@
-﻿const API_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb';
-const SHINY_GAME_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/shiny-game';
-const SHINY_STATUS_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/users/shiny-status';
-const SHINY_STATS_ENDPOINT = 'https://v0-steeb-api-backend-production.up.railway.app/api/shiny-stats';
+﻿const BASE_URL = import.meta.env.VITE_API_URL || 'https://v0-steeb-api-backend-production.up.railway.app/api';
+
+const API_ENDPOINT = `${BASE_URL}/steeb`;
+const SHINY_GAME_ENDPOINT = `${BASE_URL}/shiny-game`;
+const SHINY_STATUS_ENDPOINT = `${BASE_URL}/users/shiny-status`;
+const SHINY_STATS_ENDPOINT = `${BASE_URL}/shiny-stats`;
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 const ACTION_TYPES: SteebActionType[] = [

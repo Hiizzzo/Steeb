@@ -85,7 +85,7 @@ export const mercadoPagoService = {
       // Si el apiClient falla, intentar con fetch directo
       try {
         console.log('🔄 Intentando con fetch directo...');
-        const apiBaseUrl = 'https://v0-steeb-api-backend-production.up.railway.app/api';
+        const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://v0-steeb-api-backend-production.up.railway.app/api';
 
         const auth = getAuth();
         const currentUid = auth.currentUser?.uid;
