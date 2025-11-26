@@ -1,14 +1,15 @@
-import { useEffect, useRef } from 'react';
+ï»¿import { useEffect, useRef } from 'react';
 import { useUserCredits } from './useUserCredits';
 import { useAuth } from './useAuth';
 
 const PENDING_FLAG = 'steeb-pending-dark-upgrade';
+const SESSION_FLAG = 'steeb-session-dark-upgrade';
 const welcomeKeyForUser = (userId?: string) =>
-  userId ? `steeb-dark-welcome-${userId}` : 'steeb-dark-welcome';
+  userId ? steeb-dark-welcome- : 'steeb-dark-welcome';
 
 /**
  * Hook que muestra el mensaje de bienvenida BLACK apenas detectamos que el usuario ya tiene acceso,
- * incluso si volvió desde otra pestaña/luego de una redirección completa.
+ * incluso si volviÃ³ desde otra pestaÃ±a/luego de una redirecciÃ³n completa.
  */
 export const useAutoPaymentVerification = () => {
   const { syncWithBackend, userCredits } = useUserCredits();
@@ -19,7 +20,10 @@ export const useAutoPaymentVerification = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const pendingFlag = localStorage.getItem(PENDING_FLAG);
+    const pendingLocal = localStorage.getItem(PENDING_FLAG);
+    const pendingSession = sessionStorage.getItem(SESSION_FLAG);
+    const pendingFlag = pendingLocal || pendingSession;
+
     const welcomeKey = welcomeKeyForUser(user?.id);
     const alreadyWelcomed = localStorage.getItem(welcomeKey);
 
@@ -28,6 +32,7 @@ export const useAutoPaymentVerification = () => {
       hasShownRef.current = true;
       try {
         localStorage.removeItem(PENDING_FLAG);
+        sessionStorage.removeItem(SESSION_FLAG);
         localStorage.setItem(welcomeKey, new Date().toISOString());
       } catch {
         // ignore storage issues
@@ -37,14 +42,14 @@ export const useAutoPaymentVerification = () => {
         detail: {
           type: 'payment-success',
           content:
-            '?? ¡Ahora sos usuario BLACK! Recordá que en el selector de temas (arriba a la derecha) el botón de la derecha activa el modo DARK y el del medio te deja jugar el modo SHINY. De regalo sumé una tirada: escribí "jugar shiny" cuando quieras usarla. ??',
+            'ğŸ‰ Â¡Ahora sos usuario BLACK! RecordÃ¡ que en el selector de temas (arriba a la derecha) el botÃ³n de la derecha activa el modo DARK y el del medio te deja jugar el modo SHINY. De regalo sumÃ© una tirada: escribÃ­ "jugar shiny" cuando quieras usarla. ğŸ˜',
           timestamp: new Date()
         }
       });
       window.dispatchEvent(event);
     };
 
-    // Si detectamos que el usuario volvió del pago pero todavía no vemos el upgrade, forzar una sincronización
+    // Si detectamos que el usuario volviÃ³ del pago pero todavÃ­a no vemos el upgrade, forzar una sincronizaciÃ³n
     if (pendingFlag && !userCredits.hasDarkVersion) {
       if (!syncAttemptedRef.current) {
         syncAttemptedRef.current = true;
@@ -59,7 +64,7 @@ export const useAutoPaymentVerification = () => {
         showWelcomeMessage();
       }
     } else {
-      // Resetear refs si salió de premium para permitir futuros mensajes
+      // Resetear refs si saliÃ³ de premium para permitir futuros mensajes
       hasShownRef.current = false;
       syncAttemptedRef.current = false;
     }

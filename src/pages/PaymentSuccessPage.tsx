@@ -85,6 +85,15 @@ export default function PaymentSuccessPage() {
                     setStatus('approved');
                     setMessage(buildSuccessMessage(detectedPlanType, detectedRollsCount));
 
+                    if (detectedPlanType === 'dark') {
+                        try {
+                            localStorage.setItem('steeb-pending-dark-upgrade', '1');
+                            sessionStorage.setItem('steeb-session-dark-upgrade', '1');
+                        } catch {
+                            // ignore storage errors
+                        }
+                    }
+
                     if (user?.uid) {
                         setTimeout(async () => {
                             await checkUserRole(user.uid);
