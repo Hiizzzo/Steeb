@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
 import { useUserRole } from '@/hooks/useUserRole';
+import { getLocalUserProfile, saveLocalUserProfile } from '@/utils/localUserProfile';
 import { flushPendingSteebMessages } from '@/utils/steebMessaging';
 import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
@@ -57,11 +58,13 @@ const SteebChatAI: React.FC = () => {
   const isShinyMode = currentTheme === 'shiny';
   const shinyMessageColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { tipoUsuario } = useFirebaseRoleCheck();
   const { userProfile } = useUserRole();
   
   // Estado para el juego Shiny
+  const [profileOnboardingStep, setProfileOnboardingStep] = useState<'idle' | 'asking-name' | 'asking-nickname' | 'completed'>('idle');
+  const onboardingNameRef = useRef<string>('');
   const [shinyGameState, setShinyGameState] = useState<'idle' | 'confirming' | 'playing'>('idle');
   const [shinyRolls, setShinyRolls] = useState<number | null>(null);
   const getBestRollsCount = useCallback((...values: Array<number | null | undefined>) => {
@@ -219,6 +222,11 @@ const SteebChatAI: React.FC = () => {
 
   // Inyectar keyframes para el gradiente animado (una sola vez)
   useEffect(() => {
+    onboardingNameRef.current = user?.name || '';
+    setProfileOnboardingStep('idle');
+  }, [user?.id]);
+
+  useEffect(() => {
     const styleId = 'shiny-shift-keyframes';
     if (!document.getElementById(styleId)) {
       const style = document.createElement('style');
@@ -247,6 +255,34 @@ const SteebChatAI: React.FC = () => {
       document.head.appendChild(style);
     }
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    if (profileOnboardingStep !== 'idle') return;
+
+    const storedProfile = getLocalUserProfile(user.id);
+    const knownName = (user.name || storedProfile?.name || '').trim();
+    const knownNickname = (user.nickname || storedProfile?.nickname || '').trim();
+
+    if (!knownName) {
+      setProfileOnboardingStep('asking-name');
+      setTimeout(() => {
+        appendAssistantMessage('Me llamo Steeb, ¿cómo es tu nombre?');
+      }, 400);
+      return;
+    }
+
+    onboardingNameRef.current = knownName;
+
+    if (!knownNickname) {
+      setProfileOnboardingStep('asking-nickname');
+      setTimeout(() => {
+        appendAssistantMessage('Ese es tu nombre, buen nombre. Pero a todos nos gustan que nos llamen con nuestro apodo, ¿cómo te gusta que te digan?');
+      }, 400);
+    } else {
+      setProfileOnboardingStep('completed');
+    }
+  }, [user, profileOnboardingStep, appendAssistantMessage]);
 
   // Manejar resumen diario
   useEffect(() => {
@@ -554,6 +590,73 @@ const SteebChatAI: React.FC = () => {
     const message = inputMessage.trim();
     setInputMessage('');
 
+    const handleUserMessageAppend = () => {
+      const userMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'user',
+        content: message,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
+    };
+
+    const storedProfile = user?.id ? getLocalUserProfile(user.id) : null;
+
+    if (profileOnboardingStep === 'asking-name') {
+      handleUserMessageAppend();
+      const cleanName = message.trim();
+      if (!cleanName) {
+        setTimeout(() => {
+          appendAssistantMessage('Necesito tu nombre para registrarte. ¿Cómo te llamás?');
+        }, 400);
+      } else {
+        onboardingNameRef.current = cleanName;
+        if (user?.id) {
+          saveLocalUserProfile(user.id, { name: cleanName });
+          try {
+            const fallbackNickname = user.nickname || storedProfile?.nickname || '';
+            await updateProfile(cleanName, fallbackNickname);
+          } catch (error) {
+            console.error('Error guardando nombre del usuario:', error);
+          }
+        }
+        setProfileOnboardingStep('asking-nickname');
+        setTimeout(() => {
+          appendAssistantMessage('Ese es tu nombre, buen nombre. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?');
+        }, 500);
+      }
+      return;
+    }
+
+    if (profileOnboardingStep === 'asking-nickname') {
+      handleUserMessageAppend();
+      const cleanNickname = message.trim();
+      if (!cleanNickname) {
+        setTimeout(() => {
+          appendAssistantMessage('Necesito tu apodo para llamarte como corresponde. ¿Cómo te dicen?');
+        }, 400);
+      } else {
+        if (user?.id) {
+          saveLocalUserProfile(user.id, { nickname: cleanNickname });
+          try {
+            const currentName =
+              onboardingNameRef.current ||
+              user.name ||
+              storedProfile?.name ||
+              cleanNickname;
+            await updateProfile(currentName, cleanNickname);
+          } catch (error) {
+            console.error('Error guardando apodo del usuario:', error);
+          }
+        }
+        setProfileOnboardingStep('completed');
+        setTimeout(() => {
+          appendAssistantMessage(`Perfecto ${cleanNickname}, lo anoto. Desde ahora te voy a decir así.`);
+        }, 500);
+      }
+      return;
+    }
+
     // --- LÃ“GICA DEL JUEGO SHINY ---
     if (shinyGameState === 'confirming') {
       const lowerMsg = message.toLowerCase();
@@ -655,8 +758,9 @@ const SteebChatAI: React.FC = () => {
                  user?.nickname ||
                  user?.displayName ||
                  'Campeón';
+               const ordinalUpper = formatOrdinalEs(result.shinyStats.position).toUpperCase();
                appendAssistantMessage(
-                 `¡¡¡¡WOOWOWOWOOOWWWOWOWOOW SHINY!!!! Sos el ${formatOrdinalEs(result.shinyStats.position)} usuario en desbloquear el modo SHINY. Qué suerte la tuya, ${shinyNickname}.`
+                 `¡¡WOWOWOWO SHINY!! Sos el ${ordinalUpper} usuario en desbloquear el modo SHINY. Que suerte la tuya ${shinyNickname}.`
                );
              }
              setShinyGameState('idle');
