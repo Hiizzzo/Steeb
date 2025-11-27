@@ -256,53 +256,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        // Para Android, intentar popup como fallback (funciona mejor que redirect en Capacitor)
-        ('🤖 Android: Usando signInWithPopup como fallback');
-        const res = await signInWithPopup(auth, googleProvider);
-        // Ensure user doc exists
-        const uid = res.user.uid;
-        const ref = doc(db, 'users', uid);
-        const snap = await getDoc(ref);
-        if (!snap.exists()) {
-          await setDoc(ref, {
-            email: res.user.email,
-            name: '',
-            nickname: '',
-            avatar: res.user.photoURL,
-            provider: 'google',
-            ownerUid: uid,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          });
-        }
-        return;
+        // En Android, si el plugin no está disponible, forzar error para evitar abrir el navegador
+        throw new Error('Google Sign-In nativo no está disponible en esta instalación. Reinstalá la app o usá Email/Contraseña.');
       } catch (error) {
         console.error('❌ Error en autenticación nativa:', error);
 
-        // Fallback general a popup (funciona en iOS y Android webview mejor que redirect)
-        try {
-          const res = await signInWithPopup(auth, googleProvider);
-          // Ensure user doc exists
-          const uid = res.user.uid;
-          const ref = doc(db, 'users', uid);
-          const snap = await getDoc(ref);
-          if (!snap.exists()) {
-            await setDoc(ref, {
-              email: res.user.email,
-              name: '',
-              nickname: '',
-              avatar: res.user.photoURL,
-              provider: 'google',
-              ownerUid: uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp(),
-            });
-          }
-          return;
-        } catch (popupError) {
-          console.error('❌ Error en fallback popup:', popupError);
-          throw new Error('No se pudo autenticar con Google. Por favor, usa Email/Contraseña.');
-        }
+        throw new Error('No se pudo usar el inicio de sesión nativo de Google. Actualizá STEEB o inicia con Email/Contraseña.');
       }
     }
 
