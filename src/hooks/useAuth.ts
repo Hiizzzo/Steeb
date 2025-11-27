@@ -221,15 +221,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Intentar usar el plugin nativo si está registrado en Capacitor
         const Google: any = (globalThis as any)?.Capacitor?.Plugins?.GoogleAuth || (globalThis as any)?.Capacitor?.Plugins?.Google;
         if (Google?.signIn) {
+          console.log('[GoogleAuth] Plugin disponible, iniciando signIn...');
           // Inicialización opcional (no falla si no es necesaria)
           try {
             await Google.initialize();
           } catch { }
           const gRes = await Google.signIn();
+          console.log('[GoogleAuth] Respuesta signIn:', JSON.stringify(gRes));
           const idToken = gRes?.authentication?.idToken || gRes?.idToken;
-          if (!idToken) throw new Error('No se obtuvo idToken de Google');
+          if (!idToken) {
+            console.error('[GoogleAuth] No se obtuvo idToken:', gRes);
+            throw new Error('No se obtuvo idToken de Google');
+          }
           const credential = GoogleAuthProvider.credential(idToken);
           const resCred = await signInWithCredential(auth, credential);
+          console.log('[GoogleAuth] signInWithCredential completado');
           // Ensure user doc exists
           const uid = resCred.user.uid;
           const ref = doc(db, 'users', uid);
