@@ -760,10 +760,10 @@ const SteebChatAI: React.FC = () => {
           }
 
           if (unlockedShiny) {
-             const shinyNickname =
-               user?.nickname ||
-               user?.displayName ||
-               'Campeón';
+            const shinyNickname =
+              user?.nickname ||
+              user?.name ||
+              'Campeón';
              const ordinalUpper = result.shinyStats
                ? formatOrdinalEs(result.shinyStats.position).toUpperCase()
                : null;
