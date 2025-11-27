@@ -105,6 +105,10 @@ if (!import.meta.env.PROD) {
 initializeBrowserUITheme();
 observeThemeChanges();
 
+// Test log for debugging (using error to ensure visibility)
+console.error('[DEBUG] App starting... Logs are working!');
+console.error('[DEBUG] Capacitor Platform:', (globalThis as any)?.Capacitor?.getPlatform());
+console.error('[DEBUG] GoogleAuth Plugin:', (globalThis as any)?.Capacitor?.Plugins?.GoogleAuth ? 'Available' : 'Not Available');
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

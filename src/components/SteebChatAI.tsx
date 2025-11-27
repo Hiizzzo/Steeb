@@ -1108,13 +1108,13 @@ const SteebChatAI: React.FC = () => {
       const confirmationMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
-        content: 'Â¡Excelente decisiÃ³n! Estoy abriendo el proceso de compra para el Dark Mode por $3000 ARS. Te darÃ¡ acceso inmediato + 1 intento gratis para Shiny. ðŸŒ™',
+        content: '¡Excelente decisión! Estoy abriendo el proceso de compra para el Dark Mode por $3000 ARS. Te dará acceso inmediato + 1 intento gratis para Shiny. 🌙',
         timestamp: new Date(),
         category: 'general'
       };
       setMessages(prev => [...prev, confirmationMessage]);
 
-      // Enviar segundo mensaje con botÃ³n de Mercado Pago
+      // Enviar segundo mensaje con botón de Mercado Pago
       setTimeout(() => {
         const mercadoPagoMessage: ChatMessage = {
           id: `msg_${Date.now() + 1}`,
@@ -1124,7 +1124,7 @@ const SteebChatAI: React.FC = () => {
 ### 1 intento gratis del modo SHINY`,
           timestamp: new Date(),
           category: 'general',
-          showMercadoPagoButton: true // Nueva propiedad para mostrar el botÃ³n
+          showMercadoPagoButton: true // Nueva propiedad para mostrar el botón
         };
         setMessages(prev => [...prev, mercadoPagoMessage]);
 

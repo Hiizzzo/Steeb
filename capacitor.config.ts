@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.santyy.steeb',
-  appName: 'STEEB - Task Manager',
+  appId: 'com.steeb.oficial',
+  appName: 'STEEB',
   webDir: 'dist',
   server: {
     androidScheme: 'https'
@@ -31,9 +31,7 @@ const config: CapacitorConfig = {
     },
     GoogleAuth: {
       scopes: ["profile", "email"],
-      clientId: "169523533903-h5gcs4u9gjptffgt92r68si5mc4n3p0l.apps.googleusercontent.com",
-      androidClientId: "169523533903-h5gcs4u9gjptffgt92r68si5mc4n3p0l.apps.googleusercontent.com",
-      serverClientId: "169523533903-h5gcs4u9gjptffgt92r68si5mc4n3p0l.apps.googleusercontent.com",
+      serverClientId: "169523533903-ok4fdik9kf257vu1rn4r8dacjhnu1e75.apps.googleusercontent.com",
       forceCodeForRefreshToken: true
     }
   }

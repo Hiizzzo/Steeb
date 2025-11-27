@@ -266,6 +266,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Google Sign-In nativo no está disponible en esta instalación. Reinstalá la app o usá Email/Contraseña.');
       } catch (error) {
         console.error('❌ Error en autenticación nativa:', error);
+        
+        // Mostrar error en pantalla (DOM) para evitar bugs de alert nativos
+        const errDiv = document.createElement('div');
+        errDiv.style.position = 'fixed';
+        errDiv.style.top = '0';
+        errDiv.style.left = '0';
+        errDiv.style.width = '100%';
+        errDiv.style.height = '100%';
+        errDiv.style.backgroundColor = 'rgba(0,0,0,0.9)';
+        errDiv.style.color = 'white';
+        errDiv.style.zIndex = '99999';
+        errDiv.style.padding = '20px';
+        errDiv.style.overflow = 'auto';
+        errDiv.innerHTML = `
+          <h2>Error Google Sign-In</h2>
+          <pre>${JSON.stringify(error, null, 2)}</pre>
+          <br/>
+          <p>${String(error)}</p>
+          <button onclick="this.parentElement.remove()" style="padding: 10px; background: white; color: black; margin-top: 20px;">Cerrar</button>
+        `;
+        document.body.appendChild(errDiv);
 
         throw new Error('No se pudo usar el inicio de sesión nativo de Google. Actualizá STEEB o inicia con Email/Contraseña.');
       }
