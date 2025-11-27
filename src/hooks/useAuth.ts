@@ -256,29 +256,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        // Para Android, intentar redirect como fallback
-        ('🤖 Android: Usando signInWithRedirect como fallback');
-        await signInWithRedirect(auth, googleProvider);
+        // Para Android, intentar popup como fallback (funciona mejor que redirect en Capacitor)
+        ('🤖 Android: Usando signInWithPopup como fallback');
+        const res = await signInWithPopup(auth, googleProvider);
+        // Ensure user doc exists
+        const uid = res.user.uid;
+        const ref = doc(db, 'users', uid);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          await setDoc(ref, {
+            email: res.user.email,
+            name: '',
+            nickname: '',
+            avatar: res.user.photoURL,
+            provider: 'google',
+            ownerUid: uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        }
         return;
       } catch (error) {
         console.error('❌ Error en autenticación nativa:', error);
 
-        // Para iOS, usar redirect como fallback en lugar de mostrar error
-        if (Capacitor.getPlatform() === 'ios') {
-          console.warn('⚠️ Plugin nativo no disponible en iOS, usando signInWithRedirect');
-          try {
-            await signInWithRedirect(auth, googleProvider);
-            return;
-          } catch (redirectError) {
-            throw new Error('No se pudo autenticar con Google. Por favor, usa Email/Contraseña.');
-          }
-        }
-
-        // Último recurso: intentar redirect
+        // Fallback general a popup (funciona en iOS y Android webview mejor que redirect)
         try {
-          await signInWithRedirect(auth, googleProvider);
+          const res = await signInWithPopup(auth, googleProvider);
+          // Ensure user doc exists
+          const uid = res.user.uid;
+          const ref = doc(db, 'users', uid);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, {
+              email: res.user.email,
+              name: '',
+              nickname: '',
+              avatar: res.user.photoURL,
+              provider: 'google',
+              ownerUid: uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          }
           return;
-        } catch (redirectError) {
+        } catch (popupError) {
+          console.error('❌ Error en fallback popup:', popupError);
           throw new Error('No se pudo autenticar con Google. Por favor, usa Email/Contraseña.');
         }
       }

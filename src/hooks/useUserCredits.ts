@@ -7,14 +7,12 @@ interface UserCredits {
   hasDarkVersion: boolean;
   gamesPlayed: number;
   totalSpent: number;
-  lastShinyAttemptDate: string | null;
   shinyRolls: number;
 }
 
 const STORAGE_KEY = 'stebe-user-credits';
 const DARK_VERSION_PLAN = getPaymentPlan(DARK_MODE_PLAN_ID);
 const DARK_VERSION_COST = DARK_VERSION_PLAN?.price ?? 0;
-const GAME_COST = 1;
 
 export const useUserCredits = () => {
   const { user } = useAuth();
@@ -26,7 +24,6 @@ export const useUserCredits = () => {
     hasDarkVersion: false,
     gamesPlayed: 0,
     totalSpent: 0,
-    lastShinyAttemptDate: null,
     shinyRolls: 0
   }), []);
 
@@ -44,7 +41,6 @@ export const useUserCredits = () => {
       hasDarkVersion: false,
       gamesPlayed: 0,
       totalSpent: 0,
-      lastShinyAttemptDate: null,
       shinyRolls: 0
     };
     try {
@@ -55,7 +51,6 @@ export const useUserCredits = () => {
           hasDarkVersion: !!parsed.hasDarkVersion,
           gamesPlayed: parsed.gamesPlayed ?? 0,
           totalSpent: parsed.totalSpent ?? 0,
-          lastShinyAttemptDate: parsed.lastShinyAttemptDate ?? null,
           shinyRolls: parsed.shinyRolls ?? 0
         };
       }
@@ -63,7 +58,6 @@ export const useUserCredits = () => {
         hasDarkVersion: false,
         gamesPlayed: 0,
         totalSpent: 0,
-        lastShinyAttemptDate: null,
         shinyRolls: 0
       };
     } catch {
@@ -71,7 +65,6 @@ export const useUserCredits = () => {
         hasDarkVersion: false,
         gamesPlayed: 0,
         totalSpent: 0,
-        lastShinyAttemptDate: null,
         shinyRolls: 0
       };
     }
@@ -140,32 +133,13 @@ export const useUserCredits = () => {
 
 
 
-  const getTodayKey = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const canPlayGame = () => {
-    if (!userCredits.hasDarkVersion) return false;
-    
-    // Si tiene tiradas disponibles, puede jugar
-    if (userCredits.shinyRolls > 0) return true;
-
-    // Si no tiene tiradas, verificar si ya jugó hoy (para el intento diario gratuito)
-    const todayKey = getTodayKey();
-    return userCredits.lastShinyAttemptDate !== todayKey;
-  };
+  const canPlayGame = () => userCredits.hasDarkVersion;
 
   const canBuyDarkVersion = () => !userCredits.hasDarkVersion;
 
   const playGame = async () => {
     if (!canPlayGame()) return false;
 
-    const todayKey = getTodayKey();
-    
     // Si tiene tiradas disponibles, consumir una del backend
     if (userCredits.shinyRolls > 0 && user?.id) {
       try {
@@ -176,23 +150,13 @@ export const useUserCredits = () => {
             gamesPlayed: prev.gamesPlayed + 1,
             shinyRolls: result.remainingRolls
           }));
-          return true;
         }
       } catch (error) {
         console.error('Error consumiendo tirada:', error);
-        // Fallback a comportamiento local si falla el backend
+        return false;
       }
     }
 
-    // Comportamiento local (intento diario gratuito o fallback)
-    setUserCredits(prev => ({
-      ...prev,
-      gamesPlayed: prev.gamesPlayed + 1,
-      totalSpent: prev.totalSpent + GAME_COST,
-      lastShinyAttemptDate: todayKey,
-      shinyRolls: Math.max(0, prev.shinyRolls - 1)
-    }));
-    
     return true;
   };
 
@@ -213,7 +177,6 @@ export const useUserCredits = () => {
       hasDarkVersion: false,
       gamesPlayed: 0,
       totalSpent: 0,
-      lastShinyAttemptDate: null,
       shinyRolls: 0
     });
     setUserRoleDetails(null);
@@ -232,7 +195,6 @@ export const useUserCredits = () => {
     resetUserData,
     syncWithBackend,
     DARK_VERSION_COST,
-    GAME_COST,
     userRoleDetails
   };
 };

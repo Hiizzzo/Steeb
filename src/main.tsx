@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '@codetrix-studio/capacitor-google-auth';
 import App from './App.tsx';
 import './index.css';
 import './styles/flash-animation.css';

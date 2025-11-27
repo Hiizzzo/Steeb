@@ -28,6 +28,13 @@ const config: CapacitorConfig = {
     },
     App: {
       appendUserAgent: "STEEB-App/1.0"
+    },
+    GoogleAuth: {
+      scopes: ["profile", "email"],
+      clientId: "169523533903-h5gcs4u9gjptffgt92r68si5mc4n3p0l.apps.googleusercontent.com",
+      androidClientId: "169523533903-h5gcs4u9gjptffgt92r68si5mc4n3p0l.apps.googleusercontent.com",
+      serverClientId: "169523533903-h5gcs4u9gjptffgt92r68si5mc4n3p0l.apps.googleusercontent.com",
+      forceCodeForRefreshToken: true
     }
   }
 };

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
-import { sendMessageToSteeb, SteebAction, getGlobalShinyStats } from '@/services/steebApi';
+import { sendMessageToSteeb, SteebAction, getGlobalShinyStats, type ShinyStatusResponse } from '@/services/steebApi';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
@@ -902,9 +902,11 @@ const SteebChatAI: React.FC = () => {
       setShinyGameState('confirming');
       const realtimeRolls = typeof userProfile?.shinyRolls === 'number' ? userProfile.shinyRolls : null;
       let availableRolls = getBestRollsCount(shinyRolls, realtimeRolls);
+      let shinyStatus: ShinyStatusResponse | null = null;
       try {
         const { getShinyStatus } = await import('@/services/steebApi');
         const status = await getShinyStatus(user?.id);
+        shinyStatus = status;
         const totalFromStatus = typeof status?.totalAvailable === 'number' ? status.totalAvailable : undefined;
         const combinedRolls = getBestRollsCount(
           totalFromStatus,
@@ -928,11 +930,48 @@ const SteebChatAI: React.FC = () => {
         };
         setMessages(prev => [...prev, userMessage]);
 
+        const hasDailyAttempt = !!shinyStatus?.dailyAttemptAvailable;
+        const extraRollsFromStatus =
+          typeof shinyStatus?.extraRolls === 'number' ? shinyStatus.extraRolls : undefined;
+
+        let confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`;
+
+        if (shinyStatus) {
+          if (hasDailyAttempt) {
+            const extraInfo =
+              extraRollsFromStatus && extraRollsFromStatus > 0
+                ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
+                : '';
+            confirmationText = `Tenés un intento diario gratis disponible.${extraInfo}\n\n¿Querés usarlo para intentar desbloquear el modo SHINY?`;
+          } else {
+            const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
+            if (effectiveRolls <= 0) {
+              setShinyGameState('idle');
+              setTimeout(() => {
+                const noRollsMessage: ChatMessage = {
+                  id: `msg_${Date.now() + 1}`,
+                  role: 'assistant',
+                  content: 'Te quedaste sin tiradas por hoy. Podés comprar más para seguir intentando.',
+                  timestamp: new Date(),
+                  category: 'general',
+                  showMercadoPagoButton: true
+                };
+                setMessages(prev => [...prev, noRollsMessage]);
+              }, 500);
+              return;
+            }
+
+            confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${effectiveRolls} tiradas disponibles.`;
+          }
+        } else {
+          confirmationText = `¿Querés intentar desbloquear el modo SHINY?\n\nDetecto ${availableRolls} intentos disponibles (incluyendo el diario si todavía no lo usaste).`;
+        }
+
         setTimeout(() => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
-            content: `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`,
+            content: confirmationText,
             timestamp: new Date(),
             category: 'general'
           };
