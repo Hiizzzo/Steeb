@@ -59,7 +59,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, UserAccess> = {
 };
 
 export const ROLE_PRICES = {
-  SHINY_ROLL: 50, // $50 pesos argentinos por intento para adivinar el número
-  UPGRADE_TO_DARK: 1, // $1 para upgrade de white a dark (incluye 1 intento gratis)
-  UPGRADE_TO_SHINY: 50   // $50 por intento para adivinar número del 1 al 100
+  SHINY_ROLL: 300, // $300 ARS por tirada individual para adivinar el número
+  UPGRADE_TO_DARK: 3000, // $3000 ARS para desbloquear Dark Mode (incluye 1 intento gratis)
+  UPGRADE_TO_SHINY: 300   // $300 ARS por intento individual del juego Shiny
 } as const;

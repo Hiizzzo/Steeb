@@ -152,7 +152,7 @@ export default function PaymentTestPage() {
                 <div className="mt-6 p-4 rounded-lg bg-gray-100 dark:bg-gray-700">
                     <h3 className="font-bold mb-2">📝 Cómo obtener un payment_id real:</h3>
                     <ol className="text-sm space-y-1 list-decimal list-inside">
-                        <li>Hacé un pago real de $1 desde la app</li>
+                        <li>Hacé un pago real de $3000 ARS desde la app</li>
                         <li>Después del pago, Mercado Pago te redirigirá con el payment_id en la URL</li>
                         <li>Copiá ese payment_id y pegalo arriba</li>
                         <li>O revisá los logs del backend para ver los payment_ids procesados</li>

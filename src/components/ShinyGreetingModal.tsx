@@ -152,7 +152,7 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
                   aria-label="Ingresar número para ganar Shiny"
                 />
                 <p className="text-xs text-gray-500 text-center">
-                  Precio por intento: $1 (máximo 1 intento por día).
+                  Precio por intento extra: $300 ARS (máximo 1 intento por día).
                 </p>
                 {/* Botón para comprar más intentos si ya usó el diario */}
                 <button
@@ -199,4 +199,3 @@ const ShinyGreetingModal: React.FC<ShinyGreetingModalProps> = ({
 };
 
 export default ShinyGreetingModal;
-

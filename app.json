@@ -3,7 +3,7 @@
     "name": "STEEB",
     "slug": "steeb",
     "scheme": "steeb",
-    "version": "8.6.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [

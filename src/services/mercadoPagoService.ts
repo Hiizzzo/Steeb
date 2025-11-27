@@ -49,6 +49,62 @@ const submitHiddenForm = (url: string) => {
   form.remove();
 };
 
+const isIosDevice = () => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || navigator.vendor || '';
+  const classicIos = /iPad|iPhone|iPod/.test(ua);
+  const touchMac =
+    /Mac/.test(ua) &&
+    typeof navigator.maxTouchPoints === 'number' &&
+    navigator.maxTouchPoints > 1;
+  return classicIos || touchMac;
+};
+
+const openIosDeepLinkWithFallback = (deepLinkUrl: string, fallbackUrl: string) => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return false;
+  }
+
+  let fallbackTimer: number | null = window.setTimeout(() => {
+    window.location.assign(fallbackUrl);
+  }, 1400);
+
+  let visibilityHandler: (() => void) | null = null;
+  const cleanup = () => {
+    if (fallbackTimer) {
+      window.clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+    if (visibilityHandler) {
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      visibilityHandler = null;
+    }
+  };
+
+  visibilityHandler = () => {
+    if (document.hidden) {
+      cleanup();
+    }
+  };
+
+  document.addEventListener('visibilitychange', visibilityHandler);
+
+  try {
+    window.location.href = deepLinkUrl;
+  } catch (error) {
+    console.warn('[MercadoPago] Deep link falló, usando checkout web:', error);
+    cleanup();
+    window.location.assign(fallbackUrl);
+    return true;
+  }
+
+  window.setTimeout(() => {
+    cleanup();
+  }, 4000);
+
+  return true;
+};
+
 export const mercadoPagoService = {
   // Crear pago con datos de usuario de Firebase
   createPayment: async (userData: PaymentUserData, planId: string = 'black-user-plan', quantity: number = 1): Promise<MercadoPagoResponse> => {
@@ -171,6 +227,26 @@ export const mercadoPagoService = {
     const checkoutUrl = response.initPoint || response.sandboxInitPoint;
     if (!checkoutUrl) {
       throw new Error('No hay URL de checkout disponible');
+    }
+
+    const preferenceId =
+      response.preferenceId ||
+      (() => {
+        try {
+          const url = new URL(checkoutUrl);
+          return url.searchParams.get('pref_id') || undefined;
+        } catch {
+          return undefined;
+        }
+      })();
+
+    if (isIosDevice() && preferenceId) {
+      const deepLinkUrl = `mercadopago://checkout/v1/redirect?pref_id=${encodeURIComponent(preferenceId)}`;
+      const launched = openIosDeepLinkWithFallback(deepLinkUrl, checkoutUrl);
+      if (launched) {
+        console.log('?? Intentando abrir Mercado Pago app en iOS');
+        return;
+      }
     }
 
     console.log('Abriendo checkout en la misma pesta?a:', checkoutUrl);

@@ -741,29 +741,36 @@ const SteebChatAI: React.FC = () => {
         setIsTyping(false);
         
         if (result.success) {
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: result.message, // El backend ya devuelve el mensaje con pistas
-            timestamp: new Date(),
-            category: 'general'
-          };
-          setMessages(prev => [...prev, aiMessage]);
+          const unlockedShiny = result.won || result.alreadyWon;
+          const shouldShowBackendMessage = !unlockedShiny;
+
+          if (shouldShowBackendMessage) {
+            const aiMessage: ChatMessage = {
+              id: `msg_${Date.now() + 1}`,
+              role: 'assistant',
+              content: result.message, // El backend ya devuelve el mensaje con pistas
+              timestamp: new Date(),
+              category: 'general'
+            };
+            setMessages(prev => [...prev, aiMessage]);
+          }
+
           if (typeof result.remainingRolls === 'number') {
             setShinyRolls(result.remainingRolls);
           }
 
-          if (result.won || result.alreadyWon) {
-             if (result.shinyStats) {
-               const shinyNickname =
-                 user?.nickname ||
-                 user?.displayName ||
-                 'Campeón';
-               const ordinalUpper = formatOrdinalEs(result.shinyStats.position).toUpperCase();
-               appendAssistantMessage(
-                 `¡¡WOWOWOWO SHINY!! Sos el ${ordinalUpper} usuario en desbloquear el modo SHINY. Que suerte la tuya ${shinyNickname}.`
-               );
-             }
+          if (unlockedShiny) {
+             const shinyNickname =
+               user?.nickname ||
+               user?.displayName ||
+               'Campeón';
+             const ordinalUpper = result.shinyStats
+               ? formatOrdinalEs(result.shinyStats.position).toUpperCase()
+               : null;
+             const shinyCongrats = ordinalUpper
+               ? `¡¡WOWOWOWO SHINY!! Sos el ${ordinalUpper} usuario en desbloquear el modo SHINY. Que suerte la tuya ${shinyNickname}.`
+               : `¡¡WOWOWOWO SHINY!! Desbloqueaste el modo SHINY. Que suerte la tuya ${shinyNickname}.`;
+             appendAssistantMessage(shinyCongrats);
              setShinyGameState('idle');
              
              // Solo recargar si acaba de ganar (won=true), no si ya lo tenía (alreadyWon=true)
@@ -1062,7 +1069,7 @@ const SteebChatAI: React.FC = () => {
       const confirmationMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
-        content: 'Â¡Excelente decisiÃ³n! Estoy abriendo el proceso de compra para el Dark Mode por $1. Te darÃ¡ acceso inmediato + 1 intento gratis para Shiny. ðŸŒ™',
+        content: 'Â¡Excelente decisiÃ³n! Estoy abriendo el proceso de compra para el Dark Mode por $3000 ARS. Te darÃ¡ acceso inmediato + 1 intento gratis para Shiny. ðŸŒ™',
         timestamp: new Date(),
         category: 'general'
       };
@@ -1073,7 +1080,7 @@ const SteebChatAI: React.FC = () => {
         const mercadoPagoMessage: ChatMessage = {
           id: `msg_${Date.now() + 1}`,
           role: 'assistant',
-          content: `# $1
+          content: `# $3000 ARS
 
 ### 1 intento gratis del modo SHINY`,
           timestamp: new Date(),

@@ -85,7 +85,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
       const userRole = await waitForActivation(user.uid, 10); // Máximo 30 segundos
 
       if (userRole.isPremium) {
-      setLastSyncMessage('🎉 ¡Ahora sos usuario BLACK! Recordá que en el selector de temas (arriba a la derecha) el botón de la derecha activa el modo DARK y el del medio te deja jugar SHINY. De regalo sumé una tirada: escribí "jugar shiny" cuando quieras usarla.');
+      setLastSyncMessage('🎉 ¡Felicitaciones, ahora sos usuario BLACK! Tocá el tercer círculo del selector de temas (arriba a la derecha) para encender el modo DARK y acordate que el del medio te deja jugar SHINY. De regalo te sumé una tirada: escribí "jugar shiny" para usarla cuando quieras.');
         setCheckoutState('idle');
 
         // Cerrar modal después de 2 segundos
@@ -138,7 +138,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm uppercase tracking-wide text-gray-500">Modo DARK Premium</p>
-                <p className="text-3xl font-extrabold">$1 USD</p>
+                <p className="text-3xl font-extrabold">$3000 ARS</p>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                 <CreditCard className="w-4 h-4" />
@@ -205,7 +205,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    Pagar con Mercado Pago ($1)
+                    Pagar con Mercado Pago ($3000 ARS)
                   </>
                 )}
               </button>

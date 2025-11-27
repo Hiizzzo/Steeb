@@ -48,7 +48,7 @@ MP_NOTIFICATION_URL=https://v0-steeb-api-backend.vercel.app/api/payments/webhook
 1. **Abrir frontend:** `http://localhost:8081`
 2. **Iniciar sesión con email**
 3. **Clic en "Comprar Dark Mode"**
-4. **Completar pago de prueba ($1 ARS)**
+4. **Completar pago de prueba ($3000 ARS)**
 5. **Verificar que el rol se active automáticamente**
 
 ### **Si el pago funciona pero no se activa:**
@@ -80,7 +80,7 @@ const BASE_PATH = apiBaseUrl ? `${apiBaseUrl}/api/payments` : '/api/payments';
 
 Después de configurar los webhooks:
 
-1. ✅ **Usuario paga $1 ARS**
+1. ✅ **Usuario paga $3000 ARS**
 2. ✅ **Mercado Pago notifica al backend correcto**
 3. ✅ **Backend procesa webhook automáticamente**
 4. ✅ **Rol 'dark' se activa sin acción manual**
