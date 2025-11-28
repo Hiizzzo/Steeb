@@ -104,6 +104,14 @@ const AppContent = () => {
     // INICIALIZACIÓN CRÍTICA: Aplicar tema ANTES que todo lo demás
     const initialTheme = initializeTheme();
 
+    // BYPASS TEMPORAL: Detectar si estamos en un WebView (Expo Go) y saltear autenticación
+    const isWebView = /wv|WebView|Expo/i.test(navigator.userAgent);
+    if (isWebView && !localStorage.getItem('skip-auth-temp')) {
+      console.log('🔍 WebView detectado - Salteando autenticación');
+      localStorage.setItem('skip-auth-temp', 'true');
+      window.location.reload(); // Recargar para aplicar el cambio
+    }
+
     // Solicitar permiso de App Tracking Transparency en iOS
     const requestTrackingPermission = async () => {
       if (Capacitor.getPlatform() === 'ios') {
