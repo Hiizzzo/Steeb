@@ -226,48 +226,26 @@ export const mercadoPagoService = {
     }
   },
 
-  // Redirigir al checkout de Mercado Pago - PRODUCCION
+  // Redirigir al checkout de Mercado Pago - PRODUCCION (ANTI-DEEP-LINKS DEFINITIVO)
   redirectToCheckout: (response: MercadoPagoResponse) => {
     console.log('?? Redirigiendo a Mercado Pago:', response);
 
-    const checkoutUrl = response.initPoint || response.sandboxInitPoint;
+    let checkoutUrl = response.initPoint || response.sandboxInitPoint;
     if (!checkoutUrl) {
       throw new Error('No hay URL de checkout disponible');
     }
 
-    const preferenceId =
-      response.preferenceId ||
-      (() => {
-        try {
-          const url = new URL(checkoutUrl);
-          return url.searchParams.get('pref_id') || undefined;
-        } catch {
-          return undefined;
-        }
-      })();
-
-    if (preferenceId) {
-      const deepLinkUrl = `mercadopago://checkout/v1/redirect?pref_id=${encodeURIComponent(preferenceId)}`;
-
-      if (isIosDevice()) {
-        const launched = openMercadoPagoDeepLinkWithFallback(deepLinkUrl, checkoutUrl);
-        if (launched) {
-          console.log('?? Intentando abrir Mercado Pago app en iOS');
-          return;
-        }
-      } else if (isAndroidDevice()) {
-        const launched = openMercadoPagoDeepLinkWithFallback(deepLinkUrl, checkoutUrl);
-        if (launched) {
-          console.log('?? Intentando abrir Mercado Pago app en Android');
-          return;
-        }
-      }
+    // 🔥 SOLUCIÓN DEFINITIVA: Forzar URLs HTTPS para evitar deep links en Android
+    // Convertir cualquier deep link de Mercado Pago a URL web
+    if (checkoutUrl.startsWith('mercadopago://')) {
+      checkoutUrl = checkoutUrl.replace(/^mercadopago:\/\//, 'https://www.mercadopago.com.ar/');
+      console.log('🔄 Deep link convertido a HTTPS:', checkoutUrl);
     }
 
-    console.log('Abriendo checkout en la misma pesta?a:', checkoutUrl);
+    console.log('✅ URL final (sin deep links):', checkoutUrl);
 
-    // Mantener la misma pesta?a nos permite mostrar el mensaje final al regresar
-    window.location.assign(checkoutUrl);
+    // Redirección directa al checkout web - SIN INTERCEPCIÓN DE ANDROID
+    window.location.href = checkoutUrl;
   },
 
   // Flujo de pago completo
