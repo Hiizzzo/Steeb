@@ -60,7 +60,13 @@ const isIosDevice = () => {
   return classicIos || touchMac;
 };
 
-const openIosDeepLinkWithFallback = (deepLinkUrl: string, fallbackUrl: string) => {
+const isAndroidDevice = () => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || navigator.vendor || '';
+  return /android/i.test(ua);
+};
+
+const openMercadoPagoDeepLinkWithFallback = (deepLinkUrl: string, fallbackUrl: string) => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return false;
   }
@@ -240,12 +246,21 @@ export const mercadoPagoService = {
         }
       })();
 
-    if (isIosDevice() && preferenceId) {
+    if (preferenceId) {
       const deepLinkUrl = `mercadopago://checkout/v1/redirect?pref_id=${encodeURIComponent(preferenceId)}`;
-      const launched = openIosDeepLinkWithFallback(deepLinkUrl, checkoutUrl);
-      if (launched) {
-        console.log('?? Intentando abrir Mercado Pago app en iOS');
-        return;
+
+      if (isIosDevice()) {
+        const launched = openMercadoPagoDeepLinkWithFallback(deepLinkUrl, checkoutUrl);
+        if (launched) {
+          console.log('?? Intentando abrir Mercado Pago app en iOS');
+          return;
+        }
+      } else if (isAndroidDevice()) {
+        const launched = openMercadoPagoDeepLinkWithFallback(deepLinkUrl, checkoutUrl);
+        if (launched) {
+          console.log('?? Intentando abrir Mercado Pago app en Android');
+          return;
+        }
       }
     }
 
