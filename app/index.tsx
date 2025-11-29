@@ -1,28 +1,22 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 export default function App() {
+  // Usando URL de producción como solicitó el usuario
+  const LOCAL_URL = 'https://steeb.vercel.app/';
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>STEEB - Task Manager</Text>
-      <Text style={styles.subtitle}>Productivity App</Text>
-    </View>
+    onError = {(syntheticEvent) => {
+    const { nativeEvent } = syntheticEvent;
+    console.warn('WebView error: ', nativeEvent);
+  }
+}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
   },
 });
