@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import '@codetrix-studio/capacitor-google-auth';
+
 import App from './App.tsx';
 import './index.css';
 import './styles/flash-animation.css';
@@ -69,7 +69,7 @@ registerServiceWorker();
 // Initialize browser UI theme based on current theme
 const initializeBrowserUITheme = () => {
   const isDark = document.documentElement.classList.contains('dark') ||
-                 document.documentElement.classList.contains('shiny');
+    document.documentElement.classList.contains('shiny');
   updateBrowserUITheme(isDark);
 };
 
@@ -79,7 +79,7 @@ const observeThemeChanges = () => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
         const isDark = (mutation.target as Element).classList.contains('dark') ||
-                     (mutation.target as Element).classList.contains('shiny');
+          (mutation.target as Element).classList.contains('shiny');
         updateBrowserUITheme(isDark);
       }
     });
@@ -107,8 +107,6 @@ observeThemeChanges();
 
 // Test log for debugging (using error to ensure visibility)
 console.error('[DEBUG] App starting... Logs are working!');
-console.error('[DEBUG] Capacitor Platform:', (globalThis as any)?.Capacitor?.getPlatform());
-console.error('[DEBUG] GoogleAuth Plugin:', (globalThis as any)?.Capacitor?.Plugins?.GoogleAuth ? 'Available' : 'Not Available');
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
