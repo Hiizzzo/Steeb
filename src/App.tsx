@@ -91,7 +91,6 @@ const AppContent = () => {
   const handleSkipToTasks = () => {
     // Permitir acceso temporal sin autenticación
     setIsAppLoading(false);
-    window.localStorage.setItem('skip-auth-temp', 'true');
   };
 
   // Cargar configuración de texto grande
@@ -167,7 +166,7 @@ const AppContent = () => {
   }
 
   // Route guard: only require authentication. Do not block on onboarding/profile completeness.
-  if (!isAuthenticated && !localStorage.getItem('skip-auth-temp')) {
+  if (!isAuthenticated) {
     return <AuthScreen onComplete={() => { /* post-login handled by AuthScreen */ }} onSkip={handleSkipToTasks} />;
   }
 
