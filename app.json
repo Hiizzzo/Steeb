@@ -33,6 +33,12 @@
             "useFrameworks": "static"
           }
         }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "This identifier will be used to deliver personalized ads to you."
+        }
       ]
     ],
     "extra": {

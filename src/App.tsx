@@ -27,7 +27,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
-import { AppTrackingTransparency } from 'capacitor-plugin-app-tracking-transparency';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import Index from "./pages/Index";
 import SettingsPage from "./pages/SettingsPage";
 import AboutPage from "./pages/AboutPage";
@@ -109,10 +109,10 @@ const AppContent = () => {
     const requestTrackingPermission = async () => {
       if (Capacitor.getPlatform() === 'ios') {
         try {
-          const response = await AppTrackingTransparency.requestPermission();
+          const { status } = await requestTrackingPermissionsAsync();
 
           // Guardar el estado del permiso para referencia futura
-          localStorage.setItem('att-status', response.status);
+          localStorage.setItem('att-status', status);
         } catch (error) {
           localStorage.setItem('att-status', 'denied');
         }
