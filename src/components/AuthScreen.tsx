@@ -3,6 +3,17 @@ import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 
+// Definir tipos globales para la comunicación con el WebView
+declare global {
+  interface Window {
+    handleNativeGoogleLogin?: (idToken: string) => void;
+    handleNativeGoogleLoginError?: (error: string) => void;
+    ReactNativeWebView?: {
+      postMessage: (message: string) => void;
+    };
+  }
+}
+
 interface AuthScreenProps {
   onComplete: () => void;
   onSkip?: () => void;
@@ -43,6 +54,45 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     setError('');
+
+    // DETECCIÓN DE ENTORNO NATIVO (PUENTE)
+    const isNativeWrapper = navigator.userAgent.includes('SteebNativeWrapper');
+
+    if (isNativeWrapper && window.ReactNativeWebView) {
+      console.log('📲 Usando Puente Nativo para Google Sign-In');
+
+      // 1. Definir el callback que llamará la app nativa
+      window.handleNativeGoogleLogin = async (idToken: string) => {
+        try {
+          console.log('📲 Token recibido del nativo, autenticando en Firebase...');
+          // Importar dinámicamente para evitar errores de SSR si fuera el caso
+          const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
+          const { auth } = await import('../lib/firebase'); // Asegúrate de importar tu instancia de auth
+
+          const credential = GoogleAuthProvider.credential(idToken);
+          await signInWithCredential(auth, credential);
+
+          // El hook useAuth detectará el cambio de usuario y redirigirá
+          console.log('✅ Autenticación nativa exitosa');
+        } catch (err: any) {
+          console.error('❌ Error en login nativo:', err);
+          setError('Error al iniciar sesión con Google (Nativo)');
+          setIsLoading(false);
+        }
+      };
+
+      window.handleNativeGoogleLoginError = (errorCode: string) => {
+        console.error('❌ Error reportado por nativo:', errorCode);
+        setError('Cancelado o error en la app nativa');
+        setIsLoading(false);
+      };
+
+      // 2. Enviar mensaje a la app nativa para iniciar el flujo
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'loginGoogle' }));
+      return; // Detener flujo web normal
+    }
+
+    // FLUJO WEB NORMAL (Vercel / Navegador)
     try {
       // Forzar que siempre muestre el selector de cuentas de Google
       await loginWithGoogle(true); // true = forceAccountPicker
@@ -151,10 +201,10 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
               <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
             ) : (
               <svg className="w-6 h-6" viewBox="0 0 24 24">
-                <path fill="#000000" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#000000" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#000000" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#000000" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                <path fill="#000000" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#000000" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#000000" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#000000" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
             )}
             <span className="font-medium text-white text-lg">
@@ -220,41 +270,41 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
             </div>
 
             {user && user.provider === 'google' && (
-            <>
-              {!hasPasswordProvider() && (
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    (Opcional) Crea una contraseña para entrar sin Google
-                  </label>
-                  <input
-                    id="onb-password"
-                    type="password"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
-                    placeholder="Contraseña (mín. 6 caracteres)"
-                  />
-                  <input
-                    id="onb-password2"
-                    type="password"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
-                    placeholder="Repite la contraseña"
-                  />
-                </div>
-              )}
-            </>
-          )}
+              <>
+                {!hasPasswordProvider() && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      (Opcional) Crea una contraseña para entrar sin Google
+                    </label>
+                    <input
+                      id="onb-password"
+                      type="password"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
+                      placeholder="Contraseña (mín. 6 caracteres)"
+                    />
+                    <input
+                      id="onb-password2"
+                      type="password"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-input"
+                      placeholder="Repite la contraseña"
+                    />
+                  </div>
+                )}
+              </>
+            )}
 
-          {user && !user.emailVerified && (
-            <div className="pt-2">
-              <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">Tu email no está verificado. Te enviamos un correo al registrarte.</p>
-              <button
-                type="button"
-                onClick={() => resendEmailVerification().catch(() => {})}
-                className="text-xs underline text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white"
-              >
-                Reenviar verificación
-              </button>
-            </div>
-          )}
+            {user && !user.emailVerified && (
+              <div className="pt-2">
+                <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">Tu email no está verificado. Te enviamos un correo al registrarte.</p>
+                <button
+                  type="button"
+                  onClick={() => resendEmailVerification().catch(() => { })}
+                  className="text-xs underline text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white"
+                >
+                  Reenviar verificación
+                </button>
+              </div>
+            )}
 
             {error && (
               <div className="text-white text-sm text-center bg-black/80 border border-white/20 p-3 rounded-lg">
