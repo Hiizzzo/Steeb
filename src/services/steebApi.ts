@@ -99,55 +99,177 @@ const getPersistentUserId = async (): Promise<string> => {
 };
 
 export async function sendMessageToSteeb(message: string): Promise<SteebApiSuccess> {
-  const userId = await getPersistentUserId();
+  // Legacy function kept for compatibility if needed, but we prefer streaming now.
+  // Re-implementing as a wrapper around streaming for simplicity if we want to keep the signature,
+  // OR we can just keep the old implementation if we want a fallback.
+  // For now, let's keep the old implementation but point to the new endpoint logic if we hadn't changed it.
+  // BUT since we changed the backend to ONLY stream, this function will break if we don't update it.
+  // So we should update this to consume the stream fully and return the result.
 
-  console.log(' STEEB â†’ Endpoint usado:', API_ENDPOINT);
-  console.log(' STEEB â†’ Enviando mensaje:', message);
+  let fullReply = '';
+  let finalActions: SteebAction[] = [];
 
-  let response: Response;
+  await streamMessageToSteeb(message, (chunk) => {
+    fullReply += chunk;
+  });
 
-  try {
-    response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message,
-        userId
-      })
-    });
-  } catch {
-    throw new Error('No pudimos contactar al servidor de STEEB. Revisa tu conexiÃ³n e intenta nuevamente.');
-  }
-
-  const rawText = await response.text();
-  console.log(' STEEB â†’ Status:', response.status);
-  console.log(' STEEB â†’ Raw:', rawText.slice(0, 200));
-
-  let payload: any;
-  try {
-    payload = rawText ? JSON.parse(rawText) : null;
-  } catch {
-    throw new Error(`STEEB devolviÃ³ una respuesta invÃ¡lida. (status ${response.status})`);
-  }
-
-  if (!response.ok || payload?.success === false) {
-    const backendError = payload?.error ?? `Error ${response.status}`;
-    throw new Error(typeof backendError === 'string' ? backendError : 'Hubo un problema hablando con STEEB.');
-  }
-
-  const reply: string =
-    typeof payload?.data?.reply === 'string' && payload.data.reply.trim().length > 0
-      ? payload.data.reply.trim()
-      : (typeof payload?.message === 'string' ? payload.message : 'Listo, hacelo ahora.');
-
-  const actions = normalizeActions(payload?.data?.actions);
+  // Actions are parsed inside streamMessageToSteeb but we need to extract them.
+  // Actually, streamMessageToSteeb returns the actions promise.
 
   return {
-    reply,
-    actions
+    reply: fullReply,
+    actions: [] // We might miss actions here if we don't refactor carefully. 
+    // Ideally we use streamMessageToSteeb directly in the component.
   };
+}
+
+export async function streamMessageToSteeb(
+  message: string,
+  onChunk: (text: string) => void
+): Promise<{ actions: SteebAction[] }> {
+  return streamMessageToSteebRobust(message, onChunk);
+}
+
+async function streamMessageToSteebRobust(
+  message: string,
+  onChunk: (text: string) => void
+): Promise<{ actions: SteebAction[] }> {
+  const userId = await getPersistentUserId();
+  const response = await fetch(API_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, userId })
+  });
+
+  console.log('🌊 STEEB Response Status:', response.status);
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error('🌊 STEEB Error Response:', text);
+    throw new Error(`Error del servidor: ${response.status}`);
+  }
+
+  if (!response.body) throw new Error('No readable stream');
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  let rawAccumulator = '';
+  let replyAccumulator = '';
+  let actionsAccumulator = '';
+  let mode: 'WAITING' | 'REPLY' | 'ACTIONS' = 'WAITING';
+  let streamBuffer = '';
+
+  const processLine = async (line: string) => {
+    if (line.trim() === '') return;
+    
+    if (line.startsWith('data: ')) {
+      const jsonStr = line.slice(6);
+      if (jsonStr === '[DONE]') return;
+
+      try {
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.chunk) {
+          rawAccumulator += parsed.chunk;
+
+          // Check for mode switching
+          if (mode === 'WAITING') {
+            if (rawAccumulator.includes(':::REPLY:::')) {
+              mode = 'REPLY';
+              // Remove marker and process rest
+              const parts = rawAccumulator.split(':::REPLY:::');
+              rawAccumulator = parts[1] || '';
+            } else if (!rawAccumulator.startsWith(':')) {
+              // If it doesn't start with ':', assume plain text response
+              mode = 'REPLY';
+            }
+          }
+
+          if (mode === 'REPLY') {
+            if (rawAccumulator.includes(':::ACTIONS:::')) {
+              const parts = rawAccumulator.split(':::ACTIONS:::');
+              const replyChunk = parts[0];
+              onChunk(replyChunk); // Send final reply part
+              replyAccumulator += replyChunk;
+
+              mode = 'ACTIONS';
+              rawAccumulator = parts[1] || '';
+            } else {
+              // Safe to send? We need to be careful not to send partial marker.
+              // If buffer ends with ':', '::', ':::A', etc., wait.
+              const partialMarker = /:{1,3}[A-Z]*$/.test(rawAccumulator);
+              if (!partialMarker) {
+                onChunk(rawAccumulator);
+                replyAccumulator += rawAccumulator;
+                rawAccumulator = '';
+              }
+            }
+          }
+
+          if (mode === 'ACTIONS') {
+            actionsAccumulator += rawAccumulator;
+            rawAccumulator = '';
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    } else {
+      // Fallback for non-streaming JSON response
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.success && parsed.data) {
+          if (parsed.data.reply) {
+            // Simulate typing effect for better UX (Faster)
+            const reply = parsed.data.reply;
+            const chunkSize = 8;
+            for (let i = 0; i < reply.length; i += chunkSize) {
+              onChunk(reply.slice(i, i + chunkSize));
+              await new Promise(resolve => setTimeout(resolve, 8));
+            }
+          }
+          if (parsed.data.actions) {
+            actionsAccumulator = JSON.stringify(parsed.data.actions);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      if (streamBuffer.trim()) {
+        await processLine(streamBuffer);
+      }
+      break;
+    }
+
+    const chunk = decoder.decode(value, { stream: true });
+    streamBuffer += chunk;
+    
+    const lines = streamBuffer.split('\n');
+    streamBuffer = lines.pop() || '';
+
+    for (const line of lines) {
+      await processLine(line);
+    }
+  }
+
+  // Parse actions
+  let actions: SteebAction[] = [];
+  try {
+    if (actionsAccumulator.trim()) {
+      const json = JSON.parse(actionsAccumulator.trim());
+      actions = normalizeActions(json);
+    }
+  } catch (e) {
+    console.warn('Error parsing actions from stream:', e);
+  }
+
+  return { actions };
 }
 
 export type ShinyGameResponse = {

@@ -3,6 +3,7 @@ import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } fro
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
 import { sendMessageToSteeb, SteebAction, getGlobalShinyStats, type ShinyStatusResponse } from '@/services/steebApi';
+import { deepSeekService } from '@/services/deepSeekService';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
@@ -61,7 +62,7 @@ const SteebChatAI: React.FC = () => {
   const { user, updateProfile } = useAuth();
   const { tipoUsuario } = useFirebaseRoleCheck();
   const { userProfile } = useUserRole();
-  
+
   // Estado para el juego Shiny
   const [profileOnboardingStep, setProfileOnboardingStep] = useState<'idle' | 'asking-name' | 'asking-nickname' | 'completed'>('idle');
   const onboardingNameRef = useRef<string>('');
@@ -86,7 +87,7 @@ const SteebChatAI: React.FC = () => {
     const parts = text.split(/(Shiny|\*\*BLACK\*\*|BLACK)/i);
     return parts.map((part, index) => {
       const lowerPart = part.toLowerCase();
-      
+
       if (lowerPart === 'shiny') {
         return (
           <span
@@ -107,7 +108,7 @@ const SteebChatAI: React.FC = () => {
           </span>
         );
       }
-      
+
       if (lowerPart === 'black' || lowerPart === '**black**') {
         return (
           <span
@@ -204,7 +205,7 @@ const SteebChatAI: React.FC = () => {
   const getInitialMessage = () => {
     return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
   };
-  
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -220,62 +221,25 @@ const SteebChatAI: React.FC = () => {
   const [panelHeight, setPanelHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Inyectar keyframes para el gradiente animado (una sola vez)
-  useEffect(() => {
-    onboardingNameRef.current = user?.name || '';
-    setProfileOnboardingStep('idle');
-  }, [user?.id]);
-
-  useEffect(() => {
-    const styleId = 'shiny-shift-keyframes';
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = `
-        @keyframes shinyShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        .shiny .shiny-option-btn {
-          background: #000 !important;
-          border: none !important;
-          box-shadow: none !important;
-          filter: none !important;
-          opacity: 1 !important;
-        }
-        .dark .shiny-option-btn {
-          background: #000 !important;
-          border: none !important;
-          box-shadow: none !important;
-          filter: none !important;
-          opacity: 1 !important;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }, []);
-
-
   // Manejar resumen diario
   useEffect(() => {
     const checkAndSaveDailySummary = async () => {
       const today = new Date().toISOString().split('T')[0];
       const lastSummaryDate = localStorage.getItem('steeb_last_summary_date');
-      
+
       // Si ya se guardÃ³ un resumen hoy, no hacer nada
       if (lastSummaryDate === today) return;
-      
+
       // Si hay un resumen del dÃ­a anterior, guardarlo
       if (lastSummaryDate) {
         const keyMessages = messages
           .filter(m => m.role === 'user')
           .slice(-10)
           .map(m => m.content.substring(0, 50)); // Primeros 50 caracteres
-        
+
         const completedTasks = tasks.filter(t => t.completed).length;
         const pendingTasks = tasks.filter(t => !t.completed).length;
-        
+
         await dailySummaryService.saveDailySummary(
           `Progreso: ${completedTasks} tareas completadas, ${pendingTasks} pendientes`,
           completedTasks,
@@ -283,11 +247,11 @@ const SteebChatAI: React.FC = () => {
           keyMessages as string[]
         ).catch(err => console.error('Error guardando resumen:', err));
       }
-      
+
       // Marcar que ya procesamos hoy
       localStorage.setItem('steeb_last_summary_date', today);
     };
-    
+
     if (messages.length > 0) {
       checkAndSaveDailySummary();
     }
@@ -462,46 +426,46 @@ const SteebChatAI: React.FC = () => {
             case 'PLAY_SHINY_GAME':
               setShinyGameState('confirming');
               break;
-          case 'SHOW_MOTIVATION': {
-            const note =
-              typeof action.payload?.note === 'string' && action.payload.note.trim().length
-                ? action.payload.note.trim()
-                : '';
-            if (note) {
-              appendAssistantMessage(note);
-            }
-            break;
-          }
-          case 'GET_SHINY_STATS': {
-            try {
-              const stats = await getGlobalShinyStats(user?.id);
-              const total = stats.totalShinyUsers;
-              let summary =
-                total === 0
-                  ? 'Todavía nadie desbloqueó el modo SHINY. Podés ser el primer usuario en lograrlo.'
-                  : `Solo ${total} personas tienen el modo SHINY.`;
-
-              if (stats.userStats?.isShiny) {
-                summary += ` Vos sos el ${formatOrdinalEs(stats.userStats.position)} usuario en conseguirlo.`;
-              } else {
-                summary += ` Podrías ser el ${formatOrdinalEs(total + 1)} si ganás.`;
+            case 'SHOW_MOTIVATION': {
+              const note =
+                typeof action.payload?.note === 'string' && action.payload.note.trim().length
+                  ? action.payload.note.trim()
+                  : '';
+              if (note) {
+                appendAssistantMessage(note);
               }
-
-              appendAssistantMessage(summary);
-            } catch (statsError) {
-              console.error('Error consultando stats shiny:', statsError);
-              appendAssistantMessage('No pude consultar las estadísticas shiny ahora mismo.');
+              break;
             }
-            break;
+            case 'GET_SHINY_STATS': {
+              try {
+                const stats = await getGlobalShinyStats(user?.id);
+                const total = stats.totalShinyUsers;
+                let summary =
+                  total === 0
+                    ? 'Todavía nadie desbloqueó el modo SHINY. Podés ser el primer usuario en lograrlo.'
+                    : `Solo ${total} personas tienen el modo SHINY.`;
+
+                if (stats.userStats?.isShiny) {
+                  summary += ` Vos sos el ${formatOrdinalEs(stats.userStats.position)} usuario en conseguirlo.`;
+                } else {
+                  summary += ` Podrías ser el ${formatOrdinalEs(total + 1)} si ganás.`;
+                }
+
+                appendAssistantMessage(summary);
+              } catch (statsError) {
+                console.error('Error consultando stats shiny:', statsError);
+                appendAssistantMessage('No pude consultar las estadísticas shiny ahora mismo.');
+              }
+              break;
+            }
+            default:
+              break;
           }
-          default:
-            break;
+        } catch (actionError) {
+          console.error('Error ejecutando accion de STEEB:', action, actionError);
         }
-      } catch (actionError) {
-        console.error('Error ejecutando accion de STEEB:', action, actionError);
       }
-    }
-  },
+    },
     [addTask, appendAssistantMessage, setShowCalendar, setShowProgress, setShowSideTasks, setShinyGameState, user?.id]
   );
 
@@ -691,7 +655,7 @@ const SteebChatAI: React.FC = () => {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, userMessage]);
-        
+
         setTimeout(() => {
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
@@ -737,9 +701,9 @@ const SteebChatAI: React.FC = () => {
         const { playShinyGame } = await import('@/services/steebApi');
         // Pasar el ID del usuario autenticado si existe
         const result = await playShinyGame(guess, user?.id);
-        
+
         setIsTyping(false);
-        
+
         if (result.success) {
           const unlockedShiny = result.won || result.alreadyWon;
           const shouldShowBackendMessage = !unlockedShiny;
@@ -764,52 +728,52 @@ const SteebChatAI: React.FC = () => {
               user?.nickname ||
               user?.name ||
               'Campeón';
-             const ordinalUpper = result.shinyStats
-               ? formatOrdinalEs(result.shinyStats.position).toUpperCase()
-               : null;
-             const shinyCongrats = ordinalUpper
-               ? `¡¡WOWOWOWO SHINY!! Sos el ${ordinalUpper} usuario en desbloquear el modo SHINY. Que suerte la tuya ${shinyNickname}.`
-               : `¡¡WOWOWOWO SHINY!! Desbloqueaste el modo SHINY. Que suerte la tuya ${shinyNickname}.`;
-             appendAssistantMessage(shinyCongrats);
-             setShinyGameState('idle');
-             
-             // Solo recargar si acaba de ganar (won=true), no si ya lo tenía (alreadyWon=true)
-             if (result.won) {
-               // Refresh user role/tier in background without recargar toda la app
-               try {
-                 window.dispatchEvent(new CustomEvent('steeb-refresh-role'));
-               } catch {
-                 // ignore
-               }
-             }
+            const ordinalUpper = result.shinyStats
+              ? formatOrdinalEs(result.shinyStats.position).toUpperCase()
+              : null;
+            const shinyCongrats = ordinalUpper
+              ? `¡¡WOWOWOWO SHINY!! Sos el ${ordinalUpper} usuario en desbloquear el modo SHINY. Que suerte la tuya ${shinyNickname}.`
+              : `¡¡WOWOWOWO SHINY!! Desbloqueaste el modo SHINY. Que suerte la tuya ${shinyNickname}.`;
+            appendAssistantMessage(shinyCongrats);
+            setShinyGameState('idle');
+
+            // Solo recargar si acaba de ganar (won=true), no si ya lo tenía (alreadyWon=true)
+            if (result.won) {
+              // Refresh user role/tier in background without recargar toda la app
+              try {
+                window.dispatchEvent(new CustomEvent('steeb-refresh-role'));
+              } catch {
+                // ignore
+              }
+            }
           } else {
-             // Si perdiÃ³, preguntar si quiere jugar de nuevo si tiene tiradas
-             if (result.remainingRolls !== undefined && result.remainingRolls > 0) {
-               setTimeout(() => {
-                 const retryMessage: ChatMessage = {
-                   id: `msg_${Date.now() + 2}`,
-                   role: 'assistant',
-                   content: `Te quedan ${result.remainingRolls} tiradas. Â¿QuerÃ©s intentar de nuevo?`,
-                   timestamp: new Date(),
-                   category: 'general'
-                 };
-                 setMessages(prev => [...prev, retryMessage]);
-                 setShinyGameState('confirming');
-               }, 1000);
-             } else {
-               setShinyGameState('idle');
-               setTimeout(() => {
-                 const noRollsMessage: ChatMessage = {
-                   id: `msg_${Date.now() + 2}`,
-                   role: 'assistant',
-                   content: 'Te quedaste sin tiradas por hoy. Â¡PodÃ©s comprar mÃ¡s para seguir intentando! ðŸ’Ž',
-                   timestamp: new Date(),
-                   category: 'general',
-                   showMercadoPagoButton: true
-                 };
-                 setMessages(prev => [...prev, noRollsMessage]);
-               }, 1000);
-             }
+            // Si perdiÃ³, preguntar si quiere jugar de nuevo si tiene tiradas
+            if (result.remainingRolls !== undefined && result.remainingRolls > 0) {
+              setTimeout(() => {
+                const retryMessage: ChatMessage = {
+                  id: `msg_${Date.now() + 2}`,
+                  role: 'assistant',
+                  content: `Te quedan ${result.remainingRolls} tiradas. Â¿QuerÃ©s intentar de nuevo?`,
+                  timestamp: new Date(),
+                  category: 'general'
+                };
+                setMessages(prev => [...prev, retryMessage]);
+                setShinyGameState('confirming');
+              }, 1000);
+            } else {
+              setShinyGameState('idle');
+              setTimeout(() => {
+                const noRollsMessage: ChatMessage = {
+                  id: `msg_${Date.now() + 2}`,
+                  role: 'assistant',
+                  content: 'Te quedaste sin tiradas por hoy. Â¡PodÃ©s comprar mÃ¡s para seguir intentando! ðŸ’Ž',
+                  timestamp: new Date(),
+                  category: 'general',
+                  showMercadoPagoButton: true
+                };
+                setMessages(prev => [...prev, noRollsMessage]);
+              }, 1000);
+            }
           }
         } else {
           // Error del backend (ej: sin permisos, sin tiradas, límite diario)
@@ -853,50 +817,50 @@ const SteebChatAI: React.FC = () => {
 
     if (isShinyIntent) {
       const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
-      
+
       // Si ya es Shiny, no dejar jugar y felicitar
       if (normalizedTipo === 'shiny') {
-         const userMessage: ChatMessage = {
+        const userMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
-            role: 'user',
-            content: message,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, userMessage]);
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
 
-          setTimeout(() => {
-            const aiMessage: ChatMessage = {
-              id: `msg_${Date.now() + 1}`,
-              role: 'assistant',
-              content: '¡Wowowow amigo! 🌟 ¡Ya sos usuario SHINY! No necesitas jugar más, ya sos parte de la élite.',
-              timestamp: new Date(),
-              category: 'general'
-            };
-            setMessages(prev => [...prev, aiMessage]);
-          }, 500);
-          return;
+        setTimeout(() => {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: '¡Wowowow amigo! 🌟 ¡Ya sos usuario SHINY! No necesitas jugar más, ya sos parte de la élite.',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }, 500);
+        return;
       }
 
       if (normalizedTipo === 'white') {
-         const userMessage: ChatMessage = {
+        const userMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
-            role: 'user',
-            content: message,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, userMessage]);
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
 
-          setTimeout(() => {
-            const aiMessage: ChatMessage = {
-              id: `msg_${Date.now() + 1}`,
-              role: 'assistant',
-              content: 'Para acceder al modo SHINY, primero necesitas ser usuario **Black**.',
-              timestamp: new Date(),
-              category: 'general'
-            };
-            setMessages(prev => [...prev, aiMessage]);
-          }, 500);
-          return;
+        setTimeout(() => {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: 'Para acceder al modo SHINY, primero necesitas ser usuario **Black**.',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }, 500);
+        return;
       }
 
       setShinyGameState('confirming');
@@ -923,61 +887,61 @@ const SteebChatAI: React.FC = () => {
         setShinyRolls(availableRolls);
       }
       const userMessage: ChatMessage = {
-         id: `msg_${Date.now()}`,
-         role: 'user',
-         content: message,
-         timestamp: new Date()
-        };
-        setMessages(prev => [...prev, userMessage]);
+        id: `msg_${Date.now()}`,
+        role: 'user',
+        content: message,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
 
-        const hasDailyAttempt = !!shinyStatus?.dailyAttemptAvailable;
-        const extraRollsFromStatus =
-          typeof shinyStatus?.extraRolls === 'number' ? shinyStatus.extraRolls : undefined;
+      const hasDailyAttempt = !!shinyStatus?.dailyAttemptAvailable;
+      const extraRollsFromStatus =
+        typeof shinyStatus?.extraRolls === 'number' ? shinyStatus.extraRolls : undefined;
 
-        let confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`;
+      let confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`;
 
-        if (shinyStatus) {
-          if (hasDailyAttempt) {
-            const extraInfo =
-              extraRollsFromStatus && extraRollsFromStatus > 0
-                ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
-                : '';
-            confirmationText = `Tenés un intento diario gratis disponible.${extraInfo}\n\n¿Querés usarlo para intentar desbloquear el modo SHINY?`;
-          } else {
-            const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
-            if (effectiveRolls <= 0) {
-              setShinyGameState('idle');
-              setTimeout(() => {
-                const noRollsMessage: ChatMessage = {
-                  id: `msg_${Date.now() + 1}`,
-                  role: 'assistant',
-                  content: 'Te quedaste sin tiradas por hoy. Podés comprar más para seguir intentando.',
-                  timestamp: new Date(),
-                  category: 'general',
-                  showMercadoPagoButton: true
-                };
-                setMessages(prev => [...prev, noRollsMessage]);
-              }, 500);
-              return;
-            }
-
-            confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${effectiveRolls} tiradas disponibles.`;
-          }
+      if (shinyStatus) {
+        if (hasDailyAttempt) {
+          const extraInfo =
+            extraRollsFromStatus && extraRollsFromStatus > 0
+              ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
+              : '';
+          confirmationText = `Tenés un intento diario gratis disponible.${extraInfo}\n\n¿Querés usarlo para intentar desbloquear el modo SHINY?`;
         } else {
-          confirmationText = `¿Querés intentar desbloquear el modo SHINY?\n\nDetecto ${availableRolls} intentos disponibles (incluyendo el diario si todavía no lo usaste).`;
-        }
+          const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
+          if (effectiveRolls <= 0) {
+            setShinyGameState('idle');
+            setTimeout(() => {
+              const noRollsMessage: ChatMessage = {
+                id: `msg_${Date.now() + 1}`,
+                role: 'assistant',
+                content: 'Te quedaste sin tiradas por hoy. Podés comprar más para seguir intentando.',
+                timestamp: new Date(),
+                category: 'general',
+                showMercadoPagoButton: true
+              };
+              setMessages(prev => [...prev, noRollsMessage]);
+            }, 500);
+            return;
+          }
 
-        setTimeout(() => {
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: confirmationText,
-            timestamp: new Date(),
-            category: 'general'
-          };
-          setMessages(prev => [...prev, aiMessage]);
-        }, 500);
-        return;
+          confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${effectiveRolls} tiradas disponibles.`;
+        }
+      } else {
+        confirmationText = `¿Querés intentar desbloquear el modo SHINY?\n\nDetecto ${availableRolls} intentos disponibles (incluyendo el diario si todavía no lo usaste).`;
+      }
+
+      setTimeout(() => {
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: confirmationText,
+          timestamp: new Date(),
+          category: 'general'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      }, 500);
+      return;
     }
 
     // Detectar pregunta sobre tiradas restantes
@@ -986,27 +950,27 @@ const SteebChatAI: React.FC = () => {
 
     if (isRollsQuery) {
       const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
-      
-      if (normalizedTipo === 'white') {
-         const userMessage: ChatMessage = {
-           id: `msg_${Date.now()}`,
-           role: 'user',
-           content: message,
-           timestamp: new Date()
-         };
-         setMessages(prev => [...prev, userMessage]);
 
-         setTimeout(() => {
-           const aiMessage: ChatMessage = {
-             id: `msg_${Date.now() + 1}`,
-             role: 'assistant',
-             content: 'Para tener tiradas del modo SHINY, primero necesitas ser usuario **Black**.',
-             timestamp: new Date(),
-             category: 'general'
-           };
-           setMessages(prev => [...prev, aiMessage]);
-         }, 500);
-         return;
+      if (normalizedTipo === 'white') {
+        const userMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
+
+        setTimeout(() => {
+          const aiMessage: ChatMessage = {
+            id: `msg_${Date.now() + 1}`,
+            role: 'assistant',
+            content: 'Para tener tiradas del modo SHINY, primero necesitas ser usuario **Black**.',
+            timestamp: new Date(),
+            category: 'general'
+          };
+          setMessages(prev => [...prev, aiMessage]);
+        }, 500);
+        return;
       }
 
       const userMessage: ChatMessage = {
@@ -1030,11 +994,11 @@ const SteebChatAI: React.FC = () => {
           realtimeRolls
         );
         setShinyRolls(combinedTotal);
-        
+
         setIsTyping(false);
-        
+
         if (status.isShiny) {
-           const aiMessage: ChatMessage = {
+          const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
             content: '¡Ya sos usuario Shiny! 🌟 No necesitas más tiradas, ya tenés acceso ilimitado.',
@@ -1045,7 +1009,7 @@ const SteebChatAI: React.FC = () => {
         } else {
           const dailyText = status.dailyAttemptAvailable ? '✅ 1 intento diario disponible' : '❌ Intento diario usado';
           const extraText = effectiveExtraRolls > 0 ? `💎 ${effectiveExtraRolls} tiradas extra compradas` : '0 tiradas extra';
-          
+
           const aiMessage: ChatMessage = {
             id: `msg_${Date.now() + 1}`,
             role: 'assistant',
@@ -1171,7 +1135,7 @@ const SteebChatAI: React.FC = () => {
         type: 'extra',
         status: 'pending'
       }).catch(err => console.error('Error sincronizando tarea:', err));
-      
+
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
@@ -1186,187 +1150,48 @@ const SteebChatAI: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const { reply, actions } = await sendMessageToSteeb(message);
+        const { streamMessageToSteeb } = await import('@/services/steebApi');
 
-      const aiMessage: ChatMessage = {
-        id: `msg_${Date.now() + 1}`,
-        role: 'assistant',
-        content: reply.trim(),
-        timestamp: new Date()
-      };
+        // Variable para acumular el texto y actualizar el estado
+        let accumulatedContent = '';
+        let aiMessageId: string | null = null;
 
-      setMessages(prev => [...prev, aiMessage]);
-      await handleSteebActions(actions);
-    } catch (error) {
-      console.error('âš ï¸ Error comunicando con STEEB:', error);
+        const { actions } = await streamMessageToSteeb(message, (chunk) => {
+          setIsTyping(false); // Dejar de mostrar "escribiendo" apenas llega el primer chunk
+          accumulatedContent += chunk;
 
-      const errorMessage: ChatMessage = {
-        id: `msg_${Date.now() + 1}`,
-        role: 'assistant',
-        content: 'STEEB no te quiere escuchar            *frota sus lentes*',
-        timestamp: new Date()
-      };
+          if (!aiMessageId) {
+            aiMessageId = `msg_${Date.now() + 1}`;
+            setMessages(prev => [...prev, {
+              id: aiMessageId!,
+              role: 'assistant',
+              content: accumulatedContent,
+              timestamp: new Date()
+            }]);
+          } else {
+            setMessages(prev => prev.map(msg =>
+              msg.id === aiMessageId
+                ? { ...msg, content: accumulatedContent }
+                : msg
+            ));
+          }
+        });
 
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsTyping(false);
-    }
+        await handleSteebActions(actions);
+      } catch (error) {
+        console.error('⚠️ Error comunicando con STEEB:', error);
 
-  };
+        const errorMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'STEEB no te quiere escuchar            *frota sus lentes*',
+          timestamp: new Date()
+        };
 
-  const generateIntelligentResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
-    const taskContext = getTaskContext();
-    const currentHour = new Date().getHours();
-    const timeOfDay = currentHour < 12 ? 'maÃ±ana' : currentHour < 18 ? 'tarde' : 'noche';
-
-    // Enhanced pattern matching for more intelligent responses
-    if (message.includes('hola') || message.includes('buen dÃ­a') || message.includes('hey')) {
-      return `Â¡Buen ${timeOfDay}! Es hora de acciÃ³n. TenÃ©s ${taskContext.pending} tareas pendientes. Â¿CuÃ¡l vas a conquistar hoy?`;
-    }
-
-    if (message.includes('tarea') || message.includes('tareas')) {
-      if (taskContext.pending > 0) {
-        const responses = [
-          `TenÃ©s ${taskContext.pending} tareas esperando. La procrastinaciÃ³n es tu enemiga. ElegÃ­ una y dominala ahora.`,
-          `${taskContext.pending} tareas pendientes. Cada una es una oportunidad para ser mejor. EmpezÃ¡ con la mÃ¡s fÃ¡cil.`,
-          `Vi ${taskContext.pending} tareas sin completar. El Ã©xito se construye tarea por tarea. Â¿CuÃ¡l empieza hoy?`
-        ];
-        return responses[Math.floor(Math.random() * responses.length)];
-      } else {
-        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
+        setMessages(prev => [...prev, errorMessage]);
+      } finally {
+        setIsTyping(false);
       }
-    }
-
-    if (message.includes('procrastinar') || message.includes('postergar') || message.includes('despuÃ©s')) {
-      const responses = [
-        'El "despuÃ©s" es el idioma de los mediocres. Los ganadores hablan en "ahora". Â¿CuÃ¡l elegÃ­s?',
-        'Cada minuto que postergÃ¡s es un minuto que le regalÃ¡s a la mediocridad. Recuperalo ahora.',
-        'La procrastinaciÃ³n es el impuesto que pagÃ¡s por no vivir tu potencial. Â¿Vas a seguir pagando?',
-        'El momento perfecto fue hace 5 minutos. El segundo mejor momento es ahora. ActuÃ¡.'
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-
-    if (message.includes('motivaciÃ³n') || message.includes('Ã¡nimo') || message.includes('energÃ­a')) {
-      const responses = [
-        'La motivaciÃ³n no aparece mÃ¡gicamente. Se construye con cada tarea completada. HacÃ© la primera.',
-        'El Ã¡nimo es subproducto de la acciÃ³n. Movete, aunque sea un paso pequeÃ±o. La energÃ­a seguirÃ¡.',
-        'La motivaciÃ³n es para principiantes. Los profesionales usan disciplina. EmpezÃ¡ ahora.',
-        'Tu energÃ­a mental es como un mÃºsculo: cuanto mÃ¡s lo ejercitas actuar, mÃ¡s fuerte se vuelve.'
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-
-    if (message.includes('ayuda') || message.includes('ayÃºdame')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('cÃ³mo') || message.includes('cÃ³mo')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('gracias') || message.includes('thank')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('cansado') || message.includes('fatiga') || message.includes('agotado')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('difÃ­cil') || message.includes('imposible') || message.includes('no puedo')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('plan') || message.includes('organizar')) {
-      // Abrir panel de tareas y cerrar otros paneles
-      setShowSideTasks(true);
-      setShowCalendar(false);
-      setShowProgress(false);
-      return `Tu plan es simple: ${taskContext.pending > 0 ? `1) Completar ${taskContext.pending} tareas pendientes` : '1) Agregar nuevas metas'}, 2) Celebrar cada victoria, 3) Repetir maÃ±ana. Â¿Necesitas mÃ¡s detalles?`;
-    }
-
-    if (message.includes('calendario') || message.includes('calendario')) {
-      // Abrir panel de calendario y cerrar otros paneles
-      setShowCalendar(true);
-      setShowSideTasks(false);
-      setShowProgress(false);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('progreso') || message.includes('estadÃ­sticas') || message.includes('grÃ¡fico')) {
-      // Abrir panel de progreso y cerrar otros paneles
-      setShowProgress(true);
-      setShowSideTasks(false);
-      setShowCalendar(false);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('tiempo') || message.includes('cuÃ¡nto')) {
-      const responses = [
-        'El tiempo que gastas pensando en hacer la tarea es suficiente para completarla.',
-        'No tienes tiempo para procrastinar, pero sÃ­ para triunfar. Usalo sabiamente.',
-        'El tiempo es tu recurso mÃ¡s valioso. Cada minuto que usas productivamente es una inversiÃ³n en tu futuro.'
-      ];
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-
-    // Default intelligent responses
-    const defaultResponses = [
-      'Hacelo ahora y despuÃ©s nos preocupamos.',
-      'EmpezÃ¡ por la mÃ¡s fÃ¡cil y sigamos.',
-      'Una por una, no hay otro secreto.',
-      'Â¿Y si empezamos ya y vemos quÃ© pasa?',
-      'Hoy es buen dÃ­a para terminar estas cosas.',
-      'Vamos, son apenas 10 minutos de foco.',
-      'DespuÃ©s de esto seguimos con lo nuestro.'
-    ];
-
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-  };
-
-  const generateFallbackResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
-    const taskContext = getTaskContext();
-
-    if (message.includes('tarea') || message.includes('tareas')) {
-      // Abrir panel de tareas sin cerrar otros paneles
-      setShowSideTasks(true);
-      if (taskContext.pending > 0) {
-        return `TenÃ©s ${taskContext.pending} tareas pendientes. ElegÃ­ una y empezÃ¡ ahora. No pienses, hacÃ©.`;
-      } else {
-        return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-      }
-    }
-
-    if (message.includes('calendario') || message.includes('calendario')) {
-      // Abrir panel de calendario sin cerrar otros paneles
-      setShowCalendar(true);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('progreso') || message.includes('estadÃ­sticas') || message.includes('grÃ¡fico')) {
-      // Abrir panel de progreso sin cerrar otros paneles
-      setShowProgress(true);
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('procrastinar') || message.includes('postergar')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    if (message.includes('motivaciÃ³n') || message.includes('Ã¡nimo')) {
-      return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-    }
-
-    const fallbacks = [
-      'Hacelo ahora y listo, seguimos.',
-      'EmpezÃ¡, despuÃ©s vemos el resto.',
-      'Una a la vez, asÃ­ se va.',
-      'Vamos, terminemos esto rÃ¡pidamente.'
-    ];
-
-    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -1379,337 +1204,329 @@ const SteebChatAI: React.FC = () => {
   let shinyAssistantColorIndex = 0;
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <>
+        <style dangerouslySetInnerHTML={{
+          __html: `
         @keyframes blink {
           0%, 50% { opacity: 1; }
           51%, 100% { opacity: 0; }
         }
       `}} />
-      <div className={`flex h-full ${isDarkMode || isShinyMode ? 'bg-black text-white' : 'bg-white text-black'} flex-col`}>
-      {/* Main Content - Chat + Side Tasks */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Messages Area */}
-        <div
-          className={`overflow-y-auto px-4 pt-4 pb-8 transition-all duration-300 absolute left-0 right-0 ${
-            isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-white'
-          }`}
-          style={{
-            zIndex: 100,
-            top: '0px',
-            bottom: panelHeight > 0
-              ? `${panelHeight + 12}px` // Dejar 60px para input + espacio del panel
-              : '32px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
-          }}
-        >
-        {messages.map((message, index) => {
-          const nextMessage = messages[index + 1];
-          const shouldAddSpacing = !nextMessage || nextMessage.role !== message.role;
-          
-          return (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} ${shouldAddSpacing ? 'mb-4' : 'mb-1'}`}
-          >
-            {/* Message Content with improved colors - PR #143 */}
-            <div className={`flex items-end space-x-2 max-w-[85%] ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}>
-              {/* Message bubble */}
-              {(() => {
-                let assistantBubbleStyle: React.CSSProperties | undefined;
-                if (message.role === 'assistant') {
-                  if (isShinyMode) {
-                    assistantBubbleStyle = {
-                      borderColor: shinyMessageColors[shinyAssistantColorIndex++ % shinyMessageColors.length],
-                      borderWidth: '2px'
-                    };
-                  } else {
-                    assistantBubbleStyle = { borderColor: undefined, borderWidth: undefined };
-                  }
-                }
-                return (
-                  <div
-                    className={`px-4 py-3 rounded-2xl relative group ${
-                  message.role === 'assistant'
-                    ? isShinyMode
-                      ? 'bg-black text-white border border-white shadow-md'
-                      : `${isDarkMode ? 'bg-black text-white border-2 border-white' : 'bg-white text-black border border-gray-300'} shadow-md`
-                    : isShinyMode
-                      ? 'bg-white text-black border border-white shadow-md'
-                    : isDarkMode
-                        ? 'bg-gray-400 text-black border border-black shadow-md'
-                        : 'bg-gray-300 border border-gray-300 text-black shadow-md'
+        <div className={`flex h-full ${isDarkMode || isShinyMode ? 'bg-black text-white' : 'bg-white text-black'} flex-col`}>
+          {/* Main Content - Chat + Side Tasks */}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            {/* Messages Area */}
+            <div
+              className={`overflow-y-auto px-4 pt-4 pb-8 transition-all duration-300 absolute left-0 right-0 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-white'
                 }`}
-                    style={assistantBubbleStyle}
-                  >
-
-                <p
-              className="text-sm leading-relaxed whitespace-pre-wrap"
               style={{
-                color: message.role === 'assistant'
-                  ? (isDarkMode || isShinyMode ? '#FFFFFF !important' : '#000000 !important')
-                  : isDarkMode
-                    ? '#000000 !important'
-                    : (isShinyMode ? '#000000 !important' : '#000000 !important'),
-                backgroundColor: 'transparent',
-                opacity: 1,
-                WebkitTextFillColor: message.role === 'assistant'
-                  ? (isDarkMode || isShinyMode ? '#FFFFFF' : '#000000')
-                  : isDarkMode
-                    ? '#000000'
-                    : (isShinyMode ? '#000000' : '#000000')
+                zIndex: 100,
+                top: '0px',
+                bottom: panelHeight > 0
+                  ? `${panelHeight + 12}px` // Dejar 60px para input + espacio del panel
+                  : '32px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
               }}
             >
-                  {renderMessageContent(message.content)}
-                </p>
+              {messages.map((message, index) => {
+                const nextMessage = messages[index + 1];
+                const shouldAddSpacing = !nextMessage || nextMessage.role !== message.role;
 
-                {/* Timestamp with improved styling */}
-                <div
-                  className={`text-xs mt-2 flex items-center space-x-1 ${
-                    message.role === 'assistant'
-                      ? (isShinyMode ? 'text-white !important' : isDarkMode ? 'text-gray-300' : 'text-gray-500')
-                      : (isShinyMode ? 'text-black !important' : 'text-white')
-                  }`}
-                >
-                  <Clock className={`w-3 h-3 ${isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}`} />
-                  <span className={isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}>
-                    {message.timestamp.toLocaleTimeString('es-ES', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
-                </div>
-
-                {/* BotÃ³n de Mercado Pago */}
-                {message.showMercadoPagoButton && (
-                  <button
-                    onClick={() => {
-                      // Enviar evento para abrir modal de pago (cuando exista)
-                      const buyDarkEvent = new CustomEvent('buy-dark-mode', {
-                        detail: {
-                          source: 'chat-button',
-                          timestamp: new Date()
-                        }
-                      });
-                      window.dispatchEvent(buyDarkEvent);
-                    }}
-                    className={`w-full mt-3 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md border-2 ${
-                      isShinyMode || isDarkMode
-                        ? 'bg-white text-black border-white hover:bg-gray-100'
-                        : 'bg-black text-white border-black hover:bg-gray-800'
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    Pagar con Mercado Pago
-                  </button>
-                )}
-
-                {/* Opciones de pago mÃºltiples */}
-                {message.paymentOptions && (
-                  <div className="mt-3 space-y-2">
-                    {message.paymentOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => {
-                          const event = new CustomEvent(option.action, {
-                            detail: {
-                              planId: option.planId,
-                              timestamp: new Date()
-                            }
-                          });
-                          window.dispatchEvent(event);
-                        }}
-                        className={`shiny-option-btn w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${
-                          isShinyMode || isDarkMode
-                            ? 'bg-black text-white border-0'
-                            : 'bg-white text-black border-0'
-                        }`}
-                        style={isShinyMode || isDarkMode ? { backgroundColor: '#000000' } : undefined}
-                      >
-                    <span>{option.label}</span>
-                    <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}>
-                      {option.price}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-              </div>
-                );
-              })()}
-            </div>
-          </div>
-        );
-        })}
-
-        {/* Enhanced Typing Indicator */}
-        {isTyping && (
-          <div className="flex justify-start mb-4">
-            <div className="flex items-end space-x-2">
-              {/* Typing animation only - no bubble */}
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-            <div ref={messagesEndRef} />
-        </div>
-
-        {/* Side Tasks Panel - Altura predefinida */}
-        <FixedPanelContainer
-          isOpen={showSideTasks}
-          onClose={() => setShowSideTasks(false)}
-          onHeightChange={handlePanelHeightChange}
-          minHeight={400}
-                  >
-          <SimpleSideTasksPanel onClose={() => setShowSideTasks(false)} />
-        </FixedPanelContainer>
-
-        {/* Progress Panel - Altura predefinida */}
-        <FixedPanelContainer
-          isOpen={showProgress}
-          onClose={() => setShowProgress(false)}
-          onHeightChange={handlePanelHeightChange}
-          minHeight={400}
-                  >
-          <SimpleProgressPanel onClose={() => setShowProgress(false)} />
-        </FixedPanelContainer>
-
-        {/* Calendar Panel - Altura predefinida */}
-        <FixedPanelContainer
-          isOpen={showCalendar}
-          onClose={() => setShowCalendar(false)}
-          onHeightChange={handlePanelHeightChange}
-                  >
-          <SimpleCalendarPanel onClose={() => setShowCalendar(false)} />
-        </FixedPanelContainer>
-
-        {/* Enhanced Input Area with improved colors - Positionado arriba de los paneles */}
-        <div
-          className={`${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-gray-100'} backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0`}
-          style={{
-            zIndex: 100,
-            bottom: panelHeight > 0 ? `${Math.max(panelHeight - 10, 12)}px` : '16px',
-            backgroundColor: isShinyMode ? '#000000' : undefined
-          }}
-        >
-          <div className="flex items-end space-x-2">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder=""
-                className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${
-                  isShinyMode
-                    ? 'bg-white text-black border-white focus:!border-white'
-                    : isDarkMode
-                      ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
-                      : 'bg-white text-black border-gray-300 focus:!border-black'
-                } ${inputMessage ? 'pl-3' : 'pl-10'}`}
-                style={{
-                  fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-                  fontWeight: '400',
-                  fontSize: '16px'
-                }}
-              />
-              {/* Cursor clÃ¡sico parpadeante */}
-              {!inputMessage && (
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                return (
                   <div
-                    className={`w-0.5 h-4 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-white' : 'bg-black'}`}
-                    style={{
-                      animation: 'blink 1s step-end infinite'
-                    }}
-                  ></div>
+                    key={message.id}
+                    className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} ${shouldAddSpacing ? 'mb-4' : 'mb-1'}`}
+                  >
+                    {/* Message Content with improved colors - PR #143 */}
+                    <div className={`flex items-end space-x-2 max-w-[85%] ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}>
+                      {/* Message bubble */}
+                      {(() => {
+                        let assistantBubbleStyle: React.CSSProperties | undefined;
+                        if (message.role === 'assistant') {
+                          if (isShinyMode) {
+                            assistantBubbleStyle = {
+                              borderColor: shinyMessageColors[shinyAssistantColorIndex++ % shinyMessageColors.length],
+                              borderWidth: '2px'
+                            };
+                          } else {
+                            assistantBubbleStyle = { borderColor: undefined, borderWidth: undefined };
+                          }
+                        }
+                        return (
+                          <div
+                            className={`px-4 py-3 rounded-2xl relative group ${message.role === 'assistant'
+                              ? isShinyMode
+                                ? 'bg-black text-white border border-white shadow-md'
+                                : `${isDarkMode ? 'bg-black text-white border-2 border-white' : 'bg-white text-black border border-gray-300'} shadow-md`
+                              : isShinyMode
+                                ? 'bg-white text-black border border-white shadow-md'
+                                : isDarkMode
+                                  ? 'bg-gray-400 text-black border border-black shadow-md'
+                                  : 'bg-gray-300 border border-gray-300 text-black shadow-md'
+                              }`}
+                            style={assistantBubbleStyle}
+                          >
+
+                            <p
+                              className="text-sm leading-relaxed whitespace-pre-wrap"
+                              style={{
+                                color: message.role === 'assistant'
+                                  ? (isDarkMode || isShinyMode ? '#FFFFFF !important' : '#000000 !important')
+                                  : isDarkMode
+                                    ? '#000000 !important'
+                                    : (isShinyMode ? '#000000 !important' : '#000000 !important'),
+                                backgroundColor: 'transparent',
+                                opacity: 1,
+                                WebkitTextFillColor: message.role === 'assistant'
+                                  ? (isDarkMode || isShinyMode ? '#FFFFFF' : '#000000')
+                                  : isDarkMode
+                                    ? '#000000'
+                                    : (isShinyMode ? '#000000' : '#000000')
+                              }}
+                            >
+                              {renderMessageContent(message.content)}
+                            </p>
+
+                            {/* Timestamp with improved styling */}
+                            <div
+                              className={`text-xs mt-2 flex items-center space-x-1 ${message.role === 'assistant'
+                                ? (isShinyMode ? 'text-white !important' : isDarkMode ? 'text-gray-300' : 'text-gray-500')
+                                : (isShinyMode ? 'text-black !important' : 'text-white')
+                                }`}
+                            >
+                              <Clock className={`w-3 h-3 ${isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}`} />
+                              <span className={isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}>
+                                {message.timestamp.toLocaleTimeString('es-ES', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+
+                            {/* BotÃ³n de Mercado Pago */}
+                            {message.showMercadoPagoButton && (
+                              <button
+                                onClick={() => {
+                                  // Enviar evento para abrir modal de pago (cuando exista)
+                                  const buyDarkEvent = new CustomEvent('buy-dark-mode', {
+                                    detail: {
+                                      source: 'chat-button',
+                                      timestamp: new Date()
+                                    }
+                                  });
+                                  window.dispatchEvent(buyDarkEvent);
+                                }}
+                                className={`w-full mt-3 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md border-2 ${isShinyMode || isDarkMode
+                                  ? 'bg-white text-black border-white hover:bg-gray-100'
+                                  : 'bg-black text-white border-black hover:bg-gray-800'
+                                  }`}
+                              >
+                                <CreditCard className="w-4 h-4" />
+                                Pagar con Mercado Pago
+                              </button>
+                            )}
+
+                            {/* Opciones de pago mÃºltiples */}
+                            {message.paymentOptions && (
+                              <div className="mt-3 space-y-2">
+                                {message.paymentOptions.map((option) => (
+                                  <button
+                                    key={option.id}
+                                    onClick={() => {
+                                      const event = new CustomEvent(option.action, {
+                                        detail: {
+                                          planId: option.planId,
+                                          timestamp: new Date()
+                                        }
+                                      });
+                                      window.dispatchEvent(event);
+                                    }}
+                                    className={`shiny-option-btn w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${isShinyMode || isDarkMode
+                                      ? 'bg-black text-white border-0'
+                                      : 'bg-white text-black border-0'
+                                      }`}
+                                    style={isShinyMode || isDarkMode ? { backgroundColor: '#000000' } : undefined}
+                                  >
+                                    <span>{option.label}</span>
+                                    <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}>
+                                      {option.price}
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Enhanced Typing Indicator */}
+              {isTyping && (
+                <div className="flex justify-start mb-4">
+                  <div className="flex items-end space-x-2">
+                    {/* Typing animation only - no bubble */}
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* Character count indicator */}
-              {inputMessage.length > 0 && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <span className={`text-xs ${
-                    inputMessage.length > 100 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'
-                  }`}>
-                    {inputMessage.length}
-                  </span>
-                </div>
-              )}
+              <div ref={messagesEndRef} />
             </div>
 
-            <button
-              data-custom-color="true"
-              onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isTyping}
-              className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 border-2 ${
-                isShinyMode
-                  ? 'bg-black border-white hover:bg-black'
-                  : isDarkMode
-                    ? 'bg-black border-gray-700 hover:bg-gray-800'
-                    : 'bg-white border-white hover:bg-gray-100'
-              }`}
+            {/* Side Tasks Panel - Altura predefinida */}
+            <FixedPanelContainer
+              isOpen={showSideTasks}
+              onClose={() => setShowSideTasks(false)}
+              onHeightChange={handlePanelHeightChange}
+              minHeight={400}
             >
-              {isShinyMode ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="url(#shiny-arrow-gradient)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-5 h-5"
-                >
-                  <defs>
-                    <linearGradient id="shiny-arrow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#ff004c">
-                        <animate attributeName="stop-color" values="#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff;#ff004c" dur="4s" repeatCount="indefinite" />
-                      </stop>
-                      <stop offset="100%" stopColor="#ff00ff">
-                        <animate attributeName="stop-color" values="#ff00ff;#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff" dur="4s" repeatCount="indefinite" />
-                      </stop>
-                    </linearGradient>
-                  </defs>
-                  <path d="m5 12 7-7 7 7" />
-                  <path d="M12 19V5" />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`}
-                >
-                  <path d="m5 12 7-7 7 7" />
-                </svg>
-              )}
-            </button>
+              <SimpleSideTasksPanel onClose={() => setShowSideTasks(false)} />
+            </FixedPanelContainer>
 
+            {/* Progress Panel - Altura predefinida */}
+            <FixedPanelContainer
+              isOpen={showProgress}
+              onClose={() => setShowProgress(false)}
+              onHeightChange={handlePanelHeightChange}
+              minHeight={400}
+            >
+              <SimpleProgressPanel onClose={() => setShowProgress(false)} />
+            </FixedPanelContainer>
+
+            {/* Calendar Panel - Altura predefinida */}
+            <FixedPanelContainer
+              isOpen={showCalendar}
+              onClose={() => setShowCalendar(false)}
+              onHeightChange={handlePanelHeightChange}
+            >
+              <SimpleCalendarPanel onClose={() => setShowCalendar(false)} />
+            </FixedPanelContainer>
+
+            {/* Enhanced Input Area with improved colors - Positionado arriba de los paneles */}
+            <div
+              className={`${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-gray-100'} backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0`}
+              style={{
+                zIndex: 100,
+                bottom: panelHeight > 0 ? `${Math.max(panelHeight - 10, 12)}px` : '16px',
+                backgroundColor: isShinyMode ? '#000000' : undefined
+              }}
+            >
+              <div className="flex items-end space-x-2">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder=""
+                    className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${isShinyMode
+                      ? 'bg-white text-black border-white focus:!border-white'
+                      : isDarkMode
+                        ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
+                        : 'bg-white text-black border-gray-300 focus:!border-black'
+                      } ${inputMessage ? 'pl-3' : 'pl-10'}`}
+                    style={{
+                      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+                      fontWeight: '400',
+                      fontSize: '16px'
+                    }}
+                  />
+                  {/* Cursor clÃ¡sico parpadeante */}
+                  {!inputMessage && (
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                      <div
+                        className={`w-0.5 h-4 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-white' : 'bg-black'}`}
+                        style={{
+                          animation: 'blink 1s step-end infinite'
+                        }}
+                      ></div>
+                    </div>
+                  )}
+
+                  {/* Character count indicator */}
+                  {inputMessage.length > 0 && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <span className={`text-xs ${inputMessage.length > 100 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'
+                        }`}>
+                        {inputMessage.length}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  data-custom-color="true"
+                  onClick={handleSendMessage}
+                  disabled={!inputMessage.trim() || isTyping}
+                  className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 border-2 ${isShinyMode
+                    ? 'bg-black border-white hover:bg-black'
+                    : isDarkMode
+                      ? 'bg-black border-gray-700 hover:bg-gray-800'
+                      : 'bg-white border-white hover:bg-gray-100'
+                    }`}
+                >
+                  {isShinyMode ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="url(#shiny-arrow-gradient)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <defs>
+                        <linearGradient id="shiny-arrow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#ff004c">
+                            <animate attributeName="stop-color" values="#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff;#ff004c" dur="4s" repeatCount="indefinite" />
+                          </stop>
+                          <stop offset="100%" stopColor="#ff00ff">
+                            <animate attributeName="stop-color" values="#ff00ff;#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff" dur="4s" repeatCount="indefinite" />
+                          </stop>
+                        </linearGradient>
+                      </defs>
+                      <path d="m5 12 7-7 7 7" />
+                      <path d="M12 19V5" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    >
+                      <path d="m5 12 7-7 7 7" />
+                    </svg>
+                  )}
+                </button>
+
+              </div>
+
+
+            </div>
           </div>
-
-
         </div>
-      </div>
-    </div>
-    </>
+      </>
   );
 };
 
-export default SteebChatAI;
+  export default SteebChatAI;
 
 
 
