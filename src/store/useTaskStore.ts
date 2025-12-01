@@ -409,6 +409,18 @@ export const useTaskStore = create<TaskStore>()(
           }
         },
 
+        toggleTask: async (id) => {
+          const task = get().tasks.find(t => t.id === id);
+          if (!task) return;
+          
+          const newCompleted = !task.completed;
+          await get().updateTask(id, {
+            completed: newCompleted,
+            status: newCompleted ? 'completed' : 'pending',
+            completedDate: newCompleted ? new Date().toISOString() : undefined,
+          });
+        },
+
         completeTask: async (id) => {
           const task = get().tasks.find(t => t.id === id);
           if (!task) return;
