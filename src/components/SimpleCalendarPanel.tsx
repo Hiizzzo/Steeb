@@ -378,7 +378,9 @@ const SimpleCalendarPanel: React.FC<SimpleCalendarPanelProps> = ({ onClose }) =>
                               ? { borderLeft: '4px solid #ffffff' }
                               : undefined),
                           transform: `translateX(-${rowOffsetById[task.id] || 0}px)`,
-                          transition: activeTaskIdRef.current === task.id ? 'none' : 'transform 200ms ease'
+                          transition: activeTaskIdRef.current === task.id ? 'none' : 'transform 200ms ease',
+                          touchAction: 'pan-y',
+                          userSelect: (rowOffsetById[task.id] || 0) > 0 ? 'none' : undefined
                         }}
                         onPointerDown={handleTaskPointerDown(task.id)}
                         onPointerMove={handleTaskPointerMove(task.id)}
