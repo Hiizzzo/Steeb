@@ -15,6 +15,12 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Colección de tareas - Permitir acceso a usuarios autenticados
+    // (La lógica de negocio valida el ownerUid, pero las reglas deben permitir la escritura)
+    match /tasks/{taskId} {
+      allow read, write: if request.auth != null;
+    }
+
     // Otras colecciones - permitir operaciones normales
     match /{document=**} {
       allow read, write: if request.auth != null;
