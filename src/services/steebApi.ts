@@ -125,20 +125,22 @@ export async function sendMessageToSteeb(message: string): Promise<SteebApiSucce
 
 export async function streamMessageToSteeb(
   message: string,
-  onChunk: (text: string) => void
+  onChunk: (text: string) => void,
+  context?: any
 ): Promise<{ actions: SteebAction[] }> {
-  return streamMessageToSteebRobust(message, onChunk);
+  return streamMessageToSteebRobust(message, onChunk, context);
 }
 
 async function streamMessageToSteebRobust(
   message: string,
-  onChunk: (text: string) => void
+  onChunk: (text: string) => void,
+  context?: any
 ): Promise<{ actions: SteebAction[] }> {
   const userId = await getPersistentUserId();
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, userId })
+    body: JSON.stringify({ message, userId, context })
   });
 
   console.log('🌊 STEEB Response Status:', response.status);

@@ -865,6 +865,7 @@ const SteebChatAI: React.FC = () => {
         // Variable para acumular el texto y actualizar el estado
         let accumulatedContent = '';
         let aiMessageId: string | null = null;
+        const context = getTaskContext();
 
         const { actions } = await streamMessageToSteeb(message, (chunk) => {
           setIsTyping(false); // Dejar de mostrar "escribiendo" apenas llega el primer chunk
@@ -885,7 +886,7 @@ const SteebChatAI: React.FC = () => {
                 : msg
             ));
           }
-        });
+        }, context);
 
         await handleSteebActions(actions);
       } catch (error) {
