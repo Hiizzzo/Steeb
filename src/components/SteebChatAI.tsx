@@ -158,49 +158,7 @@ const SteebChatAI: React.FC = () => {
   };
 
   // Respuestas predefinidas para mejor UX - PR #142
-  const predefinedResponses: Record<string, string> = {
-    'hola': 'Â¡Hola! Â¿QuÃ© tareitas tenemos para hoy?',
-    'buenos dÃ­as': 'Â¡Buenos dÃ­as! ðŸ’ª Empecemos el dÃ­a con energÃ­a.',
-    'buenas tardes': 'Â¡Buenas tardes! Â¿CÃ³mo va tu productividad hoy?',
-    'buenas noches': 'Â¡Buenas noches! ðŸŒ™ Terminemos el dÃ­a fuerte.',
-    'cÃ³mo estÃ¡s': 'Â¡Estoy listo para ayudarte! Â¿QuÃ© necesitamos hacer?',
-    'ayuda': 'Puedo crear tareas, mostrar tu progreso y motivarte. Â¡Escribe "tareas" para ver! Los paneles de progreso y calendario se abren sin mensajes.',
-    'tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
-    'tarea': 'SPECIAL_COMMAND:OPEN_TASKS',
-    'mis tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
-    'ver tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
-    'lista de tareas': 'SPECIAL_COMMAND:OPEN_TASKS',
-    'que tengo que hacer': 'SPECIAL_COMMAND:OPEN_TASKS',
-    'pendientes': 'SPECIAL_COMMAND:OPEN_TASKS',
-    'progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'ver progreso': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'mis estadÃ­sticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'estadÃ­sticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'mÃ©tricas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'rendimiento': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'avance': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'estadisticas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'metricas': 'SPECIAL_COMMAND:OPEN_PROGRESS',
-    'calendario': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'agenda': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'mi calendario': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'fechas': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'eventos': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'mes': 'SPECIAL_COMMAND:OPEN_CALENDAR',
-    'motÃ­rame': 'Â¡TÃº puedes! ðŸ’ª Cada tarea completada te acerca a tu meta.',
-    'gracias': 'Â¡De nada! Estoy aquÃ­ para ayudarte a lograr tus metas.',
-    'adiÃ³s': 'Â¡Hasta luego! Termina bien tus tareas.',
-    'ok': 'Â¡Perfecto! Vamos por ello.',
-    'estoy cansado': 'Descansa un poco, Â¡pero no te rindas! ðŸš€',
-    'no sÃ© quÃ© hacer': 'Empecemos con algo pequeÃ±o. Â¿CuÃ¡l es la tarea mÃ¡s sencilla que puedes hacer ahora?',
-    'estoy aburrido': 'Â¡Perfecto momento para avanzar en esas tareas pendientes! ðŸ“‹',
-    'feliz': 'Â¡Me encanta tu energÃ­a! CanalÃ­zala en una tarea y verÃ¡s resultados. âš¡',
-    'triste': 'Â¡No te preocupes! Una pequeÃ±a tarea puede mejorar tu estado de Ã¡nimo. ðŸ’™',
-    'comprar dark mode': 'SPECIAL_COMMAND:BUY_DARK_MODE',
-    'comprar modo dark': 'SPECIAL_COMMAND:BUY_DARK_MODE',
-    'quiero dark mode': 'SPECIAL_COMMAND:BUY_DARK_MODE',
-    'quiero modo dark': 'SPECIAL_COMMAND:BUY_DARK_MODE'
-  };
+  const predefinedResponses: Record<string, string> = {};
 
   const getInitialMessage = () => {
     return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
@@ -391,7 +349,7 @@ const SteebChatAI: React.FC = () => {
                 description:
                   typeof action.payload?.description === 'string'
                     ? action.payload.description
-                    : undefined,
+                  : undefined,
                 type: 'extra',
                 status: 'pending',
                 completed: false,
@@ -423,9 +381,82 @@ const SteebChatAI: React.FC = () => {
               );
               break;
             }
-            case 'PLAY_SHINY_GAME':
+            case 'PLAY_SHINY_GAME': {
+              const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+
+              if (normalizedTipo === 'shiny') {
+                appendAssistantMessage('¡Wowowow amigo! 🌟 ¡Ya sos usuario SHINY! No necesitas jugar más, ya sos parte de la élite.');
+                break;
+              }
+
+              if (normalizedTipo === 'white') {
+                appendAssistantMessage('Para acceder al modo SHINY, primero necesitas ser usuario **Black**.');
+                break;
+              }
+
               setShinyGameState('confirming');
+              
+              // Check rolls logic
+              const realtimeRolls = typeof userProfile?.shinyRolls === 'number' ? userProfile.shinyRolls : null;
+              let availableRolls = getBestRollsCount(shinyRolls, realtimeRolls);
+              let shinyStatus: ShinyStatusResponse | null = null;
+              
+              try {
+                const { getShinyStatus } = await import('@/services/steebApi');
+                const status = await getShinyStatus(user?.id);
+                shinyStatus = status;
+                const totalFromStatus = typeof status?.totalAvailable === 'number' ? status.totalAvailable : undefined;
+                const combinedRolls = getBestRollsCount(
+                  totalFromStatus,
+                  typeof realtimeRolls === 'number'
+                    ? realtimeRolls + (status.dailyAttemptAvailable ? 1 : 0)
+                    : undefined,
+                  availableRolls
+                );
+                availableRolls = combinedRolls;
+                setShinyRolls(combinedRolls);
+              } catch (statusError) {
+                console.error('Error obteniendo estado shiny:', statusError);
+                availableRolls = getBestRollsCount(availableRolls, realtimeRolls);
+                setShinyRolls(availableRolls);
+              }
+
+              const hasDailyAttempt = !!shinyStatus?.dailyAttemptAvailable;
+              const extraRollsFromStatus = typeof shinyStatus?.extraRolls === 'number' ? shinyStatus.extraRolls : undefined;
+              let confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`;
+
+              if (shinyStatus) {
+                if (hasDailyAttempt) {
+                  const extraInfo = extraRollsFromStatus && extraRollsFromStatus > 0
+                      ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
+                      : '';
+                  confirmationText = `Tenés un intento diario gratis disponible.${extraInfo}\n\n¿Querés usarlo para intentar desbloquear el modo SHINY?`;
+                } else {
+                  const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
+                  if (effectiveRolls <= 0) {
+                    setShinyGameState('idle');
+                    setTimeout(() => {
+                      const noRollsMessage: ChatMessage = {
+                        id: `msg_${Date.now() + 1}`,
+                        role: 'assistant',
+                        content: 'Te quedaste sin tiradas por hoy. Podés comprar más para seguir intentando.',
+                        timestamp: new Date(),
+                        category: 'general',
+                        showMercadoPagoButton: true
+                      };
+                      setMessages(prev => [...prev, noRollsMessage]);
+                    }, 500);
+                    return;
+                  }
+                  confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${effectiveRolls} tiradas disponibles.`;
+                }
+              } else {
+                confirmationText = `¿Querés intentar desbloquear el modo SHINY?\n\nDetecto ${availableRolls} intentos disponibles (incluyendo el diario si todavía no lo usaste).`;
+              }
+
+              appendAssistantMessage(confirmationText);
               break;
+            }
             case 'SHOW_MOTIVATION': {
               const note =
                 typeof action.payload?.note === 'string' && action.payload.note.trim().length
@@ -526,26 +557,6 @@ const SteebChatAI: React.FC = () => {
 
   // Detectar respuestas predefinidas - PR #142
   const getPredefinedResponse = (message: string): string | null => {
-    const normalizedMessage = message.toLowerCase().trim();
-
-    console.log('ðŸ” Debug - Mensaje normalizado:', `"${normalizedMessage}"`);
-    console.log('ðŸ” Debug - Respuestas disponibles:', Object.keys(predefinedResponses));
-
-    // Buscar coincidencia exacta
-    if (predefinedResponses[normalizedMessage]) {
-      console.log('âœ… Debug - Coincidencia exacta encontrada:', normalizedMessage);
-      return predefinedResponses[normalizedMessage];
-    }
-
-    // Buscar coincidencias parciales
-    for (const [key, response] of Object.entries(predefinedResponses)) {
-      if (normalizedMessage.includes(key) || key.includes(normalizedMessage)) {
-        console.log('âœ… Debug - Coincidencia parcial encontrada:', key, '->', response);
-        return response;
-      }
-    }
-
-    console.log('âŒ Debug - No se encontrÃ³ respuesta predefinida para:', normalizedMessage);
     return null;
   };
 
@@ -810,296 +821,9 @@ const SteebChatAI: React.FC = () => {
       return;
     }
 
-    // Detectar intención de jugar Shiny (PRIORIDAD ALTA)
-    const lowerMsg = message.toLowerCase();
-    const shinyKeywords = ['shiny', 'jugar', 'desbloquear', 'modo', 'tirada', 'tiradas', 'intentar', 'probar'];
-    const isShinyIntent = lowerMsg.includes('shiny') || (lowerMsg.includes('tirada') && lowerMsg.includes('jugar'));
-
-    if (isShinyIntent) {
-      const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
-
-      // Si ya es Shiny, no dejar jugar y felicitar
-      if (normalizedTipo === 'shiny') {
-        const userMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'user',
-          content: message,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, userMessage]);
-
-        setTimeout(() => {
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: '¡Wowowow amigo! 🌟 ¡Ya sos usuario SHINY! No necesitas jugar más, ya sos parte de la élite.',
-            timestamp: new Date(),
-            category: 'general'
-          };
-          setMessages(prev => [...prev, aiMessage]);
-        }, 500);
-        return;
-      }
-
-      if (normalizedTipo === 'white') {
-        const userMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'user',
-          content: message,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, userMessage]);
-
-        setTimeout(() => {
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: 'Para acceder al modo SHINY, primero necesitas ser usuario **Black**.',
-            timestamp: new Date(),
-            category: 'general'
-          };
-          setMessages(prev => [...prev, aiMessage]);
-        }, 500);
-        return;
-      }
-
-      setShinyGameState('confirming');
-      const realtimeRolls = typeof userProfile?.shinyRolls === 'number' ? userProfile.shinyRolls : null;
-      let availableRolls = getBestRollsCount(shinyRolls, realtimeRolls);
-      let shinyStatus: ShinyStatusResponse | null = null;
-      try {
-        const { getShinyStatus } = await import('@/services/steebApi');
-        const status = await getShinyStatus(user?.id);
-        shinyStatus = status;
-        const totalFromStatus = typeof status?.totalAvailable === 'number' ? status.totalAvailable : undefined;
-        const combinedRolls = getBestRollsCount(
-          totalFromStatus,
-          typeof realtimeRolls === 'number'
-            ? realtimeRolls + (status.dailyAttemptAvailable ? 1 : 0)
-            : undefined,
-          availableRolls
-        );
-        availableRolls = combinedRolls;
-        setShinyRolls(combinedRolls);
-      } catch (statusError) {
-        console.error('Error obteniendo estado shiny:', statusError);
-        availableRolls = getBestRollsCount(availableRolls, realtimeRolls);
-        setShinyRolls(availableRolls);
-      }
-      const userMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
-        role: 'user',
-        content: message,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, userMessage]);
-
-      const hasDailyAttempt = !!shinyStatus?.dailyAttemptAvailable;
-      const extraRollsFromStatus =
-        typeof shinyStatus?.extraRolls === 'number' ? shinyStatus.extraRolls : undefined;
-
-      let confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`;
-
-      if (shinyStatus) {
-        if (hasDailyAttempt) {
-          const extraInfo =
-            extraRollsFromStatus && extraRollsFromStatus > 0
-              ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
-              : '';
-          confirmationText = `Tenés un intento diario gratis disponible.${extraInfo}\n\n¿Querés usarlo para intentar desbloquear el modo SHINY?`;
-        } else {
-          const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
-          if (effectiveRolls <= 0) {
-            setShinyGameState('idle');
-            setTimeout(() => {
-              const noRollsMessage: ChatMessage = {
-                id: `msg_${Date.now() + 1}`,
-                role: 'assistant',
-                content: 'Te quedaste sin tiradas por hoy. Podés comprar más para seguir intentando.',
-                timestamp: new Date(),
-                category: 'general',
-                showMercadoPagoButton: true
-              };
-              setMessages(prev => [...prev, noRollsMessage]);
-            }, 500);
-            return;
-          }
-
-          confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${effectiveRolls} tiradas disponibles.`;
-        }
-      } else {
-        confirmationText = `¿Querés intentar desbloquear el modo SHINY?\n\nDetecto ${availableRolls} intentos disponibles (incluyendo el diario si todavía no lo usaste).`;
-      }
-
-      setTimeout(() => {
-        const aiMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: confirmationText,
-          timestamp: new Date(),
-          category: 'general'
-        };
-        setMessages(prev => [...prev, aiMessage]);
-      }, 500);
-      return;
-    }
-
-    // Detectar pregunta sobre tiradas restantes
-    const rollsKeywords = ['cuantas tiradas', 'cuántas tiradas', 'mis tiradas', 'tengo tiradas', 'intentos me quedan', 'intentos quedan'];
-    const isRollsQuery = rollsKeywords.some(keyword => lowerMsg.includes(keyword));
-
-    if (isRollsQuery) {
-      const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
-
-      if (normalizedTipo === 'white') {
-        const userMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'user',
-          content: message,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, userMessage]);
-
-        setTimeout(() => {
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: 'Para tener tiradas del modo SHINY, primero necesitas ser usuario **Black**.',
-            timestamp: new Date(),
-            category: 'general'
-          };
-          setMessages(prev => [...prev, aiMessage]);
-        }, 500);
-        return;
-      }
-
-      const userMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
-        role: 'user',
-        content: message,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, userMessage]);
-      setIsTyping(true);
-
-      try {
-        const { getShinyStatus } = await import('@/services/steebApi');
-        const status = await getShinyStatus(user?.id);
-        const realtimeRolls = typeof userProfile?.shinyRolls === 'number' ? userProfile.shinyRolls : null;
-        const effectiveExtraRolls = status.extraRolls > 0 ? status.extraRolls : (realtimeRolls ?? 0);
-        const combinedTotal = getBestRollsCount(
-          status.totalAvailable,
-          effectiveExtraRolls + (status.dailyAttemptAvailable ? 1 : 0),
-          shinyRolls,
-          realtimeRolls
-        );
-        setShinyRolls(combinedTotal);
-
-        setIsTyping(false);
-
-        if (status.isShiny) {
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: '¡Ya sos usuario Shiny! 🌟 No necesitas más tiradas, ya tenés acceso ilimitado.',
-            timestamp: new Date(),
-            category: 'general'
-          };
-          setMessages(prev => [...prev, aiMessage]);
-        } else {
-          const dailyText = status.dailyAttemptAvailable ? '✅ 1 intento diario disponible' : '❌ Intento diario usado';
-          const extraText = effectiveExtraRolls > 0 ? `💎 ${effectiveExtraRolls} tiradas extra compradas` : '0 tiradas extra';
-
-          const aiMessage: ChatMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: `Estado de tus tiradas Shiny:\n\n${dailyText}\n${extraText}\n\nTotal disponible ahora: ${combinedTotal} intentos. 🎲`,
-            timestamp: new Date(),
-            category: 'general',
-            showMercadoPagoButton: combinedTotal === 0 // Mostrar botón de compra si no tiene tiradas
-          };
-          setMessages(prev => [...prev, aiMessage]);
-        }
-      } catch (error) {
-        setIsTyping(false);
-        const errorMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: 'No pude verificar tus tiradas en este momento. Intenta más tarde.',
-          timestamp: new Date(),
-          category: 'general'
-        };
-        setMessages(prev => [...prev, errorMessage]);
-      }
-      return;
-    }
     // -----------------------------
 
-    // Detectar si es un comando de panel ANTES de agregar mensaje de usuario
-    const predefinedResponse = getPredefinedResponse(message);
-
-    // Comandos que abren paneles - manejarlos silenciosamente
-    if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_PROGRESS') {
-      console.log('ðŸš€ Abriendo panel de progreso sin mensajes...');
-      setShowProgress(true);
-      return;
-    }
-
-    if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_CALENDAR') {
-      console.log('ðŸ“… Abriendo panel de calendario sin mensajes...');
-      setShowCalendar(true);
-      return;
-    }
-
-    if (predefinedResponse === 'SPECIAL_COMMAND:OPEN_TASKS') {
-      console.log('ðŸ“‹ Abriendo panel de tareas sin mensajes...');
-      setShowSideTasks(true);
-      return;
-    }
-
-    if (predefinedResponse === 'SPECIAL_COMMAND:BUY_DARK_MODE') {
-      console.log('ðŸ’³ Comprando Dark Mode...');
-
-      // Enviar un evento global para que el ThemeToggle abra el modal de pago
-      const buyDarkEvent = new CustomEvent('buy-dark-mode', {
-        detail: {
-          source: 'chat',
-          timestamp: new Date()
-        }
-      });
-      window.dispatchEvent(buyDarkEvent);
-
-      const confirmationMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
-        role: 'assistant',
-        content: '¡Excelente decisión! Estoy abriendo el proceso de compra para el Dark Mode por $3000 ARS. Te dará acceso inmediato + 1 intento gratis para Shiny. 🌙',
-        timestamp: new Date(),
-        category: 'general'
-      };
-      setMessages(prev => [...prev, confirmationMessage]);
-
-      // Enviar segundo mensaje con botón de Mercado Pago
-      setTimeout(() => {
-        const mercadoPagoMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: `# $3000 ARS
-
-### 1 intento gratis del modo SHINY`,
-          timestamp: new Date(),
-          category: 'general',
-          showMercadoPagoButton: true // Nueva propiedad para mostrar el botón
-        };
-        setMessages(prev => [...prev, mercadoPagoMessage]);
-
-        // Scroll al final para mostrar el nuevo mensaje
-        scrollToBottom();
-      }, 1000); // Esperar 1 segundo para enviar el segundo mensaje
-
-      return;
-    }
-
-    // Add user message (solo para mensajes que no son comandos de paneles)
+    // Add user message
     const userChatMessage: ChatMessage = {
       id: `msg_${Date.now()}`,
       role: 'user',
@@ -1108,20 +832,6 @@ const SteebChatAI: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userChatMessage]);
-
-    // Ya detectamos respuestas predefinidas arriba, pero ya excluimos los comandos de paneles
-    // Si llegamos aquÃ­, es porque no es un comando de panel, pero puede tener respuesta predefinida
-    if (predefinedResponse && predefinedResponse !== 'SPECIAL_COMMAND:OPEN_PROGRESS' && predefinedResponse !== 'SPECIAL_COMMAND:OPEN_CALENDAR') {
-      const aiMessage: ChatMessage = {
-        id: `msg_${Date.now() + 1}`,
-        role: 'assistant',
-        content: predefinedResponse,
-        timestamp: new Date(),
-        category: 'general'
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      return;
-    }
 
     // Detectar comando para crear tarea: "crea tarea (texto)"
     const taskRegex = /crea\s+tarea\s+(.+)/i;
@@ -1527,13 +1237,3 @@ const SteebChatAI: React.FC = () => {
 };
 
   export default SteebChatAI;
-
-
-
-
-
-
-
-
-
-
