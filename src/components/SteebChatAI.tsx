@@ -155,10 +155,7 @@ const SteebChatAI: React.FC = () => {
       completedTodayList: completedToday.map(t => t.title),
       hasTasks: tasks.length > 0,
       userName: userProfile?.name || user?.name || 'Usuario',
-      userNickname: userProfile?.nickname || user?.nickname || '',
-      // Normalizar rol del usuario para que Steeb lo reconozca (dark -> black)
-      userRole: (userProfile?.role === 'dark' ? 'black' : userProfile?.role) ||
-        (tipoUsuario === 'dark' ? 'black' : tipoUsuario) || 'white'
+      userNickname: userProfile?.nickname || user?.nickname || ''
     };
   };
 
@@ -395,14 +392,25 @@ const SteebChatAI: React.FC = () => {
             }
             */
             case 'PLAY_SHINY_GAME': {
-              const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
+              // Check both sources of truth and normalize dark -> black
+              const roleFromProfile = (userProfile?.role || 'white').toLowerCase();
+              const roleFromHook = (tipoUsuario || 'white').toLowerCase();
 
-              if (normalizedTipo === 'shiny') {
+              // Determine effective role (dark = black)
+              let effectiveRole = 'white';
+              if (roleFromProfile === 'shiny' || roleFromHook === 'shiny') {
+                effectiveRole = 'shiny';
+              } else if (roleFromProfile === 'dark' || roleFromProfile === 'black' ||
+                roleFromHook === 'dark' || roleFromHook === 'black') {
+                effectiveRole = 'black';
+              }
+
+              if (effectiveRole === 'shiny') {
                 appendAssistantMessage('¡Wowowow amigo! 🌟 ¡Ya sos usuario SHINY! No necesitas jugar más, ya sos parte de la élite.');
                 break;
               }
 
-              if (normalizedTipo === 'white') {
+              if (effectiveRole === 'white') {
                 appendAssistantMessage('Para acceder al modo SHINY, primero necesitas ser usuario **Black**.');
                 break;
               }
