@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
             try {
               res.writeHead(502, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ error: 'backend unavailable' }));
-            } catch {}
+            } catch { }
           });
         },
       },
@@ -24,11 +24,57 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [
+    {
+      name: 'react-native-web-shim',
+      resolveId(id) {
+        if (id === 'react-native/Libraries/TurboModule/TurboModuleRegistry') {
+          return id;
+        }
+      },
+      load(id) {
+        if (id === 'react-native/Libraries/TurboModule/TurboModuleRegistry') {
+          return `
+            export const TurboModuleRegistry = {
+              get: () => null,
+              getEnforcing: () => null,
+            };
+            export default TurboModuleRegistry;
+          `;
+        }
+      },
+      transform(code, id) {
+        // Inject missing exports into react-native-web
+        if (id.includes('react-native-web') && !id.includes('node_modules/.vite')) {
+          if (!code.includes('TurboModuleRegistry')) {
+            return code + `\nexport const TurboModuleRegistry = { get: () => null, getEnforcing: () => null };`;
+          }
+        }
+      },
+    },
     react(),
   ],
+  optimizeDeps: {
+    include: [
+      'react-native-web',
+    ],
+    exclude: [
+      'react-native',
+      'react-native-webview',
+      '@react-native-google-signin/google-signin',
+      'expo',
+      'expo-router',
+      '@expo/vector-icons',
+    ],
+  },
   resolve: {
+    extensions: ['.web.js', '.web.jsx', '.web.ts', '.web.tsx', '.js', '.jsx', '.ts', '.tsx', '.json'],
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "react-native": "react-native-web",
+      "react-native/Libraries/TurboModule/TurboModuleRegistry": path.resolve(__dirname, "./src/mocks/TurboModuleRegistry.ts"),
+      "@react-native-google-signin/google-signin": path.resolve(__dirname, "./src/mocks/GoogleSignIn.ts"),
+      "expo-tracking-transparency": path.resolve(__dirname, "./src/mocks/expo-tracking-transparency.ts"),
+      "@capacitor/core": path.resolve(__dirname, "./src/mocks/capacitor-core.ts"),
     },
   },
 }));
