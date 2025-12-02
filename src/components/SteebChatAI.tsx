@@ -155,7 +155,10 @@ const SteebChatAI: React.FC = () => {
       completedTodayList: completedToday.map(t => t.title),
       hasTasks: tasks.length > 0,
       userName: userProfile?.name || user?.name || 'Usuario',
-      userNickname: userProfile?.nickname || user?.nickname || ''
+      userNickname: userProfile?.nickname || user?.nickname || '',
+      // Normalizar rol del usuario para que Steeb lo reconozca (dark -> black)
+      userRole: (userProfile?.role === 'dark' ? 'black' : userProfile?.role) ||
+        (tipoUsuario === 'dark' ? 'black' : tipoUsuario) || 'white'
     };
   };
 
