@@ -235,11 +235,11 @@ export const mercadoPagoService = {
       throw new Error('No hay URL de checkout disponible');
     }
 
-    // 🔥 SOLUCIÓN DEFINITIVA: Forzar URLs HTTPS para evitar deep links en Android
-    // Convertir cualquier deep link de Mercado Pago a URL web
+    // 🔥 SOLUCIÓN DEFINITIVA: Usar siempre la URL provista por el backend
+    // La conversión de deep links debe hacerse solo si es estrictamente necesario
+    // Por ahora confiamos en el initPoint del backend
     if (checkoutUrl.startsWith('mercadopago://')) {
-      checkoutUrl = checkoutUrl.replace(/^mercadopago:\/\//, 'https://www.mercadopago.com.ar/');
-      console.log('🔄 Deep link convertido a HTTPS:', checkoutUrl);
+      console.log('ℹ️ Recibido deep link de Mercado Pago');
     }
 
     console.log('✅ URL final (sin deep links):', checkoutUrl);
