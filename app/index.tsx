@@ -1,12 +1,12 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import { useEffect, useRef } from 'react';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { useRef } from 'react';
 
-// Configurar Google Sign-In con el ID que nos dio el usuario
+// Configurar Google Sign-In con el ID correcto
 GoogleSignin.configure({
-  iosClientId: '893679097790-mog5bng2hpkaipgk679ooh1cdh3pdpr2',
-  // webClientId: '...', // No necesario si solo usamos el token en firebase web
+  iosClientId: '169523533903-nplu58hed2b3gdfih47mbgrk989itm1c.apps.googleusercontent.com',
+  webClientId: '169523533903-j7lhgcgd8ucr9fnfct5r3gop7h1sec4c.apps.googleusercontent.com',
 });
 
 export default function App() {
@@ -21,7 +21,6 @@ export default function App() {
       const idToken = userInfo.data?.idToken;
 
       if (idToken) {
-        // Enviar el token de vuelta a la web
         const jsCode = `
           if (window.handleNativeGoogleLogin) {
             window.handleNativeGoogleLogin('${idToken}');
@@ -31,7 +30,6 @@ export default function App() {
       }
     } catch (error: any) {
       console.log('Google Sign-In Error:', error);
-      // Enviar error a la web
       const jsCode = `
         console.error('Native Login Error: ${error.code}');
         if (window.handleNativeGoogleLoginError) {
@@ -42,7 +40,6 @@ export default function App() {
     }
   };
 
-  // Escuchar mensajes desde la Web
   const onMessage = (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
@@ -62,7 +59,6 @@ export default function App() {
       javaScriptEnabled={true}
       domStorageEnabled={true}
       allowsInlineMediaPlayback={true}
-      // User Agent personalizado para que la web sepa que es la app nativa
       userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 SteebNativeWrapper"
       sharedCookiesEnabled={true}
       thirdPartyCookiesEnabled={true}

@@ -1,0 +1,11 @@
+{
+  "plugins": [
+    "react-native-web",
+    ["module-resolver", {
+      "root": ["./node_modules"],
+      "alias": {
+        "@react-native/normalize-colors": "react-native-web/dist/exports/StyleSheet/compiler/normalizeColor.js"
+      }
+    }]
+  ]
+}

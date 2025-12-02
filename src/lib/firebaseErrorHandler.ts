@@ -13,9 +13,7 @@ const DEVELOPMENT_SAFE_ERRORS = [
   'firestore/deadline-exceeded',
   'firestore/cancelled',
   'storage/retry-limit-exceeded',
-  'permission-denied',
   'unauthenticated',
-  'permission-denied',
 ];
 
 /**
@@ -32,7 +30,6 @@ const NETWORK_ERROR_PATTERNS = [
   'Cloud warning: operations require authentication',
   'Actualizar tarea failed (offline mode)',
   'failed (offline mode)',
-  'permission-denied',
 ];
 
 /**
@@ -63,7 +60,7 @@ export class FirebaseErrorHandler {
 
     // Override window.addEventListener for unhandled promise rejections
     const originalAddEventListener = window.addEventListener;
-    window.addEventListener = function(type: string, listener: any, options?: any) {
+    window.addEventListener = function (type: string, listener: any, options?: any) {
       if (type === 'unhandledrejection') {
         const wrappedListener = (event: PromiseRejectionEvent) => {
           if (FirebaseErrorHandler.getInstance().shouldSuppressError(event.reason)) {
@@ -91,9 +88,9 @@ export class FirebaseErrorHandler {
 
     console.error = (...args: any[]) => {
       const message = args.join(' ');
-      
+
       if (this.shouldSuppressConsoleError(message)) {
-        console.warn('🔥 Firebase connection issue (normal in development):', 
+        console.warn('🔥 Firebase connection issue (normal in development):',
           this.truncateMessage(message));
         return;
       }
@@ -115,7 +112,7 @@ export class FirebaseErrorHandler {
 
     // Handle network errors
     const errorMessage = error?.message || String(error);
-    return NETWORK_ERROR_PATTERNS.some(pattern => 
+    return NETWORK_ERROR_PATTERNS.some(pattern =>
       errorMessage.includes(pattern)
     );
   }
@@ -126,7 +123,7 @@ export class FirebaseErrorHandler {
   private shouldSuppressConsoleError(message: string): boolean {
     if (!this.isDevelopment) return false;
 
-    return NETWORK_ERROR_PATTERNS.some(pattern => 
+    return NETWORK_ERROR_PATTERNS.some(pattern =>
       message.includes(pattern)
     ) || message.includes('firestore.googleapis.com');
   }
@@ -151,12 +148,12 @@ export class FirebaseErrorHandler {
     } catch (error) {
       if (this.shouldSuppressError(error)) {
         if (this.isDevelopment) {
-          console.warn(`⚠️ ${context} failed (offline mode):`, 
+          console.warn(`⚠️ ${context} failed (offline mode):`,
             error instanceof FirebaseError ? error.code : error);
         }
         return null;
       }
-      
+
       // Re-throw non-suppressed errors
       throw error;
     }

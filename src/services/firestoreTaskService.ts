@@ -27,7 +27,7 @@ import { handleFirebaseOperation } from '@/lib/firebaseErrorHandler';
 const TASKS_COLLECTION = 'tasks';
 
 export class FirestoreTaskService {
-  
+
   /**
    * Obtener todas las tareas del usuario
    */
@@ -60,12 +60,12 @@ export class FirestoreTaskService {
   static async getTask(taskId: string): Promise<Task | null> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
+
       const taskRef = doc(db, TASKS_COLLECTION, taskId);
       const snapshot = await getDoc(taskRef);
-      
+
       if (!snapshot.exists()) return null;
-      
+
       const data = snapshot.data();
       return {
         id: snapshot.id,
@@ -147,8 +147,8 @@ export class FirestoreTaskService {
       } catch (error: any) {
         // Manejar errores de red específicos sin interrumpir la UI
         if (error?.message?.includes('ERR_ABORTED') ||
-            error?.message?.includes('net::ERR_') ||
-            error?.code === 'cancelled') {
+          error?.message?.includes('net::ERR_') ||
+          error?.code === 'cancelled') {
           console.warn('⚠️ Operación cancelada o error de red, continuando...', error.message);
           // Retornar una tarea simulada para no interrumpir la UI
           return {
@@ -174,18 +174,31 @@ export class FirestoreTaskService {
 
       const taskRef = doc(db, TASKS_COLLECTION, taskId);
 
-      // Verificar que la tarea pertenece al usuario antes de eliminar
-      const taskDoc = await getDoc(taskRef);
-      if (!taskDoc.exists()) {
-        throw new Error('Tarea no encontrada');
-      }
+      try {
+        // Verificar que la tarea pertenece al usuario antes de eliminar
+        const taskDoc = await getDoc(taskRef);
 
-      const taskData = taskDoc.data();
-      if (taskData.ownerUid !== uid) {
-        throw new Error('No tienes permisos para eliminar esta tarea');
-      }
+        if (!taskDoc.exists()) {
+          // Si la tarea no existe en Firestore, consideramos que ya fue eliminada
+          console.warn('⚠️ Tarea no encontrada en Firestore (ya eliminada o local):', taskId);
+          return;
+        }
 
-      await deleteDoc(taskRef);
+        const taskData = taskDoc.data();
+        if (taskData.ownerUid !== uid) {
+          throw new Error('No tienes permisos para eliminar esta tarea');
+        }
+
+        await deleteDoc(taskRef);
+      } catch (error: any) {
+        // Si es un error de permisos y el ID parece local (empieza con task_), 
+        // asumimos que no existe en el servidor y permitimos la eliminación local
+        if (error?.code === 'permission-denied' && taskId.startsWith('task_')) {
+          console.warn('⚠️ Permiso denegado en tarea local, asumiendo no sincronizada:', taskId);
+          return;
+        }
+        throw error;
+      }
     }, 'Eliminar tarea');
   }
 
@@ -196,12 +209,12 @@ export class FirestoreTaskService {
     return handleFirebaseOperation(async () => {
       const task = await this.getTask(taskId);
       if (!task) throw new Error('Tarea no encontrada');
-      
+
       const updates: Partial<Task> = {
         completed: !task.completed,
         completedAt: !task.completed ? new Date().toISOString() : null,
       };
-      
+
       return await this.updateTask(taskId, updates);
     }, 'Alternar estado de tarea');
   }
@@ -253,14 +266,14 @@ export class FirestoreTaskService {
       if (!db) {
         console.warn('📱 Firestore no está inicializado - Modo offline');
         callback([]);
-        return () => {};
+        return () => { };
       }
 
       const uid = auth.currentUser?.uid;
       if (!uid) {
         console.warn('📱 Usuario no autenticado - Modo offline');
         callback([]);
-        return () => {};
+        return () => { };
       }
 
       // Validar que la colección existe antes de hacer la consulta
@@ -268,7 +281,7 @@ export class FirestoreTaskService {
       if (!tasksRef) {
         console.warn('📱 Colección de tareas no disponible - Modo offline');
         callback([]);
-        return () => {};
+        return () => { };
       }
 
       const q = query(tasksRef, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'));
@@ -307,12 +320,12 @@ export class FirestoreTaskService {
 
             // No mostrar errores críticos en la UI, solo en consola
             if (error?.message?.includes('permission-denied') ||
-                error?.code === 'permission-denied') {
+              error?.code === 'permission-denied') {
               console.warn('📱 Permisos denegados - Modo offline');
             } else if (error?.message?.includes('ERR_ABORTED') ||
-                      error?.message?.includes('net::ERR_') ||
-                      error?.code === 'cancelled' ||
-                      error?.code === 'unavailable') {
+              error?.message?.includes('net::ERR_') ||
+              error?.code === 'cancelled' ||
+              error?.code === 'unavailable') {
               console.warn('📱 Error de conexión - Modo offline temporal');
             } else {
               console.warn('📱 Error desconocido - Activando modo offline:', error);
@@ -325,7 +338,7 @@ export class FirestoreTaskService {
       } catch (snapshotError) {
         console.error('❌ Error creando snapshot:', snapshotError);
         callback([]);
-        return () => {};
+        return () => { };
       }
 
       // Devolver función de unsubscribe segura
@@ -343,7 +356,7 @@ export class FirestoreTaskService {
       console.error('🚨 Error crítico en subscribeToTasks:', criticalError);
       // Enviar lista vacía para evitar que la app se bloquee
       callback([]);
-      return () => {};
+      return () => { };
     }
   }
 
@@ -353,9 +366,9 @@ export class FirestoreTaskService {
   static async bulkUpdateTasks(updates: Array<{ id: string; updates: Partial<Task> }>): Promise<void> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
+
       const batch = writeBatch(db);
-      
+
       updates.forEach(({ id, updates: taskUpdates }) => {
         const taskRef = doc(db, TASKS_COLLECTION, id);
         const updateData = {
@@ -364,7 +377,7 @@ export class FirestoreTaskService {
         };
         batch.update(taskRef, updateData);
       });
-      
+
       await batch.commit();
     }, 'Actualización en lote');
   }
@@ -375,14 +388,14 @@ export class FirestoreTaskService {
   static async bulkDeleteTasks(taskIds: string[]): Promise<void> {
     return handleFirebaseOperation(async () => {
       if (!db) throw new Error('Firestore no está inicializado');
-      
+
       const batch = writeBatch(db);
-      
+
       taskIds.forEach(id => {
         const taskRef = doc(db, TASKS_COLLECTION, id);
         batch.delete(taskRef);
       });
-      
+
       await batch.commit();
     }, 'Eliminación en lote');
   }

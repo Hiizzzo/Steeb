@@ -3,7 +3,7 @@
     "name": "STEEB",
     "slug": "steeb",
     "scheme": "steeb",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
@@ -18,8 +18,7 @@
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.893679097790-mog5bng2hpkaipgk679ooh1cdh3pdpr2",
-              "893679097790-mog5bng2hpkaipgk679ooh1cdh3pdpr2"
+              "com.googleusercontent.apps.169523533903-nplu58hed2b3gdfih47mbgrk989itm1c"
             ]
           }
         ]
@@ -31,7 +30,7 @@
       [
         "@react-native-google-signin/google-signin",
         {
-          "iosUrlScheme": "com.googleusercontent.apps.893679097790-mog5bng2hpkaipgk679ooh1cdh3pdpr2"
+          "iosUrlScheme": "com.googleusercontent.apps.169523533903-nplu58hed2b3gdfih47mbgrk989itm1c"
         }
       ],
       [

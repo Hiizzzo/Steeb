@@ -22,76 +22,76 @@ interface TaskStore {
   filters: TaskFilters;
   selectedTaskIds: string[];
   viewMode: 'list' | 'calendar' | 'board';
-  
+
   // Task statistics
   stats: TaskStats;
 
   // ========== ACTIONS ==========
-  
+
   // Task CRUD operations
   setTasks: (tasks: Task[]) => void;
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-  
+
   // Bulk operations
   bulkUpdateTasks: (updates: Array<{ id: string; updates: Partial<Task> }>) => Promise<void>;
   bulkDeleteTasks: (ids: string[]) => Promise<void>;
-  
+
   // Task status operations
   toggleTask: (id: string) => Promise<void>;
   completeTask: (id: string) => Promise<void>;
-  
+
   // Subtask operations
   toggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   addSubtask: (taskId: string, title: string) => Promise<void>;
   updateSubtask: (taskId: string, subtaskId: string, updates: { title?: string; completed?: boolean }) => Promise<void>;
   deleteSubtask: (taskId: string, subtaskId: string) => Promise<void>;
-  
+
   // Data loading
   loadTasks: () => Promise<void>;
   loadTasksInRange: (startDate: string, endDate: string) => Promise<void>;
   loadTasksForDate: (date: string) => Promise<void>;
-  
+
   // Real-time updates
   setupRealtimeListener: (userId?: string) => () => void;
-  
+
   // Filtering and search
   setFilters: (filters: Partial<TaskFilters>) => void;
   clearFilters: () => void;
   searchTasks: (query: string) => Promise<void>;
-  
+
   // Selection
   selectTask: (id: string) => void;
   deselectTask: (id: string) => void;
   selectAllTasks: () => void;
   clearSelection: () => void;
   toggleTaskSelection: (id: string) => void;
-  
+
   // Derived getters
   getPendingTasks: () => Task[];
   getCompletedTasks: () => Task[];
-  
+
   // View management
   setViewMode: (mode: 'list' | 'calendar' | 'board') => void;
-  
+
   // Statistics
   calculateStats: () => void;
-  
+
   // Sync operations
   syncWithServer: () => Promise<void>;
   setSyncStatus: (status: Partial<SyncStatus>) => void;
-  
+
   // Local storage operations
   loadTasksFromLocal: () => void;
   exportTasksAsText: () => void;
   getTasksAsText: () => string;
   clearLocalStorage: () => void;
-  
+
   // Error handling
   setError: (error: string | null) => void;
   clearError: () => void;
-  
+
   // Loading state
   setLoading: (loading: boolean) => void;
 }
@@ -217,7 +217,7 @@ export const useTaskStore = create<TaskStore>()(
         stats: initialStats,
 
         // ========== TASK CRUD OPERATIONS ==========
-        
+
         setTasks: (tasks) => {
           set({ tasks });
           get().calculateStats();
@@ -254,8 +254,8 @@ export const useTaskStore = create<TaskStore>()(
             ...(taskData.recurrence && { recurrence: taskData.recurrence }),
             ...(taskData.subtasks && { subtasks: taskData.subtasks }),
           };
-          
-                    
+
+
           // 1. ACTUALIZAR UI INMEDIATAMENTE (sin esperar Firebase)
           set(state => {
             const updatedTasks = [...state.tasks, newTask];
@@ -264,31 +264,31 @@ export const useTaskStore = create<TaskStore>()(
               error: null
             };
           });
-          
+
           // 2. Si la tarea tiene recurrencia y fecha programada, generar instancias para el mes completo
           if (taskData.recurrence && taskData.recurrence.frequency !== 'none' && taskData.scheduledDate) {
-                        
+
             // Importar la función de generación de instancias mensuales
             const { generateMonthlyRecurrenceInstances } = await import('@/utils/recurrenceManager');
             const monthlyDates = generateMonthlyRecurrenceInstances(taskData.scheduledDate, taskData.recurrence);
-            
+
             // Crear tareas para cada fecha del mes
             const monthlyTasks: Task[] = [];
             for (const date of monthlyDates) {
               // Verificar si ya existe una tarea para esa fecha
-              const existingTask = get().tasks.find(t => 
+              const existingTask = get().tasks.find(t =>
                 t.title === taskData.title.trim() &&
                 t.type === taskData.type &&
                 t.scheduledDate === date
               );
-              
+
               if (!existingTask) {
                 const monthlyTask: Task = {
                   ...newTask,
                   id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                   scheduledDate: date,
-                  subtasks: taskData.subtasks?.map(st => ({ 
-                    ...st, 
+                  subtasks: taskData.subtasks?.map(st => ({
+                    ...st,
                     completed: false,
                     id: `subtask-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                   })) || undefined,
@@ -296,18 +296,21 @@ export const useTaskStore = create<TaskStore>()(
                 monthlyTasks.push(monthlyTask);
               }
             }
-            
+
             if (monthlyTasks.length > 0) {
               (`📅 Creando ${monthlyTasks.length} instancias adicionales para el mes`);
               set(state => ({
                 tasks: [...state.tasks, ...monthlyTasks],
               }));
-              
+
               // Guardar las tareas adicionales en Firebase
               const userId = auth.currentUser?.uid;
               for (const monthlyTask of monthlyTasks) {
                 FirestoreTaskService.createTask(monthlyTask, userId)
-                  .then(() => {
+                  .then((savedTask) => {
+                    set(state => ({
+                      tasks: state.tasks.map(t => t.id === monthlyTask.id ? { ...t, id: savedTask.id } : t)
+                    }));
                     ('✅ Instancia mensual sincronizada:', monthlyTask.scheduledDate);
                   })
                   .catch((error) => {
@@ -316,28 +319,32 @@ export const useTaskStore = create<TaskStore>()(
               }
             }
           }
-          
+
           get().calculateStats();
-          
+
           // 3. GUARDAR LOCALMENTE EN TEXTO (instantáneo)
           const currentTasks = get().tasks;
           localStorageService.saveTasks(currentTasks);
           ('💾 Tarea guardada localmente en texto');
-          
+
           // 4. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
           if (userId) {
             FirestoreTaskService.createTask(newTask, userId)
-            .then(() => {
-              ('✅ Tarea sincronizada con Firebase:', newTask.title);
-            })
-            .catch((error) => {
-              console.error('❌ Error al sincronizar con Firebase:', error);
-              // En caso de error, mantener la tarea local pero marcar el error
-              set(state => ({ 
-                ...state,
-                error: 'Tarea creada localmente. Error de sincronización: ' + (error instanceof Error ? error.message : 'Error desconocido')
-              }));
-            });
+              .then((savedTask) => {
+                // Actualizar el ID local con el ID real de Firestore para evitar errores de eliminación
+                set(state => ({
+                  tasks: state.tasks.map(t => t.id === newTask.id ? { ...t, id: savedTask.id } : t)
+                }));
+                ('✅ Tarea sincronizada con Firebase:', newTask.title);
+              })
+              .catch((error) => {
+                console.error('❌ Error al sincronizar con Firebase:', error);
+                // En caso de error, mantener la tarea local pero marcar el error
+                set(state => ({
+                  ...state,
+                  error: 'Tarea creada localmente. Error de sincronización: ' + (error instanceof Error ? error.message : 'Error desconocido')
+                }));
+              });
           }
         },
 
@@ -384,18 +391,25 @@ export const useTaskStore = create<TaskStore>()(
 
         deleteTask: async (id) => {
           const previousTasks = get().tasks;
-          
+
           // 1. ACTUALIZACIÓN OPTIMISTA LOCAL
           set(state => ({
             tasks: state.tasks.filter(task => task.id !== id),
             error: null
           }));
-          
+
           get().calculateStats();
-          
+
           // 2. SINCRONIZACIÓN CON FIREBASE
           const userId = auth.currentUser?.uid;
           if (userId) {
+            // Si es una tarea local (ID temporal), no intentamos borrarla de Firestore
+            // porque no existe allí (o si existe, no tenemos el ID real para borrarla)
+            if (id.startsWith('task_')) {
+              console.log('ℹ️ Tarea local eliminada (no sincronizada o ID temporal)');
+              return;
+            }
+
             try {
               await FirestoreTaskService.deleteTask(id);
               ('✅ Tarea eliminada de Firestore');
@@ -412,7 +426,7 @@ export const useTaskStore = create<TaskStore>()(
         toggleTask: async (id) => {
           const task = get().tasks.find(t => t.id === id);
           if (!task) return;
-          
+
           const newCompleted = !task.completed;
           await get().updateTask(id, {
             completed: newCompleted,
@@ -437,16 +451,16 @@ export const useTaskStore = create<TaskStore>()(
         toggleSubtask: async (taskId, subtaskId) => {
           const task = get().tasks.find(t => t.id === taskId);
           if (!task || !task.subtasks) return;
-          
+
           const updatedSubtasks = task.subtasks.map(subtask =>
-            subtask.id === subtaskId 
+            subtask.id === subtaskId
               ? { ...subtask, completed: !subtask.completed }
               : subtask
           );
-          
+
           // Check if all subtasks are completed
           const allCompleted = updatedSubtasks.every(subtask => subtask.completed);
-          
+
           get().updateTask(taskId, {
             subtasks: updatedSubtasks,
             completed: allCompleted,
@@ -458,16 +472,16 @@ export const useTaskStore = create<TaskStore>()(
         addSubtask: async (taskId, title) => {
           const task = get().tasks.find(t => t.id === taskId);
           if (!task) return;
-          
+
           const newSubtask = {
             id: `subtask-${Date.now()}`,
             title,
             completed: false,
             createdAt: new Date().toISOString(),
           };
-          
+
           const updatedSubtasks = [...(task.subtasks || []), newSubtask];
-          
+
           get().updateTask(taskId, {
             subtasks: updatedSubtasks,
           });
@@ -476,11 +490,11 @@ export const useTaskStore = create<TaskStore>()(
         updateSubtask: async (taskId, subtaskId, updates) => {
           const task = get().tasks.find(t => t.id === taskId);
           if (!task || !task.subtasks) return;
-          
+
           const updatedSubtasks = task.subtasks.map(subtask =>
             subtask.id === subtaskId ? { ...subtask, ...updates } : subtask
           );
-          
+
           get().updateTask(taskId, {
             subtasks: updatedSubtasks,
           });
@@ -489,9 +503,9 @@ export const useTaskStore = create<TaskStore>()(
         deleteSubtask: async (taskId, subtaskId) => {
           const task = get().tasks.find(t => t.id === taskId);
           if (!task || !task.subtasks) return;
-          
+
           const updatedSubtasks = task.subtasks.filter(subtask => subtask.id !== subtaskId);
-          
+
           get().updateTask(taskId, {
             subtasks: updatedSubtasks,
           });
@@ -560,7 +574,7 @@ export const useTaskStore = create<TaskStore>()(
               ('📱 Modo offline - Sin listener en tiempo real (sin userId)');
               // No mostrar error, solo modo offline silencioso
               set({ syncStatus: 'offline' });
-              return () => {};
+              return () => { };
             }
 
             ('🔄 Intentando configurar listener con Firestore (userId=${userId})');
@@ -595,16 +609,16 @@ export const useTaskStore = create<TaskStore>()(
               syncStatus: 'offline',
               error: null // No mostrar error al usuario, solo modo offline
             });
-            return () => {};
+            return () => { };
           }
         },
 
         loadTasksInRange: async (startDate, endDate) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             ('📅 Filtrando tareas offline por rango de fechas:', startDate, 'a', endDate);
-            
+
             // En modo offline, filtramos las tareas existentes por el rango de fechas
             const allTasks = get().tasks || [];
             const filteredTasks = allTasks.filter(task => {
@@ -612,7 +626,7 @@ export const useTaskStore = create<TaskStore>()(
               const taskDate = task.scheduledFor.split('T')[0]; // Obtener solo la fecha
               return taskDate >= startDate && taskDate <= endDate;
             });
-            
+
             set({ tasks: filteredTasks });
             ('✅ Tareas filtradas offline:', filteredTasks.length);
           } catch (error) {
@@ -625,10 +639,10 @@ export const useTaskStore = create<TaskStore>()(
 
         loadTasksForDate: async (date) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             ('📅 Filtrando tareas offline para fecha:', date);
-            
+
             // En modo offline, filtramos las tareas existentes por la fecha específica
             const allTasks = get().tasks || [];
             const filteredTasks = allTasks.filter(task => {
@@ -636,7 +650,7 @@ export const useTaskStore = create<TaskStore>()(
               const taskDate = task.scheduledFor.split('T')[0]; // Obtener solo la fecha
               return taskDate === date;
             });
-            
+
             set({ tasks: filteredTasks });
             ('✅ Tareas filtradas offline para fecha:', filteredTasks.length);
           } catch (error) {
@@ -664,22 +678,22 @@ export const useTaskStore = create<TaskStore>()(
 
         searchTasks: async (query) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             ('🔍 Buscando tareas offline:', query);
-            
+
             // En modo offline, buscamos en las tareas locales
             const allTasks = get().tasks || [];
-            const searchResults = allTasks.filter(task => 
+            const searchResults = allTasks.filter(task =>
               task.title.toLowerCase().includes(query.toLowerCase()) ||
               (task.description && task.description.toLowerCase().includes(query.toLowerCase()))
             );
-            
-            set({ 
+
+            set({
               tasks: searchResults,
               filters: { ...get().filters, search: query }
             });
-            
+
             ('✅ Búsqueda offline completada:', searchResults.length, 'resultados');
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to search tasks' });
@@ -720,7 +734,7 @@ export const useTaskStore = create<TaskStore>()(
             get().selectTask(id);
           }
         },
-        
+
         // ========== DERIVED GETTERS ==========
 
         getPendingTasks: () => get().tasks.filter(task => !task.completed),
@@ -738,21 +752,21 @@ export const useTaskStore = create<TaskStore>()(
           const { tasks } = get();
           const now = new Date();
           const today = now.toISOString().split('T')[0];
-          
+
           const totalTasks = tasks.length;
           const completedTasks = tasks.filter(task => task.completed).length;
           const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-          
+
           // Calculate streak
           let currentStreak = 0;
           let maxStreak = 0;
           let tempStreak = 0;
-          
+
           const completedDates = tasks
             .filter(task => task.completed && task.completedDate)
             .map(task => task.completedDate!.split('T')[0])
             .sort();
-          
+
           // Calculate current streak (from today backwards)
           let checkDate = new Date(now);
           while (true) {
@@ -764,7 +778,7 @@ export const useTaskStore = create<TaskStore>()(
               break;
             }
           }
-          
+
           // Calculate max streak
           for (let i = 0; i < completedDates.length; i++) {
             if (i === 0) {
@@ -774,7 +788,7 @@ export const useTaskStore = create<TaskStore>()(
               const currentDate = new Date(completedDates[i]);
               const diffTime = Math.abs(currentDate.getTime() - prevDate.getTime());
               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              
+
               if (diffDays === 1) {
                 tempStreak++;
               } else {
@@ -784,16 +798,16 @@ export const useTaskStore = create<TaskStore>()(
             }
           }
           maxStreak = Math.max(maxStreak, tempStreak);
-          
+
           const activeDays = new Set(completedDates).size;
           const averageTasksPerDay = activeDays > 0 ? totalTasks / activeDays : 0;
-          
+
           // Calculate average completion time
           const tasksWithDuration = tasks.filter(task => task.actualDuration && task.actualDuration > 0);
           const averageCompletionTime = tasksWithDuration.length > 0
             ? tasksWithDuration.reduce((sum, task) => sum + (task.actualDuration || 0), 0) / tasksWithDuration.length
             : 0;
-          
+
           set({
             stats: {
               totalTasks,
@@ -816,27 +830,27 @@ export const useTaskStore = create<TaskStore>()(
           try {
             set({ syncStatus: { ...get().syncStatus, syncInProgress: true } });
             ('🔄 Sincronizando con Firestore...');
-            
+
             // Recargar tareas desde Firestore
             await get().loadTasks();
-            
-            set({ 
-              syncStatus: { 
-                ...get().syncStatus, 
-                syncInProgress: false, 
-                lastSync: new Date().toISOString() 
-              } 
+
+            set({
+              syncStatus: {
+                ...get().syncStatus,
+                syncInProgress: false,
+                lastSync: new Date().toISOString()
+              }
             });
-            
+
             ('✅ Sincronización con Firestore completada');
           } catch (error) {
             console.error('❌ Error en sincronización:', error);
-            set({ 
-              syncStatus: { 
-                ...get().syncStatus, 
-                syncInProgress: false, 
-                hasError: true 
-              } 
+            set({
+              syncStatus: {
+                ...get().syncStatus,
+                syncInProgress: false,
+                hasError: true
+              }
             });
           }
         },
@@ -925,43 +939,43 @@ export const useTaskStore = create<TaskStore>()(
 
 export const useTaskSelectors = () => {
   const store = useTaskStore();
-  
+
   return {
     // Filter selectors
     getTasksByType: (type: import('@/types').TaskType) =>
       store.tasks.filter(task => task.type === type),
-    
+
     getTasksByStatus: (status: 'pending' | 'in_progress' | 'completed' | 'cancelled') =>
       store.tasks.filter(task => task.status === status),
-    
+
     getCompletedTasks: () =>
       store.tasks.filter(task => task.completed),
-    
+
     getPendingTasks: () =>
       store.tasks.filter(task => !task.completed),
-    
+
     getOverdueTasks: () => {
       const today = new Date().toISOString().split('T')[0];
-      return store.tasks.filter(task => 
-        task.scheduledDate && 
-        task.scheduledDate < today && 
+      return store.tasks.filter(task =>
+        task.scheduledDate &&
+        task.scheduledDate < today &&
         !task.completed
       );
     },
-    
+
     getTasksForDate: (date: string) =>
       store.tasks.filter(task => task.scheduledDate === date),
-    
+
     getTasksInRange: (startDate: string, endDate: string) =>
-      store.tasks.filter(task => 
-        task.scheduledDate && 
-        task.scheduledDate >= startDate && 
+      store.tasks.filter(task =>
+        task.scheduledDate &&
+        task.scheduledDate >= startDate &&
         task.scheduledDate <= endDate
       ),
-    
+
     getSelectedTasks: () =>
       store.tasks.filter(task => store.selectedTaskIds.includes(task.id)),
-    
+
     // Search selector
     searchTasks: (query: string) =>
       store.tasks.filter(task =>
