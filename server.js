@@ -258,7 +258,10 @@ app.post('/api/payments/create-preference', async (req, res) => {
       },
       // auto_return: 'approved',
       external_reference: externalReference,
-      notification_url: MP_NOTIFICATION_URL
+      notification_url: MP_NOTIFICATION_URL,
+      payer: payer,
+      auto_return: 'approved',
+      binary_mode: true
     };
 
     console.log('📤 Creating preference with payload:', preferencePayload);
