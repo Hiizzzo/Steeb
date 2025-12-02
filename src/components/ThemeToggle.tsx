@@ -106,9 +106,15 @@ const ThemeToggle = () => {
 				return null;
 			}
 
+			// Priorizar email real
+			const email = user?.email || userProfile?.email;
+			
+			// Si no hay email real, retornamos null para forzar login/registro
+			if (!email) return null;
+
 			return {
 				userId: currentUserId,
-				email: user?.email || userProfile?.email || `user_${currentUserId}@steeb.app`,
+				email: email,
 				name: user?.name || userProfile?.name || userProfile?.nickname || 'Usuario STEEB',
 				avatar: user?.avatar || userProfile?.avatar
 			};
@@ -119,7 +125,7 @@ const ThemeToggle = () => {
 			const userData = resolveUserData();
 
 			if (!userData) {
-				alert('Debes iniciar sesión para comprar el modo Dark.');
+				alert('Debes iniciar sesión con un email válido para comprar el modo Dark.');
 				return;
 			}
 
@@ -136,7 +142,7 @@ const ThemeToggle = () => {
 			const userData = resolveUserData();
 
 			if (!userData) {
-				alert('Debes iniciar sesión para comprar tiradas Shiny.');
+				alert('Debes iniciar sesión con un email válido para comprar tiradas Shiny.');
 				return;
 			}
 

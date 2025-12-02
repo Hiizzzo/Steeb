@@ -266,7 +266,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Google Sign-In nativo no está disponible en esta instalación. Reinstalá la app o usá Email/Contraseña.');
       } catch (error) {
         console.error('❌ Error en autenticación nativa:', error);
-        
+
         // Mostrar error en pantalla (DOM) para evitar bugs de alert nativos
         const errDiv = document.createElement('div');
         errDiv.style.position = 'fixed';
@@ -370,9 +370,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // No permitir modificar ownerUid en actualizaciones
         await updateDoc(ref, {
           name,
-          nombre: name,
           nickname,
-          apodo: nickname,
           updatedAt: serverTimestamp()
         });
       } catch (e) {

@@ -153,7 +153,9 @@ const SteebChatAI: React.FC = () => {
       allPendingTasks: pendingTasks.map(t => t.title),
       completedToday: completedToday.length,
       completedTodayList: completedToday.map(t => t.title),
-      hasTasks: tasks.length > 0
+      hasTasks: tasks.length > 0,
+      userName: userProfile?.name || user?.name || 'Usuario',
+      userNickname: userProfile?.nickname || user?.nickname || ''
     };
   };
 
@@ -245,24 +247,29 @@ const SteebChatAI: React.FC = () => {
     const knownName = (user.name || storedProfile?.name || '').trim();
     const knownNickname = (user.nickname || storedProfile?.nickname || '').trim();
 
+    let timeoutId: NodeJS.Timeout;
+
     if (!knownName) {
       setProfileOnboardingStep('asking-name');
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         appendAssistantMessage('Me llamo Steeb, ¿cómo es tu nombre?');
       }, 400);
-      return;
-    }
-
-    onboardingNameRef.current = knownName;
-
-    if (!knownNickname) {
-      setProfileOnboardingStep('asking-nickname');
-      setTimeout(() => {
-        appendAssistantMessage('Ese es tu nombre, buen nombre. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?');
-      }, 400);
     } else {
-      setProfileOnboardingStep('completed');
+      onboardingNameRef.current = knownName;
+
+      if (!knownNickname) {
+        setProfileOnboardingStep('asking-nickname');
+        timeoutId = setTimeout(() => {
+          appendAssistantMessage(`Veo que te llamas ${knownName}. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?`);
+        }, 400);
+      } else {
+        setProfileOnboardingStep('completed');
+      }
     }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [user, profileOnboardingStep, appendAssistantMessage]);
 
   const processSteebMessage = useCallback(
@@ -349,7 +356,7 @@ const SteebChatAI: React.FC = () => {
                 description:
                   typeof action.payload?.description === 'string'
                     ? action.payload.description
-                  : undefined,
+                    : undefined,
                 type: 'extra',
                 status: 'pending',
                 completed: false,
@@ -362,6 +369,8 @@ const SteebChatAI: React.FC = () => {
               appendAssistantMessage(`Tarea creada: ${title}`);
               break;
             }
+            /* 
+            // DESHABILITADO POR SEGURIDAD/UX: Steeb no debe abrir ventanas de compra automáticamente
             case 'BUY_DARK_MODE':
               window.dispatchEvent(
                 new CustomEvent('buy-dark-mode', {
@@ -381,6 +390,7 @@ const SteebChatAI: React.FC = () => {
               );
               break;
             }
+            */
             case 'PLAY_SHINY_GAME': {
               const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
 
@@ -395,12 +405,12 @@ const SteebChatAI: React.FC = () => {
               }
 
               setShinyGameState('confirming');
-              
+
               // Check rolls logic
               const realtimeRolls = typeof userProfile?.shinyRolls === 'number' ? userProfile.shinyRolls : null;
               let availableRolls = getBestRollsCount(shinyRolls, realtimeRolls);
               let shinyStatus: ShinyStatusResponse | null = null;
-              
+
               try {
                 const { getShinyStatus } = await import('@/services/steebApi');
                 const status = await getShinyStatus(user?.id);
@@ -428,8 +438,8 @@ const SteebChatAI: React.FC = () => {
               if (shinyStatus) {
                 if (hasDailyAttempt) {
                   const extraInfo = extraRollsFromStatus && extraRollsFromStatus > 0
-                      ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
-                      : '';
+                    ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
+                    : '';
                   confirmationText = `Tenés un intento diario gratis disponible.${extraInfo}\n\n¿Querés usarlo para intentar desbloquear el modo SHINY?`;
                 } else {
                   const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
@@ -486,6 +496,30 @@ const SteebChatAI: React.FC = () => {
               } catch (statsError) {
                 console.error('Error consultando stats shiny:', statsError);
                 appendAssistantMessage('No pude consultar las estadísticas shiny ahora mismo.');
+              }
+              break;
+            }
+            case 'UPDATE_USER_PROFILE': {
+              const { name, nickname } = action.payload || {};
+              if (user?.id && (name || nickname)) {
+                const currentName = name || userProfile?.name || user?.name || '';
+                const currentNickname = nickname || userProfile?.nickname || user?.nickname || '';
+
+                // Update local storage
+                saveLocalUserProfile(user.id, {
+                  name: currentName,
+                  nickname: currentNickname
+                });
+
+                // Update Firebase
+                updateProfile(currentName, currentNickname).catch(err =>
+                  console.error('Error updating profile from AI action:', err)
+                );
+
+                // Update ref for immediate UI consistency
+                if (name) onboardingNameRef.current = name;
+
+                console.log('✅ Profile updated by AI:', { name, nickname });
               }
               break;
             }
@@ -598,7 +632,7 @@ const SteebChatAI: React.FC = () => {
         }
         setProfileOnboardingStep('asking-nickname');
         setTimeout(() => {
-          appendAssistantMessage('Ese es tu nombre, buen nombre. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?');
+          appendAssistantMessage(`Veo que te llamas ${cleanName}. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?`);
         }, 500);
       }
       return;
@@ -857,52 +891,102 @@ const SteebChatAI: React.FC = () => {
       return;
     }
 
+    // Detectar comando para cambiar nombre: "me llamo (nombre)" o "mi nombre es (nombre)"
+    const nameRegex = /^(?:me llamo|mi nombre es|soy)\s+(.+)$/i;
+    const nameMatch = message.match(nameRegex);
+    if (nameMatch) {
+      const newName = nameMatch[1].trim();
+      if (newName.length > 1) {
+        // Actualizar nombre
+        if (user?.id) {
+          saveLocalUserProfile(user.id, { name: newName, nickname: newName });
+          updateProfile(newName, newName).catch(err => console.error('Error actualizando nombre:', err));
+
+          // Forzar actualización visual si es necesario (el hook debería encargarse)
+          onboardingNameRef.current = newName;
+        }
+
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: `Entendido, ${newName}. He actualizado tu nombre en mi memoria.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        return;
+      }
+    }
+
+    // Detectar comando para cambiar apodo: "mi apodo es (apodo)" o "dime (apodo)"
+    const nicknameRegex = /^(?:mi apodo es|dime|llámame)\s+(.+)$/i;
+    const nicknameMatch = message.match(nicknameRegex);
+    if (nicknameMatch) {
+      const newNickname = nicknameMatch[1].trim();
+      if (newNickname.length > 1) {
+        // Actualizar apodo
+        if (user?.id) {
+          const currentName = userProfile?.name || user?.name || onboardingNameRef.current || '';
+          saveLocalUserProfile(user.id, { nickname: newNickname });
+          updateProfile(currentName, newNickname).catch(err => console.error('Error actualizando apodo:', err));
+        }
+
+        const aiMessage: ChatMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: `Perfecto, te diré "${newNickname}" de ahora en adelante.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        return;
+      }
+    }
+
     setIsTyping(true);
 
     try {
-        const { streamMessageToSteeb } = await import('@/services/steebApi');
+      const { streamMessageToSteeb } = await import('@/services/steebApi');
 
-        // Variable para acumular el texto y actualizar el estado
-        let accumulatedContent = '';
-        let aiMessageId: string | null = null;
-        const context = getTaskContext();
+      // Variable para acumular el texto y actualizar el estado
+      let accumulatedContent = '';
+      let aiMessageId: string | null = null;
+      const context = getTaskContext();
 
-        const { actions } = await streamMessageToSteeb(message, (chunk) => {
-          setIsTyping(false); // Dejar de mostrar "escribiendo" apenas llega el primer chunk
-          accumulatedContent += chunk;
+      const { actions } = await streamMessageToSteeb(message, (chunk) => {
+        setIsTyping(false); // Dejar de mostrar "escribiendo" apenas llega el primer chunk
+        accumulatedContent += chunk;
 
-          if (!aiMessageId) {
-            aiMessageId = `msg_${Date.now() + 1}`;
-            setMessages(prev => [...prev, {
-              id: aiMessageId!,
-              role: 'assistant',
-              content: accumulatedContent,
-              timestamp: new Date()
-            }]);
-          } else {
-            setMessages(prev => prev.map(msg =>
-              msg.id === aiMessageId
-                ? { ...msg, content: accumulatedContent }
-                : msg
-            ));
-          }
-        }, context);
+        if (!aiMessageId) {
+          aiMessageId = `msg_${Date.now() + 1}`;
+          setMessages(prev => [...prev, {
+            id: aiMessageId!,
+            role: 'assistant',
+            content: accumulatedContent,
+            timestamp: new Date()
+          }]);
+        } else {
+          setMessages(prev => prev.map(msg =>
+            msg.id === aiMessageId
+              ? { ...msg, content: accumulatedContent }
+              : msg
+          ));
+        }
+      }, context);
 
-        await handleSteebActions(actions);
-      } catch (error) {
-        console.error('⚠️ Error comunicando con STEEB:', error);
+      await handleSteebActions(actions);
+    } catch (error) {
+      console.error('⚠️ Error comunicando con STEEB:', error);
 
-        const errorMessage: ChatMessage = {
-          id: `msg_${Date.now() + 1}`,
-          role: 'assistant',
-          content: 'STEEB no te quiere escuchar            *frota sus lentes*',
-          timestamp: new Date()
-        };
+      const errorMessage: ChatMessage = {
+        id: `msg_${Date.now() + 1}`,
+        role: 'assistant',
+        content: 'STEEB no te quiere escuchar            *frota sus lentes*',
+        timestamp: new Date()
+      };
 
-        setMessages(prev => [...prev, errorMessage]);
-      } finally {
-        setIsTyping(false);
-      }
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -915,326 +999,326 @@ const SteebChatAI: React.FC = () => {
   let shinyAssistantColorIndex = 0;
 
   return (
-      <>
-        <style dangerouslySetInnerHTML={{
-          __html: `
+    <>
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes blink {
           0%, 50% { opacity: 1; }
           51%, 100% { opacity: 0; }
         }
       `}} />
-        <div className={`flex h-full ${isDarkMode || isShinyMode ? 'bg-black text-white' : 'bg-white text-black'} flex-col`}>
-          {/* Main Content - Chat + Side Tasks */}
-          <div className="flex flex-col flex-1 overflow-hidden">
-            {/* Messages Area */}
-            <div
-              className={`overflow-y-auto px-4 pt-4 pb-8 transition-all duration-300 absolute left-0 right-0 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-white'
-                }`}
-              style={{
-                zIndex: 100,
-                top: '0px',
-                bottom: panelHeight > 0
-                  ? `${panelHeight + 12}px` // Dejar 60px para input + espacio del panel
-                  : '32px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
-              }}
-            >
-              {messages.map((message, index) => {
-                const nextMessage = messages[index + 1];
-                const shouldAddSpacing = !nextMessage || nextMessage.role !== message.role;
+      <div className={`flex h-full ${isDarkMode || isShinyMode ? 'bg-black text-white' : 'bg-white text-black'} flex-col`}>
+        {/* Main Content - Chat + Side Tasks */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Messages Area */}
+          <div
+            className={`overflow-y-auto px-4 pt-4 pb-8 transition-all duration-300 absolute left-0 right-0 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-white'
+              }`}
+            style={{
+              zIndex: 100,
+              top: '0px',
+              bottom: panelHeight > 0
+                ? `${panelHeight + 12}px` // Dejar 60px para input + espacio del panel
+                : '32px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
+            }}
+          >
+            {messages.map((message, index) => {
+              const nextMessage = messages[index + 1];
+              const shouldAddSpacing = !nextMessage || nextMessage.role !== message.role;
 
-                return (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} ${shouldAddSpacing ? 'mb-4' : 'mb-1'}`}
-                  >
-                    {/* Message Content with improved colors - PR #143 */}
-                    <div className={`flex items-end space-x-2 max-w-[85%] ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}>
-                      {/* Message bubble */}
-                      {(() => {
-                        let assistantBubbleStyle: React.CSSProperties | undefined;
-                        if (message.role === 'assistant') {
-                          if (isShinyMode) {
-                            assistantBubbleStyle = {
-                              borderColor: shinyMessageColors[shinyAssistantColorIndex++ % shinyMessageColors.length],
-                              borderWidth: '2px'
-                            };
-                          } else {
-                            assistantBubbleStyle = { borderColor: undefined, borderWidth: undefined };
-                          }
+              return (
+                <div
+                  key={message.id}
+                  className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} ${shouldAddSpacing ? 'mb-4' : 'mb-1'}`}
+                >
+                  {/* Message Content with improved colors - PR #143 */}
+                  <div className={`flex items-end space-x-2 max-w-[85%] ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}>
+                    {/* Message bubble */}
+                    {(() => {
+                      let assistantBubbleStyle: React.CSSProperties | undefined;
+                      if (message.role === 'assistant') {
+                        if (isShinyMode) {
+                          assistantBubbleStyle = {
+                            borderColor: shinyMessageColors[shinyAssistantColorIndex++ % shinyMessageColors.length],
+                            borderWidth: '2px'
+                          };
+                        } else {
+                          assistantBubbleStyle = { borderColor: undefined, borderWidth: undefined };
                         }
-                        return (
-                          <div
-                            className={`px-4 py-3 rounded-2xl relative group ${message.role === 'assistant'
-                              ? isShinyMode
-                                ? 'bg-black text-white border border-white shadow-md'
-                                : `${isDarkMode ? 'bg-black text-white border-2 border-white' : 'bg-white text-black border border-gray-300'} shadow-md`
-                              : isShinyMode
-                                ? 'bg-white text-black border border-white shadow-md'
+                      }
+                      return (
+                        <div
+                          className={`px-4 py-3 rounded-2xl relative group ${message.role === 'assistant'
+                            ? isShinyMode
+                              ? 'bg-black text-white border border-white shadow-md'
+                              : `${isDarkMode ? 'bg-black text-white border-2 border-white' : 'bg-white text-black border border-gray-300'} shadow-md`
+                            : isShinyMode
+                              ? 'bg-white text-black border border-white shadow-md'
+                              : isDarkMode
+                                ? 'bg-gray-400 text-black border border-black shadow-md'
+                                : 'bg-gray-300 border border-gray-300 text-black shadow-md'
+                            }`}
+                          style={assistantBubbleStyle}
+                        >
+
+                          <p
+                            className="text-sm leading-relaxed whitespace-pre-wrap"
+                            style={{
+                              color: message.role === 'assistant'
+                                ? (isDarkMode || isShinyMode ? '#FFFFFF !important' : '#000000 !important')
                                 : isDarkMode
-                                  ? 'bg-gray-400 text-black border border-black shadow-md'
-                                  : 'bg-gray-300 border border-gray-300 text-black shadow-md'
-                              }`}
-                            style={assistantBubbleStyle}
+                                  ? '#000000 !important'
+                                  : (isShinyMode ? '#000000 !important' : '#000000 !important'),
+                              backgroundColor: 'transparent',
+                              opacity: 1,
+                              WebkitTextFillColor: message.role === 'assistant'
+                                ? (isDarkMode || isShinyMode ? '#FFFFFF' : '#000000')
+                                : isDarkMode
+                                  ? '#000000'
+                                  : (isShinyMode ? '#000000' : '#000000')
+                            }}
                           >
+                            {renderMessageContent(message.content)}
+                          </p>
 
-                            <p
-                              className="text-sm leading-relaxed whitespace-pre-wrap"
-                              style={{
-                                color: message.role === 'assistant'
-                                  ? (isDarkMode || isShinyMode ? '#FFFFFF !important' : '#000000 !important')
-                                  : isDarkMode
-                                    ? '#000000 !important'
-                                    : (isShinyMode ? '#000000 !important' : '#000000 !important'),
-                                backgroundColor: 'transparent',
-                                opacity: 1,
-                                WebkitTextFillColor: message.role === 'assistant'
-                                  ? (isDarkMode || isShinyMode ? '#FFFFFF' : '#000000')
-                                  : isDarkMode
-                                    ? '#000000'
-                                    : (isShinyMode ? '#000000' : '#000000')
+                          {/* Timestamp with improved styling */}
+                          <div
+                            className={`text-xs mt-2 flex items-center space-x-1 ${message.role === 'assistant'
+                              ? (isShinyMode ? 'text-white !important' : isDarkMode ? 'text-gray-300' : 'text-gray-500')
+                              : (isShinyMode ? 'text-black !important' : 'text-white')
+                              }`}
+                          >
+                            <Clock className={`w-3 h-3 ${isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}`} />
+                            <span className={isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}>
+                              {message.timestamp.toLocaleTimeString('es-ES', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+
+                          {/* BotÃ³n de Mercado Pago */}
+                          {message.showMercadoPagoButton && (
+                            <button
+                              onClick={() => {
+                                // Enviar evento para abrir modal de pago (cuando exista)
+                                const buyDarkEvent = new CustomEvent('buy-dark-mode', {
+                                  detail: {
+                                    source: 'chat-button',
+                                    timestamp: new Date()
+                                  }
+                                });
+                                window.dispatchEvent(buyDarkEvent);
                               }}
-                            >
-                              {renderMessageContent(message.content)}
-                            </p>
-
-                            {/* Timestamp with improved styling */}
-                            <div
-                              className={`text-xs mt-2 flex items-center space-x-1 ${message.role === 'assistant'
-                                ? (isShinyMode ? 'text-white !important' : isDarkMode ? 'text-gray-300' : 'text-gray-500')
-                                : (isShinyMode ? 'text-black !important' : 'text-white')
+                              className={`w-full mt-3 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md border-2 ${isShinyMode || isDarkMode
+                                ? 'bg-white text-black border-white hover:bg-gray-100'
+                                : 'bg-black text-white border-black hover:bg-gray-800'
                                 }`}
                             >
-                              <Clock className={`w-3 h-3 ${isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}`} />
-                              <span className={isShinyMode ? (message.role === 'assistant' ? 'text-white !important' : 'text-black !important') : ''}>
-                                {message.timestamp.toLocaleTimeString('es-ES', {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </span>
+                              <CreditCard className="w-4 h-4" />
+                              Pagar con Mercado Pago
+                            </button>
+                          )}
+
+                          {/* Opciones de pago mÃºltiples */}
+                          {message.paymentOptions && (
+                            <div className="mt-3 space-y-2">
+                              {message.paymentOptions.map((option) => (
+                                <button
+                                  key={option.id}
+                                  onClick={() => {
+                                    const event = new CustomEvent(option.action, {
+                                      detail: {
+                                        planId: option.planId,
+                                        timestamp: new Date()
+                                      }
+                                    });
+                                    window.dispatchEvent(event);
+                                  }}
+                                  className={`shiny-option-btn w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${isShinyMode || isDarkMode
+                                    ? 'bg-black text-white border-0'
+                                    : 'bg-white text-black border-0'
+                                    }`}
+                                  style={isShinyMode || isDarkMode ? { backgroundColor: '#000000' } : undefined}
+                                >
+                                  <span>{option.label}</span>
+                                  <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}>
+                                    {option.price}
+                                  </span>
+                                </button>
+                              ))}
                             </div>
+                          )}
 
-                            {/* BotÃ³n de Mercado Pago */}
-                            {message.showMercadoPagoButton && (
-                              <button
-                                onClick={() => {
-                                  // Enviar evento para abrir modal de pago (cuando exista)
-                                  const buyDarkEvent = new CustomEvent('buy-dark-mode', {
-                                    detail: {
-                                      source: 'chat-button',
-                                      timestamp: new Date()
-                                    }
-                                  });
-                                  window.dispatchEvent(buyDarkEvent);
-                                }}
-                                className={`w-full mt-3 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md border-2 ${isShinyMode || isDarkMode
-                                  ? 'bg-white text-black border-white hover:bg-gray-100'
-                                  : 'bg-black text-white border-black hover:bg-gray-800'
-                                  }`}
-                              >
-                                <CreditCard className="w-4 h-4" />
-                                Pagar con Mercado Pago
-                              </button>
-                            )}
-
-                            {/* Opciones de pago mÃºltiples */}
-                            {message.paymentOptions && (
-                              <div className="mt-3 space-y-2">
-                                {message.paymentOptions.map((option) => (
-                                  <button
-                                    key={option.id}
-                                    onClick={() => {
-                                      const event = new CustomEvent(option.action, {
-                                        detail: {
-                                          planId: option.planId,
-                                          timestamp: new Date()
-                                        }
-                                      });
-                                      window.dispatchEvent(event);
-                                    }}
-                                    className={`shiny-option-btn w-full py-2 px-3 rounded-xl font-medium flex items-center justify-between transition-all duration-200 ${isShinyMode || isDarkMode
-                                      ? 'bg-black text-white border-0'
-                                      : 'bg-white text-black border-0'
-                                      }`}
-                                    style={isShinyMode || isDarkMode ? { backgroundColor: '#000000' } : undefined}
-                                  >
-                                    <span>{option.label}</span>
-                                    <span className={`font-bold ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`}>
-                                      {option.price}
-                                    </span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Enhanced Typing Indicator */}
-              {isTyping && (
-                <div className="flex justify-start mb-4">
-                  <div className="flex items-end space-x-2">
-                    {/* Typing animation only - no bubble */}
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                    </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
-              )}
+              );
+            })}
 
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Side Tasks Panel - Altura predefinida */}
-            <FixedPanelContainer
-              isOpen={showSideTasks}
-              onClose={() => setShowSideTasks(false)}
-              onHeightChange={handlePanelHeightChange}
-              minHeight={400}
-            >
-              <SimpleSideTasksPanel onClose={() => setShowSideTasks(false)} />
-            </FixedPanelContainer>
-
-            {/* Progress Panel - Altura predefinida */}
-            <FixedPanelContainer
-              isOpen={showProgress}
-              onClose={() => setShowProgress(false)}
-              onHeightChange={handlePanelHeightChange}
-              minHeight={400}
-            >
-              <SimpleProgressPanel onClose={() => setShowProgress(false)} />
-            </FixedPanelContainer>
-
-            {/* Calendar Panel - Altura predefinida */}
-            <FixedPanelContainer
-              isOpen={showCalendar}
-              onClose={() => setShowCalendar(false)}
-              onHeightChange={handlePanelHeightChange}
-            >
-              <SimpleCalendarPanel onClose={() => setShowCalendar(false)} />
-            </FixedPanelContainer>
-
-            {/* Enhanced Input Area with improved colors - Positionado arriba de los paneles */}
-            <div
-              className={`${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-gray-100'} backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0`}
-              style={{
-                zIndex: 100,
-                bottom: panelHeight > 0 ? `${Math.max(panelHeight - 10, 12)}px` : '16px',
-                backgroundColor: isShinyMode ? '#000000' : undefined
-              }}
-            >
-              <div className="flex items-end space-x-2">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder=""
-                    className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${isShinyMode
-                      ? 'bg-white text-black border-white focus:!border-white'
-                      : isDarkMode
-                        ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
-                        : 'bg-white text-black border-gray-300 focus:!border-black'
-                      } ${inputMessage ? 'pl-3' : 'pl-10'}`}
-                    style={{
-                      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-                      fontWeight: '400',
-                      fontSize: '16px'
-                    }}
-                  />
-                  {/* Cursor clÃ¡sico parpadeante */}
-                  {!inputMessage && (
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                      <div
-                        className={`w-0.5 h-4 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-white' : 'bg-black'}`}
-                        style={{
-                          animation: 'blink 1s step-end infinite'
-                        }}
-                      ></div>
-                    </div>
-                  )}
-
-                  {/* Character count indicator */}
-                  {inputMessage.length > 0 && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <span className={`text-xs ${inputMessage.length > 100 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'
-                        }`}>
-                        {inputMessage.length}
-                      </span>
-                    </div>
-                  )}
+            {/* Enhanced Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start mb-4">
+                <div className="flex items-end space-x-2">
+                  {/* Typing animation only - no bubble */}
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
                 </div>
+              </div>
+            )}
 
-                <button
-                  data-custom-color="true"
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || isTyping}
-                  className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 border-2 ${isShinyMode
-                    ? 'bg-black border-white hover:bg-black'
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Side Tasks Panel - Altura predefinida */}
+          <FixedPanelContainer
+            isOpen={showSideTasks}
+            onClose={() => setShowSideTasks(false)}
+            onHeightChange={handlePanelHeightChange}
+            minHeight={400}
+          >
+            <SimpleSideTasksPanel onClose={() => setShowSideTasks(false)} />
+          </FixedPanelContainer>
+
+          {/* Progress Panel - Altura predefinida */}
+          <FixedPanelContainer
+            isOpen={showProgress}
+            onClose={() => setShowProgress(false)}
+            onHeightChange={handlePanelHeightChange}
+            minHeight={400}
+          >
+            <SimpleProgressPanel onClose={() => setShowProgress(false)} />
+          </FixedPanelContainer>
+
+          {/* Calendar Panel - Altura predefinida */}
+          <FixedPanelContainer
+            isOpen={showCalendar}
+            onClose={() => setShowCalendar(false)}
+            onHeightChange={handlePanelHeightChange}
+          >
+            <SimpleCalendarPanel onClose={() => setShowCalendar(false)} />
+          </FixedPanelContainer>
+
+          {/* Enhanced Input Area with improved colors - Positionado arriba de los paneles */}
+          <div
+            className={`${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-black' : 'bg-gray-100'} backdrop-blur-sm px-3 pb-2 pt-0 absolute left-0 right-0`}
+            style={{
+              zIndex: 100,
+              bottom: panelHeight > 0 ? `${Math.max(panelHeight - 10, 12)}px` : '16px',
+              backgroundColor: isShinyMode ? '#000000' : undefined
+            }}
+          >
+            <div className="flex items-end space-x-2">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder=""
+                  className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${isShinyMode
+                    ? 'bg-white text-black border-white focus:!border-white'
                     : isDarkMode
-                      ? 'bg-black border-gray-700 hover:bg-gray-800'
-                      : 'bg-white border-white hover:bg-gray-100'
-                    }`}
-                >
-                  {isShinyMode ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="url(#shiny-arrow-gradient)"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="w-5 h-5"
-                    >
-                      <defs>
-                        <linearGradient id="shiny-arrow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#ff004c">
-                            <animate attributeName="stop-color" values="#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff;#ff004c" dur="4s" repeatCount="indefinite" />
-                          </stop>
-                          <stop offset="100%" stopColor="#ff00ff">
-                            <animate attributeName="stop-color" values="#ff00ff;#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff" dur="4s" repeatCount="indefinite" />
-                          </stop>
-                        </linearGradient>
-                      </defs>
-                      <path d="m5 12 7-7 7 7" />
-                      <path d="M12 19V5" />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`}
-                    >
-                      <path d="m5 12 7-7 7 7" />
-                    </svg>
-                  )}
-                </button>
+                      ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
+                      : 'bg-white text-black border-gray-300 focus:!border-black'
+                    } ${inputMessage ? 'pl-3' : 'pl-10'}`}
+                  style={{
+                    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+                    fontWeight: '400',
+                    fontSize: '16px'
+                  }}
+                />
+                {/* Cursor clÃ¡sico parpadeante */}
+                {!inputMessage && (
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    <div
+                      className={`w-0.5 h-4 ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-white' : 'bg-black'}`}
+                      style={{
+                        animation: 'blink 1s step-end infinite'
+                      }}
+                    ></div>
+                  </div>
+                )}
 
+                {/* Character count indicator */}
+                {inputMessage.length > 0 && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <span className={`text-xs ${inputMessage.length > 100 ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'
+                      }`}>
+                      {inputMessage.length}
+                    </span>
+                  </div>
+                )}
               </div>
 
+              <button
+                data-custom-color="true"
+                onClick={handleSendMessage}
+                disabled={!inputMessage.trim() || isTyping}
+                className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 border-2 ${isShinyMode
+                  ? 'bg-black border-white hover:bg-black'
+                  : isDarkMode
+                    ? 'bg-black border-gray-700 hover:bg-gray-800'
+                    : 'bg-white border-white hover:bg-gray-100'
+                  }`}
+              >
+                {isShinyMode ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="url(#shiny-arrow-gradient)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-5 h-5"
+                  >
+                    <defs>
+                      <linearGradient id="shiny-arrow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#ff004c">
+                          <animate attributeName="stop-color" values="#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff;#ff004c" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                        <stop offset="100%" stopColor="#ff00ff">
+                          <animate attributeName="stop-color" values="#ff00ff;#ff004c;#ff7a00;#ffe600;#00ff66;#00c2ff;#8b00ff;#ff00ff" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                      </linearGradient>
+                    </defs>
+                    <path d="m5 12 7-7 7 7" />
+                    <path d="M12 19V5" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-black'}`}
+                  >
+                    <path d="m5 12 7-7 7 7" />
+                  </svg>
+                )}
+              </button>
 
             </div>
+
+
           </div>
         </div>
-      </>
+      </div>
+    </>
   );
 };
 
-  export default SteebChatAI;
+export default SteebChatAI;

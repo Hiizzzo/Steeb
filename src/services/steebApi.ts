@@ -15,7 +15,8 @@ const ACTION_TYPES: SteebActionType[] = [
   'BUY_SHINY_ROLLS',
   'PLAY_SHINY_GAME',
   'SHOW_MOTIVATION',
-  'GET_SHINY_STATS'
+  'GET_SHINY_STATS',
+  'UPDATE_USER_PROFILE'
 ];
 
 const normalizeActions = (raw: any): SteebAction[] => {
@@ -42,7 +43,8 @@ export type SteebActionType =
   | 'BUY_SHINY_ROLLS'
   | 'PLAY_SHINY_GAME'
   | 'SHOW_MOTIVATION'
-  | 'GET_SHINY_STATS';
+  | 'GET_SHINY_STATS'
+  | 'UPDATE_USER_PROFILE';
 
 export interface SteebAction {
   type: SteebActionType;
@@ -164,7 +166,7 @@ async function streamMessageToSteebRobust(
 
   const processLine = async (line: string) => {
     if (line.trim() === '') return;
-    
+
     if (line.startsWith('data: ')) {
       const jsonStr = line.slice(6);
       if (jsonStr === '[DONE]') return;
@@ -251,7 +253,7 @@ async function streamMessageToSteebRobust(
 
     const chunk = decoder.decode(value, { stream: true });
     streamBuffer += chunk;
-    
+
     const lines = streamBuffer.split('\n');
     streamBuffer = lines.pop() || '';
 
