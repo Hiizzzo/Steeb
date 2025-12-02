@@ -132,6 +132,89 @@ const getPersistentUserId = async (): Promise<string> => {
   return stored;
 };
 
+const parseSSEResponse = (rawText: string): { reply: string; actions: any[] } => {
+  // 1. Try parsing as standard JSON first (for error responses or legacy format)
+  if (rawText.trim().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(rawText);
+      if (parsed.success === false || parsed.error) {
+        throw new Error(parsed.error || parsed.message || 'Error del servidor');
+      }
+      // If it looks like a standard success response
+      if (parsed.data || parsed.message) {
+        return {
+          reply: parsed.data?.reply || parsed.message || '',
+          actions: parsed.data?.actions || []
+        };
+      }
+    } catch (e: any) {
+      // If we identified a server error, rethrow it
+      if (e.message && (e.message.includes('Error del servidor') || e.message.includes('Error'))) {
+        throw e;
+      }
+      // Otherwise, ignore JSON parse errors and try SSE
+    }
+  }
+
+  // 2. Parse SSE stream
+  const lines = rawText.split('\n');
+  let fullContent = '';
+  let foundSSE = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('data: ')) {
+      foundSSE = true;
+      const jsonStr = trimmed.slice(6);
+      if (jsonStr === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.chunk) {
+          fullContent += parsed.chunk;
+        }
+      } catch (e) {
+        // ignore invalid lines
+      }
+    }
+  }
+
+  if (!foundSSE && !fullContent) {
+    // If it wasn't JSON and we found no SSE data, return empty (or could throw)
+    return { reply: '', actions: [] };
+  }
+
+  // 3. Process markers in accumulated content
+  let reply = '';
+  let actionsRaw = '';
+  let contentToProcess = fullContent;
+
+  // Handle optional REPLY marker
+  if (contentToProcess.includes(':::REPLY:::')) {
+    const parts = contentToProcess.split(':::REPLY:::');
+    contentToProcess = parts[1] || '';
+  }
+
+  // Handle ACTIONS marker
+  if (contentToProcess.includes(':::ACTIONS:::')) {
+    const parts = contentToProcess.split(':::ACTIONS:::');
+    reply = parts[0];
+    actionsRaw = parts[1] || '';
+  } else {
+    reply = contentToProcess;
+  }
+
+  let actions: any[] = [];
+  if (actionsRaw.trim()) {
+    try {
+      actions = JSON.parse(actionsRaw.trim());
+    } catch (e) {
+      console.warn('Error parsing actions JSON from stream:', e);
+    }
+  }
+
+  return { reply, actions };
+};
+
 export async function sendMessageToSteeb(
   message: string
 ): Promise<SteebApiSuccess> {
@@ -161,36 +244,40 @@ export async function sendMessageToSteeb(
 
   const rawText = await response.text();
   console.log(' STEEB → Status:', response.status);
-  console.log(' STEEB → Raw:', rawText.slice(0, 200));
+  // console.log(' STEEB → Raw:', rawText.slice(0, 200));
 
-  let payload: any;
+  if (!response.ok) {
+    // Try to parse error from JSON if possible
+    try {
+      const json = JSON.parse(rawText);
+      throw new Error(json.error || json.message || `Error del servidor (${response.status})`);
+    } catch (e: any) {
+      if (e.message && !e.message.includes('Unexpected token')) throw e;
+      throw new Error(`Error del servidor (${response.status})`);
+    }
+  }
+
+  let parsed: { reply: string; actions: any[] };
   try {
-    payload = rawText ? JSON.parse(rawText) : null;
-  } catch {
-    throw new Error(
-      `STEEB devolvió una respuesta inválida. (status ${response.status})`
-    );
+    parsed = parseSSEResponse(rawText);
+  } catch (e: any) {
+    throw new Error(e.message || `STEEB devolvió una respuesta inválida. (status ${response.status})`);
   }
 
-  if (!response.ok || payload?.success === false) {
-    const backendError =
-      payload?.error ?? `Error del servidor de STEEB (${response.status})`;
-    throw new Error(
-      typeof backendError === 'string'
-        ? backendError
-        : 'Hubo un problema hablando con STEEB.'
-    );
+  if (!parsed.reply && parsed.actions.length === 0) {
+     // If we got nothing, it might be an issue
+     // But sometimes reply is empty? Unlikely for AI.
+     // Let's assume if both are empty and status was 200, it's a parsing failure or empty stream
+     if (rawText.length > 0) {
+         // If we have text but parsed nothing, maybe the format changed unexpectedly
+         console.warn('STEEB → Warning: Parsed empty response from non-empty body');
+     }
   }
 
-  const reply: string =
-    typeof payload?.data?.reply === 'string' && payload.data.reply.trim().length > 0
-      ? payload.data.reply.trim()
-      : (typeof payload?.message === 'string' ? payload.message : 'Listo, hacelo ahora.');
-
-  const actions = normalizeActions(payload?.data?.actions);
+  const actions = normalizeActions(parsed.actions);
 
   return {
-    reply,
+    reply: parsed.reply,
     actions,
   };
 }
