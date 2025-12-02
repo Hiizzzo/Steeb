@@ -29,25 +29,6 @@ export interface PaymentUserData {
   avatar?: string;
 }
 
-const openLinkFallback = (url: string) => {
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.target = '_top';
-  anchor.rel = 'noopener noreferrer';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-};
-
-const submitHiddenForm = (url: string) => {
-  const form = document.createElement('form');
-  form.method = 'GET';
-  form.action = url;
-  form.target = '_self';
-  document.body.appendChild(form);
-  form.submit();
-  form.remove();
-};
 
 const isIosDevice = () => {
   if (typeof navigator === 'undefined') return false;
@@ -226,25 +207,18 @@ export const mercadoPagoService = {
     }
   },
 
-  // Redirigir al checkout de Mercado Pago - PRODUCCION (ANTI-DEEP-LINKS DEFINITIVO)
+  // Redirigir al checkout de Mercado Pago - WEB DIRECTO
   redirectToCheckout: (response: MercadoPagoResponse) => {
-    console.log('?? Redirigiendo a Mercado Pago:', response);
+    console.log('🚀 Redirigiendo a Mercado Pago (Web Checkout):', response);
 
-    let checkoutUrl = response.initPoint || response.sandboxInitPoint;
+    const checkoutUrl = response.initPoint || response.sandboxInitPoint;
     if (!checkoutUrl) {
       throw new Error('No hay URL de checkout disponible');
     }
 
-    // 🔥 SOLUCIÓN DEFINITIVA: Usar siempre la URL provista por el backend
-    // La conversión de deep links debe hacerse solo si es estrictamente necesario
-    // Por ahora confiamos en el initPoint del backend
-    if (checkoutUrl.startsWith('mercadopago://')) {
-      console.log('ℹ️ Recibido deep link de Mercado Pago');
-    }
-
-    console.log('✅ URL final (sin deep links):', checkoutUrl);
-
-    // Redirección directa al checkout web - SIN INTERCEPCIÓN DE ANDROID
+    // Forzar siempre HTTPS web para evitar intentos de abrir la app nativa que fallan
+    // y generan errores en consola.
+    console.log('✅ Abriendo checkout:', checkoutUrl);
     window.location.href = checkoutUrl;
   },
 
