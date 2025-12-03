@@ -150,18 +150,17 @@ const SteebChatAI: React.FC = () => {
     return {
       pending: pendingTasks.length,
       pendingList: pendingTasks.slice(0, 5).map(t => t.title),
+
       allPendingTasks: pendingTasks.map(t => t.title),
       completedToday: completedToday.length,
       completedTodayList: completedToday.map(t => t.title),
       hasTasks: tasks.length > 0,
       userName: userProfile?.name || user?.name || 'Usuario',
       userNickname: userProfile?.nickname || user?.nickname || '',
-      userRole: tipoUsuario || 'white'
+      userRole: tipoUsuario || 'white',
+      shinyRolls: userProfile?.shinyRolls || 0
     };
   };
-
-  // Respuestas predefinidas para mejor UX - PR #142
-  const predefinedResponses: Record<string, string> = {};
 
   const getInitialMessage = () => {
     return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
