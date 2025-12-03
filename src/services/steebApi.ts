@@ -153,6 +153,10 @@ async function streamMessageToSteebRobust(
     // ignore
   }
 
+  // Asegurar que el contexto tenga la información más actualizada
+  // Si context.pending es 0 pero context.hasTasks es true, algo anda mal con el conteo
+  // Intentamos recalcular o confiar en lo que venga
+  
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
