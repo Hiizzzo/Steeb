@@ -329,13 +329,16 @@ export const useTaskStore = create<TaskStore>()(
 
           // 4. SINCRONIZAR CON FIREBASE EN SEGUNDO PLANO
           if (userId) {
-            FirestoreTaskService.createTask(newTask, userId)
+            // Asegurarse de pasar el objeto completo, incluyendo el ID temporal si es necesario para tracking,
+            // pero FirestoreTaskService.createTask generará uno nuevo o usará el proporcionado si se adapta.
+            // En este caso, pasamos newTask que ya tiene todos los datos.
+            FirestoreTaskService.createTask(newTask)
               .then((savedTask) => {
                 // Actualizar el ID local con el ID real de Firestore para evitar errores de eliminación
                 set(state => ({
                   tasks: state.tasks.map(t => t.id === newTask.id ? { ...t, id: savedTask.id } : t)
                 }));
-                ('✅ Tarea sincronizada con Firebase:', newTask.title);
+                console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
               })
               .catch((error) => {
                 console.error('❌ Error al sincronizar con Firebase:', error);
@@ -345,6 +348,8 @@ export const useTaskStore = create<TaskStore>()(
                   error: 'Tarea creada localmente. Error de sincronización: ' + (error instanceof Error ? error.message : 'Error desconocido')
                 }));
               });
+          } else {
+             console.warn('⚠️ No hay usuario autenticado, la tarea solo se guardará localmente.');
           }
         },
 
