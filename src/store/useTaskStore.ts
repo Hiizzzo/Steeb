@@ -542,6 +542,10 @@ export const useTaskStore = create<TaskStore>()(
               // Cargar desde Firestore solo las tareas del usuario
               const tasks = await FirestoreTaskService.getTasks(userId);
 
+              // Combinar con tareas locales pendientes de sincronización si es necesario
+              // Por ahora, reemplazamos el estado local con el remoto para asegurar consistencia
+              // TODO: Implementar estrategia de merge más sofisticada si hay conflictos
+              
               set({
                 tasks: tasks || [],
                 isLoading: false,
@@ -551,7 +555,7 @@ export const useTaskStore = create<TaskStore>()(
               });
 
               get().calculateStats();
-              ('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
+              console.log('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
             } catch (firestoreError) {
               console.warn('⚠️ Error con Firestore, usando almacenamiento local:', firestoreError);
               get().loadTasksFromLocal();

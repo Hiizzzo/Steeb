@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
 
       // Configurar listener de tareas en tiempo real
-      ('🔄 Configurando listener de tareas para usuario:', fbUser.uid);
+      console.log('🔄 Configurando listener de tareas para usuario:', fbUser.uid);
       unsubscribeTaskListener = setupRealtimeListener(fbUser.uid);
 
       // Cargar tareas iniciales

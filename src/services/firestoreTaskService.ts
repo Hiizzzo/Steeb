@@ -42,13 +42,21 @@ export class FirestoreTaskService {
       const q = query(tasksRef, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'));
 
       const snapshot = await getDocs(q);
-      const items = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
-        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
-        dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
-      } as Task));
+      const items = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Manejo robusto de fechas: Timestamp, string ISO, o Date
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
+          dueDate: data.dueDate?.toDate?.()?.toISOString() || (typeof data.dueDate === 'string' ? data.dueDate : undefined),
+          // Asegurar que completed sea booleano
+          completed: !!data.completed,
+          // Asegurar que status sea válido
+          status: data.status || (data.completed ? 'completed' : 'pending')
+        } as Task;
+      });
 
       return items;
     }, 'Obtener tareas');
