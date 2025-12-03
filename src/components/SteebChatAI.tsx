@@ -790,13 +790,20 @@ const SteebChatAI: React.FC = () => {
               }
             }
           } else {
-            // Si perdiÃ³, preguntar si quiere jugar de nuevo si tiene tiradas
+            // Si perdió, preguntar si quiere jugar de nuevo si tiene tiradas
             if (result.remainingRolls !== undefined && result.remainingRolls > 0) {
               setTimeout(() => {
+                let timeInfo = '';
+                if (result.nextAttemptIn) {
+                  const hours = Math.floor(result.nextAttemptIn / (1000 * 60 * 60));
+                  const minutes = Math.floor((result.nextAttemptIn % (1000 * 60 * 60)) / (1000 * 60));
+                  timeInfo = `\n\n(Próximo intento gratis en ${hours}h ${minutes}m)`;
+                }
+
                 const retryMessage: ChatMessage = {
                   id: `msg_${Date.now() + 2}`,
                   role: 'assistant',
-                  content: `Te quedan ${result.remainingRolls} tiradas. Â¿QuerÃ©s intentar de nuevo?`,
+                  content: `Te quedan ${result.remainingRolls} tiradas.${timeInfo}\n\n¿Querés intentar de nuevo?`,
                   timestamp: new Date(),
                   category: 'general'
                 };
@@ -806,10 +813,17 @@ const SteebChatAI: React.FC = () => {
             } else {
               setShinyGameState('idle');
               setTimeout(() => {
+                let timeInfo = '';
+                if (result.nextAttemptIn) {
+                  const hours = Math.floor(result.nextAttemptIn / (1000 * 60 * 60));
+                  const minutes = Math.floor((result.nextAttemptIn % (1000 * 60 * 60)) / (1000 * 60));
+                  timeInfo = ` Tu próximo intento gratis es en ${hours}h ${minutes}m.`;
+                }
+
                 const noRollsMessage: ChatMessage = {
                   id: `msg_${Date.now() + 2}`,
                   role: 'assistant',
-                  content: 'Te quedaste sin tiradas por hoy. Â¡PodÃ©s comprar mÃ¡s para seguir intentando! ðŸ’Ž',
+                  content: `Te quedaste sin tiradas por hoy.${timeInfo} ¡Podés comprar más para seguir intentando! 💎`,
                   timestamp: new Date(),
                   category: 'general',
                   showMercadoPagoButton: true
@@ -865,29 +879,6 @@ const SteebChatAI: React.FC = () => {
 
     setMessages(prev => [...prev, userChatMessage]);
 
-    // Detectar comando para crear tarea: "crea tarea (texto)"
-    const taskRegex = /crea\s+tarea\s+(.+)/i;
-    const taskMatch = message.match(taskRegex);
-    if (taskMatch) {
-      const taskTitle = taskMatch[1].trim();
-      // NO esperar - crear tarea en background, mostrar confirmaciÃ³n instantÃ¡neamente
-      addTask({
-        title: taskTitle,
-        completed: false,
-        type: 'extra',
-        status: 'pending'
-      }).catch(err => console.error('Error sincronizando tarea:', err));
-
-      const aiMessage: ChatMessage = {
-        id: `msg_${Date.now() + 1}`,
-        role: 'assistant',
-        content: `âœ… "${taskTitle}" creada`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      setShowSideTasks(true);
-      return;
-    }
 
     // Detectar comando para cambiar nombre: "me llamo (nombre)" o "mi nombre es (nombre)"
     const nameRegex = /^(?:me llamo|mi nombre es|soy)\s+(.+)$/i;

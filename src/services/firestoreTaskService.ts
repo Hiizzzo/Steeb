@@ -45,8 +45,8 @@ export class FirestoreTaskService {
       const items = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
-          id: doc.id,
           ...data,
+          id: doc.id, // Asegurar que el ID sea el del documento de Firestore, no el campo 'id' interno
           // Manejo robusto de fechas: Timestamp, string ISO, o Date
           createdAt: data.createdAt?.toDate?.()?.toISOString() || (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
           updatedAt: data.updatedAt?.toDate?.()?.toISOString() || (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
@@ -76,8 +76,8 @@ export class FirestoreTaskService {
 
       const data = snapshot.data();
       return {
-        id: snapshot.id,
         ...data,
+        id: snapshot.id, // Asegurar que el ID sea el del documento de Firestore
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
         dueDate: data.dueDate?.toDate?.()?.toISOString() || data.dueDate,
@@ -182,31 +182,16 @@ export class FirestoreTaskService {
 
       const taskRef = doc(db, TASKS_COLLECTION, taskId);
 
-      try {
-        // Verificar que la tarea pertenece al usuario antes de eliminar
-        const taskDoc = await getDoc(taskRef);
-
-        if (!taskDoc.exists()) {
-          // Si la tarea no existe en Firestore, consideramos que ya fue eliminada
-          console.warn('⚠️ Tarea no encontrada en Firestore (ya eliminada o local):', taskId);
-          return;
-        }
-
-        const taskData = taskDoc.data();
-        if (taskData.ownerUid !== uid) {
-          throw new Error('No tienes permisos para eliminar esta tarea');
-        }
-
-        await deleteDoc(taskRef);
-      } catch (error: any) {
-        // Si es un error de permisos y el ID parece local (empieza con task_), 
-        // asumimos que no existe en el servidor y permitimos la eliminación local
-        if (error?.code === 'permission-denied' && taskId.startsWith('task_')) {
-          console.warn('⚠️ Permiso denegado en tarea local, asumiendo no sincronizada:', taskId);
-          return;
-        }
-        throw error;
-      }
+      console.log('🔥 Intentando eliminar documento en Firestore:', taskId);
+      
+      // Eliminamos directamente sin verificar existencia previa ni ownership en cliente.
+      // 1. Es más rápido (1 roundtrip menos).
+      // 2. Evita errores si la data está inconsistente (ej: falta ownerUid).
+      // 3. Las reglas de seguridad de Firestore (firestore.rules) son las encargadas de proteger el acceso.
+      // 4. Si el documento no existe (ej: ID local), deleteDoc no falla, simplemente no hace nada.
+      await deleteDoc(taskRef);
+      console.log('✅ Documento eliminado exitosamente en Firestore:', taskId);
+      
     }, 'Eliminar tarea');
   }
 
@@ -304,8 +289,8 @@ export class FirestoreTaskService {
                 try {
                   const data = doc.data();
                   return {
-                    id: doc.id,
                     ...data,
+                    id: doc.id, // Asegurar que el ID sea el del documento de Firestore
                     createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
                     updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
                     dueDate: data.dueDate?.toDate?.()?.toISOString() || data.dueDate,

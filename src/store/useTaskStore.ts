@@ -334,6 +334,20 @@ export const useTaskStore = create<TaskStore>()(
             // En este caso, pasamos newTask que ya tiene todos los datos.
             FirestoreTaskService.createTask(newTask)
               .then((savedTask) => {
+                // Verificar si la tarea aún existe localmente (podría haber sido eliminada mientras se creaba)
+                const currentTasks = get().tasks;
+                const taskExists = currentTasks.some(t => t.id === newTask.id);
+
+                if (!taskExists) {
+                  // La tarea fue eliminada localmente mientras se creaba en el servidor.
+                  // Debemos eliminarla ahora del servidor usando el ID real que acabamos de recibir.
+                  console.log('🗑️ Tarea eliminada localmente durante creación, eliminando remoto:', savedTask.id);
+                  FirestoreTaskService.deleteTask(savedTask.id).catch(err =>
+                    console.error('❌ Error eliminando tarea huérfana:', err)
+                  );
+                  return;
+                }
+
                 // Actualizar el ID local con el ID real de Firestore para evitar errores de eliminación
                 set(state => ({
                   tasks: state.tasks.map(t => t.id === newTask.id ? { ...t, id: savedTask.id } : t)
@@ -414,26 +428,28 @@ export const useTaskStore = create<TaskStore>()(
             // Si sigue teniendo ID temporal, es que no se sincronizó o hubo un error.
             // Intentamos borrarla de todas formas si no es un ID puramente local recién creado.
             
-            if (id.startsWith('task_')) {
-              console.log('ℹ️ Tarea local eliminada (no sincronizada o ID temporal)');
-              // No retornamos aquí, permitimos que el flujo continúe por si acaso
-              // o mejor, verificamos si realmente existe en el estado local antes de asumir que no está en el servidor.
-              // Si el usuario recargó, las tareas de Firestore tienen IDs reales.
-              // Si acaba de crearla y borrarla rápido, tiene ID temporal.
-              return;
-            }
-
+            // Intentamos borrarla de Firestore.
+            // Si tiene ID temporal, FirestoreTaskService.deleteTask manejará el caso (no encontrará el doc y retornará éxito).
+            // Si tiene ID real, se borrará.
+            
             try {
               await FirestoreTaskService.deleteTask(id);
               console.log('✅ Tarea eliminada de Firestore');
             } catch (error) {
+              // Si falla el borrado remoto, no revertimos la UI para no confundir al usuario.
+              // La tarea ya se borró localmente.
               console.error('❌ Error eliminando tarea de Firestore:', error);
-              // Revertir si es crítico, o dejar en cola si es offline
-              if (navigator.onLine) {
-                // Opcional: revertir UI si falla el borrado remoto
-                // set({ tasks: previousTasks, error: 'Error al eliminar la tarea' });
-              }
             }
+          }
+          
+          // 3. ELIMINAR DE LOCAL STORAGE TAMBIÉN
+          // Esto asegura que si la tarea estaba en local storage (modo offline o backup), también se borre
+          try {
+            const localTasks = localStorageService.loadTasks();
+            const updatedLocalTasks = localTasks.filter(t => t.id !== id);
+            localStorageService.saveTasks(updatedLocalTasks);
+          } catch (e) {
+            console.warn('Error actualizando local storage tras borrar tarea:', e);
           }
         },
 

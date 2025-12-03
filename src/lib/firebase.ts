@@ -41,12 +41,18 @@ const initializeFirebase = async () => {
     // Prefer initializeFirestore with robust transport settings to avoid ERR_ABORTED on some networks/devices
     if (isFirebaseConfigured) {
       try {
+        // Usar configuración estándar primero para probar conectividad directa
+        db = getFirestore(app);
+        
+        // Si se necesita configuración específica para redes restrictivas, descomentar:
+        /*
         db = initializeFirestore(app, {
           experimentalAutoDetectLongPolling: true,
           experimentalForceLongPolling: true,
           useFetchStreams: false,
           ignoreUndefinedProperties: true,
         } as any);
+        */
       } catch (e) {
         // Fallback if Firestore was already initialized elsewhere
         db = getFirestore(app);
