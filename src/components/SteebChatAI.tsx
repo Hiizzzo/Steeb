@@ -147,10 +147,10 @@ const SteebChatAI: React.FC = () => {
       new Date(task.completedDate || task.createdAt).toDateString() === new Date().toDateString()
     );
 
+    // Asegurar que el contexto tenga la información más actualizada
     return {
       pending: pendingTasks.length,
       pendingList: pendingTasks.slice(0, 5).map(t => t.title),
-
       allPendingTasks: pendingTasks.map(t => t.title),
       completedToday: completedToday.length,
       completedTodayList: completedToday.map(t => t.title),
