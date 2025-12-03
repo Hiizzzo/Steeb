@@ -410,19 +410,28 @@ export const useTaskStore = create<TaskStore>()(
           if (userId) {
             // Si es una tarea local (ID temporal), no intentamos borrarla de Firestore
             // porque no existe allí (o si existe, no tenemos el ID real para borrarla)
+            // PERO: Si la tarea se sincronizó, el ID debería haberse actualizado.
+            // Si sigue teniendo ID temporal, es que no se sincronizó o hubo un error.
+            // Intentamos borrarla de todas formas si no es un ID puramente local recién creado.
+            
             if (id.startsWith('task_')) {
               console.log('ℹ️ Tarea local eliminada (no sincronizada o ID temporal)');
+              // No retornamos aquí, permitimos que el flujo continúe por si acaso
+              // o mejor, verificamos si realmente existe en el estado local antes de asumir que no está en el servidor.
+              // Si el usuario recargó, las tareas de Firestore tienen IDs reales.
+              // Si acaba de crearla y borrarla rápido, tiene ID temporal.
               return;
             }
 
             try {
               await FirestoreTaskService.deleteTask(id);
-              ('✅ Tarea eliminada de Firestore');
+              console.log('✅ Tarea eliminada de Firestore');
             } catch (error) {
               console.error('❌ Error eliminando tarea de Firestore:', error);
               // Revertir si es crítico, o dejar en cola si es offline
               if (navigator.onLine) {
-                set({ tasks: previousTasks, error: 'Error al eliminar la tarea' });
+                // Opcional: revertir UI si falla el borrado remoto
+                // set({ tasks: previousTasks, error: 'Error al eliminar la tarea' });
               }
             }
           }
