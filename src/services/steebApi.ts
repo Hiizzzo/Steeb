@@ -139,10 +139,24 @@ async function streamMessageToSteebRobust(
   context?: any
 ): Promise<{ actions: SteebAction[] }> {
   const userId = await getPersistentUserId();
+  
+  // Obtener rol del usuario desde localStorage o contexto si es posible
+  // Como esta función es independiente, intentamos leer del localStorage si existe
+  let userRole = 'white';
+  try {
+    // Intentar obtener el rol del usuario de alguna fuente disponible
+    // Esto es un hack rápido, idealmente deberíamos pasar el rol como argumento
+    if (context && context.userRole) {
+      userRole = context.userRole;
+    }
+  } catch (e) {
+    // ignore
+  }
+
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, userId, context })
+    body: JSON.stringify({ message, userId, context, userRole })
   });
 
   console.log('🌊 STEEB Response Status:', response.status);
@@ -290,7 +304,7 @@ export type ShinyGameResponse = {
 export async function playShinyGame(guess: number, userIdOverride?: string): Promise<ShinyGameResponse> {
   const userId = userIdOverride || await getPersistentUserId();
 
-  console.log('🎲 SHINY GAME → Jugando con número:', guess, 'User:', userId);
+  // console.log('🎲 SHINY GAME → Jugando con número:', guess, 'User:', userId);
 
   try {
     const response = await fetch(SHINY_GAME_ENDPOINT, {

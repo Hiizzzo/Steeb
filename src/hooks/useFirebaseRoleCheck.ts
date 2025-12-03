@@ -33,13 +33,14 @@ export const useFirebaseRoleCheck = () => {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const role = userData?.role || 'free';
-        const userTheme = userData?.tipoUsuario || 'white';
+
+        // Map role to userTheme (UI type)
+        let userTheme = userData?.tipoUsuario || 'white';
+        if (role === 'dark') userTheme = 'black';
+        if (role === 'shiny') userTheme = 'shiny';
 
         // console.log('📋 Rol encontrado en Firebase:', role);
         // console.log('🎨 Tipo de usuario encontrado:', userTheme);
-        // console.log('📧 Email usuario:', userData.email);
-        // console.log('👤 UID usuario:', currentUser.uid);
-        // console.log('📄 Datos completos:', JSON.stringify(userData, null, 2));
 
         setUserRole(role);
         setTipoUsuario(userTheme);
@@ -79,7 +80,11 @@ export const useFirebaseRoleCheck = () => {
           if (doc.exists()) {
             const userData = doc.data();
             const newRole = userData?.role || 'free';
-            const newTipoUsuario = userData?.tipoUsuario || 'white';
+
+            // Map role to userTheme (UI type)
+            let newTipoUsuario = userData?.tipoUsuario || 'white';
+            if (newRole === 'dark') newTipoUsuario = 'black';
+            if (newRole === 'shiny') newTipoUsuario = 'shiny';
 
             if (newRole !== userRole) {
               // console.log('🔄 Cambio de rol detectado:', userRole, '→', newRole);

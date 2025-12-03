@@ -155,7 +155,8 @@ const SteebChatAI: React.FC = () => {
       completedTodayList: completedToday.map(t => t.title),
       hasTasks: tasks.length > 0,
       userName: userProfile?.name || user?.name || 'Usuario',
-      userNickname: userProfile?.nickname || user?.nickname || ''
+      userNickname: userProfile?.nickname || user?.nickname || '',
+      userRole: tipoUsuario || 'white'
     };
   };
 
@@ -392,28 +393,15 @@ const SteebChatAI: React.FC = () => {
             }
             */
             case 'PLAY_SHINY_GAME': {
-              // Check both sources of truth and normalize dark -> black
-              const roleFromProfile = (userProfile?.role || 'white').toLowerCase();
-              const roleFromHook = (tipoUsuario || 'white').toLowerCase();
+              const normalizedTipo = (tipoUsuario || 'white').toLowerCase();
 
-              // Determine effective role (dark = black)
-              let effectiveRole = 'white';
-              if (roleFromProfile === 'shiny' || roleFromHook === 'shiny') {
-                effectiveRole = 'shiny';
-              } else if (roleFromProfile === 'dark' || roleFromProfile === 'black' ||
-                roleFromHook === 'dark' || roleFromHook === 'black') {
-                effectiveRole = 'black';
-              }
-
-              if (effectiveRole === 'shiny') {
+              if (normalizedTipo === 'shiny') {
                 appendAssistantMessage('¡Wowowow amigo! 🌟 ¡Ya sos usuario SHINY! No necesitas jugar más, ya sos parte de la élite.');
                 break;
               }
 
-              if (effectiveRole === 'white') {
-                appendAssistantMessage('Para acceder al modo SHINY, primero necesitas ser usuario **Black**.');
-                break;
-              }
+              // Logic removed as per user request to avoid double messages
+              // if (normalizedTipo === 'white') { ... }
 
               setShinyGameState('confirming');
 
@@ -1327,7 +1315,7 @@ const SteebChatAI: React.FC = () => {
 
           </div>
         </div>
-      </div>
+      </div >
     </>
   );
 };
