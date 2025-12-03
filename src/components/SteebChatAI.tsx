@@ -429,38 +429,26 @@ const SteebChatAI: React.FC = () => {
                 setShinyRolls(availableRolls);
               }
 
-              const hasDailyAttempt = !!shinyStatus?.dailyAttemptAvailable;
               const extraRollsFromStatus = typeof shinyStatus?.extraRolls === 'number' ? shinyStatus.extraRolls : undefined;
-              let confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${availableRolls} tiradas disponibles.`;
-
-              if (shinyStatus) {
-                if (hasDailyAttempt) {
-                  const extraInfo = extraRollsFromStatus && extraRollsFromStatus > 0
-                    ? ` Además tenés ${extraRollsFromStatus} tiradas extra guardadas en tu cuenta.`
-                    : '';
-                  confirmationText = `Tenés un intento diario gratis disponible.${extraInfo}\n\n¿Querés usarlo para intentar desbloquear el modo SHINY?`;
-                } else {
-                  const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
-                  if (effectiveRolls <= 0) {
-                    setShinyGameState('idle');
-                    setTimeout(() => {
-                      const noRollsMessage: ChatMessage = {
-                        id: `msg_${Date.now() + 1}`,
-                        role: 'assistant',
-                        content: 'Te quedaste sin tiradas por hoy. Podés comprar más para seguir intentando.',
-                        timestamp: new Date(),
-                        category: 'general',
-                        showMercadoPagoButton: true
-                      };
-                      setMessages(prev => [...prev, noRollsMessage]);
-                    }, 500);
-                    return;
-                  }
-                  confirmationText = `¿Querés gastar tus tiradas para desbloquear el modo SHINY?\n\nActualmente tenés ${effectiveRolls} tiradas disponibles.`;
-                }
-              } else {
-                confirmationText = `¿Querés intentar desbloquear el modo SHINY?\n\nDetecto ${availableRolls} intentos disponibles (incluyendo el diario si todavía no lo usaste).`;
+              const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
+              
+              if (effectiveRolls <= 0) {
+                setShinyGameState('idle');
+                setTimeout(() => {
+                  const noRollsMessage: ChatMessage = {
+                    id: `msg_${Date.now() + 1}`,
+                    role: 'assistant',
+                    content: 'No tenés tiradas disponibles. Podés comprar más para intentar desbloquear el modo SHINY.',
+                    timestamp: new Date(),
+                    category: 'general',
+                    showMercadoPagoButton: true
+                  };
+                  setMessages(prev => [...prev, noRollsMessage]);
+                }, 500);
+                return;
               }
+
+              const confirmationText = `¿Querés gastar una tirada para intentar desbloquear el modo SHINY?\n\nTenés ${effectiveRolls} tiradas disponibles.`;
 
               appendAssistantMessage(confirmationText);
               break;
@@ -793,17 +781,10 @@ const SteebChatAI: React.FC = () => {
             // Si perdió, preguntar si quiere jugar de nuevo si tiene tiradas
             if (result.remainingRolls !== undefined && result.remainingRolls > 0) {
               setTimeout(() => {
-                let timeInfo = '';
-                if (result.nextAttemptIn) {
-                  const hours = Math.floor(result.nextAttemptIn / (1000 * 60 * 60));
-                  const minutes = Math.floor((result.nextAttemptIn % (1000 * 60 * 60)) / (1000 * 60));
-                  timeInfo = `\n\n(Próximo intento gratis en ${hours}h ${minutes}m)`;
-                }
-
                 const retryMessage: ChatMessage = {
                   id: `msg_${Date.now() + 2}`,
                   role: 'assistant',
-                  content: `Te quedan ${result.remainingRolls} tiradas.${timeInfo}\n\n¿Querés intentar de nuevo?`,
+                  content: `Te quedan ${result.remainingRolls} tiradas.\n\n¿Querés intentar de nuevo?`,
                   timestamp: new Date(),
                   category: 'general'
                 };
@@ -813,17 +794,10 @@ const SteebChatAI: React.FC = () => {
             } else {
               setShinyGameState('idle');
               setTimeout(() => {
-                let timeInfo = '';
-                if (result.nextAttemptIn) {
-                  const hours = Math.floor(result.nextAttemptIn / (1000 * 60 * 60));
-                  const minutes = Math.floor((result.nextAttemptIn % (1000 * 60 * 60)) / (1000 * 60));
-                  timeInfo = ` Tu próximo intento gratis es en ${hours}h ${minutes}m.`;
-                }
-
                 const noRollsMessage: ChatMessage = {
                   id: `msg_${Date.now() + 2}`,
                   role: 'assistant',
-                  content: `Te quedaste sin tiradas por hoy.${timeInfo} ¡Podés comprar más para seguir intentando! 💎`,
+                  content: `Te quedaste sin tiradas. ¡Podés comprar más para seguir intentando! 💎`,
                   timestamp: new Date(),
                   category: 'general',
                   showMercadoPagoButton: true
