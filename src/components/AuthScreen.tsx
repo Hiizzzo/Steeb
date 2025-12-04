@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 
 // Definir tipos globales para la comunicación con el WebView
 declare global {
@@ -21,6 +22,8 @@ interface AuthScreenProps {
 
 const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
   const { user, loginWithGoogle, updateProfile, hasPasswordProvider, linkEmailPassword, resendEmailVerification } = useAuth();
+  const { currentTheme } = useTheme();
+  const isDarkMode = currentTheme === 'dark' || currentTheme === 'shiny';
   const [mode, setMode] = useState<'welcome' | 'onboarding'>(() => {
     // Si ya hay usuario autenticado y faltan datos, arrancar en onboarding
     if (user && (!user.name || !user.nickname)) return 'onboarding';
@@ -177,7 +180,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
           <div className="mb-8 flex justify-center">
             <img
-              src="/steeb-icon.png"
+              src={isDarkMode ? "/Steebwhite.png" : "/Steebblack.png"}
               alt="STEEB"
               className="w-40 h-40 object-contain"
             />

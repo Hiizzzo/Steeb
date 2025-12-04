@@ -234,21 +234,20 @@ const Index = () => {
       console.warn('⚠️ Tarea inválida en renderSwipeRow:', task);
       return null;
     }
-    
+
     const isTaskDeleting = isDeleting[task.id] || false;
-    
+
     return (
       <div key={task.id} className="relative">
         {/* Fondo con tacho visible durante swipe */}
-        <div className={`absolute inset-0 rounded-lg bg-white dark:bg-black flex items-center justify-end pr-4 transition-all duration-300 ease-out ${ (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0' }`}>
+        <div className={`absolute inset-0 rounded-lg bg-white dark:bg-black flex items-center justify-end pr-4 transition-all duration-300 ease-out ${(rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'}`}>
           <Trash2 className="w-5 h-5 text-black dark:text-white" />
         </div>
 
-        <div className={`flex items-center gap-3 px-1.5 py-2 rounded-lg transition-all duration-600 ${
-          isTaskDeleting 
-            ? 'bg-black dark:bg-white animate-pulse' 
-            : ''
-        }`}>
+        <div className={`flex items-center gap-3 px-1.5 py-2 rounded-lg transition-all duration-600 ${isTaskDeleting
+          ? 'bg-black dark:bg-white animate-pulse'
+          : ''
+          }`}>
           <div
             className="flex items-center gap-3 flex-1"
             style={{
@@ -266,23 +265,21 @@ const Index = () => {
           >
             {renderShapeForType(getGroupKey(task), color)}
             <div className="flex-1 min-w-0">
-              <p className={`task-title text-[18px] ${
-                isTaskDeleting 
-                  ? 'text-white dark:text-white' 
-                  : task.completed 
-                    ? 'line-through text-gray-500' 
-                    : 'text-black font-medium'
-              }`}>{task.title}</p>
+              <p className={`task-title text-[18px] ${isTaskDeleting
+                ? 'text-white dark:text-white'
+                : task.completed
+                  ? 'line-through text-gray-500'
+                  : 'text-black font-medium'
+                }`}>{task.title}</p>
               {task.scheduledTime && (
-                <p className={`text-sm ${
-                  isTaskDeleting 
-                    ? 'text-white dark:text-white' 
-                    : 'text-gray-600'
-                }`}>{task.scheduledTime}</p>
+                <p className={`text-sm ${isTaskDeleting
+                  ? 'text-white dark:text-white'
+                  : 'text-gray-600'
+                  }`}>{task.scheduledTime}</p>
               )}
             </div>
           </div>
-          
+
           {/* Checkbox FUERA del área de swipe */}
           <button
             onClick={() => handleToggleTask(task.id)}
@@ -290,19 +287,19 @@ const Index = () => {
             style={{ minWidth: '24px', minHeight: '24px', zIndex: 100 }}
           >
             {/* task.completed && <Check size={16} className="text-transparent dark:text-transparent" /> */}
-                      </button>
+          </button>
         </div>
       </div>
     );
   };
 
   // Premium/Shiny features removed
-  
+
   // Usar el store de tareas
-  const { 
-    tasks, 
-    setTasks: updateTasks, 
-    isLoading: isPersistenceLoading, 
+  const {
+    tasks,
+    setTasks: updateTasks,
+    isLoading: isPersistenceLoading,
     addTask,
     updateTask,
     deleteTask,
@@ -310,13 +307,13 @@ const Index = () => {
     toggleSubtask
   } = useTaskStore();
 
-  
+
   // Hook para sincronización con Service Worker
-  const { 
-    isServiceWorkerReady, 
-    lastBackup, 
-    triggerBackup, 
-    triggerRestore 
+  const {
+    isServiceWorkerReady,
+    lastBackup,
+    triggerBackup,
+    triggerRestore
   } = useServiceWorkerSync();
 
   // Hook para notificaciones de tareas
@@ -329,7 +326,7 @@ const Index = () => {
   useEffect(() => {
     notificationService.initialize().then((initialized) => {
       if (initialized) {
-        }
+      }
     });
   }, []);
 
@@ -342,13 +339,13 @@ const Index = () => {
     const timeoutId = setTimeout(() => {
       const tasksWithEmptyTitles = tasks.filter(task => !task.title || !task.title.trim() || !task.id);
       if (tasksWithEmptyTitles.length > 0) {
-            const cleanedTasks = tasks.filter(task => task.title && task.title.trim() && task.id);
+        const cleanedTasks = tasks.filter(task => task.title && task.title.trim() && task.id);
         if (cleanedTasks.length !== tasks.length) {
           updateTasks(cleanedTasks);
-          }
+        }
       }
     }, 500); // Debounce de 500ms para evitar múltiples ejecuciones
-    
+
     return () => clearTimeout(timeoutId);
   }, [tasks.length]); // Solo ejecutar cuando cambie el número de tareas
 
@@ -356,12 +353,12 @@ const Index = () => {
   useEffect(() => {
     const selectedDate = localStorage.getItem('steeb-selected-date');
     const shouldOpenModal = localStorage.getItem('steeb-open-add-modal');
-    
+
     if (selectedDate || shouldOpenModal) {
       // Limpiar los flags
       localStorage.removeItem('steeb-selected-date');
       localStorage.removeItem('steeb-open-add-modal');
-      
+
       // Abrir el modal de agregar tarea con la fecha pre-seleccionada
       setShowModal(true);
     }
@@ -383,19 +380,19 @@ const Index = () => {
 
   const handleToggleTask = (id: string) => {
     const task = tasks.find(t => t.id === id);
-    
+
     // Si la tarea tiene subtareas y no están todas completadas, no permitir completar la tarea principal
     if (task && task.subtasks && task.subtasks.length > 0 && !task.completed) {
       const allSubtasksCompleted = task.subtasks.every(subtask => subtask.completed);
       if (!allSubtasksCompleted) {
-            toast({
+        toast({
           title: "Complete subtasks first",
           description: "You need to complete all subtasks before completing the main task.",
         });
         return;
       }
     }
-    
+
     const updatedTasks = tasks.map(task => {
       if (task.id !== id) return task;
       const willComplete = !task.completed;
@@ -419,7 +416,7 @@ const Index = () => {
     });
     updateTasks(updatedTasks);
     // Persistencia automática manejada por useTaskPersistence
-    
+
     // Solo reproducir sonido y vibración cuando se completa (no cuando se desmarca)
     if (task && !task.completed) {
       playTaskCompleteSound();
@@ -433,10 +430,10 @@ const Index = () => {
         const updatedSubtasks = task.subtasks.map(subtask =>
           subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
         );
-        
+
         // Verificar si todas las subtareas están completadas
         const allSubtasksCompleted = updatedSubtasks.every(subtask => subtask.completed);
-        
+
         return {
           ...task,
           subtasks: updatedSubtasks,
@@ -454,7 +451,7 @@ const Index = () => {
       const subtask = task.subtasks.find(s => s.id === subtaskId);
       const otherSubtasks = task.subtasks.filter(s => s.id !== subtaskId);
       const allOthersCompleted = otherSubtasks.every(s => s.completed);
-      
+
       if (subtask && !subtask.completed && allOthersCompleted) {
         playTaskCompleteSound();
         triggerVibration();
@@ -469,14 +466,14 @@ const Index = () => {
         console.warn('⚠️ Tarea no encontrada para eliminar:', id);
         return;
       }
-      
-          
+
+
       // Solo vibración al eliminar - sin sonido
       triggerVibration();
-      
+
       // Usar la función del store que es más robusta
       deleteTask(id);
-      
+
       toast({
         title: "Tu tarea se ha eliminado correctamente",
       });
@@ -491,10 +488,10 @@ const Index = () => {
   };
 
   const handleAddTask = (title: string, type: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'salud' | 'social' | 'entretenimiento' | 'extra', subtasks?: SubTask[], scheduledDate?: string, scheduledTime?: string, notes?: string, isPrimary?: boolean, recurrence?: RecurrenceRule, subgroup?: 'productividad' | 'creatividad' | 'aprendizaje' | 'organizacion' | 'social' | 'salud' | 'entretenimiento' | 'extra') => {
-        
+
     // Validar que el título no esté vacío
     if (!title.trim()) {
-            toast({
+      toast({
         title: "Error",
         description: "El título de la tarea no puede estar vacío.",
         variant: "destructive",
@@ -507,50 +504,50 @@ const Index = () => {
       const otherTags = (selectedTask.tags || []).filter(t => t !== 'principal');
       const nextTags = isPrimary ? [...otherTags, 'principal'] : otherTags;
       const updatedTask: Task = {
-         ...selectedTask,
-         title: title.trim(),
-         type,
-         subgroup,
-         subtasks,
-         scheduledDate,
-         scheduledTime,
-         notes: notes?.trim(),
-         tags: nextTags,
-         recurrence: recurrence,
-         updatedAt: new Date().toISOString()
-       };
-      
+        ...selectedTask,
+        title: title.trim(),
+        type,
+        subgroup,
+        subtasks,
+        scheduledDate,
+        scheduledTime,
+        notes: notes?.trim(),
+        tags: nextTags,
+        recurrence: recurrence,
+        updatedAt: new Date().toISOString()
+      };
+
       // Usar updateTask del store en lugar de updateTasks directamente
       updateTask(selectedTask.id, updatedTask).catch(console.error);
-      
+
       toast({
         title: "Tarea actualizada!",
         description: "Los cambios han sido guardados.",
       });
-      
+
       setSelectedTask(null); // Limpiar la tarea seleccionada después de editar
     } else {
       // Estamos creando una nueva tarea
       const newTaskData = {
-         title: title.trim(),
-         type,
-         subgroup,
-         status: 'pending' as const,
-         completed: false,
-         subtasks,
-         scheduledDate: scheduledDate, // No establecer fecha automáticamente
-         scheduledTime,
-         notes: notes?.trim(),
-         tags: isPrimary ? ['principal'] : [],
-         recurrence: recurrence
-       };
-      
-            
+        title: title.trim(),
+        type,
+        subgroup,
+        status: 'pending' as const,
+        completed: false,
+        subtasks,
+        scheduledDate: scheduledDate, // No establecer fecha automáticamente
+        scheduledTime,
+        notes: notes?.trim(),
+        tags: isPrimary ? ['principal'] : [],
+        recurrence: recurrence
+      };
+
+
       // Usar addTask del store en lugar de updateTasks directamente
       addTask(newTaskData).catch((error) => {
         console.error('❌ Index.tsx: Error al crear tarea:', error);
       });
-      
+
       toast({
         title: "New task added!",
         description: "Your task has been added to the list.",
@@ -589,7 +586,7 @@ const Index = () => {
 
   const headerBackgroundColor = theme.isDark ? '#ffffff' : '#000000';
   const headerTextColor = theme.isDark ? '#000000' : '#ffffff';
-  
+
   // Actualizar tema cuando cambie
   useEffect(() => {
     const updateTheme = () => {
@@ -597,14 +594,14 @@ const Index = () => {
       const isDark = document.documentElement.classList.contains('dark');
       setTheme({ isShiny, isDark });
     };
-    
+
     // Observar cambios en las clases del documento
     const observer = new MutationObserver(updateTheme);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class']
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -622,44 +619,44 @@ const Index = () => {
       // Versión Blanca: formas negras con fondo blanco
       shapeColor = '#000000'; // negro puro para mejor contraste
     }
-    
+
     switch (type) {
-      case 'productividad':   return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="square" className="w-6 h-6" title="Trabajo" color={shapeColor} /></div>);
-      case 'creatividad':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Creatividad" color={shapeColor} /></div>);
-      case 'salud':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="heart" className="w-6 h-6" title="Salud" color={shapeColor} /></div>);
-      case 'organizacion':    return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Organización" color={shapeColor} /></div>);
-      case 'social':          return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Social" color={shapeColor} /></div>);
-      case 'aprendizaje':     return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Aprendizaje" color={shapeColor} /></div>);
+      case 'productividad': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="square" className="w-6 h-6" title="Trabajo" color={shapeColor} /></div>);
+      case 'creatividad': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Creatividad" color={shapeColor} /></div>);
+      case 'salud': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="heart" className="w-6 h-6" title="Salud" color={shapeColor} /></div>);
+      case 'organizacion': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Organización" color={shapeColor} /></div>);
+      case 'social': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Social" color={shapeColor} /></div>);
+      case 'aprendizaje': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Aprendizaje" color={shapeColor} /></div>);
       case 'entretenimiento': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="triangle" className="w-6 h-6" title="Entretenimiento" color={shapeColor} /></div>);
-      case 'extra':           return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Extra" color={shapeColor} /></div>);
+      case 'extra': return (<div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><ShapeIcon variant="diamond" className="w-6 h-6" title="Extra" color={shapeColor} /></div>);
       default: return <div className="task-shape-wrapper task-shine mr-1" style={{ color: shapeColor }}><div className="w-6 h-6 border border-black" /></div>;
     }
   };
 
   // Filter tasks for today and overdue
   const todayISO = new Date().toISOString().split('T')[0];
-  
+
   // Selector semanal: día seleccionado (por defecto hoy)
   const [selectedDateISO, setSelectedDateISO] = useState<string>(todayISO);
   const selectedDateObj = useMemo(() => new Date(selectedDateISO), [selectedDateISO]);
-  
+
   // Calcular los días de la semana actual (L a D), iniciando en lunes
   const getMonday = (d: Date) => {
-  const date = new Date(d);
-  const day = (date.getDay() + 6) % 7; // 0 (L) .. 6 (D)
-  date.setDate(date.getDate() - day);
-  date.setHours(0, 0, 0, 0);
-  return date;
+    const date = new Date(d);
+    const day = (date.getDay() + 6) % 7; // 0 (L) .. 6 (D)
+    date.setDate(date.getDate() - day);
+    date.setHours(0, 0, 0, 0);
+    return date;
   };
   const weekStart = useMemo(() => getMonday(new Date()), []);
   const weekDays = useMemo(() => {
-  const letters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-  return Array.from({ length: 7 }, (_, i) => {
-  const date = new Date(weekStart);
-  date.setDate(weekStart.getDate() + i);
-  const iso = date.toISOString().split('T')[0];
-  return { date, iso, letter: letters[i] };
-  });
+    const letters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      const iso = date.toISOString().split('T')[0];
+      return { date, iso, letter: letters[i] };
+    });
   }, [weekStart]);
   const todaysTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -668,7 +665,7 @@ const Index = () => {
         console.warn('⚠️ Tarea con título vacío encontrada:', task.id);
         return false;
       }
-      
+
       // Verificar que la tarea tenga un ID válido
       if (!task.id) {
         console.warn('⚠️ Tarea sin ID encontrada:', task);
@@ -681,10 +678,10 @@ const Index = () => {
     });
   }, [tasks, selectedDateISO, todayISO]);
 
-  
+
   // Dividir tareas de hoy en pendientes y completadas (hoy y anteriores)
-   const pendingTodaysTasks = todaysTasks.filter(t => !t.completed);
-   const completedTodaysTasks = todaysTasks.filter(t => t.completed);
+  const pendingTodaysTasks = todaysTasks.filter(t => !t.completed);
+  const completedTodaysTasks = todaysTasks.filter(t => t.completed);
   const completedToday = completedTodaysTasks.filter(t =>
     t.completedDate ? t.completedDate.split('T')[0] === selectedDateISO : false
   );
@@ -704,13 +701,13 @@ const Index = () => {
 
 
   // Día de la semana (p.ej., "Viernes")
-  const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
+  const dayName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()];
   const isMobile = useIsMobile();
 
-  
-  
+
+
   return (
-          <div className="h-screen pb-6 relative bg-white dark:bg-black m-0 p-0" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif', marginTop: '0', paddingTop: '0' }}>
+    <div className="h-screen pb-6 relative bg-white dark:bg-black m-0 p-0" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif', marginTop: '0', paddingTop: '0' }}>
 
       {/* Header STEEB en la raíz del HTML - arriba de todo */}
       <div className="pb-0.5 fixed top-0 left-0 right-0 z-50" style={{ marginTop: '0', paddingTop: '0' }}>
@@ -754,11 +751,16 @@ const Index = () => {
                   }} />
                 </div>
               ) : (
-                <img src="/te-observo.png" alt="Steeb" className="w-full h-full object-contain" style={{
-                  filter: 'none',
-                  opacity: 1,
-                  backgroundColor: 'transparent'
-                }} />
+                <img
+                  src={theme.isDark ? "/Steebwhite.png" : "/Steebblack.png"}
+                  alt="Steeb"
+                  className="w-full h-full object-cover rounded-3xl"
+                  style={{
+                    filter: 'none',
+                    opacity: 1,
+                    backgroundColor: 'transparent'
+                  }}
+                />
               )}
             </div>
 
@@ -778,112 +780,112 @@ const Index = () => {
       {/* Contenido principal */}
       <div className="relative z-10 mt-0.5 pt-0">
 
-      {/* Listas de tareas */}
-      <div className="px-4 mt-3">
-        {pendingOverdueRaw.length > 0 && (
-          <div className="mb-3">
-            <h3 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Vencidas</h3>
-            {pendingOverdueRaw.map(t => renderSwipeRow(t, '#FF4D4F'))}
-          </div>
-        )}
-
-        
-        
-        {/* Mostrar botón de ojo solo si hay tareas completadas */}
-        {(completedToday.length > 0 || completedBeforeToday.length > 0) && (
-          <div className="flex justify-start mb-4">
-            <button
-              onClick={() => setShowCompletedToday(!showCompletedToday)}
-              className="text-gray-500 bg-transparent hover:bg-transparent p-0 border-none transition-colors"
-            >
-              {showCompletedToday ? (
-                <EyeOff className="w-5 h-5" />
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
-            </button>
-          </div>
-        )}
-        {showCompletedToday && (
-          <div className="mt-2">
-            {completedToday.length > 0 && (
-              <div>
-                <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas hoy</h4>
-                {completedToday.map(t => renderSwipeRow(t))}
-              </div>
-            )}
-            {completedBeforeToday.length > 0 && (
-              <div className="mt-2">
-                <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas antes</h4>
-                {completedBeforeToday.map(t => renderSwipeRow(t))}
-              </div>
-            )}
-          </div>
-        )}
-
+        {/* Listas de tareas */}
+        <div className="px-4 mt-3">
+          {pendingOverdueRaw.length > 0 && (
+            <div className="mb-3">
+              <h3 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Vencidas</h3>
+              {pendingOverdueRaw.map(t => renderSwipeRow(t, '#FF4D4F'))}
             </div>
+          )}
 
-      {/* Botón flotante de Progreso - Ahora abre el panel del chat */}
-      <div
-        className="fixed bottom-24 right-6 opacity-0 pointer-events-none"
-        title="El progreso ahora se abre escribiendo 'progreso' en el chat"
-      >
-        <TrendingUp className="w-6 h-6 text-gray-400" />
-      </div>
 
-    
-      {/* Modales */}
-      <ModalAddTask
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onAddTask={handleAddTask}
-        editingTask={selectedTask || undefined}
-      />
 
-      <TaskDetailModal
-        task={selectedTask}
-        isOpen={showDetailModal}
-        onClose={() => {
-          setShowDetailModal(false);
-          setSelectedTask(null);
-        }}
-        onEdit={handleEditTask}
-        onToggle={handleToggleTask}
-        onToggleSubtask={handleToggleSubtask}
-      />
+          {/* Mostrar botón de ojo solo si hay tareas completadas */}
+          {(completedToday.length > 0 || completedBeforeToday.length > 0) && (
+            <div className="flex justify-start mb-4">
+              <button
+                onClick={() => setShowCompletedToday(!showCompletedToday)}
+                className="text-gray-500 bg-transparent hover:bg-transparent p-0 border-none transition-colors"
+              >
+                {showCompletedToday ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          )}
+          {showCompletedToday && (
+            <div className="mt-2">
+              {completedToday.length > 0 && (
+                <div>
+                  <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas hoy</h4>
+                  {completedToday.map(t => renderSwipeRow(t))}
+                </div>
+              )}
+              {completedBeforeToday.length > 0 && (
+                <div className="mt-2">
+                  <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas antes</h4>
+                  {completedBeforeToday.map(t => renderSwipeRow(t))}
+                </div>
+              )}
+            </div>
+          )}
 
-      {/* Recordatorio diario para revisar tareas de ayer */}
-      {showReminder && yesterdayDate && (
-        <DailyTaskReminderModal
-          open={showReminder}
-          onOpenChange={(open) => !open && skipReminder()}
-          tasks={tasks}
-          yesterdayDate={yesterdayDate}
-          onMarkCompleted={(taskIds, date) => {
-            // Marcar tareas como completadas
-            taskIds.forEach(id => {
-              const task = tasks.find(t => t.id === id);
-              if (task) {
-                // Usar la fecha de ayer para completedDate
-                const completedDate = new Date(date).toISOString();
-                updateTask(id, { ...task, completed: true, completedDate });
-              }
-            });
-            markReminderShown();
-          }}
-        />
-      )}
+        </div>
 
-      {/* Configuración de tareas diarias (solo cuando se inicia por primera vez) */}
-      {showConfigModal && (
-        <DailyTasksConfig
-          isOpen={true}
-          onClose={() => setShowConfigModal(false)}
+        {/* Botón flotante de Progreso - Ahora abre el panel del chat */}
+        <div
+          className="fixed bottom-24 right-6 opacity-0 pointer-events-none"
+          title="El progreso ahora se abre escribiendo 'progreso' en el chat"
+        >
+          <TrendingUp className="w-6 h-6 text-gray-400" />
+        </div>
+
+
+        {/* Modales */}
+        <ModalAddTask
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
           onAddTask={handleAddTask}
+          editingTask={selectedTask || undefined}
         />
-      )}
 
-          </div>
+        <TaskDetailModal
+          task={selectedTask}
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedTask(null);
+          }}
+          onEdit={handleEditTask}
+          onToggle={handleToggleTask}
+          onToggleSubtask={handleToggleSubtask}
+        />
+
+        {/* Recordatorio diario para revisar tareas de ayer */}
+        {showReminder && yesterdayDate && (
+          <DailyTaskReminderModal
+            open={showReminder}
+            onOpenChange={(open) => !open && skipReminder()}
+            tasks={tasks}
+            yesterdayDate={yesterdayDate}
+            onMarkCompleted={(taskIds, date) => {
+              // Marcar tareas como completadas
+              taskIds.forEach(id => {
+                const task = tasks.find(t => t.id === id);
+                if (task) {
+                  // Usar la fecha de ayer para completedDate
+                  const completedDate = new Date(date).toISOString();
+                  updateTask(id, { ...task, completed: true, completedDate });
+                }
+              });
+              markReminderShown();
+            }}
+          />
+        )}
+
+        {/* Configuración de tareas diarias (solo cuando se inicia por primera vez) */}
+        {showConfigModal && (
+          <DailyTasksConfig
+            isOpen={true}
+            onClose={() => setShowConfigModal(false)}
+            onAddTask={handleAddTask}
+          />
+        )}
+
+      </div>
 
       {/* Chat STEEB Permanente - ocupa todo el ancho y alto de la pantalla */}
       <div className="fixed top-32 left-0 right-0 bottom-0 z-40">
