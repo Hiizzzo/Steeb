@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.87",
-    "@capacitor/core": "^6.0.0",
     "@expo/vector-icons": "^15.0.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -53,6 +52,7 @@
     "dotenv": "^17.2.3",
     "embla-carousel-react": "^8.6.0",
     "expo": "~54.0.25",
+    "expo-av": "~16.0.7",
     "expo-blur": "~15.0.7",
     "expo-build-properties": "^1.0.9",
     "expo-constants": "^18.0.9",
@@ -61,6 +61,7 @@
     "expo-haptics": "~15.0.7",
     "expo-linear-gradient": "~15.0.7",
     "expo-linking": "~8.0.9",
+    "expo-notifications": "~0.32.13",
     "expo-router": "~6.0.15",
     "expo-secure-store": "^15.0.7",
     "expo-status-bar": "~3.0.8",
@@ -96,8 +97,6 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^6.0.0",
     "@tailwindcss/postcss": "^4.1.14",
     "@types/node": "^20.11.24",
     "@types/react": "~19.1.10",

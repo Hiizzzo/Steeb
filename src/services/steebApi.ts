@@ -16,7 +16,9 @@ const ACTION_TYPES: SteebActionType[] = [
   'PLAY_SHINY_GAME',
   'SHOW_MOTIVATION',
   'GET_SHINY_STATS',
-  'UPDATE_USER_PROFILE'
+  'UPDATE_USER_PROFILE',
+  'SEND_NOTIFICATION',
+  'SCHEDULE_REMINDER'
 ];
 
 const normalizeActions = (raw: any): SteebAction[] => {
@@ -44,7 +46,9 @@ export type SteebActionType =
   | 'PLAY_SHINY_GAME'
   | 'SHOW_MOTIVATION'
   | 'GET_SHINY_STATS'
-  | 'UPDATE_USER_PROFILE';
+  | 'UPDATE_USER_PROFILE'
+  | 'SEND_NOTIFICATION'
+  | 'SCHEDULE_REMINDER';
 
 export interface SteebAction {
   type: SteebActionType;
@@ -139,7 +143,7 @@ async function streamMessageToSteebRobust(
   context?: any
 ): Promise<{ actions: SteebAction[] }> {
   const userId = await getPersistentUserId();
-  
+
   // Obtener rol del usuario desde localStorage o contexto si es posible
   // Como esta función es independiente, intentamos leer del localStorage si existe
   let userRole = 'white';
@@ -156,7 +160,7 @@ async function streamMessageToSteebRobust(
   // Asegurar que el contexto tenga la información más actualizada
   // Si context.pending es 0 pero context.hasTasks es true, algo anda mal con el conteo
   // Intentamos recalcular o confiar en lo que venga
-  
+
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

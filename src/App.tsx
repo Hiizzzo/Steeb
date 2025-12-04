@@ -26,7 +26,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion } from 'framer-motion';
-import { Capacitor } from '@capacitor/core';
+import { Platform } from 'react-native';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import Index from "./pages/Index";
 import SettingsPage from "./pages/SettingsPage";
@@ -41,6 +41,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useAutoPaymentVerification } from "./hooks/useAutoPaymentVerification";
 import { useTextSize } from "./hooks/useTextSize";
 import { initializeRecurrenceManager } from "./utils/recurrenceManager";
+import { notificationService } from "./services/notificationService";
 import { AuthProvider } from "./hooks/useAuth";
 import { Theme } from "./hooks/useTheme";
 
@@ -107,7 +108,7 @@ const AppContent = () => {
 
     // Solicitar permiso de App Tracking Transparency en iOS
     const requestTrackingPermission = async () => {
-      if (Capacitor.getPlatform() === 'ios') {
+      if (Platform.OS === 'ios') {
         try {
           const { status } = await requestTrackingPermissionsAsync();
 
@@ -126,6 +127,9 @@ const AppContent = () => {
 
     // Inicializar el gestor de tareas recurrentes
     initializeRecurrenceManager();
+
+    // Inicializar servicio de notificaciones
+    notificationService.initialize();
 
     // Solicitar permiso ATT después de un pequeño retraso
     setTimeout(requestTrackingPermission, 1000);

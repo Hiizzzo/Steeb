@@ -4,13 +4,14 @@ import { Bell, BellOff, Clock, Calendar, Trophy, Volume2, VolumeX, Vibrate } fro
 import { useNotifications } from '@/hooks/useNotifications';
 
 export const NotificationSettings: React.FC = () => {
-  const { 
-    permission, 
-    settings, 
-    updateSettings, 
-    requestPermission, 
+  const {
+    permission,
+    settings,
+    updateSettings,
+    requestPermission,
     testNotification,
-    getNotificationStats 
+    getNotificationStats,
+    showNotification
   } = useNotifications();
 
   const stats = getNotificationStats();
@@ -54,7 +55,7 @@ export const NotificationSettings: React.FC = () => {
                 {permission.granted ? 'Notificaciones Habilitadas' : 'Notificaciones Deshabilitadas'}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {permission.granted 
+                {permission.granted
                   ? 'Recibirás recordatorios y alertas de tareas'
                   : 'Habilita las notificaciones para recibir recordatorios'
                 }
@@ -93,14 +94,12 @@ export const NotificationSettings: React.FC = () => {
           </div>
           <button
             onClick={() => handleToggleSetting('dailyReminder')}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${
-              settings.dailyReminder ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${settings.dailyReminder ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                settings.dailyReminder ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${settings.dailyReminder ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
+                }`}
             />
           </button>
         </div>
@@ -120,14 +119,12 @@ export const NotificationSettings: React.FC = () => {
           </div>
           <button
             onClick={() => handleToggleSetting('taskReminders')}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${
-              settings.taskReminders ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${settings.taskReminders ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                settings.taskReminders ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${settings.taskReminders ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
+                }`}
             />
           </button>
         </div>
@@ -147,14 +144,12 @@ export const NotificationSettings: React.FC = () => {
           </div>
           <button
             onClick={() => handleToggleSetting('deadlineAlerts')}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${
-              settings.deadlineAlerts ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${settings.deadlineAlerts ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                settings.deadlineAlerts ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${settings.deadlineAlerts ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
+                }`}
             />
           </button>
         </div>
@@ -174,14 +169,12 @@ export const NotificationSettings: React.FC = () => {
           </div>
           <button
             onClick={() => handleToggleSetting('completionCelebration')}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${
-              settings.completionCelebration ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${settings.completionCelebration ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                settings.completionCelebration ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full transition-transform ${settings.completionCelebration ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
+                }`}
             />
           </button>
         </div>
@@ -206,14 +199,12 @@ export const NotificationSettings: React.FC = () => {
             </div>
             <button
               onClick={() => handleToggleSetting('sound')}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${
-                settings.sound ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${settings.sound ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                  settings.sound ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full transition-transform ${settings.sound ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
+                  }`}
               />
             </button>
           </div>
@@ -226,14 +217,12 @@ export const NotificationSettings: React.FC = () => {
             </div>
             <button
               onClick={() => handleToggleSetting('vibration')}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${
-                settings.vibration ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${settings.vibration ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                  settings.vibration ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full transition-transform ${settings.vibration ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-1 bg-white dark:bg-gray-300'
+                  }`}
               />
             </button>
           </div>
@@ -248,7 +237,7 @@ export const NotificationSettings: React.FC = () => {
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Prueba diferentes tipos de notificaciones para ver cómo se ven
         </p>
-        
+
         <div className="grid grid-cols-2 gap-3">
           {/* Basic Test */}
           <button
@@ -265,12 +254,11 @@ export const NotificationSettings: React.FC = () => {
             onClick={() => {
               if (permission.granted) {
                 const now = new Date();
-                const greeting = now.getHours() < 12 ? '🌅 Buenos días' : 
-                                now.getHours() < 18 ? '🌆 Buenas tardes' : '🌙 Buenas noches';
-                
-                new Notification(greeting, {
+                const greeting = now.getHours() < 12 ? '🌅 Buenos días' :
+                  now.getHours() < 18 ? '🌆 Buenas tardes' : '🌙 Buenas noches';
+
+                showNotification(greeting, {
                   body: 'Es hora de revisar tus tareas del día',
-                  icon: '/favicon.ico',
                   tag: 'daily-reminder-test',
                 });
               }
@@ -286,9 +274,8 @@ export const NotificationSettings: React.FC = () => {
           <button
             onClick={() => {
               if (permission.granted) {
-                new Notification('⏰ Recordatorio de tarea', {
+                showNotification('⏰ Recordatorio de tarea', {
                   body: '"Revisar proyecto" está programada para las 15:30',
-                  icon: '/favicon.ico',
                   tag: 'task-reminder-test',
                 });
               }
@@ -312,10 +299,9 @@ export const NotificationSettings: React.FC = () => {
                   '✨ ¡Fantástico!',
                 ];
                 const title = celebrations[Math.floor(Math.random() * celebrations.length)];
-                
-                new Notification(title, {
+
+                showNotification(title, {
                   body: 'Has completado "Ejemplo de tarea"',
-                  icon: '/favicon.ico',
                   tag: 'completion-test',
                 });
               }

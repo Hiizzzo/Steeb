@@ -10,6 +10,7 @@ import { Task, TaskFilters, TaskStats, SyncStatus } from '@/types';
 import { tasksAPI } from '@/api/tasks';
 import { FirestoreTaskService } from '@/services/firestoreTaskService';
 import { localStorageService } from '@/services/localStorageService';
+import { notificationService } from '@/services/notificationService';
 import { auth } from '@/lib/firebase';
 
 interface TaskStore {
@@ -265,6 +266,16 @@ export const useTaskStore = create<TaskStore>()(
             };
           });
 
+          // Programar notificación si tiene fecha
+          if (newTask.scheduledDate) {
+            notificationService.scheduleTaskReminder(
+              newTask.id,
+              newTask.title,
+              newTask.scheduledDate,
+              newTask.scheduledTime
+            );
+          }
+
           // 2. Si la tarea tiene recurrencia y fecha programada, generar instancias para el mes completo
           if (taskData.recurrence && taskData.recurrence.frequency !== 'none' && taskData.scheduledDate) {
 
@@ -386,6 +397,21 @@ export const useTaskStore = create<TaskStore>()(
             error: null
           }));
 
+          // Actualizar notificación
+          if (updatedTask.completed) {
+            notificationService.cancelTaskReminder(id);
+          } else if (updatedTask.scheduledDate) {
+            notificationService.scheduleTaskReminder(
+              id,
+              updatedTask.title,
+              updatedTask.scheduledDate,
+              updatedTask.scheduledTime
+            );
+          } else {
+            // Si se quitó la fecha, cancelar recordatorio
+            notificationService.cancelTaskReminder(id);
+          }
+
           get().calculateStats();
 
           // Sincronización con Firestore si hay usuario
@@ -416,6 +442,9 @@ export const useTaskStore = create<TaskStore>()(
             tasks: state.tasks.filter(task => task.id !== id),
             error: null
           }));
+
+          // Cancelar notificación
+          notificationService.cancelTaskReminder(id);
 
           get().calculateStats();
 
@@ -579,11 +608,18 @@ export const useTaskStore = create<TaskStore>()(
                 error: null
               });
 
+              // Programar recordatorios para tareas cargadas
+              notificationService.scheduleBatchReminders(tasks || []);
+
               get().calculateStats();
               console.log('✅ Tareas cargadas exitosamente desde Firestore:', tasks?.length || 0);
             } catch (firestoreError) {
               console.warn('⚠️ Error con Firestore, usando almacenamiento local:', firestoreError);
               get().loadTasksFromLocal();
+              
+              // Programar recordatorios para tareas locales
+              notificationService.scheduleBatchReminders(get().tasks);
+
               set({
                 isLoading: false,
                 syncStatus: 'offline',

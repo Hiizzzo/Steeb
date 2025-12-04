@@ -145,6 +145,15 @@ html, body {
     color: #ffffff !important;
   }
 
+  
+  /* Mic button - don't fill the icon, just stroke */
+  .dark .mic-button svg,
+  .dark .mic-button svg * {
+    stroke: #ffffff !important;
+    fill: none !important;
+    color: #ffffff !important;
+  }
+
   .simple-task-checkbox {
     --simple-checkbox-border: #000000;
     border-color: var(--simple-checkbox-border) !important;
@@ -160,6 +169,14 @@ html, body {
   .dark .simple-task-card {
     border-color: #000000 !important;
     border-left: 3px solid #ffffff !important;
+  }
+
+  /* Mic button - don't fill the icon, just stroke */
+  .dark .mic-button svg,
+  .dark .mic-button svg * {
+    stroke: #ffffff !important;
+    fill: none !important;
+    color: #ffffff !important;
   }
 
   .dark .simple-task-checkbox {

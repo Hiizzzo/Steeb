@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard } from 'lucide-react';
+import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard, Mic, Square } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
 import { sendMessageToSteeb, SteebAction, getGlobalShinyStats, type ShinyStatusResponse } from '@/services/steebApi';
 import { deepSeekService } from '@/services/deepSeekService';
+import { notificationService } from '@/services/notificationService';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { transcribeAudio } from '@/services/transcriptionService';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
@@ -62,6 +65,45 @@ const SteebChatAI: React.FC = () => {
   const { user, updateProfile } = useAuth();
   const { tipoUsuario } = useFirebaseRoleCheck();
   const { userProfile } = useUserRole();
+
+  // Audio recording state
+  const audioRecorder = useAudioRecorder();
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
+  // Handle voice message recording
+  const handleVoiceRecord = useCallback(async () => {
+    if (audioRecorder.state.isRecording) {
+      // Stop recording and transcribe
+      const audioResult = await audioRecorder.stopRecording();
+
+      if (audioResult) {
+        setIsTranscribing(true);
+        try {
+          const blob = audioResult instanceof Blob ? audioResult : null;
+          if (blob) {
+            const result = await transcribeAudio(blob);
+            if (result.success && result.text) {
+              setInputMessage(result.text);
+              // Auto-send after transcription
+              // We'll trigger send after setting the message
+            } else {
+              console.error('Transcription failed:', result.error);
+            }
+          }
+        } catch (error) {
+          console.error('Error transcribing audio:', error);
+        } finally {
+          setIsTranscribing(false);
+        }
+      }
+    } else {
+      // Start recording
+      const started = await audioRecorder.startRecording();
+      if (!started) {
+        console.error('Failed to start recording');
+      }
+    }
+  }, [audioRecorder]);
 
   // Estado para el juego Shiny
   const [profileOnboardingStep, setProfileOnboardingStep] = useState<'idle' | 'asking-name' | 'asking-nickname' | 'completed'>('idle');
@@ -431,7 +473,7 @@ const SteebChatAI: React.FC = () => {
 
               const extraRollsFromStatus = typeof shinyStatus?.extraRolls === 'number' ? shinyStatus.extraRolls : undefined;
               const effectiveRolls = typeof extraRollsFromStatus === 'number' ? extraRollsFromStatus : availableRolls;
-              
+
               if (effectiveRolls <= 0) {
                 setShinyGameState('idle');
                 setTimeout(() => {
@@ -507,6 +549,31 @@ const SteebChatAI: React.FC = () => {
 
                 console.log('✅ Profile updated by AI:', { name, nickname });
               }
+              break;
+            }
+            case 'SEND_NOTIFICATION': {
+              const { title, body, urgency } = action.payload || {};
+              const notifTitle = typeof title === 'string' && title.trim() ? title.trim() : 'STEEB';
+              const notifBody = typeof body === 'string' && body.trim() ? body.trim() : 'Te estoy observando... 👁️';
+              const tag = `steeb-${urgency || 'medium'}`;
+
+              notificationService.sendImmediateNotification(notifTitle, notifBody, tag);
+              console.log('🔔 STEEB envió notificación:', { title: notifTitle, body: notifBody });
+              break;
+            }
+            case 'SCHEDULE_REMINDER': {
+              const { title, body, delayMinutes } = action.payload || {};
+              const reminderTitle = typeof title === 'string' && title.trim() ? title.trim() : 'STEEB - Recordatorio';
+              const reminderBody = typeof body === 'string' && body.trim() ? body.trim() : '¿Cómo vas con esa tarea?';
+              const delay = typeof delayMinutes === 'number' && delayMinutes > 0 ? delayMinutes : 15;
+
+              setTimeout(() => {
+                notificationService.sendImmediateNotification(reminderTitle, reminderBody, 'steeb-reminder');
+                console.log('🔔 STEEB recordatorio ejecutado:', { title: reminderTitle, body: reminderBody });
+              }, delay * 60 * 1000);
+
+              appendAssistantMessage(`⏰ Te voy a recordar en ${delay} minutos.`);
+              console.log('🔔 STEEB programó recordatorio para', delay, 'minutos');
               break;
             }
             default:
@@ -1218,6 +1285,42 @@ const SteebChatAI: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Microphone Button */}
+              <button
+                data-custom-color="true"
+                onClick={handleVoiceRecord}
+                disabled={isTyping || isTranscribing}
+                className={`mic-button w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${audioRecorder.state.isRecording
+                  ? 'bg-red-500 border-red-500 animate-pulse'
+                  : isTranscribing
+                    ? 'bg-yellow-500 border-yellow-500 animate-pulse'
+                    : isShinyMode
+                      ? 'bg-black border-white hover:bg-gray-900'
+                      : isDarkMode
+                        ? 'bg-gray-800 border-gray-400 hover:bg-gray-700'
+                        : 'bg-white border-gray-300 hover:bg-gray-100'
+                  }`}
+                title={audioRecorder.state.isRecording ? 'Detener grabación' : isTranscribing ? 'Transcribiendo...' : 'Grabar mensaje de voz'}
+              >
+                {audioRecorder.state.isRecording ? (
+                  <Square className="w-4 h-4 text-white" fill="white" />
+                ) : isTranscribing ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Mic
+                    className="w-5 h-5"
+                    style={{ color: isDarkMode || isShinyMode ? '#ffffff' : '#000000' }}
+                  />
+                )}
+              </button>
+
+              {/* Recording indicator */}
+              {audioRecorder.state.isRecording && (
+                <div className={`text-xs ${isDarkMode || isShinyMode ? 'text-white' : 'text-black'} animate-pulse`}>
+                  {audioRecorder.state.duration}s
+                </div>
+              )}
 
               <button
                 data-custom-color="true"

@@ -1,9 +1,40 @@
 // ============================================================================
-// NOTIFICATIONS HOOK
+// NOTIFICATIONS HOOK (EXPO) - Web-compatible version
 // ============================================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Task, NotificationSettings } from '@/types';
+
+// Detectar si estamos en web
+const isWeb = typeof window !== 'undefined' && typeof document !== 'undefined' && !('ReactNativeWebView' in window);
+
+// Lazy load expo-notifications solo en nativo
+let Notifications: any = null;
+let SchedulableTriggerInputTypes: any = null;
+
+const loadExpoNotifications = async () => {
+  if (!isWeb && !Notifications) {
+    try {
+      const module = await import('expo-notifications');
+      Notifications = module;
+      SchedulableTriggerInputTypes = module.SchedulableTriggerInputTypes;
+
+      // Configure notifications handler
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+          shouldShowBanner: true,
+          shouldShowList: true,
+          priority: Notifications.AndroidNotificationPriority?.HIGH,
+        }),
+      });
+    } catch (error) {
+      console.warn('expo-notifications not available:', error);
+    }
+  }
+};
 
 interface NotificationPermissionState {
   granted: boolean;
@@ -27,10 +58,9 @@ export const useNotifications = () => {
     denied: false,
     prompt: false,
   });
-  
+
   const [settings, setSettings] = useState<NotificationSettings>(() => {
-    const saved = localStorage.getItem('notification-settings');
-    return saved ? JSON.parse(saved) : {
+    return {
       enabled: true,
       sound: true,
       vibration: true,
@@ -42,327 +72,260 @@ export const useNotifications = () => {
   });
 
   const [scheduledNotifications, setScheduledNotifications] = useState<ScheduledNotification[]>([]);
+  const notificationListener = useRef<any>(null);
+  const responseListener = useRef<any>(null);
 
   // Initialize notification permission on mount
   useEffect(() => {
-    if ('Notification' in window) {
-      const currentPermission = Notification.permission;
-      setPermission({
-        granted: currentPermission === 'granted',
-        denied: currentPermission === 'denied',
-        prompt: currentPermission === 'default',
-      });
-    }
+    const init = async () => {
+      await loadExpoNotifications();
+      checkPermission();
+
+      if (!isWeb && Notifications) {
+        // Listeners
+        notificationListener.current = Notifications.addNotificationReceivedListener((notification: any) => {
+          console.log('Notification received:', notification);
+        });
+
+        responseListener.current = Notifications.addNotificationResponseReceivedListener((response: any) => {
+          console.log('Notification response:', response);
+        });
+      }
+    };
+
+    init();
+
+    return () => {
+      if (notificationListener.current?.remove) notificationListener.current.remove();
+      if (responseListener.current?.remove) responseListener.current.remove();
+    };
   }, []);
 
-  // Save settings to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('notification-settings', JSON.stringify(settings));
-  }, [settings]);
+  const checkPermission = async () => {
+    try {
+      if (!isWeb && Notifications) {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        setPermission({
+          granted: existingStatus === 'granted',
+          denied: existingStatus === 'denied',
+          prompt: existingStatus === 'undetermined',
+        });
+      } else if (isWeb && typeof window !== 'undefined' && 'Notification' in window) {
+        setPermission({
+          granted: window.Notification.permission === 'granted',
+          denied: window.Notification.permission === 'denied',
+          prompt: window.Notification.permission === 'default',
+        });
+      }
+    } catch (error) {
+      console.error('Error checking notification permission:', error);
+    }
+  };
 
   // Request notification permission
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
-      return false;
-    }
-
-    if (permission.granted) {
-      return true;
-    }
-
     try {
-      const result = await Notification.requestPermission();
-      const granted = result === 'granted';
-      
-      setPermission({
-        granted,
-        denied: result === 'denied',
-        prompt: result === 'default',
-      });
-
-      return granted;
+      if (!isWeb && Notifications) {
+        const { status } = await Notifications.requestPermissionsAsync();
+        const granted = status === 'granted';
+        setPermission({
+          granted,
+          denied: status === 'denied',
+          prompt: status === 'undetermined',
+        });
+        return granted;
+      } else if (isWeb && typeof window !== 'undefined' && 'Notification' in window) {
+        const result = await window.Notification.requestPermission();
+        const granted = result === 'granted';
+        setPermission({
+          granted,
+          denied: result === 'denied',
+          prompt: result === 'default',
+        });
+        return granted;
+      }
+      return false;
     } catch (error) {
       console.error('Error requesting notification permission:', error);
       return false;
     }
-  }, [permission.granted]);
+  }, []);
 
   // Show immediate notification
   const showNotification = useCallback(async (
     title: string,
     options: {
       body?: string;
-      icon?: string;
-      badge?: string;
-      tag?: string;
       data?: any;
-      vibrate?: number[];
-      silent?: boolean;
-      actions?: Array<{ action: string; title: string; icon?: string }>;
+      tag?: string;
     } = {}
   ): Promise<boolean> => {
-    if (!settings.enabled) {
-      return false;
-    }
-
+    if (!settings.enabled) return false;
     if (!permission.granted) {
-      const hasPermission = await requestPermission();
-      if (!hasPermission) {
-        return false;
-      }
+      const granted = await requestPermission();
+      if (!granted) return false;
     }
 
     try {
-      const notifOptions: NotificationOptions = {
-        ...(options as NotificationOptions),
-        icon: options.icon || '/favicon.ico',
-        badge: options.badge || '/favicon.ico',
-        silent: !settings.sound || options.silent,
-      };
-      const notification = new Notification(title, notifOptions);
-
-      // Auto-close after 5 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 5000);
-
+      if (!isWeb && Notifications) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title,
+            body: options.body,
+            data: { ...options.data, tag: options.tag },
+            sound: settings.sound,
+            vibrate: settings.vibration ? [0, 250, 250, 250] : undefined,
+          },
+          trigger: null, // Immediate
+        });
+      } else if (isWeb && typeof window !== 'undefined' && 'Notification' in window) {
+        const notification = new window.Notification(title, {
+          body: options.body,
+          icon: '/lovable-uploads/te obesrvo.png',
+          tag: options.tag,
+        });
+        setTimeout(() => notification.close(), 8000);
+      }
       return true;
     } catch (error) {
       console.error('Error showing notification:', error);
       return false;
     }
-  }, [settings.enabled, settings.vibration, settings.sound, permission.granted, requestPermission]);
+  }, [settings, permission.granted, requestPermission]);
 
   // Schedule a notification for later
-  const scheduleNotification = useCallback((
+  const scheduleNotification = useCallback(async (
     taskId: string,
     type: 'reminder' | 'deadline' | 'celebration',
     title: string,
     body: string,
     scheduledTime: Date
-  ): string => {
+  ): Promise<string> => {
     const id = `${taskId}-${type}-${Date.now()}`;
-    
-    const notification: ScheduledNotification = {
-      id,
-      taskId,
-      type,
-      title,
-      body,
-      scheduledTime,
-      sent: false,
-    };
 
-    setScheduledNotifications(prev => [...prev, notification]);
+    // Validate time
+    const timeUntil = scheduledTime.getTime() - Date.now();
+    if (timeUntil <= 0) return '';
 
-    // Schedule the actual notification
-    const timeUntilNotification = scheduledTime.getTime() - Date.now();
-    
-    if (timeUntilNotification > 0) {
-      setTimeout(async () => {
-        if (settings.enabled && (
-          (type === 'reminder' && settings.taskReminders) ||
-          (type === 'deadline' && settings.deadlineAlerts) ||
-          (type === 'celebration' && settings.completionCelebration)
-        )) {
-          const success = await showNotification(title, {
-            body,
-            tag: id,
-            data: { taskId, type },
-            actions: type === 'reminder' ? [
-              { action: 'complete', title: 'Mark Complete' },
-              { action: 'snooze', title: 'Snooze 10min' },
-            ] : undefined,
-          });
-
-          if (success) {
-            setScheduledNotifications(prev => 
-              prev.map(n => n.id === id ? { ...n, sent: true } : n)
-            );
-          }
-        }
-      }, timeUntilNotification);
+    if (!settings.enabled) return '';
+    if (!permission.granted) {
+      const granted = await requestPermission();
+      if (!granted) return '';
     }
 
-    return id;
-  }, [settings, showNotification]);
+    try {
+      if (!isWeb && Notifications && SchedulableTriggerInputTypes) {
+        const notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title,
+            body,
+            data: { taskId, type, internalId: id },
+            sound: settings.sound,
+          },
+          trigger: {
+            type: SchedulableTriggerInputTypes.DATE,
+            date: scheduledTime,
+          },
+        });
+
+        const notification: ScheduledNotification = {
+          id: notificationId,
+          taskId,
+          type,
+          title,
+          body,
+          scheduledTime,
+          sent: false,
+        };
+
+        setScheduledNotifications(prev => [...prev, notification]);
+        return notificationId;
+      } else if (isWeb) {
+        // Web: use setTimeout for scheduling
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted') {
+            const notification = new window.Notification(title, { body });
+            setTimeout(() => notification.close(), 10000);
+          }
+        }, timeUntil);
+        return id;
+      }
+      return '';
+    } catch (error) {
+      console.error('Error scheduling notification:', error);
+      return '';
+    }
+  }, [settings, permission.granted, requestPermission]);
 
   // Cancel a scheduled notification
-  const cancelNotification = useCallback((notificationId: string) => {
-    setScheduledNotifications(prev => prev.filter(n => n.id !== notificationId));
+  const cancelNotification = useCallback(async (notificationId: string) => {
+    try {
+      if (!isWeb && Notifications) {
+        await Notifications.cancelScheduledNotificationAsync(notificationId);
+      }
+      setScheduledNotifications(prev => prev.filter(n => n.id !== notificationId));
+    } catch (error) {
+      console.error('Error canceling notification:', error);
+    }
   }, []);
 
   // Task-specific notification helpers
-  const notifyTaskReminder = useCallback((task: Task, minutesBefore: number = 15) => {
-    if (!task.scheduledDate || !task.scheduledTime || task.completed) {
-      return null;
-    }
+  const notifyTaskReminder = useCallback(async (task: Task, minutesBefore: number = 15) => {
+    if (!task.scheduledDate || !task.scheduledTime || task.completed) return null;
+    if (!settings.taskReminders) return null;
 
     const taskDateTime = new Date(`${task.scheduledDate}T${task.scheduledTime}`);
     const reminderTime = new Date(taskDateTime.getTime() - (minutesBefore * 60 * 1000));
 
-    // Don't schedule if the reminder time has already passed
-    if (reminderTime.getTime() <= Date.now()) {
-      return null;
-    }
+    if (reminderTime.getTime() <= Date.now()) return null;
 
-    return scheduleNotification(
+    return await scheduleNotification(
       task.id,
       'reminder',
       '⏰ Recordatorio de tarea',
       `"${task.title}" está programada para las ${task.scheduledTime}`,
       reminderTime
     );
-  }, [scheduleNotification]);
+  }, [scheduleNotification, settings.taskReminders]);
 
-  const notifyTaskDeadline = useCallback((task: Task) => {
-    if (!task.scheduledDate || task.completed) {
-      return null;
-    }
+  const notifyTaskDeadline = useCallback(async (task: Task) => {
+    if (!task.scheduledDate || task.completed) return null;
+    if (!settings.deadlineAlerts) return null;
 
-    const deadlineTime = new Date(`${task.scheduledDate}T23:59:59`);
-    
-    // Don't schedule if the deadline has already passed
-    if (deadlineTime.getTime() <= Date.now()) {
-      return null;
-    }
+    const alertTime = new Date(`${task.scheduledDate}T10:00:00`);
 
-    return scheduleNotification(
+    if (alertTime.getTime() <= Date.now()) return null;
+
+    return await scheduleNotification(
       task.id,
       'deadline',
-      '🚨 Fecha límite',
+      '🚨 Fecha límite hoy',
       `"${task.title}" vence hoy`,
-      deadlineTime
+      alertTime
     );
-  }, [scheduleNotification]);
+  }, [scheduleNotification, settings.deadlineAlerts]);
 
   const notifyTaskCompletion = useCallback(async (task: Task) => {
-    if (!settings.completionCelebration) {
-      return false;
-    }
+    if (!settings.completionCelebration) return false;
 
     const celebrations = [
       '🎉 ¡Excelente trabajo!',
       '🌟 ¡Tarea completada!',
       '💪 ¡Sigue así!',
       '🏆 ¡Bien hecho!',
-      '✨ ¡Fantástico!',
     ];
-
     const title = celebrations[Math.floor(Math.random() * celebrations.length)];
     const body = `Has completado "${task.title}"`;
 
-    return await showNotification(title, {
-      body,
-      tag: `completion-${task.id}`,
-      data: { taskId: task.id, type: 'celebration' },
-      vibrate: [100, 50, 100, 50, 100],
-    });
+    return await showNotification(title, { body });
   }, [settings.completionCelebration, showNotification]);
 
   const notifyDailyReminder = useCallback(async () => {
-    if (!settings.dailyReminder) {
-      return false;
-    }
-
-    const now = new Date();
-    const greeting = now.getHours() < 12 ? 'Buenos días' : 
-                    now.getHours() < 18 ? 'Buenas tardes' : 'Buenas noches';
-
-    return await showNotification(`${greeting} 👋`, {
-      body: 'Es hora de revisar tus tareas del día',
-      tag: 'daily-reminder',
-      actions: [
-        { action: 'open-app', title: 'Ver tareas' },
-        { action: 'dismiss', title: 'Después' },
-      ],
+    if (!settings.dailyReminder) return false;
+    return await showNotification('📅 Resumen Diario', {
+      body: 'Recuerda revisar tus tareas pendientes para hoy.',
     });
   }, [settings.dailyReminder, showNotification]);
-
-  // Schedule daily reminders (morning and afternoon)
-  useEffect(() => {
-    if (!settings.dailyReminder) return;
-
-    const scheduleDailyReminders = () => {
-      const now = new Date();
-      
-      // Morning reminder (9:00 AM)
-      const morningTime = new Date(now);
-      morningTime.setHours(9, 0, 0, 0);
-      if (now.getHours() >= 9) {
-        morningTime.setDate(morningTime.getDate() + 1);
-      }
-
-      // Afternoon reminder (6:00 PM)
-      const afternoonTime = new Date(now);
-      afternoonTime.setHours(18, 0, 0, 0);
-      if (now.getHours() >= 18) {
-        afternoonTime.setDate(afternoonTime.getDate() + 1);
-      }
-
-      // Schedule morning reminder
-      const timeUntilMorning = morningTime.getTime() - now.getTime();
-      if (timeUntilMorning > 0) {
-        setTimeout(() => {
-          showNotification('🌅 Buenos días', {
-            body: 'Es hora de revisar tus tareas matutinas',
-            tag: 'morning-reminder',
-            actions: [
-              { action: 'open-app', title: 'Ver tareas' },
-              { action: 'dismiss', title: 'Después' },
-            ],
-          });
-        }, timeUntilMorning);
-      }
-
-      // Schedule afternoon reminder
-      const timeUntilAfternoon = afternoonTime.getTime() - now.getTime();
-      if (timeUntilAfternoon > 0) {
-        setTimeout(() => {
-          showNotification('🌆 Buenas tardes', {
-            body: 'Momento perfecto para completar tus tareas pendientes',
-            tag: 'afternoon-reminder',
-            actions: [
-              { action: 'open-app', title: 'Ver tareas' },
-              { action: 'dismiss', title: 'Después' },
-            ],
-          });
-        }, timeUntilAfternoon);
-      }
-
-      // Schedule for next day
-      setTimeout(() => {
-        scheduleDailyReminders();
-      }, 24 * 60 * 60 * 1000); // 24 hours
-    };
-
-    scheduleDailyReminders();
-  }, [settings.dailyReminder, showNotification]);
-
-  // Batch notification helpers
-  const scheduleTaskNotifications = useCallback((task: Task) => {
-    const notificationIds: string[] = [];
-
-    // Schedule reminder
-    if (settings.taskReminders) {
-      const reminderId = notifyTaskReminder(task);
-      if (reminderId) notificationIds.push(reminderId);
-    }
-
-    // Schedule deadline alert
-    if (settings.deadlineAlerts) {
-      const deadlineId = notifyTaskDeadline(task);
-      if (deadlineId) notificationIds.push(deadlineId);
-    }
-
-    return notificationIds;
-  }, [settings.taskReminders, settings.deadlineAlerts, notifyTaskReminder, notifyTaskDeadline]);
-
-  const cancelTaskNotifications = useCallback((taskId: string) => {
-    const taskNotifications = scheduledNotifications.filter(n => n.taskId === taskId);
-    taskNotifications.forEach(n => cancelNotification(n.id));
-  }, [scheduledNotifications, cancelNotification]);
 
   // Update settings
   const updateSettings = useCallback((updates: Partial<NotificationSettings>) => {
@@ -373,7 +336,6 @@ export const useNotifications = () => {
   const testNotification = useCallback(async () => {
     return await showNotification('🧪 Notificación de prueba', {
       body: 'Si ves esto, las notificaciones están funcionando correctamente',
-      tag: 'test-notification',
     });
   }, [showNotification]);
 
@@ -398,80 +360,23 @@ export const useNotifications = () => {
   }, [scheduledNotifications, permission, settings]);
 
   return {
-    // State
     permission,
     settings,
     scheduledNotifications,
-
-    // Permission management
     requestPermission,
-
-    // Basic notifications
     showNotification,
     scheduleNotification,
     cancelNotification,
-
-    // Task-specific notifications
     notifyTaskReminder,
     notifyTaskDeadline,
     notifyTaskCompletion,
     notifyDailyReminder,
-
-    // Batch operations
-    scheduleTaskNotifications,
-    cancelTaskNotifications,
-
-    // Settings management
     updateSettings,
-
-    // Utilities
     testNotification,
     getNotificationStats,
   };
 };
 
-// ============================================================================
-// SERVICE WORKER NOTIFICATIONS (for background notifications)
-// ============================================================================
-
 export const registerNotificationServiceWorker = async () => {
-  if ('serviceWorker' in navigator && 'Notification' in window) {
-    try {
-      const registration = await navigator.serviceWorker.register('/notification-sw.js');
-      console.log('Notification Service Worker registered:', registration.scope);
-
-      // Listen for notification actions
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'NOTIFICATION_ACTION') {
-          const { action, taskId } = event.data.payload;
-          
-          // Handle notification actions
-          switch (action) {
-            case 'complete':
-              // Trigger task completion
-              window.dispatchEvent(new CustomEvent('notification-action-complete', {
-                detail: { taskId }
-              }));
-              break;
-            case 'snooze':
-              // Snooze for 10 minutes
-              window.dispatchEvent(new CustomEvent('notification-action-snooze', {
-                detail: { taskId, minutes: 10 }
-              }));
-              break;
-            case 'open-app':
-              // Focus the window
-              window.focus();
-              break;
-          }
-        }
-      });
-
-      return registration;
-    } catch (error) {
-      console.error('Failed to register notification service worker:', error);
-      return null;
-    }
-  }
   return null;
 };

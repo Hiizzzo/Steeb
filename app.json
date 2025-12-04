@@ -3,13 +3,23 @@
     "name": "STEEB",
     "slug": "steeb",
     "scheme": "steeb",
-    "version": "1.0.2",
-    "orientation": "portrait",
+    "version": "1.0.3",
+    "orientation": "default",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
       "**/*"
     ],
     "icon": "./assets/icon.png",
+    "android": {
+      "package": "com.steeb.oficial",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ]
+    },
     "ios": {
       "bundleIdentifier": "com.steeb.app",
       "supportsTablet": true,
@@ -45,6 +55,14 @@
         "expo-tracking-transparency",
         {
           "userTrackingPermission": "This identifier will be used to deliver personalized ads to you."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff",
+          "sounds": []
         }
       ]
     ],

@@ -1,6 +1,3 @@
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Device } from '@capacitor/device';
-import { Capacitor } from '@capacitor/core';
 import { Ollama } from 'ollama/browser';
 
 // Configuración para Ollama local
@@ -90,19 +87,19 @@ class GeminiService {
 
     try {
       onProgress?.(0, 'Conectando con Ollama...');
-      
+
       // Configurar URL de Ollama y modelo
       this.ollamaUrl = config.ollamaUrl || OLLAMA_BASE_URL;
       this.currentModel = config.model || DEFAULT_MODEL;
-      
+
       // Inicializar cliente Ollama
       this.ollama = new Ollama({ host: this.ollamaUrl });
-      
+
       onProgress?.(25, 'Verificando disponibilidad de Ollama...');
-      
+
       // Verificar si Ollama está disponible
       const isOllamaAvailable = await this.checkOllamaAvailability();
-      
+
       if (!isOllamaAvailable) {
         onProgress?.(100, 'Ollama no disponible - usando modo simulado');
         console.warn('⚠️ Ollama no está disponible, usando modo simulado');
@@ -110,29 +107,29 @@ class GeminiService {
         this.isInitializing = false;
         return true;
       }
-      
+
       onProgress?.(50, 'Verificando modelo disponible...');
-      
+
       // Verificar si el modelo está disponible
       const isModelAvailable = await this.checkModelAvailability();
-      
+
       if (!isModelAvailable) {
         onProgress?.(75, `Descargando modelo ${this.currentModel}...`);
         await this.pullModel();
       }
-      
+
       onProgress?.(100, 'Gemini con Ollama listo!');
-      
+
       this.isInitialized = true;
       this.isInitializing = false;
-      
+
       console.log('✅ Gemini Service inicializado correctamente con Ollama');
       return true;
-      
+
     } catch (error) {
       console.error('❌ Error inicializando Gemini:', error);
       onProgress?.(100, 'Error en inicialización - usando modo simulado');
-      
+
       // En caso de error, usar modo simulado
       this.isInitialized = true;
       this.isInitializing = false;
@@ -190,7 +187,7 @@ class GeminiService {
         console.log(`✅ Modelo ${this.currentModel} descargado correctamente`);
         return;
       }
-      
+
       // Fallback a fetch
       const response = await fetch(`${this.ollamaUrl}/api/pull`, {
         method: 'POST',
@@ -218,7 +215,7 @@ class GeminiService {
     if (this.isInitialized) {
       return true;
     }
-    
+
     return await this.initialize();
   }
 
@@ -244,7 +241,7 @@ class GeminiService {
     try {
       // Verificar si Ollama está disponible
       const isOllamaAvailable = await this.checkOllamaAvailability();
-      
+
       if (!isOllamaAvailable) {
         return this.getSimulatedResponse(message);
       }
@@ -313,7 +310,7 @@ class GeminiService {
     try {
       // Verificar si Ollama está disponible
       const isOllamaAvailable = await this.checkOllamaAvailability();
-      
+
       if (!isOllamaAvailable) {
         const simulatedResponse = this.getSimulatedResponse(message);
         this.simulateStreaming(simulatedResponse, callback);
@@ -417,7 +414,7 @@ class GeminiService {
     } catch (error) {
       console.error('❌ Error en streaming de Gemini:', error);
       callback.onError(error instanceof Error ? error.message : 'Error desconocido');
-      
+
       // Fallback a respuesta simulada
       const simulatedResponse = this.getSimulatedResponse(message);
       this.simulateStreaming(simulatedResponse, callback);
@@ -427,7 +424,7 @@ class GeminiService {
   private simulateStreaming(text: string, callback: StreamingCallback): void {
     let index = 0;
     const words = text.split(' ');
-    
+
     const streamInterval = setInterval(() => {
       if (index < words.length) {
         const word = index === 0 ? words[index] : ' ' + words[index];
@@ -452,13 +449,13 @@ class GeminiService {
       "¡Saludos! Como tu mentor de productividad, te sugiero que revisemos tus tareas. ¿Hay algo urgente?",
       "¡Hola! ¿Lista para ser productiva hoy? Cuéntame qué necesitas lograr y te ayudo a organizarte."
     ];
-    
+
     return suggestions[Math.floor(Math.random() * suggestions.length)];
   }
 
   private getSimulatedResponse(message: string): string {
     const lowerMessage = message.toLowerCase();
-    
+
     // Respuestas más inteligentes y contextuales como si fuera un asistente real
     if (lowerMessage.includes('hola') || lowerMessage.includes('hi') || lowerMessage.includes('buenas')) {
       const greetings = [
@@ -468,31 +465,31 @@ class GeminiService {
       ];
       return greetings[Math.floor(Math.random() * greetings.length)];
     }
-    
+
     if (lowerMessage.includes('organizar') || lowerMessage.includes('dia') || lowerMessage.includes('día') || lowerMessage.includes('planificar')) {
       return "Perfecto, hablemos de estrategia. Para organizar tu día como un profesional:\n\n🎯 **Prioridad #1**: ¿Cuál es LA cosa más importante que DEBE pasar hoy?\n⏰ **Bloques de tiempo**: Asigna horarios específicos, no listas infinitas\n🚫 **Elimina despiadadamente**: ¿Qué puedes NO hacer hoy?\n\n¿Cuál es tu mayor prioridad ahora mismo?";
     }
-    
+
     if (lowerMessage.includes('tarea') || lowerMessage.includes('trabajo') || lowerMessage.includes('hacer')) {
       return "Excelente enfoque en la ejecución. Como tu mentor de productividad, esto es lo que funciona:\n\n✅ **Regla 2-minutos**: Si toma menos de 2 min, hazlo YA\n🔥 **Una cosa a la vez**: Multitasking = mediocridad garantizada\n⚡ **Sesiones de 25 min**: Pomodoro funciona porque respeta tu neurología\n\n¿Qué tarea específica necesita tu atención inmediata?";
     }
-    
+
     if (lowerMessage.includes('motivaci') || lowerMessage.includes('procrastina') || lowerMessage.includes('pereza') || lowerMessage.includes('no puedo')) {
       return "Entiendo esa resistencia mental. La procrastinación no es pereza, es tu cerebro protegiéndote de algo que percibe como amenazante.\n\n💡 **Verdad cruda**: La motivación viene DESPUÉS de la acción, no antes\n🔬 **Neurociencia**: Cada pequeño logro libera dopamina = momentum\n⚡ **Truco**: ¿Qué es lo más pequeño que podrías hacer en 2 minutos?\n\n¿Cuál va a ser tu primer micro-paso ahora mismo?";
     }
-    
+
     if (lowerMessage.includes('tiempo') || lowerMessage.includes('horario') || lowerMessage.includes('cuando')) {
       return "El tiempo es tu recurso más valioso porque es irrecuperable. Estrategia inteligente:\n\n⏰ **Planifica la noche anterior**: Las decisiones matutinas agotan energía mental\n🎯 **3 prioridades máximo**: Más = dilución de esfuerzo\n📱 **Protege tu atención**: Notificaciones = ladrones de productividad\n\n¿Qué parte de tu día sientes más fuera de control?";
     }
-    
+
     if (lowerMessage.includes('ayuda') || lowerMessage.includes('como') || lowerMessage.includes('cómo') || lowerMessage.includes('consejo')) {
       return "Por supuesto. Soy tu arquitecto de productividad personal. Mi función es simple: convertir el caos en sistema.\n\n🧠 **Primero**: Identifica tu patrón de mayor energía (¿mañana/tarde?)\n⚡ **Segundo**: Protege ese tiempo para trabajo importante\n🎯 **Tercero**: Todo lo demás es secundario\n\n¿Cuál es tu mayor dolor de cabeza productivo ahora mismo?";
     }
-    
+
     if (lowerMessage.includes('meta') || lowerMessage.includes('objetivo') || lowerMessage.includes('lograr')) {
       return "Excelente mentalidad orientada a resultados. Las metas se logran con sistemas, no con inspiración:\n\n📊 **Meta sin deadline = deseo bonito**\n🔄 **Sistema sin seguimiento = fantasía**\n⚡ **Progreso > perfección**: Siempre\n\n¿Tu objetivo tiene fecha específica y métricas claras para medir progreso?";
     }
-    
+
     // Respuestas contextuales más inteligentes
     const contextualResponses = [
       "Perfecto enfoque. Como tu jefe personal de productividad: la diferencia entre soñar y lograr está en la implementación. ¿Cuál va a ser tu siguiente paso específico y medible?",
@@ -501,7 +498,7 @@ class GeminiService {
       "Interesante perspectiva. Como tu mentor de productividad: ¿qué patrón de tu rutina diaria necesita una actualización urgente?",
       "Bien planteado. La productividad real viene del autoconocimiento: patrones, fortalezas, limitaciones. ¿Qué has descubierto sobre tu forma de trabajar?"
     ];
-    
+
     return contextualResponses[Math.floor(Math.random() * contextualResponses.length)];
   }
 
@@ -533,9 +530,9 @@ class GeminiService {
   private updateUserMood(message: string): void {
     const positiveWords = ['bien', 'genial', 'perfecto', 'excelente', 'contento'];
     const negativeWords = ['mal', 'terrible', 'frustrado', 'cansado', 'abrumado'];
-    
+
     const lowerMessage = message.toLowerCase();
-    
+
     if (positiveWords.some(word => lowerMessage.includes(word))) {
       this.conversationContext.userMood = 'motivated';
     } else if (negativeWords.some(word => lowerMessage.includes(word))) {
@@ -602,4 +599,4 @@ class GeminiService {
   }
 }
 
-export const geminiService = new GeminiService();export default geminiService;
+export const geminiService = new GeminiService(); export default geminiService;
