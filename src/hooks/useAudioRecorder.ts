@@ -116,13 +116,21 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
                     audio: {
                         echoCancellation: true,
                         noiseSuppression: true,
-                        sampleRate: 16000,
+                        sampleRate: 44100, // Standard sample rate
                     }
                 });
                 streamRef.current = stream;
 
+                // Determine supported mime type
+                let mimeType = 'audio/webm';
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+                }
+
                 const mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'audio/webm;codecs=opus',
+                    mimeType,
                 });
 
                 mediaRecorder.ondataavailable = (event) => {

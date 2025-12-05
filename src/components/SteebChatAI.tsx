@@ -79,16 +79,22 @@ const SteebChatAI: React.FC = () => {
       if (audioResult) {
         setIsTranscribing(true);
         try {
-          const blob = audioResult instanceof Blob ? audioResult : null;
-          if (blob) {
-            const result = await transcribeAudio(blob);
-            if (result.success && result.text) {
-              setInputMessage(result.text);
-              // Auto-send after transcription
-              // We'll trigger send after setting the message
-            } else {
-              console.error('Transcription failed:', result.error);
-            }
+          let result;
+          if (typeof audioResult === 'string') {
+            // Native: URI
+            const { transcribeAudioFromUri } = await import('@/services/transcriptionService');
+            result = await transcribeAudioFromUri(audioResult);
+          } else {
+            // Web: Blob
+            result = await transcribeAudio(audioResult);
+          }
+
+          if (result.success && result.text) {
+            setInputMessage(result.text);
+            // Auto-send after transcription
+            // We'll trigger send after setting the message
+          } else {
+            console.error('Transcription failed:', result.error);
           }
         } catch (error) {
           console.error('Error transcribing audio:', error);

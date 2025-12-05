@@ -69,16 +69,59 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
  */
 export async function transcribeAudioFromUri(uri: string): Promise<TranscriptionResult> {
     try {
-        // Fetch the audio file from the URI
-        const response = await fetch(uri);
-        const blob = await response.blob();
+        console.log('🎤 Sending audio URI for transcription:', uri);
 
-        return transcribeAudio(blob);
-    } catch (error: any) {
-        console.error('❌ Error loading audio from URI:', error);
+        // Native FormData handling
+        const formData = new FormData();
+
+        // React Native needs { uri, name, type } object for file uploads
+        // We cast to any because standard FormData expects Blob/string, but RN extends it
+        formData.append('audio', {
+            uri: uri,
+            name: 'recording.m4a', // iOS/Android usually output m4a/mp4
+            type: 'audio/m4a'
+        } as any);
+
+        const response = await fetch(TRANSCRIBE_ENDPOINT, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                // IMPORTANT: Do NOT set Content-Type header manually for FormData in RN
+                // The browser/network stack sets it with the boundary
+                'Accept': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Transcription API error (Native):', response.status, errorData);
+            return {
+                success: false,
+                error: errorData.error || `Error ${response.status}`
+            };
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.text) {
+            console.log('✅ Transcription successful (Native):', result.text.substring(0, 50) + '...');
+            return {
+                success: true,
+                text: result.text,
+                language: result.language
+            };
+        }
+
         return {
             success: false,
-            error: 'No se pudo cargar el audio'
+            error: result.error || 'No se pudo transcribir el audio'
+        };
+
+    } catch (error: any) {
+        console.error('❌ Error transcribing from URI:', error);
+        return {
+            success: false,
+            error: 'No se pudo cargar o enviar el audio'
         };
     }
 }
