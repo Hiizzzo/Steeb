@@ -1,4 +1,3 @@
-
 {
   "name": "Steve - Tu Asistente Anti-Procrastinación",
   "short_name": "Steve",
@@ -9,7 +8,7 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "steeb-icon.png",
+      "src": "Steebblack.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

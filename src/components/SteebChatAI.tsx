@@ -1298,7 +1298,7 @@ const SteebChatAI: React.FC = () => {
                     : isShinyMode
                       ? 'bg-black border-white hover:bg-gray-900'
                       : isDarkMode
-                        ? 'bg-gray-800 border-gray-400 hover:bg-gray-700'
+                        ? 'bg-gray-800 border-black hover:bg-gray-700'
                         : 'bg-white border-gray-300 hover:bg-gray-100'
                   }`}
                 title={audioRecorder.state.isRecording ? 'Detener grabación' : isTranscribing ? 'Transcribiendo...' : 'Grabar mensaje de voz'}

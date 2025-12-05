@@ -61,7 +61,39 @@ const TYPE_ORDER: Array<Task['type']> = [
   'extra'
 ];
 
+// API URL for sleep status (server-side check to prevent manipulation)
+const STEEB_STATUS_API = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/steeb-status`
+  : 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb-status';
+
 const Index = () => {
+
+  // Steeb sleep mode state (fetched from server to prevent manipulation)
+  const [isSleeping, setIsSleeping] = useState(false);
+
+  // Fetch sleep status from server
+  useEffect(() => {
+    const fetchSleepStatus = async () => {
+      try {
+        const response = await fetch(STEEB_STATUS_API);
+        if (response.ok) {
+          const data = await response.json();
+          setIsSleeping(data.isSleeping || false);
+        }
+      } catch (error) {
+        console.warn('Could not fetch Steeb sleep status:', error);
+        // Fallback: don't show sleeping if server is unavailable
+        setIsSleeping(false);
+      }
+    };
+
+    // Initial fetch
+    fetchSleepStatus();
+
+    // Update every minute
+    const interval = setInterval(fetchSleepStatus, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -752,7 +784,9 @@ const Index = () => {
                 </div>
               ) : (
                 <img
-                  src={theme.isDark ? "/Steebwhite.png" : "/Steebblack.png"}
+                  src={theme.isDark
+                    ? (isSleeping ? "/Steebwhitesleep.png" : "/Steebwhite.png")
+                    : (isSleeping ? "/Steebsleepdark.png" : "/Steebblack.png")}
                   alt="Steeb"
                   className="w-full h-full object-cover rounded-3xl"
                   style={{

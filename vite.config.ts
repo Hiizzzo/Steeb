@@ -54,6 +54,11 @@ export default defineConfig(({ mode }) => ({
     react(),
   ],
   optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+      },
+    },
     include: [
       'react-native-web',
     ],
