@@ -73,35 +73,52 @@ const getLocalSleepStatus = (): boolean => {
   const hour = argentinaTime.getHours();
   const dayOfWeek = argentinaTime.getDay();
 
-  // Friday (5) and Saturday (6): 3:00 AM to 9:59 AM
-  if (dayOfWeek === 5 || dayOfWeek === 6) {
-    return hour >= 3 && hour < 10;
+  console.log('😴 DEBUG - Argentina time:', argentinaTime.toString());
+  console.log('😴 DEBUG - Hour:', hour, 'DayOfWeek:', dayOfWeek, '(0=Sun, 6=Sat)');
+
+  // Saturday (6) and Sunday (0): After Friday/Saturday nights - sleep 3:00 AM to 9:59 AM
+  if (dayOfWeek === 6 || dayOfWeek === 0) {
+    const sleeping = hour >= 3 && hour < 10;
+    console.log('😴 DEBUG - Saturday/Sunday check (late night schedule): sleeping =', sleeping);
+    return sleeping;
   }
-  // Other days: 0:00 AM to 7:59 AM
-  return hour >= 0 && hour < 8;
+  // Other days (Mon-Fri mornings): 0:00 AM to 7:59 AM
+  const sleeping = hour >= 0 && hour < 8;
+  console.log('😴 DEBUG - Weekday check (normal schedule): sleeping =', sleeping);
+  return sleeping;
 };
 
 const Index = () => {
 
   // Steeb sleep mode state (fetched from server, with local fallback)
-  const [isSleeping, setIsSleeping] = useState(getLocalSleepStatus());
+  const [isSleeping, setIsSleeping] = useState(() => {
+    const initialSleep = getLocalSleepStatus();
+    console.log('😴 Initial sleep status:', initialSleep);
+    return initialSleep;
+  });
 
   // Fetch sleep status from server (with local fallback)
   useEffect(() => {
     const fetchSleepStatus = async () => {
       try {
+        console.log('😴 Fetching sleep status from:', STEEB_STATUS_API);
         const response = await fetch(STEEB_STATUS_API);
         if (response.ok) {
           const data = await response.json();
+          console.log('😴 Server response:', data);
           setIsSleeping(data.isSleeping || false);
         } else {
           // Server returned error, use local fallback
-          setIsSleeping(getLocalSleepStatus());
+          const localStatus = getLocalSleepStatus();
+          console.log('😴 Server error, using local fallback:', localStatus);
+          setIsSleeping(localStatus);
         }
       } catch (error) {
         console.warn('Could not fetch Steeb sleep status, using local fallback');
         // Fallback: use local time calculation
-        setIsSleeping(getLocalSleepStatus());
+        const localStatus = getLocalSleepStatus();
+        console.log('😴 Fetch error, using local fallback:', localStatus);
+        setIsSleeping(localStatus);
       }
     };
 
@@ -112,6 +129,7 @@ const Index = () => {
     const interval = setInterval(fetchSleepStatus, 60000);
     return () => clearInterval(interval);
   }, []);
+
 
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
