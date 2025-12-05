@@ -82,6 +82,8 @@ export default defineConfig(({ mode }) => ({
       "@capacitor/core": path.resolve(__dirname, "./src/mocks/capacitor-core.ts"),
       // Mock expo-av for web build (avoids JSX parsing issues)
       "expo-av": path.resolve(__dirname, "./src/mocks/expo-av.ts"),
+      // Mock normalize-colors for web build (fixes default export issue)
+      "@react-native/normalize-colors": path.resolve(__dirname, "./src/mocks/normalize-colors.ts"),
     },
   },
 }));
