@@ -80,6 +80,8 @@ export default defineConfig(({ mode }) => ({
       "@react-native-google-signin/google-signin": path.resolve(__dirname, "./src/mocks/GoogleSignIn.ts"),
       "expo-tracking-transparency": path.resolve(__dirname, "./src/mocks/expo-tracking-transparency.ts"),
       "@capacitor/core": path.resolve(__dirname, "./src/mocks/capacitor-core.ts"),
+      // Mock expo-av for web build (avoids JSX parsing issues)
+      "expo-av": path.resolve(__dirname, "./src/mocks/expo-av.ts"),
     },
   },
 }));

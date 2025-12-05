@@ -66,12 +66,27 @@ const STEEB_STATUS_API = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/steeb-status`
   : 'https://v0-steeb-api-backend-production.up.railway.app/api/steeb-status';
 
+// Local fallback for sleep detection (used when server is unavailable)
+const getLocalSleepStatus = (): boolean => {
+  const now = new Date();
+  const argentinaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+  const hour = argentinaTime.getHours();
+  const dayOfWeek = argentinaTime.getDay();
+
+  // Friday (5) and Saturday (6): 3:00 AM to 9:59 AM
+  if (dayOfWeek === 5 || dayOfWeek === 6) {
+    return hour >= 3 && hour < 10;
+  }
+  // Other days: 0:00 AM to 7:59 AM
+  return hour >= 0 && hour < 8;
+};
+
 const Index = () => {
 
-  // Steeb sleep mode state (fetched from server to prevent manipulation)
-  const [isSleeping, setIsSleeping] = useState(false);
+  // Steeb sleep mode state (fetched from server, with local fallback)
+  const [isSleeping, setIsSleeping] = useState(getLocalSleepStatus());
 
-  // Fetch sleep status from server
+  // Fetch sleep status from server (with local fallback)
   useEffect(() => {
     const fetchSleepStatus = async () => {
       try {
@@ -79,11 +94,14 @@ const Index = () => {
         if (response.ok) {
           const data = await response.json();
           setIsSleeping(data.isSleeping || false);
+        } else {
+          // Server returned error, use local fallback
+          setIsSleeping(getLocalSleepStatus());
         }
       } catch (error) {
-        console.warn('Could not fetch Steeb sleep status:', error);
-        // Fallback: don't show sleeping if server is unavailable
-        setIsSleeping(false);
+        console.warn('Could not fetch Steeb sleep status, using local fallback');
+        // Fallback: use local time calculation
+        setIsSleeping(getLocalSleepStatus());
       }
     };
 
