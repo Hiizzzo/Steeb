@@ -190,6 +190,8 @@ const SCHEDULED_SLOTS = [
   { slot: 'afternoon', hour: 15, minute: 0 },
   { slot: 'night', hour: 21, minute: 0 },
 ];
+const TRANSCRIPT_TARGET_EMAIL = 'theblexiz3010@gmail.com';
+const buildTranscriptKey = (userId?: string) => userId ? `stebe_transcript_${userId}` : null;
 
 const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -239,6 +241,35 @@ const [messages, setMessages] = useState<ChatMessage[]>([
   const [panelHeight, setPanelHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sleepNoticeRef = useRef(false);
+  const appendTranscript = useCallback((role: 'user' | 'assistant', text: string) => {
+    if (!user?.id || user?.email !== TRANSCRIPT_TARGET_EMAIL) return;
+    const key = buildTranscriptKey(user.id);
+    if (!key || !text?.trim()) return;
+    try {
+      const raw = localStorage.getItem(key);
+      const list = raw ? raw.split('\n').filter(Boolean) : [];
+      list.push(`${role === 'user' ? 'Tú' : 'Steeb'}: ${text.trim()}`);
+      const trimmed = list.slice(-50);
+      localStorage.setItem(key, trimmed.join('\n'));
+      // Además, enviar al backend para respaldo
+      saveUserProfileRemote(user.id, { transcriptText: trimmed.join('\n') }).catch(err =>
+        console.error('Error guardando transcript en backend:', err)
+      );
+    } catch (err) {
+      console.error('Error guardando transcript:', err);
+    }
+  }, [user?.id, user?.email]);
+  const getTranscriptText = useCallback(() => {
+    if (!user?.id || user?.email !== TRANSCRIPT_TARGET_EMAIL) return '';
+    const key = buildTranscriptKey(user.id);
+    if (!key) return '';
+    try {
+      return localStorage.getItem(key) || '';
+    } catch (err) {
+      console.error('Error leyendo transcript:', err);
+      return '';
+    }
+  }, [user?.id, user?.email]);
 
   // Manejar resumen diario
   useEffect(() => {
@@ -283,6 +314,7 @@ const [messages, setMessages] = useState<ChatMessage[]>([
   const appendAssistantMessage = useCallback(
     (content: string) => {
       if (!content || !content.trim()) return;
+      appendTranscript('assistant', content);
       setMessages(prev => [
         ...prev,
         {
@@ -295,7 +327,7 @@ const [messages, setMessages] = useState<ChatMessage[]>([
       ]);
       setTimeout(() => scrollToBottom(), 50);
     },
-    [scrollToBottom]
+    [scrollToBottom, appendTranscript]
   );
 
   // Mensajes proactivos periódicos
@@ -392,6 +424,16 @@ const [messages, setMessages] = useState<ChatMessage[]>([
         const remote = await fetchUserProfileRemote(user.id);
         if (remote && typeof remote === 'object') {
           saveLocalUserProfile(user.id, remote);
+          if (remote.transcriptText && user.email === TRANSCRIPT_TARGET_EMAIL) {
+            const key = buildTranscriptKey(user.id);
+            if (key) {
+              try {
+                localStorage.setItem(key, remote.transcriptText);
+              } catch (err) {
+                console.error('Error cargando transcript remoto:', err);
+              }
+            }
+          }
           // Si ya estábamos pidiendo disponibilidad y llegó desde backend, marcamos completado
           if (profileOnboardingStep === 'asking-schedule' && remote.availabilityNote) {
             setProfileOnboardingStep('completed');
@@ -752,6 +794,55 @@ const [messages, setMessages] = useState<ChatMessage[]>([
 
     if (!pendingMessage || typeof pendingMessage !== 'string' || !pendingMessage.trim()) return;
 
+    // Si el usuario especial pide "hoja", devolver el transcript
+    if (user?.email === TRANSCRIPT_TARGET_EMAIL && pendingMessage.trim().toLowerCase() === 'hoja') {
+      const transcript = getTranscriptText();
+      if (!transcript) {
+        appendAssistantMessage('No tengo nada anotado aún.');
+        setInputMessage('');
+        return;
+      }
+
+      setIsTyping(true);
+      try {
+        const { streamMessageToSteeb } = await import('@/services/steebApi');
+        let accumulatedContent = '';
+        let aiMessageId: string | null = null;
+
+        const prompt = `Eres STEEB, un niño prodigio. Analiza la siguiente hoja de diálogos entre Santy (usuario) y tú. Resume en español la personalidad y estilo de Santy en 3 viñetas y agrega 2 viñetas con cosas que le importan o prioridades que notas. Hoja:\n${transcript}`;
+
+        const { actions } = await streamMessageToSteeb(prompt, (chunk) => {
+          setIsTyping(false);
+          accumulatedContent += chunk;
+
+          if (!aiMessageId) {
+            aiMessageId = `msg_${Date.now() + 1}`;
+            setMessages(prev => [...prev, {
+              id: aiMessageId!,
+              role: 'assistant',
+              content: accumulatedContent,
+              timestamp: new Date()
+            }]);
+          } else {
+            setMessages(prev => prev.map(msg =>
+              msg.id === aiMessageId
+                ? { ...msg, content: accumulatedContent }
+                : msg
+            ));
+          }
+        }, getTaskContext());
+
+        await handleSteebActions(actions);
+      } catch (err) {
+        console.error('Error generando hoja:', err);
+        appendAssistantMessage('No pude generar la hoja en este momento.');
+      } finally {
+        setIsTyping(false);
+        setInputMessage('');
+      }
+      return;
+    }
+
     const message = pendingMessage.trim();
     setInputMessage('');
 
@@ -764,6 +855,7 @@ const [messages, setMessages] = useState<ChatMessage[]>([
       };
       setMessages(prev => [...prev, userMessage]);
     };
+    appendTranscript('user', message);
 
     const storedProfile = user?.id ? getLocalUserProfile(user.id) : null;
 
@@ -830,6 +922,7 @@ const [messages, setMessages] = useState<ChatMessage[]>([
         saveUserProfileRemote(user.id, { availabilityNote: availability }).catch((err) =>
           console.error('Error guardando disponibilidad en backend:', err)
         );
+        appendTranscript('user', `Disponibilidad: ${availability}`);
       }
       setProfileOnboardingStep('completed');
       setTimeout(() => {

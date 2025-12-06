@@ -6,6 +6,7 @@ export interface LocalUserProfile {
   morningPlan?: string;
   afternoonPlan?: string;
   nightPlan?: string;
+  transcriptText?: string;
   lastUpdated?: string;
 }
 
