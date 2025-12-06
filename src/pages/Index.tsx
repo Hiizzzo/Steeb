@@ -193,6 +193,14 @@ const Index = () => {
     previousSleepingRef.current = isSleeping;
   }, [isSleeping, nickname]);
 
+  // Sync browser/app icons con el estado de sueno de STEEB
+  useEffect(() => {
+    const updater = (window as any).__steebSetSleepIconState;
+    if (typeof updater === 'function') {
+      updater(isSleeping);
+    }
+  }, [isSleeping]);
+
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -883,8 +891,8 @@ const Index = () => {
               ) : (
                 <img
                   src={theme.isDark
-                    ? (isSleeping ? "/Steebwhitesleep.png" : "/Steebwhitesupremo.png")
-                    : (isSleeping ? "/Steebsleepdark.png" : "/Steebblacksupremo.png")}
+                    ? (isSleeping ? "/Steebsleepdarksupremo.png" : "/Steebwhitesupremo.png")
+                    : (isSleeping ? "/Steebwhitesleep.png" : "/Steebblacksupremo.png")}
                   alt="Steeb"
                   className="w-full h-full object-cover rounded-3xl"
                   style={{

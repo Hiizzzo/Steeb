@@ -9,7 +9,9 @@ import { registerServiceWorker } from './registerServiceWorker';
 import { setupDevelopmentErrorHandling } from './lib/errorHandler';
 import { firebaseErrorHandler } from './lib/firebaseErrorHandler';
 
-// Function to update browser UI for dark mode
+let steebIsSleeping = false;
+
+// Function to update browser UI for dark mode (and sleep icon)
 const updateBrowserUITheme = (isDark: boolean) => {
   // Swap favicons / touch icons depending on theme
   const ensureLink = (rel: string, id: string) => {
@@ -24,10 +26,14 @@ const updateBrowserUITheme = (isDark: boolean) => {
   };
 
   const favicon = ensureLink('icon', 'app-favicon');
-  favicon.href = isDark ? '/favicon-dark.png' : '/favicon.png';
+  favicon.href = steebIsSleeping
+    ? (isDark ? '/Steebsleepdarksupremo.png' : '/Steebwhitesleep.png')
+    : (isDark ? '/favicon-dark.png' : '/favicon.png');
 
   const appleTouch = ensureLink('apple-touch-icon', 'app-apple-touch');
-  appleTouch.href = isDark ? '/apple-touch-icon-dark.png' : '/apple-touch-icon.png';
+  appleTouch.href = steebIsSleeping
+    ? (isDark ? '/Steebsleepdarksupremo.png' : '/Steebwhitesleep.png')
+    : (isDark ? '/apple-touch-icon-dark.png' : '/apple-touch-icon.png');
 
   // Update meta theme-color tags
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
@@ -74,6 +80,16 @@ const updateBrowserUITheme = (isDark: boolean) => {
     msNavMetas.forEach(meta => meta.remove());
   }
 };
+
+// Expose a small setter so we can update icons when STEEB duerme
+const setSteebSleepIconState = (isSleeping: boolean) => {
+  steebIsSleeping = Boolean(isSleeping);
+  const isDark = document.documentElement.classList.contains('dark');
+  updateBrowserUITheme(isDark);
+};
+
+// Make it available to the React app
+(window as any).__steebSetSleepIconState = setSteebSleepIconState;
 
 // Setup development error handling
 setupDevelopmentErrorHandling();
