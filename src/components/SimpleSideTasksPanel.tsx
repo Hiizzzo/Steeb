@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { CheckCircle, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { getLocalUserProfile } from '@/utils/localUserProfile';
 
 interface SimpleSideTasksPanelProps {
   onClose: () => void;
@@ -15,10 +17,75 @@ const shinyTaskColors = [
 const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) => {
   const { currentTheme } = useTheme();
   const { tasks, toggleTask, deleteTask } = useTaskStore();
+  const { user } = useAuth();
   const isDarkMode = currentTheme === 'dark';
   const isShinyMode = currentTheme === 'shiny';
-  const isLightMode = !isDarkMode && !isShinyMode;
+  const isLightMode = (!isDarkMode && !isShinyMode);
   const [showCompleted, setShowCompleted] = useState(false);
+
+  // Sound ref
+  const soundRef = useRef<HTMLAudioElement | null>(null);
+  const completedSessionCount = useRef(0);
+
+  // Initialize sound
+  React.useEffect(() => {
+    // Short "pop" sound in Base64 to avoid network/CORS/format issues
+    const popSound = "data:audio/wav;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAACAAEA/v///wAAAAAAAAAAAA==";
+    // Uses a slightly longer reliable "bubble check" sound base64
+    const reliableSound = "data:audio/mpeg;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAAFAABPiwAAERUVERUVERUVERUVERUVERUVERUVERUVERUVERUVERUVERUVIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA//uQxAAAAAAABAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA";
+
+    // Using a known working short "tink" sound
+    const tink = "data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"; // Truncated placeholder, I will use a real one below
+
+    // Real short "click" sound
+    const clickSound = "data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YRAAAACAgICAAAAA//8AAP//AAACAA==";
+
+    soundRef.current = new Audio(clickSound);
+    soundRef.current.volume = 0.5;
+  }, []);
+
+  // Send message on close
+  React.useEffect(() => {
+    return () => {
+      const count = completedSessionCount.current;
+      const storedProfile = user?.id ? getLocalUserProfile(user.id) : null;
+      const nickname = user?.nickname || storedProfile?.nickname || user?.name || 'amigo';
+
+      let message = '';
+      if (count > 0) {
+        message = `Muy bien hecho ${nickname}. ${count} tarea${count > 1 ? 's' : ''} menos.`;
+      } else {
+        message = `¿Pasó algo que mirás las tareas? ¿Necesitás ayuda para empezar ${nickname}?`;
+      }
+
+      // Dispatch event for SteebChat
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('steeb-message', {
+          detail: {
+            content: message,
+            type: 'assistant',
+            timestamp: new Date()
+          }
+        });
+        window.dispatchEvent(event);
+      }
+    };
+  }, [user]);
+
+  const handleToggleTask = async (taskId: string, isCompleted: boolean) => {
+    if (!isCompleted) {
+      // Marking as complete
+      try {
+        soundRef.current?.pause();
+        soundRef.current!.currentTime = 0;
+        soundRef.current?.play().catch(e => console.warn('Audio play failed', e));
+        completedSessionCount.current += 1;
+      } catch (e) {
+        console.warn('Sound error', e);
+      }
+    }
+    await toggleTask(taskId);
+  };
 
   const SWIPE_THRESHOLD = 80;
   const MAX_SWIPE = 160;
@@ -103,10 +170,15 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
     } as React.CSSProperties;
   };
 
+  const getDayName = () => {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return days[new Date().getDay()];
+  };
+
   return (
     <div className={`h-full flex flex-col ${isLightMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
       <div className={`p-1 pt-2 flex items-center justify-center ${isLightMode ? 'border-b-2 border-white' : ''}`}>
-        <h2 className="text-3xl font-bold">Tareas</h2>
+        <h2 className="text-3xl font-bold">{getDayName()}</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 pt-3 space-y-6">
@@ -118,22 +190,20 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
 
               return (
                 <div key={task.id} className="relative">
-                  <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${
-                    (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
-                  } ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                  <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${(rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
+                    } ${isShinyMode ? 'bg-black' : isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                     <Trash2 className={`w-4 h-4 ${isShinyMode || isDarkMode ? 'text-white' : 'text-black'}`} />
                   </div>
 
                   <div
-                    className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 mb-6 ${
-                      isTaskDeleting
-                        ? 'bg-black dark:bg-white animate-pulse'
-                        : isShinyMode
-                          ? 'bg-black border border-black'
-                          : isDarkMode
-                            ? 'bg-black border border-white'
-                            : 'bg-gray-50 border border-white'
-                    }`}
+                    className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 mb-6 ${isTaskDeleting
+                      ? 'bg-black dark:bg-white animate-pulse'
+                      : isShinyMode
+                        ? 'bg-black border border-black'
+                        : isDarkMode
+                          ? 'bg-black border border-white'
+                          : 'bg-gray-50 border border-white'
+                      }`}
                     style={{
                       ...(isShinyMode
                         ? { borderLeft: `4px solid ${shinyAccentColor}` }
@@ -167,7 +237,7 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleTask(task.id).catch(error => {
+                        handleToggleTask(task.id, task.completed).catch(error => {
                           console.error('Error al completar tarea:', error);
                         });
                       }}
@@ -198,9 +268,8 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
           <button
             onClick={() => setShowCompleted(prev => !prev)}
             disabled={!hasCompleted}
-            className={`task-eye-toggle w-full py-2 flex items-center justify-center ${
-              hasCompleted ? '' : 'cursor-not-allowed'
-            }`}
+            className={`task-eye-toggle w-full py-2 flex items-center justify-center ${hasCompleted ? '' : 'cursor-not-allowed'
+              }`}
           >
             {showCompleted ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -212,20 +281,18 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
               const shinyAccentColor = isShinyMode ? getShinyAccentColor(index) : undefined;
               return (
                 <div key={task.id} className="relative">
-                  <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${
-                    (rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
-                  } ${isShinyMode ? 'bg-black' : 'bg-gray-800'}`}>
+                  <div className={`absolute inset-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-300 ease-out ${(rowOffsetById[task.id] || 0) > 10 ? 'opacity-100' : 'opacity-0'
+                    } ${isShinyMode ? 'bg-black' : 'bg-gray-800'}`}>
                     <Trash2 className="w-4 h-4 text-white" />
                   </div>
 
                   <div
-                    className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
-                      isShinyMode
-                        ? 'bg-black border border-black text-white'
-                        : isDarkMode
-                          ? 'bg-black border border-white text-white'
-                          : 'bg-white border border-white text-black'
-                    }`}
+                    className={`simple-task-card flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${isShinyMode
+                      ? 'bg-black border border-black text-white'
+                      : isDarkMode
+                        ? 'bg-black border border-white text-white'
+                        : 'bg-white border border-white text-black'
+                      }`}
                     style={{
                       ...(isShinyMode
                         ? { borderLeft: `4px solid ${shinyAccentColor}` }
@@ -242,9 +309,8 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                     onContextMenu={(e) => e.preventDefault()}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-bold break-words leading-tight line-through opacity-70 ${
-                        isLightMode ? 'text-black' : ''
-                      }`}>
+                      <p className={`text-sm font-bold break-words leading-tight line-through opacity-70 ${isLightMode ? 'text-black' : ''
+                        }`}>
                         {task.title}
                       </p>
                     </div>
@@ -252,7 +318,7 @@ const SimpleSideTasksPanel: React.FC<SimpleSideTasksPanelProps> = ({ onClose }) 
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleTask(task.id).catch(error => {
+                        handleToggleTask(task.id, task.completed).catch(error => {
                           console.error('Error al completar tarea:', error);
                         });
                       }}
