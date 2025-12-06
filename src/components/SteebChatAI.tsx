@@ -70,47 +70,6 @@ const SteebChatAI: React.FC = () => {
   const audioRecorder = useAudioRecorder();
   const [isTranscribing, setIsTranscribing] = useState(false);
 
-  // Handle voice message recording
-  const handleVoiceRecord = useCallback(async () => {
-    if (audioRecorder.state.isRecording) {
-      // Stop recording and transcribe
-      const audioResult = await audioRecorder.stopRecording();
-
-      if (audioResult) {
-        setIsTranscribing(true);
-        try {
-          let result;
-          if (typeof audioResult === 'string') {
-            // Native: URI
-            const { transcribeAudioFromUri } = await import('@/services/transcriptionService');
-            result = await transcribeAudioFromUri(audioResult);
-          } else {
-            // Web: Blob
-            result = await transcribeAudio(audioResult);
-          }
-
-          if (result.success && result.text) {
-            setInputMessage(result.text);
-            // Auto-send after transcription
-            // We'll trigger send after setting the message
-          } else {
-            console.error('Transcription failed:', result.error);
-          }
-        } catch (error) {
-          console.error('Error transcribing audio:', error);
-        } finally {
-          setIsTranscribing(false);
-        }
-      }
-    } else {
-      // Start recording
-      const started = await audioRecorder.startRecording();
-      if (!started) {
-        console.error('Failed to start recording');
-      }
-    }
-  }, [audioRecorder]);
-
   // Estado para el juego Shiny
   const [profileOnboardingStep, setProfileOnboardingStep] = useState<'idle' | 'asking-name' | 'asking-nickname' | 'completed'>('idle');
   const onboardingNameRef = useRef<string>('');
@@ -653,10 +612,11 @@ const SteebChatAI: React.FC = () => {
     return null;
   };
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  const handleSendMessage = async (customMessage?: string) => {
+    const pendingMessage = customMessage ?? inputMessage;
+    if (!pendingMessage.trim()) return;
 
-    const message = inputMessage.trim();
+    const message = pendingMessage.trim();
     setInputMessage('');
 
     const handleUserMessageAppend = () => {
@@ -1024,6 +984,50 @@ const SteebChatAI: React.FC = () => {
       setIsTyping(false);
     }
   };
+
+  // Handle voice message recording
+  const handleVoiceRecord = useCallback(async () => {
+    if (audioRecorder.state.isRecording) {
+      // Stop recording and transcribe
+      const audioResult = await audioRecorder.stopRecording();
+
+      if (audioResult) {
+        setIsTranscribing(true);
+        try {
+          let result;
+          if (typeof audioResult === 'string') {
+            // Native: URI
+            const { transcribeAudioFromUri } = await import('@/services/transcriptionService');
+            result = await transcribeAudioFromUri(audioResult);
+          } else {
+            // Web: Blob
+            result = await transcribeAudio(audioResult);
+          }
+
+          if (result.success && result.text) {
+            const cleanedText = result.text.trim();
+            setInputMessage(cleanedText);
+            if (cleanedText) {
+              // Auto-send after transcription for smoother PWA/mobile UX
+              setTimeout(() => handleSendMessage(cleanedText), 0);
+            }
+          } else {
+            console.error('Transcription failed:', result.error);
+          }
+        } catch (error) {
+          console.error('Error transcribing audio:', error);
+        } finally {
+          setIsTranscribing(false);
+        }
+      }
+    } else {
+      // Start recording
+      const started = await audioRecorder.startRecording();
+      if (!started) {
+        console.error('Failed to start recording');
+      }
+    }
+  }, [audioRecorder, handleSendMessage]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
