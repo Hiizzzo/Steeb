@@ -4,6 +4,7 @@ const API_ENDPOINT = `${BASE_URL}/steeb`;
 const SHINY_GAME_ENDPOINT = `${BASE_URL}/shiny-game`;
 const SHINY_STATUS_ENDPOINT = `${BASE_URL}/users/shiny-status`;
 const SHINY_STATS_ENDPOINT = `${BASE_URL}/shiny-stats`;
+const USER_PROFILE_ENDPOINT = `${BASE_URL}/users/profile`;
 const USER_ID_STORAGE_KEY = 'steeb-user-id';
 
 const ACTION_TYPES: SteebActionType[] = [
@@ -47,6 +48,7 @@ export type SteebActionType =
   | 'SHOW_MOTIVATION'
   | 'GET_SHINY_STATS'
   | 'UPDATE_USER_PROFILE'
+  | 'UPDATE_USER_PROFILE_REMOTE'
   | 'SEND_NOTIFICATION'
   | 'SCHEDULE_REMINDER';
 
@@ -54,6 +56,24 @@ export interface SteebAction {
   type: SteebActionType;
   payload?: Record<string, any>;
 }
+
+export const fetchUserProfileRemote = async (userId: string) => {
+  const res = await fetch(`${USER_PROFILE_ENDPOINT}?userId=${encodeURIComponent(userId)}`);
+  if (!res.ok) throw new Error('Failed to fetch user profile');
+  const data = await res.json();
+  return data.profile || {};
+};
+
+export const saveUserProfileRemote = async (userId: string, profile: any) => {
+  const res = await fetch(USER_PROFILE_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, ...profile })
+  });
+  if (!res.ok) throw new Error('Failed to save user profile');
+  const data = await res.json();
+  return data.profile || {};
+};
 
 type SteebApiSuccess = {
   reply: string;
@@ -415,3 +435,22 @@ export async function getGlobalShinyStats(userId?: string): Promise<GlobalShinyS
 }
 
 
+
+
+export async function fetchUserProfileRemote(userId: string) {
+  const res = await fetch(`${USER_PROFILE_ENDPOINT}?userId=${encodeURIComponent(userId)}`);
+  if (!res.ok) throw new Error('Failed to fetch user profile');
+  const data = await res.json();
+  return data.profile || {};
+}
+
+export async function saveUserProfileRemote(userId: string, profile: any) {
+  const res = await fetch(USER_PROFILE_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, ...profile })
+  });
+  if (!res.ok) throw new Error('Failed to save user profile');
+  const data = await res.json();
+  return data.profile || {};
+}

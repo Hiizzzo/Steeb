@@ -9,6 +9,7 @@ import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 import { useDailyTaskReminder } from '@/hooks/useDailyTaskReminder';
 import { useTheme } from '@/hooks/useTheme';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { notificationService } from '@/services/notificationService';
 import SteebChatAI from '@/components/SteebChatAI';
 import { Eye, EyeOff, CheckCircle, Trash2, Check, TrendingUp } from 'lucide-react';
@@ -88,48 +89,109 @@ const getLocalSleepStatus = (): boolean => {
   return sleeping;
 };
 
+const getArgentinaTime = (base?: Date) =>
+  new Date((base || new Date()).toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+
+const getSleepWindowForDate = (argDate: Date) => {
+  const date = new Date(argDate);
+  const dayOfWeek = date.getDay();
+  const weekend = dayOfWeek === 5 || dayOfWeek === 6;
+  const startHour = weekend ? 3 : 0;
+  const endHour = weekend ? 10 : 8;
+  const start = new Date(date);
+  start.setHours(startHour, 0, 0, 0);
+  const end = new Date(date);
+  end.setHours(endHour, 0, 0, 0);
+  return { start, end };
+};
+
+const getMsUntilNextSleepCheck = (argTime?: Date) => {
+  const now = argTime || getArgentinaTime();
+  const { start, end } = getSleepWindowForDate(now);
+  if (now < start) return start.getTime() - now.getTime();
+  if (now >= start && now < end) return end.getTime() - now.getTime();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const { start: nextStart } = getSleepWindowForDate(tomorrow);
+  return nextStart.getTime() - now.getTime();
+};
+
 const Index = () => {
 
   // Steeb sleep mode state (fetched from server, with local fallback)
   const [isSleeping, setIsSleeping] = useState(() => {
     const initialSleep = getLocalSleepStatus();
-    console.log('😴 Initial sleep status:', initialSleep);
+    console.log('Initial sleep status:', initialSleep);
     return initialSleep;
   });
+  const { nickname } = useUserProfile();
+  const previousSleepingRef = useRef(isSleeping);
 
   // Fetch sleep status from server (with local fallback)
   useEffect(() => {
-    const fetchSleepStatus = async () => {
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+    let isCancelled = false;
+
+    const scheduleNextCheck = (overrideDelay?: number) => {
+      const delay = overrideDelay ?? Math.max(getMsUntilNextSleepCheck(), 1000);
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+      timerId = window.setTimeout(() => {
+        if (!isCancelled) {
+          fetchSleepStatus();
+        }
+      }, delay);
+    };
+
+    async function fetchSleepStatus() {
       try {
-        console.log('😴 Fetching sleep status from:', STEEB_STATUS_API);
+        console.log('Fetching Steeb sleep status from:', STEEB_STATUS_API);
         const response = await fetch(STEEB_STATUS_API);
         if (response.ok) {
           const data = await response.json();
-          console.log('😴 Server response:', data);
+          console.log('Steeb sleep status response:', data);
           setIsSleeping(data.isSleeping || false);
         } else {
-          // Server returned error, use local fallback
           const localStatus = getLocalSleepStatus();
-          console.log('😴 Server error, using local fallback:', localStatus);
+          console.log('Steeb sleep status error, using local fallback:', localStatus);
           setIsSleeping(localStatus);
+        }
+        if (!isCancelled) {
+          scheduleNextCheck();
         }
       } catch (error) {
         console.warn('Could not fetch Steeb sleep status, using local fallback');
-        // Fallback: use local time calculation
         const localStatus = getLocalSleepStatus();
-        console.log('😴 Fetch error, using local fallback:', localStatus);
+        console.log('Could not fetch Steeb sleep status, using local fallback:', localStatus);
         setIsSleeping(localStatus);
+        if (!isCancelled) {
+          scheduleNextCheck(60 * 1000);
+        }
       }
-    };
+    }
 
-    // Initial fetch
     fetchSleepStatus();
 
-    // Update every minute
-    const interval = setInterval(fetchSleepStatus, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      isCancelled = true;
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
   }, []);
 
+  useEffect(() => {
+    if (previousSleepingRef.current && !isSleeping) {
+      const safeNick = nickname?.trim().length ? nickname.trim() : 'amigo';
+      notificationService.sendImmediateNotification(
+        'STEEB - Buen día',
+        `Buen día, ${safeNick}!`,
+        'steeb-morning'
+      );
+    }
+    previousSleepingRef.current = isSleeping;
+  }, [isSleeping, nickname]);
 
   const [showModal, setShowModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -821,8 +883,8 @@ const Index = () => {
               ) : (
                 <img
                   src={theme.isDark
-                    ? (isSleeping ? "/Steebwhitesleep.png" : "/Steebwhite.png")
-                    : (isSleeping ? "/Steebsleepdark.png" : "/Steebblack.png")}
+                    ? (isSleeping ? "/Steebwhitesleep.png" : "/Steebwhitesupremo.png")
+                    : (isSleeping ? "/Steebsleepdark.png" : "/Steebblacksupremo.png")}
                   alt="Steeb"
                   className="w-full h-full object-cover rounded-3xl"
                   style={{
@@ -959,7 +1021,7 @@ const Index = () => {
 
       {/* Chat STEEB Permanente - ocupa todo el ancho y alto de la pantalla */}
       <div className="fixed top-32 left-0 right-0 bottom-0 z-40">
-        <SteebChatAI />
+        <SteebChatAI isSleeping={isSleeping} />
       </div>
     </div>
   );

@@ -11,6 +11,24 @@ import { firebaseErrorHandler } from './lib/firebaseErrorHandler';
 
 // Function to update browser UI for dark mode
 const updateBrowserUITheme = (isDark: boolean) => {
+  // Swap favicons / touch icons depending on theme
+  const ensureLink = (rel: string, id: string) => {
+    let link = document.querySelector<HTMLLinkElement>(`link#${id}`) || document.querySelector<HTMLLinkElement>(`link[rel='${rel}']`);
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = rel;
+      link.id = id;
+      document.head.appendChild(link);
+    }
+    return link;
+  };
+
+  const favicon = ensureLink('icon', 'app-favicon');
+  favicon.href = isDark ? '/favicon-dark.png' : '/favicon.png';
+
+  const appleTouch = ensureLink('apple-touch-icon', 'app-apple-touch');
+  appleTouch.href = isDark ? '/apple-touch-icon-dark.png' : '/apple-touch-icon.png';
+
   // Update meta theme-color tags
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
   if (themeColorMeta) {
@@ -68,8 +86,7 @@ registerServiceWorker();
 
 // Initialize browser UI theme based on current theme
 const initializeBrowserUITheme = () => {
-  const isDark = document.documentElement.classList.contains('dark') ||
-    document.documentElement.classList.contains('shiny');
+  const isDark = document.documentElement.classList.contains('dark');
   updateBrowserUITheme(isDark);
 };
 
@@ -78,8 +95,7 @@ const observeThemeChanges = () => {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-        const isDark = (mutation.target as Element).classList.contains('dark') ||
-          (mutation.target as Element).classList.contains('shiny');
+        const isDark = (mutation.target as Element).classList.contains('dark');
         updateBrowserUITheme(isDark);
       }
     });

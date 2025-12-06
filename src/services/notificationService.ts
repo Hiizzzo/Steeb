@@ -6,6 +6,12 @@
 // Detectar si estamos en entorno web
 const isWeb = typeof window !== 'undefined' && typeof document !== 'undefined' && !('ReactNativeWebView' in window);
 
+// Configuracion de motivacion diaria
+const DAILY_MOTIVATION_HOUR = 10;
+const DAILY_MOTIVATION_MINUTE = 0;
+const LAST_DAILY_MOTIVATION_KEY = 'steeb-last-daily-motivation';
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 // Solo importar expo-notifications en entorno nativo (se hace dinámicamente)
 let ExpoNotifications: any = null;
 let SchedulableTriggerInputTypes: any = null;
@@ -42,6 +48,28 @@ export class NotificationService {
   private initialized = false;
 
   private constructor() { }
+
+  private getTodayKey(): string {
+    return new Date().toDateString();
+  }
+
+  private hasSentDailyMotivationToday(): boolean {
+    if (!isWeb || typeof localStorage === 'undefined') return false;
+    try {
+      return localStorage.getItem(LAST_DAILY_MOTIVATION_KEY) === this.getTodayKey();
+    } catch {
+      return false;
+    }
+  }
+
+  private markDailyMotivationSent() {
+    if (!isWeb || typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(LAST_DAILY_MOTIVATION_KEY, this.getTodayKey());
+    } catch {
+      // Ignore storage errors to avoid breaking notification flow
+    }
+  }
 
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
@@ -319,11 +347,18 @@ export class NotificationService {
   async scheduleDailyMotivation() {
     const now = new Date();
     const motivationTime = new Date();
-    motivationTime.setHours(8, 0, 0, 0);
+    motivationTime.setHours(DAILY_MOTIVATION_HOUR, DAILY_MOTIVATION_MINUTE, 0, 0);
+    const alreadySentToday = this.hasSentDailyMotivationToday();
+
+    if (isWeb && !alreadySentToday && now >= motivationTime) {
+      await this.sendDailyMotivation();
+    }
 
     if (motivationTime <= now) {
-      motivationTime.setDate(motivationTime.getDate() + 1);
+      motivationTime.setTime(motivationTime.getTime() + DAY_IN_MS);
     }
+
+    const timeUntilMotivation = motivationTime.getTime() - now.getTime();
 
     if (!isWeb) {
       await initExpoNotifications();
@@ -332,53 +367,53 @@ export class NotificationService {
       try {
         await ExpoNotifications.scheduleNotificationAsync({
           content: {
-            title: 'STEEB - Buenos días 🌅',
-            body: '¡Es momento de hacer que este día cuente! Revisa tus tareas.',
+            title: 'STEEB - Buenos dias',
+            body: 'Es momento de hacer que este dia cuente! Revisa tus tareas.',
             data: { type: 'daily-motivation' },
             sound: true,
           },
           trigger: {
             type: SchedulableTriggerInputTypes.DAILY,
-            hour: 8,
-            minute: 0,
+            hour: DAILY_MOTIVATION_HOUR,
+            minute: DAILY_MOTIVATION_MINUTE,
           },
         });
-        console.log('🔔 Motivación diaria programada (nativo)');
+        console.log('Motivacion diaria programada (nativo)');
       } catch (error) {
         console.error('Error scheduling daily motivation:', error);
       }
     } else {
-      const timeUntilMotivation = motivationTime.getTime() - now.getTime();
-
-      setTimeout(() => {
-        this.sendDailyMotivation();
+      setTimeout(async () => {
+        await this.sendDailyMotivation();
         this.scheduleDailyMotivation();
       }, timeUntilMotivation);
     }
   }
 
-  private sendDailyMotivation() {
+  private async sendDailyMotivation(): Promise<boolean> {
     const motivationalMessages = [
-      "¡Buenos días! STEEB aquí. Es momento de hacer que este día cuente.",
-      "Nuevo día, nuevas oportunidades. ¿Qué vas a lograr hoy?",
-      "La innovación distingue entre un líder y un seguidor. ¡Lidera tu día!",
-      "Tu tiempo es limitado, no lo desperdicies. ¡Haz que importe!",
-      "La calidad nunca es un accidente. ¡Haz todo con excelencia hoy!"
+      'Buenos dias! STEEB aqui. Es momento de hacer que este dia cuente.',
+      'Nuevo dia, nuevas oportunidades. Que vas a lograr hoy?',
+      'La innovacion distingue entre un lider y un seguidor. Lidera tu dia!',
+      'Tu tiempo es limitado, no lo desperdicies. Haz que importe!',
+      'La calidad nunca es un accidente. Haz todo con excelencia hoy!'
     ];
 
     const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+    let delivered = false;
 
     if (!isWeb && ExpoNotifications) {
-      ExpoNotifications.scheduleNotificationAsync({
+      await ExpoNotifications.scheduleNotificationAsync({
         content: {
-          title: 'STEEB - Motivación Diaria',
+          title: 'STEEB - Motivacion Diaria',
           body: message,
           sound: true,
         },
         trigger: null,
       });
+      delivered = true;
     } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      const notification = new Notification('STEEB - Motivación Diaria', {
+      const notification = new Notification('STEEB - Motivacion Diaria', {
         body: message,
         icon: '/lovable-uploads/te obesrvo.png',
         tag: 'daily-motivation'
@@ -391,7 +426,14 @@ export class NotificationService {
       };
 
       setTimeout(() => notification.close(), 8000);
+      delivered = true;
     }
+
+    if (delivered) {
+      this.markDailyMotivationSent();
+    }
+
+    return delivered;
   }
 
   // ============================================================================
@@ -539,6 +581,16 @@ export class NotificationService {
 
       await this.scheduleDailyMotivation();
       await this.scheduleProductivityReminders();
+
+      if (isWeb) {
+        import('./pushClient').then(({ pushClient }) => {
+          pushClient.ensureWebPushSubscription().catch((error) => {
+            console.error('Error activando Web Push:', error);
+          });
+        }).catch((error) => {
+          console.error('Error cargando pushClient:', error);
+        });
+      }
 
       this.initialized = true;
       return true;

@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard, Mic, Square } from 'lucide-react';
+import { ArrowUp, X, Check, Trash2, Bot, User, Clock, Sparkles, CreditCard, Volume2 } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import { dailySummaryService } from '@/services/dailySummaryService';
-import { sendMessageToSteeb, SteebAction, getGlobalShinyStats, type ShinyStatusResponse } from '@/services/steebApi';
+import { sendMessageToSteeb, SteebAction, getGlobalShinyStats, type ShinyStatusResponse, fetchUserProfileRemote, saveUserProfileRemote } from '@/services/steebApi';
 import { deepSeekService } from '@/services/deepSeekService';
 import { notificationService } from '@/services/notificationService';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { transcribeAudio } from '@/services/transcriptionService';
+import { speechService } from '@/services/speechService';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseRoleCheck } from '@/hooks/useFirebaseRoleCheck';
@@ -55,26 +54,30 @@ const formatOrdinalEs = (position: number) => {
   return map[position] || `${position}º`;
 };
 
-const SteebChatAI: React.FC = () => {
+interface SteebChatAIProps {
+  isSleeping?: boolean;
+}
+
+const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
   const [inputMessage, setInputMessage] = useState('');
   const { currentTheme } = useTheme();
   const isDarkMode = currentTheme === 'dark';
   const isShinyMode = currentTheme === 'shiny';
+  const isSteebSleeping = Boolean(isSleeping);
   const shinyMessageColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
   const { user, updateProfile } = useAuth();
   const { tipoUsuario } = useFirebaseRoleCheck();
   const { userProfile } = useUserRole();
-
-  // Audio recording state
-  const audioRecorder = useAudioRecorder();
-  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
 
   // Estado para el juego Shiny
-  const [profileOnboardingStep, setProfileOnboardingStep] = useState<'idle' | 'asking-name' | 'asking-nickname' | 'completed'>('idle');
+  const [profileOnboardingStep, setProfileOnboardingStep] = useState<'idle' | 'asking-name' | 'asking-nickname' | 'asking-schedule' | 'completed'>('idle');
   const onboardingNameRef = useRef<string>('');
   const [shinyGameState, setShinyGameState] = useState<'idle' | 'confirming' | 'playing'>('idle');
   const [shinyRolls, setShinyRolls] = useState<number | null>(null);
+  const spokenMessagesRef = useRef<Set<string>>(new Set());
+  const lastProactiveRef = useRef<number>(0);
   const getBestRollsCount = useCallback((...values: Array<number | null | undefined>) => {
     const valid = values.filter(
       (value): value is number => typeof value === 'number' && !Number.isNaN(value)
@@ -88,6 +91,12 @@ const SteebChatAI: React.FC = () => {
       setShinyRolls((prev) => getBestRollsCount(prev, userProfile.shinyRolls));
     }
   }, [getBestRollsCount, userProfile?.shinyRolls]);
+
+  // Configurar voz infantil (TTS) para los mensajes de STEEB
+  useEffect(() => {
+    if (!voiceEnabled) return;
+    speechService.enable().catch((err) => console.warn('No se pudo habilitar la voz:', err));
+  }, [voiceEnabled]);
   // Render helper: resaltar la palabra Shiny con gradiente animado
   const renderMessageContent = (text: string) => {
     // Regex para detectar Shiny y BLACK (con o sin asteriscos)
@@ -165,15 +174,24 @@ const SteebChatAI: React.FC = () => {
       userName: userProfile?.name || user?.name || 'Usuario',
       userNickname: userProfile?.nickname || user?.nickname || '',
       userRole: tipoUsuario || 'white',
-      shinyRolls: userProfile?.shinyRolls || 0
+      shinyRolls: userProfile?.shinyRolls || 0,
+      availabilityNote: userProfile?.availabilityNote || getLocalUserProfile(user?.id || '')?.availabilityNote || ''
     };
   };
 
-  const getInitialMessage = () => {
-    return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-  };
+const getInitialMessage = () => {
+  return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
+};
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
+const ANECDOTE_KEY = 'stebe_last_anecdote_date';
+
+const SCHEDULED_SLOTS = [
+  { slot: 'morning', hour: 9, minute: 0 },
+  { slot: 'afternoon', hour: 15, minute: 0 },
+  { slot: 'night', hour: 21, minute: 0 },
+];
+
+const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       role: 'assistant',
@@ -183,10 +201,44 @@ const SteebChatAI: React.FC = () => {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [showSideTasks, setShowSideTasks] = useState(false);
+  const getProactiveMessage = useCallback((slot: 'morning' | 'afternoon' | 'night') => {
+    const displayName = (userProfile?.nickname || userProfile?.name || user?.nickname || user?.name || 'amigo').trim();
+    const slotTemplates: Record<string, string[]> = {
+      morning: [
+        `Hola ${displayName}, arrancamos tranqui. ¿Te propongo 1 tarea corta para empezar?`,
+        `${displayName}, buen día. Si quieres, digo “prioriza” y te ordeno el día.`,
+        `Hey ${displayName}, antes de que arranque todo: una tarea fácil y un vaso de agua. ¿te ayudo a elegir?`
+      ],
+      afternoon: [
+        `Mid-day check, ${displayName}: ¿qué tal va el plan? Podemos tachar algo rápido ahora.`,
+        `Hola ${displayName}, mitad de día: si sientes traba, decime “plan de ataque” y te armo el orden.`,
+        `${displayName}, pausa corta: ¿hacemos un sprint de 15 minutos en una tarea chica?`
+      ],
+      night: [
+        `Cierre del día, ${displayName}. ¿tachamos algo pequeño o prefieres un mini repaso?`,
+        `Hola ${displayName}, noche tranquila: dime si quieres un resumen de pendientes para mañana.`,
+        `${displayName}, antes de cerrar el día: ¿agendamos 1 cosa clave para mañana?`
+      ]
+    };
+    const pool = slotTemplates[slot] || slotTemplates.morning;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }, [userProfile?.nickname, userProfile?.name, user?.nickname, user?.name]);
+
+  // Hablar cada nuevo mensaje de STEEB con voz infantil
+  useEffect(() => {
+    if (!messages.length || !voiceEnabled) return;
+    const last = messages[messages.length - 1];
+    if (last.role !== 'assistant') return;
+    if (spokenMessagesRef.current.has(last.id)) return;
+
+    speechService.speak(last.content, { pitch: 1.35, rate: 1.05, lang: 'es-ES' });
+    spokenMessagesRef.current.add(last.id);
+  }, [messages, voiceEnabled]);
   const [showProgress, setShowProgress] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [panelHeight, setPanelHeight] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sleepNoticeRef = useRef(false);
 
   // Manejar resumen diario
   useEffect(() => {
@@ -246,6 +298,50 @@ const SteebChatAI: React.FC = () => {
     [scrollToBottom]
   );
 
+  // Mensajes proactivos periódicos
+  useEffect(() => {
+    if (isSteebSleeping) return;
+    if (profileOnboardingStep !== 'completed') return;
+
+    const sendProactive = () => {
+      if (isSteebSleeping) return;
+      if (document.visibilityState === 'hidden') return;
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const hour = now.getHours();
+      let slot: 'morning' | 'afternoon' | 'night' = 'morning';
+      if (hour >= 15 && hour < 20) slot = 'afternoon';
+      else if (hour >= 20 || hour < 6) slot = 'night';
+
+      const slotKey = `stebe_slot_${today}_${slot}`;
+      if (localStorage.getItem(slotKey)) return;
+
+      const msg = getProactiveMessage(slot);
+      appendAssistantMessage(msg);
+      lastProactiveRef.current = Date.now();
+      localStorage.setItem(slotKey, 'sent');
+    };
+
+    const initial = setTimeout(sendProactive, 8000);
+
+    return () => {
+      clearTimeout(initial);
+    };
+  }, [appendAssistantMessage, getProactiveMessage, isSteebSleeping, profileOnboardingStep]);
+
+  useEffect(() => {
+    if (isSteebSleeping) {
+      if (!sleepNoticeRef.current) {
+        appendAssistantMessage(
+          'Steeb está durmiendo en este momento y no responde hasta que se despierte. Aprovechá para repasar tus tareas y vuelve más tarde.'
+        );
+        sleepNoticeRef.current = true;
+      }
+    } else {
+      sleepNoticeRef.current = false;
+    }
+  }, [isSteebSleeping, appendAssistantMessage]);
+
   useEffect(() => {
     if (!user) return;
     if (profileOnboardingStep !== 'idle') return;
@@ -253,6 +349,7 @@ const SteebChatAI: React.FC = () => {
     const storedProfile = getLocalUserProfile(user.id);
     const knownName = (user.name || storedProfile?.name || '').trim();
     const knownNickname = (user.nickname || storedProfile?.nickname || '').trim();
+    const availabilityNote = (storedProfile?.availabilityNote || '').trim();
 
     let timeoutId: NodeJS.Timeout;
 
@@ -269,6 +366,13 @@ const SteebChatAI: React.FC = () => {
         timeoutId = setTimeout(() => {
           appendAssistantMessage(`Veo que te llamas ${knownName}. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?`);
         }, 400);
+      } else if (!availabilityNote) {
+        setProfileOnboardingStep('asking-schedule');
+        timeoutId = setTimeout(() => {
+          appendAssistantMessage(
+            'Antes de ayudarte, contame: ¿qué tan ocupado estás y qué horarios libres tenés? Decime mañana/tarde/noche y qué haces en cada bloque, así organizo tu día.'
+          );
+        }, 400);
       } else {
         setProfileOnboardingStep('completed');
       }
@@ -278,6 +382,26 @@ const SteebChatAI: React.FC = () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [user, profileOnboardingStep, appendAssistantMessage]);
+
+  // Sincronizar perfil con backend (disponibilidad/agenda)
+  useEffect(() => {
+    if (!user?.id) return;
+
+    (async () => {
+      try {
+        const remote = await fetchUserProfileRemote(user.id);
+        if (remote && typeof remote === 'object') {
+          saveLocalUserProfile(user.id, remote);
+          // Si ya estábamos pidiendo disponibilidad y llegó desde backend, marcamos completado
+          if (profileOnboardingStep === 'asking-schedule' && remote.availabilityNote) {
+            setProfileOnboardingStep('completed');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    })();
+  }, [user?.id, profileOnboardingStep]);
 
   const processSteebMessage = useCallback(
     (detail: any) => {
@@ -612,9 +736,21 @@ const SteebChatAI: React.FC = () => {
     return null;
   };
 
-  const handleSendMessage = async (customMessage?: string) => {
-    const pendingMessage = customMessage ?? inputMessage;
-    if (!pendingMessage.trim()) return;
+  const handleSendMessage = async (customMessage?: string | React.MouseEvent | React.KeyboardEvent) => {
+    if (isSteebSleeping) {
+      // Bloquear interacciones cuando está dormido
+      if (customMessage && typeof (customMessage as any).preventDefault === 'function') {
+        (customMessage as any).preventDefault();
+      }
+      return;
+    }
+
+    const pendingMessage =
+      typeof customMessage === 'string'
+        ? customMessage
+        : inputMessage;
+
+    if (!pendingMessage || typeof pendingMessage !== 'string' || !pendingMessage.trim()) return;
 
     const message = pendingMessage.trim();
     setInputMessage('');
@@ -683,6 +819,22 @@ const SteebChatAI: React.FC = () => {
           appendAssistantMessage(`Perfecto ${cleanNickname}, lo anoto. Desde ahora te voy a decir así.`);
         }, 500);
       }
+      return;
+    }
+
+    if (profileOnboardingStep === 'asking-schedule') {
+      handleUserMessageAppend();
+      const availability = message.trim();
+      if (user?.id) {
+        saveLocalUserProfile(user.id, { availabilityNote: availability });
+        saveUserProfileRemote(user.id, { availabilityNote: availability }).catch((err) =>
+          console.error('Error guardando disponibilidad en backend:', err)
+        );
+      }
+      setProfileOnboardingStep('completed');
+      setTimeout(() => {
+        appendAssistantMessage('Genial, ya sé tus horarios. Te voy a sugerir tareas cuando vea huecos.');
+      }, 500);
       return;
     }
 
@@ -985,51 +1137,14 @@ const SteebChatAI: React.FC = () => {
     }
   };
 
-  // Handle voice message recording
-  const handleVoiceRecord = useCallback(async () => {
-    if (audioRecorder.state.isRecording) {
-      // Stop recording and transcribe
-      const audioResult = await audioRecorder.stopRecording();
-
-      if (audioResult) {
-        setIsTranscribing(true);
-        try {
-          let result;
-          if (typeof audioResult === 'string') {
-            // Native: URI
-            const { transcribeAudioFromUri } = await import('@/services/transcriptionService');
-            result = await transcribeAudioFromUri(audioResult);
-          } else {
-            // Web: Blob
-            result = await transcribeAudio(audioResult);
-          }
-
-          if (result.success && result.text) {
-            const cleanedText = result.text.trim();
-            setInputMessage(cleanedText);
-            if (cleanedText) {
-              // Auto-send after transcription for smoother PWA/mobile UX
-              setTimeout(() => handleSendMessage(cleanedText), 0);
-            }
-          } else {
-            console.error('Transcription failed:', result.error);
-          }
-        } catch (error) {
-          console.error('Error transcribing audio:', error);
-        } finally {
-          setIsTranscribing(false);
-        }
-      }
-    } else {
-      // Start recording
-      const started = await audioRecorder.startRecording();
-      if (!started) {
-        console.error('Failed to start recording');
-      }
-    }
-  }, [audioRecorder, handleSendMessage]);
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (isSteebSleeping) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+      }
+      return;
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -1062,6 +1177,11 @@ const SteebChatAI: React.FC = () => {
                 : '32px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
             }}
           >
+            {isSteebSleeping && (
+              <div className="mx-auto mb-3 w-full max-w-xl rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-2 text-center text-xs font-semibold text-yellow-900 dark:border-yellow-500/60 dark:bg-yellow-900/40 dark:text-yellow-100">
+                Steeb está durmiendo en este momento y no responde. No lo despiertes, aprovechá para revisar tus tareas y volvé cuando se despierte.
+              </div>
+            )}
             {messages.map((message, index) => {
               const nextMessage = messages[index + 1];
               const shouldAddSpacing = !nextMessage || nextMessage.role !== message.role;
@@ -1260,13 +1380,14 @@ const SteebChatAI: React.FC = () => {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder=""
+                  placeholder={isSteebSleeping ? 'Steeb está durmiendo, volvé más tarde' : ''}
+                  disabled={isSteebSleeping}
                   className={`w-full py-2 pr-10 border rounded-full leading-relaxed focus:outline-none focus:border-2 focus:shadow-lg transition-all duration-200 shadow-sm steeb-chat-input steeb-nuclear-input ${isShinyMode
                     ? 'bg-white text-black border-white focus:!border-white'
                     : isDarkMode
                       ? 'bg-black text-white border-gray-600 focus:!border-gray-400'
                       : 'bg-white text-black border-gray-300 focus:!border-black'
-                    } ${inputMessage ? 'pl-3' : 'pl-10'}`}
+                    } ${inputMessage ? 'pl-3' : 'pl-10'} disabled:cursor-not-allowed disabled:opacity-60`}
                   style={{
                     fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
                     fontWeight: '400',
@@ -1296,47 +1417,29 @@ const SteebChatAI: React.FC = () => {
                 )}
               </div>
 
-              {/* Microphone Button */}
+              {/* Voice toggle */}
               <button
                 data-custom-color="true"
-                onClick={handleVoiceRecord}
-                disabled={isTyping || isTranscribing}
-                className={`mic-button w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${audioRecorder.state.isRecording
-                  ? 'bg-red-500 border-red-500 animate-pulse'
-                  : isTranscribing
-                    ? 'bg-yellow-500 border-yellow-500 animate-pulse'
-                    : isShinyMode
-                      ? 'bg-black border-white hover:bg-gray-900'
-                      : isDarkMode
-                        ? 'bg-gray-800 border-black hover:bg-gray-700'
-                        : 'bg-white border-gray-300 hover:bg-gray-100'
+                onClick={() => setVoiceEnabled((v) => !v)}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${voiceEnabled
+                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                  : isShinyMode
+                    ? 'bg-black border-white text-white hover:bg-gray-900'
+                    : isDarkMode
+                      ? 'bg-gray-800 border-black text-white hover:bg-gray-700'
+                      : 'bg-white border-gray-300 text-black hover:bg-gray-100'
                   }`}
-                title={audioRecorder.state.isRecording ? 'Detener grabación' : isTranscribing ? 'Transcribiendo...' : 'Grabar mensaje de voz'}
+                title={voiceEnabled ? 'Voz de STEEB activada' : 'Activar voz de STEEB'}
               >
-                {audioRecorder.state.isRecording ? (
-                  <Square className="w-4 h-4 text-white" fill="white" />
-                ) : isTranscribing ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Mic
-                    className="w-5 h-5"
-                    style={{ color: isDarkMode || isShinyMode ? '#ffffff' : '#000000' }}
-                  />
-                )}
+                <Volume2 className="w-5 h-5" />
               </button>
-
-              {/* Recording indicator */}
-              {audioRecorder.state.isRecording && (
-                <div className={`text-xs ${isDarkMode || isShinyMode ? 'text-white' : 'text-black'} animate-pulse`}>
-                  {audioRecorder.state.duration}s
-                </div>
-              )}
 
               <button
                 data-custom-color="true"
                 onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isTyping}
-                className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed transition-all duration-200 border-2 ${isShinyMode
+                disabled={isSteebSleeping || !inputMessage.trim() || isTyping}
+                title={isSteebSleeping ? 'Steeb está durmiendo' : 'Enviar mensaje'}
+                className={`steeb-chat-send-button w-10 h-10 rounded-full flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-200 border-2 ${isShinyMode
                   ? 'bg-black border-white hover:bg-black'
                   : isDarkMode
                     ? 'bg-black border-gray-700 hover:bg-gray-800'

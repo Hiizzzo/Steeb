@@ -1,6 +1,11 @@
 export interface LocalUserProfile {
   name?: string;
   nickname?: string;
+  availabilityNote?: string;
+  busyLevel?: string;
+  morningPlan?: string;
+  afternoonPlan?: string;
+  nightPlan?: string;
   lastUpdated?: string;
 }
 
