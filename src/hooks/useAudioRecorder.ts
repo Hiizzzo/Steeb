@@ -54,6 +54,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const streamRef = useRef<MediaStream | null>(null);
+    const mimeTypeRef = useRef<string>('audio/webm');
 
     // Native-specific refs
     const recordingRef = useRef<any>(null);
@@ -128,6 +129,8 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
                 } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
                     mimeType = 'audio/mp4';
                 }
+
+                mimeTypeRef.current = mimeType;
 
                 const mediaRecorder = new MediaRecorder(stream, {
                     mimeType,
@@ -205,7 +208,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
                     }
 
                     mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                        const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current });
 
                         // Stop all tracks
                         if (streamRef.current) {
