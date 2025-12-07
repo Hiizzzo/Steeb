@@ -187,7 +187,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
           </div>
 
           <p className="text-black text-lg mb-8">
-            Tu compañero para superar la procrastinación
+            El niño prodigio que te salvará
           </p>
 
           <button

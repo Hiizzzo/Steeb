@@ -123,7 +123,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
             ¡Bienvenido a STEEB!
           </h1>
           <p className="text-black text-lg mb-8">
-            Tu compañero para superar la procrastinación
+            El niño prodigio que te salvará
           </p>
 
           <div className="mb-8 flex justify-center">
