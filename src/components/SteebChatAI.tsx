@@ -66,7 +66,7 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
   const isSteebSleeping = Boolean(isSleeping);
   const shinyMessageColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, isLoading: isAuthLoading } = useAuth();
   const { tipoUsuario } = useFirebaseRoleCheck();
   const { userProfile } = useUserRole();
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -179,21 +179,21 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
     };
   };
 
-const getInitialMessage = () => {
-  return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
-};
+  const getInitialMessage = () => {
+    return 'Hola, soy STEEB. Te recuerdo: si mandas "calendario", "tareas" o "progreso" por el chat, se abrir\u00e1 la ventana de cada una para que organices tu d\u00eda conmigo.';
+  };
 
-const ANECDOTE_KEY = 'stebe_last_anecdote_date';
+  const ANECDOTE_KEY = 'stebe_last_anecdote_date';
 
-const SCHEDULED_SLOTS = [
-  { slot: 'morning', hour: 9, minute: 0 },
-  { slot: 'afternoon', hour: 15, minute: 0 },
-  { slot: 'night', hour: 21, minute: 0 },
-];
-const TRANSCRIPT_TARGET_EMAIL = 'theblexiz3010@gmail.com';
-const buildTranscriptKey = (userId?: string) => userId ? `stebe_transcript_${userId}` : null;
+  const SCHEDULED_SLOTS = [
+    { slot: 'morning', hour: 9, minute: 0 },
+    { slot: 'afternoon', hour: 15, minute: 0 },
+    { slot: 'night', hour: 21, minute: 0 },
+  ];
+  const TRANSCRIPT_TARGET_EMAIL = 'theblexiz3010@gmail.com';
+  const buildTranscriptKey = (userId?: string) => userId ? `stebe_transcript_${userId}` : null;
 
-const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       role: 'assistant',
@@ -233,7 +233,7 @@ const [messages, setMessages] = useState<ChatMessage[]>([
     if (last.role !== 'assistant') return;
     if (spokenMessagesRef.current.has(last.id)) return;
 
-    speechService.speak(last.content, { pitch: 1.35, rate: 1.05, lang: 'es-ES' });
+    speechService.speak(last.content, { pitch: 1.6, rate: 1.15, lang: 'es-ES' });
     spokenMessagesRef.current.add(last.id);
   }, [messages, voiceEnabled]);
   const [showProgress, setShowProgress] = useState(false);
@@ -373,47 +373,6 @@ const [messages, setMessages] = useState<ChatMessage[]>([
       sleepNoticeRef.current = false;
     }
   }, [isSteebSleeping, appendAssistantMessage]);
-
-  useEffect(() => {
-    if (!user) return;
-    if (profileOnboardingStep !== 'idle') return;
-
-    const storedProfile = getLocalUserProfile(user.id);
-    const knownName = (user.name || storedProfile?.name || '').trim();
-    const knownNickname = (user.nickname || storedProfile?.nickname || '').trim();
-    const availabilityNote = (storedProfile?.availabilityNote || '').trim();
-
-    let timeoutId: NodeJS.Timeout;
-
-    if (!knownName) {
-      setProfileOnboardingStep('asking-name');
-      timeoutId = setTimeout(() => {
-        appendAssistantMessage('Me llamo Steeb, ¿cómo es tu nombre?');
-      }, 400);
-    } else {
-      onboardingNameRef.current = knownName;
-
-      if (!knownNickname) {
-        setProfileOnboardingStep('asking-nickname');
-        timeoutId = setTimeout(() => {
-          appendAssistantMessage(`Veo que te llamas ${knownName}. Pero a todos nos gustan los apodos. ¿Cómo te gusta que te digan?`);
-        }, 400);
-      } else if (!availabilityNote) {
-        setProfileOnboardingStep('asking-schedule');
-        timeoutId = setTimeout(() => {
-          appendAssistantMessage(
-            'Antes de ayudarte, contame: ¿qué tan ocupado estás y qué horarios libres tenés? Decime mañana/tarde/noche y qué haces en cada bloque, así organizo tu día.'
-          );
-        }, 400);
-      } else {
-        setProfileOnboardingStep('completed');
-      }
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [user, profileOnboardingStep, appendAssistantMessage]);
 
   // Sincronizar perfil con backend (disponibilidad/agenda)
   useEffect(() => {
@@ -876,6 +835,8 @@ const [messages, setMessages] = useState<ChatMessage[]>([
           } catch (error) {
             console.error('Error guardando nombre del usuario:', error);
           }
+          // Persistir tambien en backend remoto
+          saveUserProfileRemote(user.id, { name: cleanName }).catch(e => console.error(e));
         }
         setProfileOnboardingStep('asking-nickname');
         setTimeout(() => {
@@ -905,6 +866,8 @@ const [messages, setMessages] = useState<ChatMessage[]>([
           } catch (error) {
             console.error('Error guardando apodo del usuario:', error);
           }
+          // Persistir tambien en backend remoto
+          saveUserProfileRemote(user.id, { nickname: cleanNickname }).catch(e => console.error(e));
         }
         setProfileOnboardingStep('completed');
         setTimeout(() => {
