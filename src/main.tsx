@@ -27,12 +27,12 @@ const updateBrowserUITheme = (isDark: boolean) => {
 
   const favicon = ensureLink('icon', 'app-favicon');
   favicon.href = steebIsSleeping
-    ? (isDark ? '/Steebsleepdarksupremo.png' : '/Steebwhitesleep.png')
+    ? (isDark ? '/Steebsleepdarksupremo.png' : '/steeb_sleep_icon.jpg')
     : (isDark ? '/favicon-dark.png' : '/favicon.png');
 
   const appleTouch = ensureLink('apple-touch-icon', 'app-apple-touch');
   appleTouch.href = steebIsSleeping
-    ? (isDark ? '/Steebsleepdarksupremo.png' : '/Steebwhitesleep.png')
+    ? (isDark ? '/Steebsleepdarksupremo.png' : '/steeb_sleep_icon.jpg')
     : (isDark ? '/apple-touch-icon-dark.png' : '/apple-touch-icon.png');
 
   // Update meta theme-color tags

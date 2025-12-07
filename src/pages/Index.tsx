@@ -892,7 +892,7 @@ const Index = () => {
                 <img
                   src={theme.isDark
                     ? (isSleeping ? "/Steebsleepdarksupremo.png" : "/Steebwhitesupremo.png")
-                    : (isSleeping ? "/Steebwhitesleep.png" : "/Steebblacksupremo.png")}
+                    : (isSleeping ? "/steeb_sleep_icon.jpg" : "/Steebblacksupremo.png")}
                   alt="Steeb"
                   className="w-full h-full object-cover rounded-3xl"
                   style={{
