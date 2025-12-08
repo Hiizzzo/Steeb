@@ -7,7 +7,6 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useServiceWorkerSync } from '@/hooks/useServiceWorkerSync';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
-import { useDailyTaskReminder } from '@/hooks/useDailyTaskReminder';
 import { useTheme } from '@/hooks/useTheme';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { notificationService } from '@/services/notificationService';
@@ -20,7 +19,6 @@ import SteveAvatar from '@/components/SteveAvatar';
 import AppUpdateNotification from '@/components/AppUpdateNotification';
 
 import DailyTasksConfig from '@/components/DailyTasksConfig';
-import DailyTaskReminderModal from '@/components/DailyTaskReminderModal';
 import ShapeIcon from '@/components/ShapeIcon';
 import ThemeToggle from '@/components/ThemeToggle';
 import type { RecurrenceRule, Task, SubTask } from '@/types';
@@ -456,9 +454,6 @@ const Index = () => {
 
   // Hook para notificaciones de tareas
   const { scheduleTaskNotification, cancelTaskNotification } = useTaskNotifications(tasks);
-
-  // Hook para recordatorio diario de tareas
-  const { showReminder, yesterdayDate, skipReminder, markReminderShown } = useDailyTaskReminder(tasks);
 
   // Inicializar servicio de notificaciones
   useEffect(() => {
@@ -997,28 +992,6 @@ const Index = () => {
         onToggle={handleToggleTask}
         onToggleSubtask={handleToggleSubtask}
       />
-
-      {/* Recordatorio diario para revisar tareas de ayer */}
-      {showReminder && yesterdayDate && (
-        <DailyTaskReminderModal
-          open={showReminder}
-          onOpenChange={(open) => !open && skipReminder()}
-          tasks={tasks}
-          yesterdayDate={yesterdayDate}
-          onMarkCompleted={(taskIds, date) => {
-            // Marcar tareas como completadas
-            taskIds.forEach(id => {
-              const task = tasks.find(t => t.id === id);
-              if (task) {
-                // Usar la fecha de ayer para completedDate
-                const completedDate = new Date(date).toISOString();
-                updateTask(id, { ...task, completed: true, completedDate });
-              }
-            });
-            markReminderShown();
-          }}
-        />
-      )}
 
       {/* Configuración de tareas diarias (solo cuando se inicia por primera vez) */}
       {showConfigModal && (
