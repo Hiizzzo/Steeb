@@ -16,6 +16,7 @@ import FixedPanelContainer from './FixedPanelContainer';
 import SimpleSideTasksPanel from './SimpleSideTasksPanel';
 import SimpleProgressPanel from './SimpleProgressPanel';
 import SimpleCalendarPanel from './SimpleCalendarPanel';
+import { SubTask } from '@/types';
 
 interface PaymentOption {
   id: string;
@@ -484,6 +485,35 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
                   ? action.payload.title.trim()
                   : 'Tarea sugerida por Steeb';
 
+              const rawSubtasks = Array.isArray(action.payload?.subtasks)
+                ? action.payload.subtasks
+                : [];
+
+              const parsedSubtasks: SubTask[] = rawSubtasks
+                .map((item: any, index: number) => {
+                  if (typeof item === 'string') {
+                    const normalized = item.trim();
+                    return normalized
+                      ? {
+                          id: `subtask-${Date.now()}-${index}`,
+                          title: normalized,
+                          completed: false
+                        }
+                      : null;
+                  }
+
+                  if (item && typeof item.title === 'string' && item.title.trim().length) {
+                    return {
+                      id: `subtask-${Date.now()}-${index}`,
+                      title: item.title.trim(),
+                      completed: Boolean(item.completed)
+                    };
+                  }
+
+                  return null;
+                })
+                .filter(Boolean) as SubTask[];
+
               await addTask({
                 title,
                 description:
@@ -496,7 +526,8 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
                 scheduledDate:
                   typeof action.payload?.date === 'string' ? action.payload.date : undefined,
                 scheduledTime:
-                  typeof action.payload?.time === 'string' ? action.payload.time : undefined
+                  typeof action.payload?.time === 'string' ? action.payload.time : undefined,
+                subtasks: parsedSubtasks.length ? parsedSubtasks : undefined,
               });
 
               appendAssistantMessage(`Tarea creada: ${title}`);
