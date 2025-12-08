@@ -201,8 +201,10 @@ const CalendarPanel: React.FC<CalendarPanelProps> = ({ onClose }) => {
       }`}>
         <button
           onClick={() => navigateMonth('prev')}
-          className={`p-1 rounded transition-colors ${
-            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
+          className={`p-1 rounded transition-colors border ${
+            isDarkMode
+              ? 'bg-black text-white border-white hover:bg-gray-900'
+              : 'bg-white text-black border-black hover:bg-gray-100'
           }`}
         >
           <ChevronLeft className="w-4 h-4" />
@@ -210,8 +212,10 @@ const CalendarPanel: React.FC<CalendarPanelProps> = ({ onClose }) => {
         <h3 className="text-lg font-bold capitalize">{monthName}</h3>
         <button
           onClick={() => navigateMonth('next')}
-          className={`p-1 rounded transition-colors ${
-            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
+          className={`p-1 rounded transition-colors border ${
+            isDarkMode
+              ? 'bg-black text-white border-white hover:bg-gray-900'
+              : 'bg-white text-black border-black hover:bg-gray-100'
           }`}
         >
           <ChevronRight className="w-4 h-4" />
