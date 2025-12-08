@@ -842,7 +842,8 @@ const Index = () => {
   const dayName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()];
   const isMobile = useIsMobile();
 
-
+  // 🔕 Ocultar el panel de tareas legacy que aún se renderizaba detrás del chat
+  const showLegacyTaskPanel = false;
 
   return (
     <div className="h-screen pb-6 relative bg-white dark:bg-black m-0 p-0" style={{ fontFamily: 'Be Vietnam Pro, system-ui, -apple-system, sans-serif', marginTop: '0', paddingTop: '0' }}>
@@ -917,115 +918,116 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Contenido principal */}
-      <div className="relative z-10 mt-0.5 pt-0">
+      {/* Contenido principal (legacy) */}
+      {showLegacyTaskPanel && (
+        <div className="relative z-10 mt-0.5 pt-0">
 
-        {/* Listas de tareas */}
-        <div className="px-4 mt-3">
-          {pendingOverdueRaw.length > 0 && (
-            <div className="mb-3">
-              <h3 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Vencidas</h3>
-              {pendingOverdueRaw.map(t => renderSwipeRow(t, '#FF4D4F'))}
-            </div>
-          )}
+          {/* Listas de tareas */}
+          <div className="px-4 mt-3">
+            {pendingOverdueRaw.length > 0 && (
+              <div className="mb-3">
+                <h3 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Vencidas</h3>
+                {pendingOverdueRaw.map(t => renderSwipeRow(t, '#FF4D4F'))}
+              </div>
+            )}
 
 
 
-          {/* Mostrar botón de ojo solo si hay tareas completadas */}
-          {(completedToday.length > 0 || completedBeforeToday.length > 0) && (
-            <div className="flex justify-start mb-4">
-              <button
-                onClick={() => setShowCompletedToday(!showCompletedToday)}
-                className="text-gray-500 bg-transparent hover:bg-transparent p-0 border-none transition-colors"
-              >
-                {showCompletedToday ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
+            {/* Mostrar botón de ojo solo si hay tareas completadas */}
+            {(completedToday.length > 0 || completedBeforeToday.length > 0) && (
+              <div className="flex justify-start mb-4">
+                <button
+                  onClick={() => setShowCompletedToday(!showCompletedToday)}
+                  className="text-gray-500 bg-transparent hover:bg-transparent p-0 border-none transition-colors"
+                >
+                  {showCompletedToday ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            )}
+            {showCompletedToday && (
+              <div className="mt-2">
+                {completedToday.length > 0 && (
+                  <div>
+                    <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas hoy</h4>
+                    {completedToday.map(t => renderSwipeRow(t))}
+                  </div>
                 )}
-              </button>
-            </div>
-          )}
-          {showCompletedToday && (
-            <div className="mt-2">
-              {completedToday.length > 0 && (
-                <div>
-                  <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas hoy</h4>
-                  {completedToday.map(t => renderSwipeRow(t))}
-                </div>
-              )}
-              {completedBeforeToday.length > 0 && (
-                <div className="mt-2">
-                  <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas antes</h4>
-                  {completedBeforeToday.map(t => renderSwipeRow(t))}
-                </div>
-              )}
-            </div>
-          )}
+                {completedBeforeToday.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="text-[11px] uppercase tracking-widest opacity-60 mb-1">Completadas antes</h4>
+                    {completedBeforeToday.map(t => renderSwipeRow(t))}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+
+          {/* Botón flotante de Progreso - Ahora abre el panel del chat */}
+          <div
+            className="fixed bottom-24 right-6 opacity-0 pointer-events-none"
+            title="El progreso ahora se abre escribiendo 'progreso' en el chat"
+          >
+            <TrendingUp className="w-6 h-6 text-gray-400" />
+          </div>
 
         </div>
+      )}
 
-        {/* Botón flotante de Progreso - Ahora abre el panel del chat */}
-        <div
-          className="fixed bottom-24 right-6 opacity-0 pointer-events-none"
-          title="El progreso ahora se abre escribiendo 'progreso' en el chat"
-        >
-          <TrendingUp className="w-6 h-6 text-gray-400" />
-        </div>
+      {/* Modales */}
+      <ModalAddTask
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onAddTask={handleAddTask}
+        editingTask={selectedTask || undefined}
+      />
 
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedTask(null);
+        }}
+        onEdit={handleEditTask}
+        onToggle={handleToggleTask}
+        onToggleSubtask={handleToggleSubtask}
+      />
 
-        {/* Modales */}
-        <ModalAddTask
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          onAddTask={handleAddTask}
-          editingTask={selectedTask || undefined}
-        />
-
-        <TaskDetailModal
-          task={selectedTask}
-          isOpen={showDetailModal}
-          onClose={() => {
-            setShowDetailModal(false);
-            setSelectedTask(null);
+      {/* Recordatorio diario para revisar tareas de ayer */}
+      {showReminder && yesterdayDate && (
+        <DailyTaskReminderModal
+          open={showReminder}
+          onOpenChange={(open) => !open && skipReminder()}
+          tasks={tasks}
+          yesterdayDate={yesterdayDate}
+          onMarkCompleted={(taskIds, date) => {
+            // Marcar tareas como completadas
+            taskIds.forEach(id => {
+              const task = tasks.find(t => t.id === id);
+              if (task) {
+                // Usar la fecha de ayer para completedDate
+                const completedDate = new Date(date).toISOString();
+                updateTask(id, { ...task, completed: true, completedDate });
+              }
+            });
+            markReminderShown();
           }}
-          onEdit={handleEditTask}
-          onToggle={handleToggleTask}
-          onToggleSubtask={handleToggleSubtask}
         />
+      )}
 
-        {/* Recordatorio diario para revisar tareas de ayer */}
-        {showReminder && yesterdayDate && (
-          <DailyTaskReminderModal
-            open={showReminder}
-            onOpenChange={(open) => !open && skipReminder()}
-            tasks={tasks}
-            yesterdayDate={yesterdayDate}
-            onMarkCompleted={(taskIds, date) => {
-              // Marcar tareas como completadas
-              taskIds.forEach(id => {
-                const task = tasks.find(t => t.id === id);
-                if (task) {
-                  // Usar la fecha de ayer para completedDate
-                  const completedDate = new Date(date).toISOString();
-                  updateTask(id, { ...task, completed: true, completedDate });
-                }
-              });
-              markReminderShown();
-            }}
-          />
-        )}
-
-        {/* Configuración de tareas diarias (solo cuando se inicia por primera vez) */}
-        {showConfigModal && (
-          <DailyTasksConfig
-            isOpen={true}
-            onClose={() => setShowConfigModal(false)}
-            onAddTask={handleAddTask}
-          />
-        )}
-
-      </div>
+      {/* Configuración de tareas diarias (solo cuando se inicia por primera vez) */}
+      {showConfigModal && (
+        <DailyTasksConfig
+          isOpen={true}
+          onClose={() => setShowConfigModal(false)}
+          onAddTask={handleAddTask}
+        />
+      )}
 
       {/* Chat STEEB Permanente - ocupa todo el ancho y alto de la pantalla */}
       <div className="fixed top-32 left-0 right-0 bottom-0 z-40">
