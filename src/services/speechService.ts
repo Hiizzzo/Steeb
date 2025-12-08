@@ -9,6 +9,10 @@ type SpeakOptions = {
 };
 
 const PREFERRED_VOICE_NAMES = [
+  'Google UK English', // Chrome/Android
+  'Microsoft Libby', // Edge/Windows
+  'Microsoft Ryan', // Edge/Windows
+  'Microsoft Sonia', // Edge/Windows
   'Google español', // Chrome/Android
   'Microsoft Sabina', // Edge/Windows
   'Microsoft Helena', // Edge/Windows
@@ -25,13 +29,23 @@ const pickWebVoice = () => {
   const voices = window.speechSynthesis.getVoices();
   if (!voices?.length) return null;
 
+  const normalizedNameMatch = (voice: SpeechSynthesisVoice, values: string[]) =>
+    values.some((p) => voice.name.toLowerCase().includes(p.toLowerCase()));
+
   const esVoices = voices.filter((v) => v.lang.toLowerCase().startsWith('es'));
+  const britishVoices = voices.filter(
+    (v) => v.lang.toLowerCase().startsWith('en-gb') || /united kingdom|british|uk|gb/i.test(v.name)
+  );
+
   const preferredByName =
-    esVoices.find((v) => PREFERRED_VOICE_NAMES.some((p) => v.name.toLowerCase().includes(p.toLowerCase()))) ||
-    voices.find((v) => PREFERRED_VOICE_NAMES.some((p) => v.name.toLowerCase().includes(p.toLowerCase())));
+    britishVoices.find((v) => normalizedNameMatch(v, PREFERRED_VOICE_NAMES)) ||
+    voices.find((v) => normalizedNameMatch(v, PREFERRED_VOICE_NAMES));
+
   const childVoice =
     preferredByName ||
+    britishVoices.find((v) => /child|kid|boy|girl|young/i.test(v.name)) ||
     esVoices.find((v) => /child|niñ|kid|boy|girl/i.test(v.name)) ||
+    britishVoices[0] ||
     esVoices[0] ||
     voices[0];
 
