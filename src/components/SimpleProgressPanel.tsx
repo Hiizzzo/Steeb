@@ -191,10 +191,26 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
   // Calcular tareas por día de la semana
   const tasksByDay = useMemo(() => {
     const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const now = new Date();
+    const todayDay = now.getDay();
+    const diffToMonday = (todayDay + 6) % 7; // 0 (Sunday) -> 6, 1 (Monday) -> 0, ...
+    const startOfWeek = new Date(now);
+    startOfWeek.setHours(0, 0, 0, 0);
+    startOfWeek.setDate(now.getDate() - diffToMonday);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+
     const weekData = days.map((day, index) => {
       const dayTasks = tasks.filter(task => {
         const taskDate = new Date(task.completedAt || task.createdAt);
-        return taskDate.getDay() === index && task.completed;
+        const weekdayIndex = (taskDate.getDay() + 6) % 7; // Normalizar para que lunes sea 0
+        return (
+          taskDate >= startOfWeek &&
+          taskDate < endOfWeek &&
+          weekdayIndex === index &&
+          task.completed
+        );
       });
       return {
         day: day.charAt(0).toUpperCase(),
@@ -336,102 +352,6 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Test Button - Hidden X at top right */}
-        <div className="absolute top-2 right-2 z-10">
-          <button
-            onClick={() => {
-              // Generate random test data based on current view mode
-              const testTasks = [];
-              const now = new Date();
-              const currentYear = now.getFullYear();
-              const currentMonth = now.getMonth();
-
-              if (viewMode === 'year') {
-                // YEAR VIEW: Generate tasks for ALL 12 months
-                for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-                  const tasksForThisMonth = Math.floor(Math.random() * 6) + 3;
-
-                  for (let i = 0; i < tasksForThisMonth; i++) {
-                    const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
-                    const dayOfMonth = Math.floor(Math.random() * daysInMonth) + 1;
-                    const taskDate = new Date(currentYear, monthIndex, dayOfMonth);
-
-                    const isCompleted = Math.random() > 0.2;
-
-                    testTasks.push({
-                      id: `test-y-${monthIndex}-${i}`,
-                      title: `Test Task ${monthIndex + 1}-${i + 1}`,
-                      completed: isCompleted,
-                      createdAt: taskDate.toISOString(),
-                      completedAt: isCompleted ? taskDate.toISOString() : null
-                    });
-                  }
-                }
-              } else if (viewMode === 'month') {
-                // MONTH VIEW: Generate tasks for current month
-                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-
-                for (let week = 1; week <= 4; week++) {
-                  let weekStartDay = (week - 1) * 7 + 1;
-                  let weekEndDay = Math.min(week * 7, new Date(currentYear, currentMonth + 1, 0).getDate());
-
-                  const firstDayWeekday = firstDayOfMonth.getDay();
-                  weekStartDay = Math.max(1, weekStartDay - firstDayWeekday);
-                  weekEndDay = Math.min(new Date(currentYear, currentMonth + 1, 0).getDate(),
-                                        weekEndDay - firstDayWeekday + (week === 1 ? firstDayWeekday + 1 : 0));
-
-                  const tasksForThisWeek = Math.floor(Math.random() * 6) + 3;
-
-                  for (let i = 0; i < tasksForThisWeek; i++) {
-                    const dayOfMonth = Math.floor(Math.random() * (weekEndDay - weekStartDay + 1)) + weekStartDay;
-                    const taskDate = new Date(currentYear, currentMonth, dayOfMonth);
-
-                    const isCompleted = Math.random() > 0.2;
-
-                    testTasks.push({
-                      id: `test-m-w${week}-${i}`,
-                      title: `Test Task M${week}-${i + 1}`,
-                      completed: isCompleted,
-                      createdAt: taskDate.toISOString(),
-                      completedAt: isCompleted ? taskDate.toISOString() : null
-                    });
-                  }
-                }
-              } else {
-                // WEEK VIEW: Generate tasks for the current week
-                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                const daysInWeek = 7;
-
-                for (let i = 0; i < daysInWeek; i++) {
-                  const dayOfWeek = new Date(weekAgo.getTime() + i * 24 * 60 * 60 * 1000);
-                  const tasksForThisDay = Math.floor(Math.random() * 3) + 1;
-
-                  for (let j = 0; j < tasksForThisDay; j++) {
-                    const isCompleted = Math.random() > 0.2;
-
-                    testTasks.push({
-                      id: `test-w-day${i}-${j}`,
-                      title: `Test Task Day${i}-${j + 1}`,
-                      completed: isCompleted,
-                      createdAt: dayOfWeek.toISOString(),
-                      completedAt: isCompleted ? dayOfWeek.toISOString() : null
-                    });
-                  }
-                }
-              }
-
-              // Update the store with test data
-              const { setTasks } = useTaskStore.getState();
-              setTasks(testTasks);
-            }}
-            className="w-6 h-6 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm opacity-20 hover:opacity-100"
-          >
-            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
 
         {/* Simple Chart */}
