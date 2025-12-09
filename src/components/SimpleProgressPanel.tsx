@@ -88,10 +88,18 @@ const SimpleProgressPanel: React.FC<SimpleProgressPanelProps> = ({ onClose }) =>
   const taskCounts = useMemo(() => {
     const now = new Date();
 
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const todayDay = now.getDay();
+    const diffToMonday = (todayDay + 6) % 7;
+    const startOfWeek = new Date(now);
+    startOfWeek.setHours(0, 0, 0, 0);
+    startOfWeek.setDate(now.getDate() - diffToMonday);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+
     const weekTasks = tasks.filter(task => {
       const taskDate = new Date(task.completedAt || task.createdAt);
-      return taskDate >= weekAgo && task.completed;
+      return taskDate >= startOfWeek && taskDate < endOfWeek && task.completed;
     });
 
     const currentMonth = now.getMonth();
