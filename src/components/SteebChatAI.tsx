@@ -75,6 +75,21 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
   const [isTestingNotification, setIsTestingNotification] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<'idle' | 'granted' | 'denied'>('idle');
 
+  const getBrowserNotificationPermission = (): 'idle' | 'granted' | 'denied' => {
+    if (typeof window === 'undefined' || typeof Notification === 'undefined') return 'denied';
+    if (Notification.permission === 'granted') return 'granted';
+    if (Notification.permission === 'denied') return 'denied';
+    return 'idle';
+  };
+
+  const sendCheerfulNotification = useCallback(() => {
+    notificationService.sendImmediateNotification(
+      'STEEB en tu bolsillo',
+      'Noti alegre enviada desde la PWA. Android e iOS deberían vibrar con este mimo 🎉',
+      'steeb-pwa-test'
+    );
+  }, []);
+
   // Estado para el juego Shiny
   const [profileOnboardingStep, setProfileOnboardingStep] = useState<'idle' | 'asking-name' | 'asking-nickname' | 'asking-schedule' | 'completed'>('idle');
   const onboardingNameRef = useRef<string>('');
@@ -336,16 +351,13 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
 
   const handleTestNotification = useCallback(async () => {
     setIsTestingNotification(true);
+
     try {
       const granted = await notificationService.requestPermission();
       setNotificationPermission(granted ? 'granted' : 'denied');
 
       if (granted) {
-        notificationService.sendImmediateNotification(
-          'STEEB en tu bolsillo',
-          'Noti alegre enviada desde la PWA. Android e iOS deberían vibrar con este mimo 🎉',
-          'steeb-pwa-test'
-        );
+        sendCheerfulNotification();
       }
     } catch (error) {
       console.error('No se pudo probar la notificación', error);
@@ -353,7 +365,43 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
     } finally {
       setIsTestingNotification(false);
     }
-  }, []);
+  }, [sendCheerfulNotification]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const ensureNotificationPermission = async () => {
+      const currentPermission = getBrowserNotificationPermission();
+      if (currentPermission === 'granted') {
+        setNotificationPermission('granted');
+        return;
+      }
+
+      setIsTestingNotification(true);
+      try {
+        const granted = await notificationService.requestPermission();
+        if (!isMounted) return;
+        setNotificationPermission(granted ? 'granted' : 'denied');
+
+        if (granted) {
+          sendCheerfulNotification();
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('No se pudo solicitar la notificación de forma automática', error);
+        setNotificationPermission('denied');
+      } finally {
+        if (!isMounted) return;
+        setIsTestingNotification(false);
+      }
+    };
+
+    ensureNotificationPermission();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sendCheerfulNotification]);
 
   // Mensajes proactivos periódicos
   useEffect(() => {
