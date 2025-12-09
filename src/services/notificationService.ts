@@ -137,19 +137,36 @@ export class NotificationService {
   // ============================================================================
   // PROGRAMAR RECORDATORIO DE TAREA
   // ============================================================================
-  scheduleTaskReminder(taskId: string, taskTitle: string, scheduledDate: string, scheduledTime?: string) {
+  scheduleTaskReminder(taskId: string, taskTitle: string, scheduledDate?: string, scheduledTime?: string) {
     this.cancelTaskReminder(taskId);
 
-    if (!scheduledDate) return;
-
+    // Permitir programar recordatorios aun cuando solo se proporciona la hora.
     const now = new Date();
-    let reminderTime = new Date(scheduledDate);
+    let reminderTime = scheduledDate ? new Date(scheduledDate) : new Date();
+    reminderTime.setHours(0, 0, 0, 0);
 
     if (scheduledTime) {
-      const [hours, minutes] = scheduledTime.split(':').map(Number);
-      reminderTime.setHours(hours, minutes, 0, 0);
+      const timeMatch = scheduledTime.trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
+
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2] || '0', 10);
+        const meridiem = timeMatch[3];
+
+        if (meridiem === 'pm' && hours < 12) hours += 12;
+        if (meridiem === 'am' && hours === 12) hours = 0;
+
+        reminderTime.setHours(hours, minutes, 0, 0);
+      } else {
+        reminderTime.setHours(9, 0, 0, 0);
+      }
     } else {
       reminderTime.setHours(9, 0, 0, 0);
+    }
+
+    // Si la hora ya pasó hoy, moverla al día siguiente para evitar programar en el pasado.
+    if (reminderTime <= now) {
+      reminderTime.setDate(reminderTime.getDate() + 1);
     }
 
     const notificationTime = new Date(reminderTime.getTime() - 10 * 60 * 1000);
