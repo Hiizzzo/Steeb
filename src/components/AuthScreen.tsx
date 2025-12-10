@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { useTheme } from '../hooks/useTheme';
 
 // Definir tipos globales para la comunicación con el WebView
 declare global {
@@ -22,8 +21,6 @@ interface AuthScreenProps {
 
 const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
   const { user, loginWithGoogle, updateProfile, hasPasswordProvider, linkEmailPassword, resendEmailVerification } = useAuth();
-  const { currentTheme } = useTheme();
-  const isDarkMode = currentTheme === 'dark' || currentTheme === 'shiny';
   const [mode, setMode] = useState<'welcome' | 'onboarding'>(() => {
     // Si ya hay usuario autenticado y faltan datos, arrancar en onboarding
     if (user && (!user.name || !user.nickname)) return 'onboarding';
@@ -180,7 +177,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
           <div className="mb-8 flex justify-center">
             <img
-              src={isDarkMode ? "/Steebwhitesupremo.png" : "/Steebblacksupremo.png"}
+              src="/Steebwhitesupremo.png"
               alt="STEEB"
               className="w-40 h-40 object-contain"
             />
@@ -210,7 +207,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
                 <path fill="#000000" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
             )}
-            <span className="font-medium text-white text-lg">
+            <span className="font-medium text-black text-lg">
               {isLoading ? 'Conectando con STEEB...' : 'Entrar con Google'}
             </span>
           </button>
