@@ -1333,7 +1333,9 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
               top: '0px',
               bottom: panelHeight > 0
                 ? `${panelHeight + 12}px` // Dejar 60px para input + espacio del panel
-                : '32px' // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
+                : '32px', // Dejar solo 40px para input cuando no hay panel (mÃ¡s arriba)
+              touchAction: 'pan-y',
+              WebkitOverflowScrolling: 'touch'
             }}
           >
             {isSteebSleeping && (
