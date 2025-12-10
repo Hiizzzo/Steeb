@@ -1,0 +1,23 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'>
+  <rect width='512' height='512' rx='120' fill='#000000'/>
+  
+  <rect x='10' y='10' width='492' height='492' rx='90' fill='none' stroke='#ffffff' stroke-width='14'/>
+  <rect x='90' y='330' width='332' height='120' rx='30' fill='none' stroke='#ffffff' stroke-width='14'/>
+  <circle cx='256' cy='230' r='160' fill='none' stroke='#ffffff' stroke-width='14'/>
+  <path d='M120 240 q30 -40 80 -30' stroke='#ffffff' stroke-width='12' fill='none' stroke-linecap='round' />
+  <path d='M392 240 q-30 -40 -80 -30' stroke='#ffffff' stroke-width='12' fill='none' stroke-linecap='round' />
+  <circle cx='190' cy='230' r='58' fill='none' stroke='#ffffff' stroke-width='12'/>
+  <circle cx='322' cy='230' r='58' fill='none' stroke='#ffffff' stroke-width='12'/>
+  <line x1='248' y1='230' x2='264' y2='230' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/>
+  <line x1='256' y1='230' x2='256' y2='310' stroke='#ffffff' stroke-width='10' stroke-linecap='round'/>
+  <path d='M170 165 q40 -60 150 -40' stroke='#ffffff' stroke-width='12' fill='none' stroke-linecap='round'/>
+  <path d='M200 140 q60 -50 110 -10' stroke='#ffffff' stroke-width='12' fill='none' stroke-linecap='round'/>
+  <circle cx='190' cy='230' r='18' fill='#ffffff'/>
+  <circle cx='322' cy='230' r='18' fill='#ffffff'/>
+
+  
+          <path d='M150 195 q60 -25 110 -20' stroke='#ffffff' stroke-width='12' fill='none' stroke-linecap='round'/>
+          <path d='M316 175 q70 25 90 40' stroke='#ffffff' stroke-width='12' fill='none' stroke-linecap='round'/>
+        
+  <line x1='190' y1='350' x2='322' y2='350' stroke='#ffffff' stroke-width='14' stroke-linecap='round'/>
+</svg>
