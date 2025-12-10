@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, BellOff, Clock, Calendar, Trophy, Volume2, VolumeX, Vibrate } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
+import { pushClient } from '@/services/pushClient';
 
 export const NotificationSettings: React.FC = () => {
   const {
@@ -16,6 +17,15 @@ export const NotificationSettings: React.FC = () => {
 
   const stats = getNotificationStats();
 
+  const [isWebPushSupported, setIsWebPushSupported] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [webPushStatus, setWebPushStatus] = useState<'idle' | 'active' | 'error'>('idle');
+  const [webPushMessage, setWebPushMessage] = useState('');
+
+  useEffect(() => {
+    setIsWebPushSupported(pushClient.isSupported());
+  }, []);
+
   const handleToggleSetting = (key: keyof typeof settings) => {
     updateSettings({ [key]: !settings[key] });
   };
@@ -25,6 +35,39 @@ export const NotificationSettings: React.FC = () => {
     if (granted) {
       // Show welcome notification
       await testNotification();
+
+      // Si se habilitan permisos, intentar suscribir Web Push
+      if (pushClient.isSupported()) {
+        handleWebPushSubscription();
+      }
+    }
+  };
+
+  const handleWebPushSubscription = async () => {
+    if (!isWebPushSupported) return;
+
+    setIsSubscribing(true);
+    setWebPushMessage('');
+
+    try {
+      const granted = permission.granted || await requestPermission();
+      if (!granted) {
+        setWebPushStatus('error');
+        setWebPushMessage('Necesitamos permisos de notificación para activar Web Push');
+        return;
+      }
+
+      const subscribed = await pushClient.ensureWebPushSubscription();
+      setWebPushStatus(subscribed ? 'active' : 'error');
+      setWebPushMessage(subscribed
+        ? 'Suscripción Web Push activa en este navegador'
+        : 'No se pudo activar Web Push. Intenta nuevamente.');
+    } catch (error) {
+      console.error('Error activando Web Push:', error);
+      setWebPushStatus('error');
+      setWebPushMessage('Ocurrió un error al activar Web Push');
+    } finally {
+      setIsSubscribing(false);
     }
   };
 
@@ -71,6 +114,29 @@ export const NotificationSettings: React.FC = () => {
             </button>
           )}
         </div>
+
+        {isWebPushSupported && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-3">
+            <div>
+              <p className="font-medium text-black dark:text-white">Web Push (PWA)</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Recibe notificaciones incluso con la app cerrada tras añadirla al inicio
+              </p>
+              {webPushMessage && (
+                <p className={`text-sm mt-1 ${webPushStatus === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                  {webPushMessage}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleWebPushSubscription}
+              disabled={isSubscribing}
+              className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-60"
+            >
+              {isSubscribing ? 'Activando...' : 'Activar Web Push'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Notification Settings */}
