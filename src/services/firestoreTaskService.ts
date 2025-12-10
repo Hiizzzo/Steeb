@@ -29,6 +29,38 @@ const TASKS_COLLECTION = 'tasks';
 export class FirestoreTaskService {
 
   /**
+   * Normaliza los datos de tareas provenientes de Firestore, asegurando que
+   * los campos de fecha/hora existan en camelCase y sean strings ISO cuando
+   * sea posible.
+   */
+  private static normalizeTaskData(data: any, id?: string): Task {
+    const scheduledFor = data.scheduledFor || data.scheduled_for;
+
+    // Extraer fecha/hora desde diferentes variantes que puedan venir del backend
+    const scheduledDate = data.scheduledDate
+      || data.scheduled_date
+      || (typeof scheduledFor === 'string' ? scheduledFor.split('T')[0] : undefined);
+
+    const scheduledTime = data.scheduledTime
+      || data.scheduled_time
+      || (typeof scheduledFor === 'string' && scheduledFor.includes('T')
+        ? scheduledFor.split('T')[1]?.slice(0, 5)
+        : undefined);
+
+    return {
+      ...data,
+      id: id || data.id,
+      scheduledDate,
+      scheduledTime,
+      createdAt: data.createdAt?.toDate?.()?.toISOString() || (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
+      dueDate: data.dueDate?.toDate?.()?.toISOString() || (typeof data.dueDate === 'string' ? data.dueDate : undefined),
+      completed: !!data.completed,
+      status: data.status || (data.completed ? 'completed' : 'pending')
+    } as Task;
+  }
+
+  /**
    * Obtener todas las tareas del usuario
    */
   static async getTasks(userId?: string): Promise<Task[]> {
@@ -42,21 +74,7 @@ export class FirestoreTaskService {
       const q = query(tasksRef, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'));
 
       const snapshot = await getDocs(q);
-      const items = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          ...data,
-          id: doc.id, // Asegurar que el ID sea el del documento de Firestore, no el campo 'id' interno
-          // Manejo robusto de fechas: Timestamp, string ISO, o Date
-          createdAt: data.createdAt?.toDate?.()?.toISOString() || (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
-          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
-          dueDate: data.dueDate?.toDate?.()?.toISOString() || (typeof data.dueDate === 'string' ? data.dueDate : undefined),
-          // Asegurar que completed sea booleano
-          completed: !!data.completed,
-          // Asegurar que status sea válido
-          status: data.status || (data.completed ? 'completed' : 'pending')
-        } as Task;
-      });
+      const items = snapshot.docs.map(doc => this.normalizeTaskData(doc.data(), doc.id));
 
       return items;
     }, 'Obtener tareas');
@@ -75,13 +93,7 @@ export class FirestoreTaskService {
       if (!snapshot.exists()) return null;
 
       const data = snapshot.data();
-      return {
-        ...data,
-        id: snapshot.id, // Asegurar que el ID sea el del documento de Firestore
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
-        dueDate: data.dueDate?.toDate?.()?.toISOString() || data.dueDate,
-      } as Task;
+      return this.normalizeTaskData(data, snapshot.id);
     }, 'Obtener tarea');
   }
 
@@ -238,13 +250,7 @@ export class FirestoreTaskService {
       );
 
       const snapshot = await getDocs(q);
-      const items = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
-        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
-        dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
-      } as Task));
+      const items = snapshot.docs.map(doc => this.normalizeTaskData(doc.data(), doc.id));
 
       return items;
     }, 'Obtener tareas por fecha');
@@ -287,14 +293,7 @@ export class FirestoreTaskService {
             try {
               const tasks = snapshot.docs.map(doc => {
                 try {
-                  const data = doc.data();
-                  return {
-                    ...data,
-                    id: doc.id, // Asegurar que el ID sea el del documento de Firestore
-                    createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
-                    updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
-                    dueDate: data.dueDate?.toDate?.()?.toISOString() || data.dueDate,
-                  } as Task;
+                  return this.normalizeTaskData(doc.data(), doc.id);
                 } catch (docError) {
                   console.warn('⚠️ Error procesando documento:', doc.id, docError);
                   return null;
