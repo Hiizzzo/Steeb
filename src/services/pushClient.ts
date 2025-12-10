@@ -1,7 +1,8 @@
 const isWeb = typeof window !== 'undefined' && typeof document !== 'undefined' && !('ReactNativeWebView' in window);
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://v0-steeb-api-backend-production.up.railway.app/api';
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+const ENV_VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+let resolvedVapidKey: string | null = null;
 
 const urlBase64ToUint8Array = (base64String: string) => {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -33,14 +34,41 @@ const sendSubscriptionToServer = async (subscription: PushSubscription) => {
   }
 };
 
-const subscribeToPush = async (registration?: ServiceWorkerRegistration): Promise<boolean> => {
-  if (!VAPID_PUBLIC_KEY) {
-    console.warn('VAPID_PUBLIC_KEY no configurado, se omite Web Push');
-    return false;
+const ensureVapidPublicKey = async (): Promise<string | null> => {
+  if (resolvedVapidKey) return resolvedVapidKey;
+
+  const trimmedEnvKey = ENV_VAPID_PUBLIC_KEY.trim();
+  if (trimmedEnvKey) {
+    resolvedVapidKey = trimmedEnvKey;
+    return resolvedVapidKey;
   }
 
+  try {
+    const response = await fetch(`${API_BASE_URL}/push/public-key`);
+    if (response.ok) {
+      const data = await response.json();
+      const fetchedKey = (data?.publicKey || data?.key || '').trim();
+      if (fetchedKey) {
+        resolvedVapidKey = fetchedKey;
+        return resolvedVapidKey;
+      }
+    } else {
+      console.warn('No se pudo obtener la VAPID public key del backend.');
+    }
+  } catch (error) {
+    console.error('Error solicitando la VAPID public key al backend:', error);
+  }
+
+  console.warn('VAPID_PUBLIC_KEY no configurado. Solicita al equipo de backend la clave pública o expón /push/public-key.');
+  return null;
+};
+
+const subscribeToPush = async (registration?: ServiceWorkerRegistration): Promise<boolean> => {
   const swRegistration = registration || await navigator.serviceWorker.ready;
-  const serverKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+  const vapidKey = await ensureVapidPublicKey();
+  if (!vapidKey) return false;
+
+  const serverKey = urlBase64ToUint8Array(vapidKey);
   let subscription = await swRegistration.pushManager.getSubscription();
 
   if (!subscription) {
