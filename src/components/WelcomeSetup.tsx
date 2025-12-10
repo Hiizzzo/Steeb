@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+const steebIcon = '/Steebwhitesupremo.png';
 
 interface WelcomeSetupProps {
   onComplete: (name: string, nickname: string) => void;
@@ -36,7 +37,7 @@ const WelcomeSetup: React.FC<WelcomeSetupProps> = ({ onComplete }) => {
       >
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <img src="/lovable-uploads/ChatGPT Image Aug 28, 2025, 12_08_57 AM.png" alt="STEEB" className="w-24 h-24 rounded-2xl" />
+            <img src={steebIcon} alt="STEEB" className="w-24 h-24 rounded-2xl" />
           </div>
           <h1 className="text-2xl font-bold text-center mb-2">¡Bienvenido a STEEB!</h1>
           <p className="text-gray-600 dark:text-gray-400 text-center mb-8">

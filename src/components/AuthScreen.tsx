@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+const steebIcon = '/Steebwhitesupremo.png';
 
 // Definir tipos globales para la comunicación con el WebView
 declare global {
@@ -177,7 +178,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
           <div className="mb-8 flex justify-center">
             <img
-              src="/Steebblack.png"
+              src={steebIcon}
               alt="STEEB"
               className="w-40 h-40 object-contain"
             />
