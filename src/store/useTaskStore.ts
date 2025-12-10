@@ -345,25 +345,30 @@ export const useTaskStore = create<TaskStore>()(
             // En este caso, pasamos newTask que ya tiene todos los datos.
             FirestoreTaskService.createTask(newTask)
               .then((savedTask) => {
-                // Verificar si la tarea aún existe localmente (podría haber sido eliminada mientras se creaba)
+                // Verificar si la tarea aún existe con el ID temporal o ya llegó por el listener en tiempo real
                 const currentTasks = get().tasks;
-                const taskExists = currentTasks.some(t => t.id === newTask.id);
+                const hasTempId = currentTasks.some(t => t.id === newTask.id);
+                const hasSavedId = currentTasks.some(t => t.id === savedTask.id);
 
-                if (!taskExists) {
-                  // La tarea fue eliminada localmente mientras se creaba en el servidor.
-                  // Debemos eliminarla ahora del servidor usando el ID real que acabamos de recibir.
-                  console.log('🗑️ Tarea eliminada localmente durante creación, eliminando remoto:', savedTask.id);
-                  FirestoreTaskService.deleteTask(savedTask.id).catch(err =>
-                    console.error('❌ Error eliminando tarea huérfana:', err)
-                  );
+                if (hasTempId) {
+                  // Actualizar el ID local con el ID real de Firestore para evitar errores de eliminación
+                  set(state => ({
+                    tasks: state.tasks.map(t => t.id === newTask.id ? { ...t, id: savedTask.id } : t)
+                  }));
+                  console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
                   return;
                 }
 
-                // Actualizar el ID local con el ID real de Firestore para evitar errores de eliminación
-                set(state => ({
-                  tasks: state.tasks.map(t => t.id === newTask.id ? { ...t, id: savedTask.id } : t)
-                }));
-                console.log('✅ Tarea sincronizada con Firebase:', newTask.title);
+                if (!hasSavedId) {
+                  // La tarea fue reemplazada por el listener en tiempo real (ID nuevo). No eliminar el doc remoto; solo asegurarse de tenerla en estado.
+                  set(state => ({
+                    tasks: [...state.tasks, savedTask],
+                  }));
+                  console.log('ℹ️ Tarea recibida desde Firestore añadida al estado actual:', savedTask.title);
+                } else {
+                  // Ya llegó por snapshot con el ID definitivo, no es necesario modificar el estado.
+                  console.log('ℹ️ Tarea ya sincronizada por listener en tiempo real:', savedTask.title);
+                }
               })
               .catch((error) => {
                 console.error('❌ Error al sincronizar con Firebase:', error);
