@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import steebIcon from '../../assets/steeb-icon.png';
 
 interface AuthScreenProps {
   onComplete: () => void;
@@ -128,7 +129,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onComplete, onSkip }) => {
 
           <div className="mb-8 flex justify-center">
             <img
-              src="/assets/steeb-icon.png"
+              src={steebIcon}
               alt="STEEB"
               className="w-32 h-32 object-contain"
             />
