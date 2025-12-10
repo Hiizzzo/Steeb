@@ -72,8 +72,6 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
   const { tipoUsuario } = useFirebaseRoleCheck();
   const { userProfile } = useUserRole();
   const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [isTestingNotification, setIsTestingNotification] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState<'idle' | 'granted' | 'denied'>('idle');
 
   const getBrowserNotificationPermission = (): 'idle' | 'granted' | 'denied' => {
     if (typeof window === 'undefined' || typeof Notification === 'undefined') return 'denied';
@@ -349,39 +347,18 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
     [scrollToBottom, appendTranscript]
   );
 
-  const handleTestNotification = useCallback(async () => {
-    setIsTestingNotification(true);
-
-    try {
-      const granted = await notificationService.requestPermission();
-      setNotificationPermission(granted ? 'granted' : 'denied');
-
-      if (granted) {
-        sendCheerfulNotification();
-      }
-    } catch (error) {
-      console.error('No se pudo probar la notificación', error);
-      setNotificationPermission('denied');
-    } finally {
-      setIsTestingNotification(false);
-    }
-  }, [sendCheerfulNotification]);
-
   useEffect(() => {
     let isMounted = true;
 
     const ensureNotificationPermission = async () => {
       const currentPermission = getBrowserNotificationPermission();
       if (currentPermission === 'granted') {
-        setNotificationPermission('granted');
         return;
       }
 
-      setIsTestingNotification(true);
       try {
         const granted = await notificationService.requestPermission();
         if (!isMounted) return;
-        setNotificationPermission(granted ? 'granted' : 'denied');
 
         if (granted) {
           sendCheerfulNotification();
@@ -389,10 +366,6 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
       } catch (error) {
         if (!isMounted) return;
         console.error('No se pudo solicitar la notificación de forma automática', error);
-        setNotificationPermission('denied');
-      } finally {
-        if (!isMounted) return;
-        setIsTestingNotification(false);
       }
     };
 
@@ -1649,28 +1622,6 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
                 )}
               </button>
 
-            </div>
-            <div className="mt-3 flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-300">
-              <button
-                type="button"
-                onClick={handleTestNotification}
-                disabled={isTestingNotification}
-                className={`w-full rounded-full px-4 py-2 font-medium transition-colors border ${isShinyMode
-                  ? 'bg-black text-white border-white hover:bg-gray-900'
-                  : isDarkMode
-                    ? 'bg-gray-900 text-white border-gray-700 hover:bg-gray-800'
-                    : 'bg-white text-black border-gray-200 hover:bg-gray-100'
-                  } disabled:opacity-60 disabled:cursor-wait`}
-              >
-                {isTestingNotification ? 'Enviando noti...' : 'Probar notificación alegre (PWA/Android/iOS)'}
-              </button>
-              <p className="text-center">
-                {notificationPermission === 'granted'
-                  ? 'Listo: las notificaciones están activas. Fijate si vibra o aparece el aviso 🎉'
-                  : notificationPermission === 'denied'
-                    ? 'No pude activar las notificaciones. Revisá los permisos del navegador o sistema.'
-                    : 'Tocá el botón para pedir permiso y mandar una noti jovial.'}
-              </p>
             </div>
           </div>
         </div>
