@@ -272,7 +272,9 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/lovable-uploads/te obesrvo.png',
     badge: '/favicon.png',
     tag: data.tag || 'steeb-push',
-    data: data.data || {}
+    data: data.data || {},
+    renotify: true,
+    actions: data.actions || []
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -284,12 +286,18 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Intentar reutilizar una pestaña ya abierta hacia el destino
       for (const client of clientList) {
         if ('focus' in client) {
-          client.focus();
-          return client;
+          const clientUrl = new URL(client.url);
+          if (clientUrl.pathname === targetUrl || targetUrl === '/') {
+            client.focus();
+            return client;
+          }
         }
       }
+
+      // Si no existe una ventana adecuada, abrir una nueva
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }

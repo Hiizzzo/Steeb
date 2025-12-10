@@ -55,10 +55,18 @@ const subscribeToPush = async (registration?: ServiceWorkerRegistration): Promis
 };
 
 export const pushClient = {
+  isSupported(): boolean {
+    return Boolean(
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      'serviceWorker' in navigator &&
+      'PushManager' in window
+    );
+  },
+
   async ensureWebPushSubscription(): Promise<boolean> {
     if (!isWeb) return false;
-    if (typeof Notification === 'undefined') return false;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (!this.isSupported()) {
       console.warn('Push API no soportada en este navegador');
       return false;
     }
