@@ -46,6 +46,7 @@ export class NotificationService {
   private notificationTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private scheduledNotificationIds: Map<string, string> = new Map();
   private initialized = false;
+  private notificationSWRegistration: ServiceWorkerRegistration | null = null;
 
   private constructor() { }
 
@@ -111,6 +112,37 @@ export class NotificationService {
 
       const permission = await Notification.requestPermission();
       return permission === 'granted';
+    }
+  }
+
+  // =============================================================================
+  // REGISTRAR SERVICE WORKER DE NOTIFICACIONES (WEB)
+  // =============================================================================
+  private async ensureNotificationServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+    if (!isWeb || !('serviceWorker' in navigator)) return null;
+
+    if (this.notificationSWRegistration) return this.notificationSWRegistration;
+
+    try {
+      const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+      const existing = existingRegistrations.find((registration) =>
+        registration.active?.scriptURL.includes('notification-sw.js') ||
+        registration.installing?.scriptURL.includes('notification-sw.js') ||
+        registration.waiting?.scriptURL.includes('notification-sw.js')
+      );
+
+      if (existing) {
+        this.notificationSWRegistration = existing;
+        return existing;
+      }
+
+      const registration = await navigator.serviceWorker.register('/notification-sw.js', { scope: '/' });
+      this.notificationSWRegistration = registration;
+      console.log('📱 Notification Service Worker registrado');
+      return registration;
+    } catch (error) {
+      console.error('Error registrando el Notification Service Worker:', error);
+      return null;
     }
   }
 
@@ -594,6 +626,10 @@ export class NotificationService {
     const hasPermission = await this.requestPermission();
 
     if (hasPermission) {
+      if (isWeb) {
+        await this.ensureNotificationServiceWorker();
+      }
+
       console.log('🔔 Servicio de notificaciones STEEB inicializado', isWeb ? '(Web)' : '(Nativo)');
 
       await this.scheduleDailyMotivation();

@@ -529,6 +529,15 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
                   ? action.payload.title.trim()
                   : 'Tarea sugerida por Steeb';
 
+              const scheduledDate =
+                typeof action.payload?.date === 'string' && action.payload.date.trim().length
+                  ? action.payload.date.trim()
+                  : undefined;
+              const scheduledTime =
+                typeof action.payload?.time === 'string' && action.payload.time.trim().length
+                  ? action.payload.time.trim()
+                  : undefined;
+
               const rawSubtasks = Array.isArray(action.payload?.subtasks)
                 ? action.payload.subtasks
                 : [];
@@ -567,14 +576,23 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
                 type: 'extra',
                 status: 'pending',
                 completed: false,
-                scheduledDate:
-                  typeof action.payload?.date === 'string' ? action.payload.date : undefined,
-                scheduledTime:
-                  typeof action.payload?.time === 'string' ? action.payload.time : undefined,
+                scheduledDate,
+                scheduledTime,
                 subtasks: parsedSubtasks.length ? parsedSubtasks : undefined,
               });
 
-              appendAssistantMessage(`Tarea creada: ${title}`);
+              const scheduleLabel = (() => {
+                if (scheduledDate && scheduledTime) return `${scheduledDate} a las ${scheduledTime}`;
+                if (scheduledTime) return `a las ${scheduledTime}`;
+                if (scheduledDate) return `para el ${scheduledDate}`;
+                return null;
+              })();
+
+              appendAssistantMessage(
+                scheduleLabel
+                  ? `Tarea creada: ${title} (programada ${scheduleLabel})`
+                  : `Tarea creada: ${title}`
+              );
               break;
             }
             /* 
