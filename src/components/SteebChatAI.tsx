@@ -574,7 +574,10 @@ const SteebChatAI: React.FC<SteebChatAIProps> = ({ isSleeping = false }) => {
                 subtasks: parsedSubtasks.length ? parsedSubtasks : undefined,
               });
 
-              appendAssistantMessage(`Tarea creada: ${title}`);
+              const createdMessage = parsedSubtasks.length
+                ? `Tarea creada con ${parsedSubtasks.length} subtarea${parsedSubtasks.length > 1 ? 's' : ''}: ${title}`
+                : `Tarea creada: ${title}`;
+              appendAssistantMessage(createdMessage);
               break;
             }
             /* 
